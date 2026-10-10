@@ -186,39 +186,107 @@ Each boss is a large undertaking, since a boss fight may have stages or visible 
 - **Hydra.** A chain-creature body with several head mount points. Severing a head uses the break interaction; regrowing two in its place is a state machine transition that mounts new heads at the same points.
 - **Lich.** A humanoid with a telegraphed area spell: a ground decal fills in over a fixed time before the effect lands, using the same continuous-progress controller as the chest lid.
 
+## Magic
+
+Magic is another system where we have keyframe animation like raining and then it can mix with different animation system
+
+Here, we can create the portal base texture, approve it.
+
+Then define the animation that drives the particles.
+
+Then what gives those particles shape and form. is it models. Is it billboards.
+
+We can even use generative AI to build particles that we animate.
+
 ## Open questions
 
 ### Nature
 
 1. **Coloring vs. `style.md`.** The tree coloring box "updates textures", but `style.md` §5 says color lives in flat paint regions, with no texture noise. Is tree coloring a set of palette-region values chosen by genome, age, and season, or genuinely textures?
+
+
+
 2. **Where does wind come from?** Is wind a global world input that every tree samples, or does the game pass it per instance? The tree example implies per instance.
+
+Wind will be a global property derived from an instance's location. It is passed, and it should be possible to use instanced geometry to mint a new tree form.
+
 3. **Break pieces at every level of detail?** If the body generates break pieces, does it generate them for every LOD, or does a break always swap to the full-detail mesh?
+
+Break can do an inbetween. AT core, we just want it to look reasonable. It doesn't always need to be exact, but we want it informed from the mesh. So, it always picks a mid point of quality.
+
 4. **Water and terrain.** Are water and terrain asset systems at all, or are they part of the game's world renderer?
+
+They are isolated since they are big and different.
 
 ### Crafted things
 
 5. **Shared palette.** Is the chest palette shared across all crafted things (and buildings), or is it per system?
+
+It would be per system.
+
 6. **Interrupted progress.** When the thief is interrupted and the lid reverses, does that reversal happen in the asset's state machine, or does the game drive the progress value directly?
+
+It would be the game logic, the system provides the continous function.
 
 ### Buildings
 
 7. **Hex vs. box.** The world is a hex grid (`spine.md`, `style.md` §2), but buildings use box conformance. Do buildings sit on their own square grid inside the hex world? If so, how do building edges meet hex cells, and how does a capsule standing in a hex cell interact with a box wall?
+
+This is per the game. The terrain may be hex, but it could contain a square house. The point is that the geometry generation has to have a conformance to root on, and it may not be consistent within the same project. However, it should be clear whether things of a shape will work.
+
 8. **Piece dimensions.** What is one box slot in metres? Should a wall be one hex edge long (1 m with a 1 m circumradius)?
+
+This will be a poperty of the conformance. For example, a wood wall conformance shape could be 2 meters high, 1 meter wide, and 8 cm thick. While a stone wall can have 1.5 meters high, 1 meter wide, and 20 cm thick.
+
 9. **Shared walls.** When two rooms share a wall, is that one instance with one health value, or two? Who owns its damage state?
+
+Each wall is independent.
+
 10. **Structural collapse.** Does destroying a wall or column affect the pieces it supports (the floor above, a ceiling), or is every piece independent?
+
+At core, this is a responsibly for the game system as it will be handling a dependency graph. The core responsibility of the system is to fit the box and ensure oreintation and diverity.
+
 11. **Mixed materials.** Can one building mix materials (a stone foundation with wooden upper floors)? If so, who generates the transition piece between them?
+
+Yes, but that will be a property of the game graph. We don't seek perfect transitions, but that would illustrate a system where the generated system can speak two conformance systems and then generate all combinations such that all walls ahre a conformance system but then generate all the permutations based on the input source.
+
 12. **Interior vs. exterior.** Does a wall have distinct interior and exterior faces (plaster inside, stone outside)?
+
+That's a good point. Let's say walls can have a front and back side and that is up to the system to define, but it's a good channel point.
+
 13. **Interactive doodads.** Doodad mounts accept static objects. Can they also accept interactive ones, such as a chest on a pedestal or a lever on a wall?
+
+Yes, as the key is the system is a guidance for the game to mount and whether or not the thing being mounted will fit.
+
 14. **Who builds dungeons?** Does the game assemble dungeons at runtime from pieces and approved rooms, or does the foundry produce finished dungeons?
+
+This will be a game since that requires the larger macro world builder. This project is about minting things that next level or game can leverage.
 
 ### Humanoids and creatures
 
 15. **Normal maps vs. `style.md`.** Skinning produces "textures along with normal mapping" with veins and body hair. `style.md` §4–5 bans fine noise and sets procedural bump to 0 because bumps break the cel bands into speckle. Which wins for skin?
+
+I want it to be possible to have some sense, so maybe we tweak style.md to allow for this since this is a generic pipeline, and I want the ability to tune everything as things go one. style.md is what I had, and I may change it.
+
 16. **Height range vs. size classes.** "Gnome to elf" spans the Small and Medium size classes in `style.md` §2. Is that one capsule system with a height parameter, or one system per size class?
+
+That would one capsule system with a height and maybe a radius parameter.
+
 17. **Faces across races.** The face is interchangeable. Does one face composition fit every race's head mesh, or is the face system per race?
+
+Yes, the key will be coloring and what not. This should be flexible in other games, and we will experiment with it as time progress.
+
 18. **Armor combinations.** Painting armor onto the skin texture makes the cached skin depend on the armor. How many skin and armor combinations do we expect to cache per humanoid, and is there a budget?
+
+Ultiamtely, we want on-demand constructure and shared caching such that everyone can share the same skin and then extend it with armor as a new thing such that if more people use that armor, then it too is shared. The thinking here is that we maximize GPU resources, but also make forking easy so we have a reference counted system for re-use and a timer for releasing resources back. We want to amortize both creation and destruciton of GPU resources to minimize churn and provide reasonable generation budgets, so we will have a fallback texture while something is created being the old one.
+
 19. **A common skeleton interface.** Creatures mix and match locomotion systems (naga, octopod) with mesh and skin systems (reptile, fur). That only works if mesh and skin systems accept any skeleton. Is there a shared skeleton format across locomotion types, or is each mixture approved as its own pairing?
+
+No, the mixtures will need to be approved. This is where the systems can be tested to interlinked and having a common skeletal system. We can have a dynamic meshing system like found in Spore to create a mesh from the skeleton, or we have a skeleton fixed as a channel. Both models are considered valid based on optimization.
 
 ### Bosses
 
 20. **Stage transitions.** Are boss stages just states in the asset's state machine, or does a stage change swap in a different asset system (for example, a forked version of the dragon)?
+
+These are just parameters that feed the system, so they are likely part of the control system and the hard part is doing the tweening for state changes. It can have forking, and we could simply have a transition animation and change the entire instance (like, a JRPG radical transformation)
+

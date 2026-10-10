@@ -8,6 +8,8 @@ This document defines an asset system and describes its invariants, so that AI-d
 
 Starting the foundry requires a set of fundamental units. For example, a game with a hex grid defines the hex cell as its foundational unit. The hex cell then defines the conformance size of a player, which is a capsule. Other games may use different grids to define a unit of size, but the goal is the same: a defined size, so that every model can always be put into perspective against a conformance size and a base unit. The base unit may also be an expanded footprint, such as a group of hex cells; for example, a unit can occupy three adjacent hex cells, with the capsule's base being the circle inscribed in that footprint. Each asset system produces assets within a set of conformance sizes. (See `style.md` §2 for the concrete scale, yardsticks, and size classes.)
 
+The capsule is only the most common conformance shape. In general, a conformance is a union of simple shapes: capsules, boxes, and spheres. Some regions of it may be unbounded and non-colliding; a tree's conformance, for example, is a colliding stump with an unbounded, purely visual canopy above it. Conformance shapes also define mount points: a pedestal can expose a sphere, and any object whose conformance fits inside that sphere can be placed there.
+
 This provides a geometric baseline that works well in a game: it can be used to define a hit box or a movement capsule, keeping the world tidy for traditional game logic. Beyond making assets fit within the world and within other asset systems, the conformance shape is also the outermost bounding shell used for performance optimizations such as visibility culling, and for other interaction concerns.
 
 ## Layer 2: Interactivity capabilities
@@ -28,7 +30,7 @@ Forking buys us three things:
 
 - **Protection.** Existing asset systems, and anything in the game built on them, stay pinned to the versions they were approved against. New work cannot silently break them.
 - **Migration as an experiment.** Because the old and new versions both exist, we can test a specific migration directly: run an asset system against both, compare the outputs, and move dependents over deliberately, one at a time.
-- **Trivial caching.** A final version never changes, so anything derived from it can be cached forever.
+- **Trivial caching.** A final version never changes, so anything derived from it, for a given set of inputs, can be cached forever.
 
 This also means we deliberately set aside the classic DRY ("don't repeat yourself") principle and embrace WET ("write everything twice"). Forking duplicates rather than shares, and that is fine: an agent is not bound by the human limits on reasoning that make duplication expensive, and this mirrors how software is already versioned and evolves organically. Duplication is the price of moving fast without breaking what is already approved.
 
@@ -38,7 +40,7 @@ The UI stays very simple: the foundry exposes an MCP server and hands the work o
 
 ## Moving fast
 
-At its core, we want a very lean communication boundary, so we use simple byte arrays between each runtime layer. This requires distinguishing between **runtime layers** and **validation layers**. Conformance is a validation layer: it is ultimately about the AI validating assets, and it passes requirements forward into the final blobs for the runtime to act on. Similarly, the interactivity capabilities layer forwards its capabilities to the agent and to validation, which together shape how the final blob is manifested. Runtime layers such as animation, mesh generation, skinning, and mounting, on the other hand, need to pass information between each other at runtime. Since we want these boundaries to be versioned and rigid, we pass a binary blob between layers, with generated code to pack and unpack it. This keeps communication very simple, and it also opens the door to thinking about how the system can be updated in real time by the agent.
+At its core, we want a very lean communication boundary, so we use simple byte arrays between each runtime layer. This requires distinguishing between **runtime layers** and **validation layers**. Conformance is a validation layer: it is ultimately about the AI validating assets, and it passes requirements forward into the final blobs for the runtime to act on. The interactivity capabilities layer is a hybrid. At build time, it forwards its capabilities to the agent and to validation, which together shape how the final blob is manifested. At runtime, it becomes a per-instance state machine, controlled entirely by the runtime, which decides which interaction path to invoke (a tree switching from wind simulation to breaking, or a chest lid advancing and reversing). Runtime layers such as animation, mesh generation, skinning, and mounting, on the other hand, need to pass information between each other at runtime. Since we want these boundaries to be versioned and rigid, we pass a binary blob between layers, with generated code to pack and unpack it. This keeps communication very simple, and it also opens the door to thinking about how the system can be updated in real time by the agent.
 
 We want to run Claude in this directory and use the foundry while it builds itself. This is the true power of agentic development, and it means we must enforce exceptionally strong boundaries. We do this by using WebAssembly as the runtime and C++ as the language. This keeps the human in the loop and makes boundary enforcement easy to validate (for example, by running Claude as a separate user without permission to modify the host). Asset systems are therefore, in spirit, C++ artifacts with parameters that control instancing. We intentionally blur the line between code and static art assets: each layer is a black box behind a strong communication boundary. This gives Claude complete control over each system, while the human operator can probe it and give targeted feedback, so that progress and motion happen together. The key is protecting forward velocity while ensuring the final artifacts can be approved and tested in a variety of ways.
 
@@ -46,7 +48,7 @@ For the final game runtime, the generated code for each WebAssembly module is me
 
 ### Shared libraries
 
-Not every stage belongs to an asset system. The host also exposes shared libraries at various levels of the pipeline: general-purpose stages that many asset systems need and that can run automatically, without per-system design or approval. For example, after meshing, a mesh needs a level-of-detail adjuster and then a triangle stripifier. These stages exist in the runtime as well, not just in the foundry, so they run whenever an asset is instanced. That cost is why caching matters: because final versions are immutable, the output of each shared stage can be computed once per version and reused. Shared libraries are versioned like everything else, so an asset system stays pinned to the library versions it was approved against. A new library version never flows into an existing asset system automatically: adopting it requires forking the asset system and re-approving the fork, just like any other change.
+Not every stage belongs to an asset system. The host also exposes shared libraries at various levels of the pipeline: general-purpose stages that many asset systems need and that can run automatically, without per-system design or approval. For example, after meshing, a mesh needs a level-of-detail adjuster and then a triangle stripifier. These stages exist in the runtime as well, not just in the foundry, so they run whenever an asset is instanced. That cost is why caching matters: because final versions are immutable, the output of each shared stage can be computed once per version and set of inputs, then reused. To get more out of the cache, the runtime collapses inputs where it can: it ties level of detail to the graphics settings, shares meshes between instances with the same parameters, and caps how many distinct variants it generates (see the tree example in `systems.md`). Shared libraries are versioned like everything else, so an asset system stays pinned to the library versions it was approved against. A new library version never flows into an existing asset system automatically: adopting it requires forking the asset system and re-approving the fork, just like any other change.
 
 ## Full fidelity
 
@@ -54,4 +56,31 @@ The agentic workflow starts with the coding harness being able to ship these Web
 
 ## What's next?
 
-This is the hosting spine. The application runs on SDL3 with a good UI, so that assets can be experimented with in a slower version of the runtime system, where the space of possible outputs is constrained and versioned. Next, we will outline the complexities of the various asset systems.
+This is the hosting spine. The application runs on SDL3 with a good UI, so that assets can be experimented with in a slower version of the runtime system, where the space of possible outputs is constrained and versioned. The individual asset systems are described in `systems.md`.
+
+## Open questions
+
+1. **Who owns level of detail?** This document makes LOD a shared library stage that runs automatically after meshing. `systems.md` instead makes it an input to the mesh black boxes themselves: the tree body takes distance to the viewer, the humanoid body mesh takes an LOD parameter because "this is the best place to think about level of detail", and hands have their own independent LOD. Is the shared LOD adjuster a default that a system can opt out of, or should each mesh black box own its LOD?
+
+At core, LOD is a shared reponsibly from a common pool of quality sliders in the config. The thread or pipeline instance between shared system will define if there is an automatic step OR if that isn't needed because a generator controls that directly.
+
+2. **The merged build.** Humans approve asset systems running in sandboxed WebAssembly modules, but the game ships a merged build where that isolation is gone and C++ undefined behavior may act differently. Is the game build native or a single merged WebAssembly module, and does it get its own stress test?
+
+the game build will be native, and the goal is to induce no undefined behavior. The idea is that we leverage WebAssembly to provide an easy to instrument box that can be done at run-time, and then the generate code is next to and we enforce the code generation of the boundary.
+
+
+3. **Two agent roles.** "Use the foundry while it builds itself" means an agent edits the host, while the sandbox relies on running Claude as a user who cannot modify the host. Are these two separate roles: one that builds the host and one, sandboxed, that builds asset systems?
+
+The agent has full control. At core, we want the agent to know the system as it will be building it. It also needs to fight very hard to ensure it can reasonable fit things within a boundary and update things at runtime. This means that we needed to define flow.md that outlines how packages function. The preview is this systems/$name_$version/* defines a namespace/package that is an independent black box. channels/$channel.h and packer/$channel_boundary.{h,cpp} defines how the structure in channels/$channel.h packs in and out of a byte[]. When native, we don't need the packers. Systems are free to share channels. The agent can create channels, but this will require a host restart and it will need to provide a good reason as this can invalidate prior builds. Similarly, we have disk/$disk.{h,cpp} that defines a file format of a channel that can be put to and from disk. The static mesh will use this to define an optimal format that just packs bytes in a file and we serialize a structure like that way (like Cap'n'Proto style) to minimize loading, but it will require endian tweaking. This should bias towards a format that can be uploaded directly to GPU.
+
+4. **Versioning communication boundaries.** When the boundary between two layers changes, do both layers fork? Is the boundary itself a versioned artifact with its own namespace and generated pack/unpack code?
+
+The boundary itself is a channel as described in the previous answer, and it can be upgrade but this requires consent from the user as it will require describing
+
+5. **Branching vs. forking.** `systems.md` describes pipelines that branch at runtime based on the interaction (a tree's break path). That is a different thing from forking a version. Should the docs reserve "fork" for versioning only and use another word, such as "interaction path", for runtime branches?
+
+I think we need systems that operate, and this changes a few statement, so those statement should adust. At core, a system is a black box the agentic can make that has a fixed role of taking a channel into another channel. It's single function. An pipeline then is a sequence of systems that builds parameters at the high end to manipulate and a state machine. Each pipeline may have a wide girth of instances or leverage disk inputs that load up based on name, but this also allows branching and re-use at the boundary level.
+
+6. **A time source.** The 100x-speed stress test only means something if asset systems cannot read wall-clock time. Does the host provide the only clock?
+
+The time should be part of the state machine constructured. At core, each pipeline instance has a refined state machine for all the parameters needed, and these are what the game manages. These are dynamic property bags both during development (communicated via the boundry) versus a runtime bag. As a part of construction, these properties should be internally cached during the function evaluation to handle the overhead.
