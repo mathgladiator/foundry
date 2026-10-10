@@ -182,6 +182,7 @@ Meshy output is a reference for structure; the style layer and paint regions mak
 | Bark, leaf and rock textures (tileable, patterned) vs "no high-frequency albedo noise" | Allowed at low contrast, faded toward the mean colour with distance (afrt already does this in cel). New generators prefer paint regions. |
 | Armour procedural surfaces (mail lattice, scales, rivets, stitching) | Same as above: legacy, fade with distance; v2 gear uses geometry + flat regions only. |
 | Prop staging background light grey (thing.forge) vs pure white (asset.forge) | Either; it only has to be plain and removable. |
+| Humanoid skin (`systems.md`): textures with normal maps, veins, body hair vs "no high-frequency albedo noise" and procedural `bump` 0 | Allowed and tunable per pipeline. This guide is a starting default for a generic pipeline, not a fixed rule; tune skin detail in play testing until the cel bands stay clean. |
 
 ## 10. Review checklist
 
