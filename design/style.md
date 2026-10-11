@@ -6,6 +6,10 @@ across `forward.asset.notes.md`, `PROMPT.V2.md` §1/§8/§16, `docs/cel.md`, `do
 (style layer), `docs/monsterfy.md`, `docs/magic.md`, thing.forge `docs/trees.md` / `rocks.md` and the Meshy prompt
 constants in both `tools/`. Where those sources disagree, this file says which one wins (§9).
 
+This is the style for the current project. The foundry's pipelines are designed for maximum expression, so they
+support more than this guide allows (textured bark, normal-mapped skin); a project opts in to this style, and another
+project can bring its own.
+
 ---
 
 ## 1. The target in one paragraph
@@ -134,6 +138,12 @@ Humanoids: chunky heroic, **5.5–6.5 heads tall** (head 0.28–0.33 m), big han
 | ink | inverted hull, 3 px at 1080 lines, colour = local albedo × 0.28 saturated +35 % | outlines follow the silhouette, so the silhouette is the drawing |
 | ink by LOD | 1 / 0.8 / 0, fades out below ~75 px tall | LOD2 must read with no ink at all |
 | ink by material | none on elemental surfaces (flame, water, storm, ice) and alpha-cut cards; ½ on leaf cards | |
+| cast shadows | the sun in the world; up to 3 marked lights near the player in total (`submit.md`) | a surface in cast shadow drops into its shadow band, so cast shadows use the same cool tint and never go grey |
+| shadow edge | crisp, matching the cel terminator | shadows read as flat shapes, like the bands, not soft gradients |
+
+Things cast shadows on each other and on the world: a character's shadow falls on the ground and on the wall behind
+them, and a tree's canopy shades whoever stands under it. Ground shadows anchor assets to the world, so they also help
+readability at battle distance (§3).
 
 Intersection lines (arm over chest) are not inked yet, so separate overlapping masses by value, not by relying on
 lines. The v1 `painted` look remains only for comparison.
@@ -182,7 +192,7 @@ Meshy output is a reference for structure; the style layer and paint regions mak
 | Bark, leaf and rock textures (tileable, patterned) vs "no high-frequency albedo noise" | Allowed at low contrast, faded toward the mean colour with distance (afrt already does this in cel). New generators prefer paint regions. |
 | Armour procedural surfaces (mail lattice, scales, rivets, stitching) | Same as above: legacy, fade with distance; v2 gear uses geometry + flat regions only. |
 | Prop staging background light grey (thing.forge) vs pure white (asset.forge) | Either; it only has to be plain and removable. |
-| Humanoid skin (`systems.md`): textures with normal maps, veins, body hair vs "no high-frequency albedo noise" and procedural `bump` 0 | Allowed and tunable per pipeline. This guide is a starting default for a generic pipeline, not a fixed rule; tune skin detail in play testing until the cel bands stay clean. |
+| Humanoid skin (`systems.md`): textures with normal maps, veins, body hair vs "no high-frequency albedo noise" and procedural `bump` 0 | Allowed and tunable per pipeline. The pipelines support both; this guide is opt-in per project (see the top of this file). Tune skin detail in play testing until the cel bands stay clean. |
 
 ## 10. Review checklist
 

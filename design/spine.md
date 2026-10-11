@@ -4,12 +4,16 @@ At its core, the foundry is an AI harness exposed via MCP so that a human can st
 
 This document defines a pipeline and describes its invariants, so that AI-driven work makes steady, linear progress instead of accumulating complexity quadratically and drowning in validation. Asset quality is the macro problem when using AI. We tackle it with phase gates, because when the AI has complete control, fixing one aspect of quality can quietly regress another. We also establish solid communication boundaries between the phases of asset production, which enables a mix-and-match system capable of near-infinite diversity.
 
+At its core, the foundry is a graphics engine with a solid understanding of geometry, which it provides to the game. Game logic, world building, and music belong to the game.
+
+These documents describe the foundry at maximum expression: everything a pipeline could support. Each project then tailors it. `style.md`, for example, is the current project's style, and a project opts in to it rather than every pipeline being bound by it.
+
 ## Vocabulary
 
-- **System.** A black box the agent builds, with one fixed role: it takes one channel in and produces another channel out. It is a single function. Systems are versioned and immutable once final.
+- **System.** A black box the agent builds, with one fixed role: it takes one channel in and produces another channel out. It is a pure function: a clean sandbox of compute between channels. Systems are versioned and immutable once final, and they are private to the runtime: a game never sees one (`api.md`). Each frame, a system takes part in the update phase (CPU state, such as an animator or a timeline), the render phase (producing drawables), or both (`submit.md`).
 - **Channel.** The structure that crosses the boundary between two systems. Channels are shared: any number of systems can read or write the same channel.
-- **Pipeline.** A sequence of systems, plus the parameters that drive it from the top and a state machine. A pipeline is what the game asks for ("a young spruce in autumn"). It can branch and reuse systems at channel boundaries, so different interaction paths (a tree swaying versus a tree breaking) can share most of their systems.
-- **Pipeline instance.** One live asset in the game, with its own parameter values and state.
+- **Pipeline.** A directed acyclic graph (DAG) of systems, plus the parameters that drive it from the top and a state machine. The DAG ultimately produces an object with a specific shape and texture. A pipeline is what the game asks for ("a young spruce in autumn"). It can branch and reuse systems at channel boundaries, so different interaction paths (a tree swaying versus a tree breaking) can share most of their systems.
+- **Pipeline instance.** One live asset in the game, with its own parameter values and state. The instance is the core unit of the engine: it has its own timeline, and it sleeps when nothing is happening to it (`submit.md`).
 
 The concrete package layout (directories, generated packers, disk formats) is described in `flow.md`.
 
@@ -18,6 +22,12 @@ The concrete package layout (directories, generated packers, disk formats) is de
 Starting the foundry requires a set of fundamental units. For example, a game with a hex grid defines the hex cell as its foundational unit. The hex cell then defines the conformance size of a player, which is a capsule. Other games may use different grids to define a unit of size, but the goal is the same: a defined size, so that every model can always be put into perspective against a conformance size and a base unit. The base unit may also be an expanded footprint, such as a group of hex cells; for example, a unit can occupy three adjacent hex cells, with the capsule's base being the circle inscribed in that footprint. Each pipeline produces assets within a set of conformance sizes. (See `style.md` §2 for the concrete scale, yardsticks, and size classes.)
 
 The capsule is only the most common conformance shape. In general, a conformance is a union of simple shapes: capsules, boxes, and spheres. Some regions of it may be unbounded and non-colliding; a tree's conformance, for example, is a colliding stump with an unbounded, purely visual canopy above it. Conformance shapes also define mount points: a pedestal can expose a sphere, and any object whose conformance fits inside that sphere can be placed there.
+
+Beyond collision and mounting, conformance shapes do two more jobs:
+
+- **Sensors.** Invisible shapes that collide with nothing but report overlaps to the game, such as a fireball's blast sphere. A sensor can also be just an origin and an outward direction, such as a monster's eye, from which the game builds its own geometry (a vision cone). Sensors are how the game learns that something happened.
+- **Mount surfaces.** Planes that the game can treat as walkable (an ice bridge spell) and that effects can mount on (fire spreading across a floor).
+- **Sound volumes.** Rough room volumes and walls that the audio layer uses to muffle sounds and add reverb (`sounds.md`). Precision isn't needed.
 
 Conformance shapes do not have to share one grid, even within a project. The terrain may be hex while a house on it is built from boxes. What matters is that every piece of generated geometry has a conformance to root on, and that it is always clear whether things of one shape fit with things of another.
 
@@ -36,6 +46,10 @@ Each pipeline instance has a state machine that holds every parameter the pipeli
 Time is one of those parameters. Systems never read a clock; they receive time from the state machine like any other input. This keeps every system deterministic for a given set of inputs, which is what makes caching, replaying play tests, and running at 100x speed meaningful.
 
 The state machine also decides which interaction path is active, but continuous progress belongs to the game. A system provides a continuous function (lid angle as a function of progress, for example), and the game decides how fast progress moves and whether it reverses.
+
+### What a pipeline gives the game
+
+A pipeline defines a thing and provides the hooks to use it: interactions, animation signals, mount points and connections, sensors, drawing, animation, and sound events (`sounds.md`). It does not decide consequences. When a fireball's sensor overlaps a wooden wall, the game lowers the wall's health; the pipelines only make the overlap visible and the damage drawable.
 
 ## Process
 
@@ -57,7 +71,7 @@ The word **fork** is reserved for versioning. When a pipeline takes a different 
 
 ### Channels change rarely
 
-Systems fork freely, but channels are the contract between them. The agent can create or upgrade a channel, but only with the user's consent and a good written reason, because a channel change requires a host restart and can invalidate prior builds.
+Systems fork freely, but channels are the contract between them. Channels are versioned, immutable artifacts like systems. The agent can create a channel or propose an upgrade, but an upgrade goes through its own approval workflow: the user sees the change, along with a written reason, and approves it. Approving it invalidates every system and pipeline that depends on the old channel, and they must be forked onto the new one. That is the deliberate cost of changing a contract. A channel change also requires a host restart.
 
 ### The UI
 
@@ -71,15 +85,15 @@ We want to run Claude in this directory and use the foundry while it builds itse
 
 ### The native build
 
-The final game build is native. The generated code for each system is merged, the packers go away, and channels are passed as direct structures. Because pipelines may be pinned to different versions of the same system, a single game build can ship several versions side by side, each in its own isolated C++ namespace (`systems/$name_$version`). This is the main reason the foundry uses C++ rather than C.
+The final game build is native. The generated code for each system is merged, the packers go away, and channels are passed as direct structures. Because pipelines may be pinned to different versions of the same system, a single game build can ship several versions side by side, each in its own isolated C++ namespace (`src/systems/$name_$version`, see `ORG.md`). This is the main reason the foundry uses C++ rather than C internally. The game-facing front door is still a plain C API (`api.md`).
 
-WebAssembly is the development box, not the shipping one: it gives us a container that is easy to instrument at runtime, with the generated boundary code sitting right next to each system. The goal is that no system relies on undefined behavior, so that what we approved in WebAssembly behaves the same natively.
+WebAssembly is the development box, not the shipping one: it gives us a container that is easy to instrument at runtime, with the generated boundary code sitting right next to each system. Avoiding undefined behavior is best effort: the goal is that each system is a clean sandbox of pure compute between channels, so that what we approved in WebAssembly behaves the same natively.
 
 Shared artifacts have their lifetimes managed by a common reference-counting system, which gives us a clear target for automation: verifying that each pipeline operates soundly in isolation (for example, can it run at 100x speed without crashing or leaking memory?). The WebAssembly container also changes the risk calculus of having AI write C++: because each container has a known, predictable topology, its input and output spaces can be studied systematically and given reasonable coverage with traditional unit tests.
 
 ### Shared libraries
 
-Not every stage is specific to one pipeline. The host also exposes shared library systems at various levels of the pipeline: general-purpose stages that many pipelines need and that can run automatically, without per-pipeline design. For example, after meshing, a mesh needs a level-of-detail adjuster and then a triangle stripifier. These stages exist in the runtime as well, not just in the foundry, so they run whenever an asset is instanced. Shared libraries are versioned like everything else, so a pipeline stays pinned to the library versions it was approved against. A new library version never flows into an existing pipeline automatically: adopting it requires forking and re-approval, just like any other change.
+Not every stage is specific to one pipeline. The host also exposes shared library systems at various levels of the pipeline: general-purpose stages that many pipelines need and that can run automatically, without per-pipeline design. For example, after meshing, a mesh needs a level-of-detail adjuster and then a mesh optimizer that orders triangles for the GPU (`submit.md` explains why this replaces a triangle stripifier). These stages exist in the runtime as well, not just in the foundry, so they run whenever an asset is instanced. Shared libraries are versioned like everything else, so a pipeline stays pinned to the library versions it was approved against. A new library version never flows into an existing pipeline automatically: adopting it requires forking and re-approval, just like any other change.
 
 **Level of detail** is a shared responsibility, driven by a common pool of quality sliders in the game's configuration. Each pipeline decides whether it needs the automatic LOD stage or whether one of its generators handles LOD directly (as the humanoid body mesh and hands do in `systems.md`).
 
@@ -95,19 +109,14 @@ The agentic workflow starts with the coding harness being able to ship these Web
 
 ## What's next?
 
-This is the hosting spine. The application runs on SDL3 with a good UI, so that assets can be experimented with in a slower version of the runtime system, where the space of possible outputs is constrained and versioned. The package layout is in `flow.md`, play testing is in `playtest.md`, and the individual pipelines are described in `systems.md`.
+This is the hosting spine. The application runs on SDL3 with a good UI, so that assets can be experimented with in a slower version of the runtime system, where the space of possible outputs is constrained and versioned. The other documents:
 
-## Open questions
-
-1. **Proving there is no undefined behavior.** The native build relies on systems never invoking undefined behavior. How do we check that? Options include building the native merge with sanitizers in CI, or replaying recorded play tests (`playtest.md`) against both the WebAssembly and native builds and comparing outputs.
-
-We just need best effort. Like, the goal is a clean sandbox of pure compute between channels.
-
-
-2. **Old channel versions.** When a channel is upgraded, do final systems built against the old channel keep working (the old channel stays alongside the new one), or are they invalidated and must be forked onto the new channel?
-
-I want an approval workflow for a channel update such that I can see the change, but it will also invalidate everything that depends on the channel. This is the cost of these kind of changes.
-
-3. **Pipeline shape.** A pipeline is described as a sequence of systems, but interaction paths make it branch. Is a pipeline a directed acyclic graph of systems, with the state machine choosing which branch is live?
-
-A pipeline is a DAG towards, ultimately, with the goal of producing an object in a system at a specific shape and texture.
+- `flow.md`: the package layout, manifests, and disk formats.
+- `submit.md`: the engine that updates, sleeps, and draws pipeline instances, and the mega shader.
+- `playtest.md`: how humans and the agent play test and approve.
+- `systems.md`: the individual pipelines.
+- `api.md`: the generated front door a game uses to drive the runtime.
+- `sounds.md`: how pipelines fire sound events.
+- `third.party.md`: outside services for producing assets, including Meshy.
+- `style.md`: the house style.
+- `future.md`: ideas deliberately deferred, with what they would cost.

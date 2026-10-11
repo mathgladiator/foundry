@@ -1,0 +1,7 @@
+# Future
+
+Ideas we are deliberately not doing yet, recorded so they aren't lost. Each entry says what would change and what it would cost.
+
+## Sharing meshes between the outputs of one system
+
+Today a system takes one channel in and puts one channel out, and a tree's body system outputs the entire tree as one mesh; the quality slider limits how many distinct trees exist, and anything beyond that shares whole meshes. A richer model would let one system share pieces across its own outputs: the body system would output a small library of parts (branch clusters, leaf cards) plus a list of where each part goes, so a forest of thousands of distinct-looking trees costs only a few dozen meshes. That hints that "one thing in, one thing out" isn't exactly the right shape for a system: the output would be a composition of shared resources rather than a finished mesh. The cost is high. It changes the system contract in `spine.md` and every channel that carries a mesh, and under the channel rules, upgrading those channels invalidates every system and pipeline downstream of them. The renderer in `submit.md` would also have to draw composite instances (instancing parts within an instance), and caching, reference counting, culling, and level of detail would all move from whole meshes to parts. It is worth revisiting once whole-tree pipelines work and the crowd play tests (`playtest.md`) show where memory actually goes.
