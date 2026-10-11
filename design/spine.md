@@ -11,7 +11,7 @@ These documents describe the foundry at maximum expression: everything a pipelin
 ## Vocabulary
 
 - **System.** A black box the agent builds, with one fixed role: it takes one channel in and produces another channel out. It is a pure function: a clean sandbox of compute between channels. Systems are versioned and immutable once final, and they are private to the runtime: a game never sees one (`api.md`). Each frame, a system takes part in the update phase (CPU state, such as an animator or a timeline), the render phase (producing drawables), or both (`submit.md`).
-- **Channel.** The structure that crosses the boundary between two systems. Channels are shared: any number of systems can read or write the same channel.
+- **Channel.** The structure that crosses the boundary between two systems. Channels are shared: any number of systems can read or write the same channel. A channel is written as a JSON schema, not C++: a schema is easier to diff, approve, and generate from, and the host generates everything else from it (the C++ structure, the packer, the disk format, and JSON conversion; `flow.md`).
 - **Pipeline.** A directed acyclic graph (DAG) of systems, plus the parameters that drive it from the top and a state machine. The DAG ultimately produces an object with a specific shape and texture. A pipeline is what the game asks for ("a young spruce in autumn"). It can branch and reuse systems at channel boundaries, so different interaction paths (a tree swaying versus a tree breaking) can share most of their systems.
 - **Pipeline instance.** One live asset in the game, with its own parameter values and state. The instance is the core unit of the engine: it has its own timeline, and it sleeps when nothing is happening to it (`submit.md`).
 
@@ -105,13 +105,14 @@ Generation is on demand, and the cache is shared and layered. For example, every
 
 ## Full fidelity
 
-The agentic workflow starts with the coding harness being able to ship these WebAssembly blobs and to define the channels between them. The host provides code generation for unpacking the input byte array into C++ structures and for packing the output back into a byte array for the host runtime. As a key requirement, the host must have good ways of visualizing output, so that the agent can pilot it, take screenshots, and feed what it sees back into the system. We can also run collision detection to catch problems that break physics at a precise level, giving the agent deeper insight. The goal is to give the agent enough detail to get things right before a human inspects the result and approves it, rejects it, or provides feedback.
+The agentic workflow starts with the coding harness being able to ship these WebAssembly blobs and to define the channels between them, as JSON schemas. The host provides code generation for unpacking the input byte array into C++ structures and for packing the output back into a byte array for the host runtime. As a key requirement, the host must have good ways of visualizing output, so that the agent can pilot it, take screenshots, and feed what it sees back into the system. We can also run collision detection to catch problems that break physics at a precise level, giving the agent deeper insight. The goal is to give the agent enough detail to get things right before a human inspects the result and approves it, rejects it, or provides feedback.
 
 ## What's next?
 
 This is the hosting spine. The application runs on SDL3 with a good UI, so that assets can be experimented with in a slower version of the runtime system, where the space of possible outputs is constrained and versioned. The other documents:
 
 - `flow.md`: the package layout, manifests, and disk formats.
+- `transforms.md`: asset-pipeline transforms, which run in the foundry and bake their results, as opposed to runtime systems.
 - `submit.md`: the engine that updates, sleeps, and draws pipeline instances, and the mega shader.
 - `playtest.md`: how humans and the agent play test and approve.
 - `systems.md`: the individual pipelines.

@@ -1,0 +1,12 @@
+{
+  "approved_at": "2026-10-11T04:29:38Z",
+  "approved_by": "human",
+  "doc": "Tiny size class (style.md section 2): 0.3 to 0.7 m tall, footprint radius up to 0.25 m. Anything under 0.6 m is a speck in battle, so tiny props come in groups.",
+  "height": 0.7,
+  "kind": "conformance",
+  "name": "prop_tiny",
+  "notes": [],
+  "radius": 0.25,
+  "shape": "capsule",
+  "state": "final"
+}

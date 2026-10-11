@@ -116,7 +116,7 @@ On modern GPUs, the number of triangles is rarely the bottleneck. The costs are 
 - **GPU skinning for crowds.** The update phase samples animations on the CPU and writes bone matrices into one storage buffer. Each instance has an offset into it, so skinned characters can be instanced too. Sleeping instances keep their last pose, so their bones aren't re-uploaded.
 - **Streaming without stalls.** Upload per-frame data through transfer buffers mapped with cycling turned on, so the CPU writes into a fresh buffer while the GPU still reads last frame's.
 - **Mesh optimization.** Use indexed triangle lists, reordered for the GPU's vertex cache, overdraw, and vertex fetch (the `meshoptimizer` library does all three). Triangle strips rarely beat an optimized indexed list on modern GPUs and make batching harder, which is why the shared library stage in `spine.md` is a mesh optimizer rather than a stripifier.
-- **Level of detail.** LOD meshes are just more meshes in the shared buffers; the sort key's mesh field changes, nothing else does.
+- **Level of detail.** LOD meshes are just more meshes in the shared buffers; the sort key's mesh field changes, nothing else does. Each fixed asset's manifest gives every LOD a switch distance (where fewer than its switch threshold, 10% by default, of its pixels visibly disagree with the full mesh); the engine picks the LOD by camera distance times the quality factor from the game's settings (`transforms.md`).
 - **Later: GPU-driven culling.** Once the CPU culler becomes a bottleneck, a compute shader can cull instances and write indirect draw commands, so the CPU no longer touches each instance per frame. This is an optimization, not a starting point.
 
 ## Shadows

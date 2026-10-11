@@ -1,0 +1,31 @@
+{
+  "approved_at": "2026-10-11T04:31:50Z",
+  "approved_by": "human",
+  "kind": "concept",
+  "name": "gargoyle_statue_concept",
+  "notes": [
+    {
+      "author": "agent",
+      "text": "Sizing plan: fit to prop_medium (capsule r 0.28 m, h 1.48 m, 80% of the hero), pedestal included, at full height (1.48 m, about four-fifths of a hero). The folded wings are the widest part; if the footprint exceeds 0.28 m, fit scales it down to stay inside the capsule. Next step after approval: Meshy image-to-3D (about 30 credits).",
+      "time": "2026-10-11T04:31:35Z"
+    },
+    {
+      "author": "agent",
+      "text": "Update: prop_medium is now twice as wide (radius 0.56 m, 1.12 m across; still 1.48 m tall), so the folded wings should fit without scaling the statue down.",
+      "time": "2026-10-11T04:31:43Z"
+    }
+  ],
+  "provenance": {
+    "ai_model": "nano-banana",
+    "aspect_ratio": "",
+    "cost_credits": 3,
+    "created_at": "2026-10-11T04:31:22Z",
+    "license": "Meshy-generated; check Meshy's terms for your plan before shipping",
+    "pose_mode": "",
+    "prompt": "A stone gargoyle statue: a crouching winged gargoyle with folded bat wings, curled horns, a grinning fanged face, clawed hands resting on its knees, perched on a short square stone pedestal that is part of the statue. Weathered grey-blue stone with mossy green accents on the pedestal edges. Compact, upright silhouette, taller than wide, wings folded close to the body. Style: stylized storybook fantasy, cel-shaded, hand-painted look, chunky readable shapes, bold silhouette, simplified masses, clear joint and part separation, saturated but not neon colours. Texture: flat even matte albedo, clean colour regions, no baked lighting or shadows, no dirt, no fine noise. Staging: single subject centred, whole subject in frame with a generous margin, plain light grey background, no floor, no cast shadow, even flat lighting, orthographic camera, front three-quarter view, no text, no labels. Nothing else in the scene: no plants, no people, no building.",
+    "service": "meshy",
+    "task_id": "01a1293a-a08e-726e-a608-5d926a50f12f",
+    "type": "text-to-image"
+  },
+  "state": "final"
+}

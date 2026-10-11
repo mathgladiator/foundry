@@ -1,0 +1,970 @@
+{
+  "approved_at": "2026-10-11T04:29:32Z",
+  "approved_by": "human",
+  "concept": "garden_gnome_concept",
+  "conformance": "prop_tiny",
+  "fit": {
+    "centred": true,
+    "conformance": {
+      "height": 0.699999988079071,
+      "name": "prop_tiny",
+      "radius": 0.25,
+      "shape": "capsule"
+    },
+    "fits": true,
+    "grounded": true,
+    "height": 0.6000000238418579,
+    "max_radius": 0.16252942729047978,
+    "report": "height 0.600 m of 0.700 m; footprint radius 0.163 m of 0.250 m; fits",
+    "volume_m3": 0.013232614757511177
+  },
+  "kind": "mesh",
+  "lod_thresholds": [
+    0.04699999809265137,
+    0.11699999809265137,
+    0.30200000762939455
+  ],
+  "name": "garden_gnome_mesh",
+  "notes": [],
+  "ops": [
+    {
+      "conformance": "prop_tiny",
+      "height": 0.6,
+      "op": "fit"
+    }
+  ],
+  "perf": {
+    "device": "Radeon 8060S Graphics (RADV GFX1151)",
+    "driver": "vulkan",
+    "fps_floor": 60.0,
+    "measured_at": "2026-10-11T04:29:02Z",
+    "method": "instanced cel shader, off screen; instance counts double from 1 until FPS < floor, then bisect",
+    "resolution": [
+      1920,
+      1080
+    ],
+    "runs": [
+      {
+        "budget_instances": 32256,
+        "budget_is_lower_bound": false,
+        "budget_triangles": 161344512.0,
+        "device": "Radeon 8060S Graphics (RADV GFX1151)",
+        "driver": "vulkan",
+        "fps_floor": 60.0,
+        "index_count": 15006,
+        "label": "LOD0",
+        "resolution": [
+          1920,
+          1080
+        ],
+        "samples": [
+          {
+            "fps": 68926.69645831658,
+            "frames": 30,
+            "instances": 1,
+            "ms": 0.014508166666666666,
+            "refine": false
+          },
+          {
+            "fps": 64534.03202178669,
+            "frames": 30,
+            "instances": 2,
+            "ms": 0.0154957,
+            "refine": false
+          },
+          {
+            "fps": 53034.548472693394,
+            "frames": 30,
+            "instances": 4,
+            "ms": 0.018855633333333333,
+            "refine": false
+          },
+          {
+            "fps": 40352.302502380786,
+            "frames": 30,
+            "instances": 8,
+            "ms": 0.024781733333333333,
+            "refine": false
+          },
+          {
+            "fps": 28547.312889016615,
+            "frames": 30,
+            "instances": 16,
+            "ms": 0.035029566666666664,
+            "refine": false
+          },
+          {
+            "fps": 17650.36047919552,
+            "frames": 30,
+            "instances": 32,
+            "ms": 0.05665606666666667,
+            "refine": false
+          },
+          {
+            "fps": 10481.92758455509,
+            "frames": 30,
+            "instances": 64,
+            "ms": 0.0954023,
+            "refine": false
+          },
+          {
+            "fps": 6138.498020027463,
+            "frames": 30,
+            "instances": 128,
+            "ms": 0.1629063,
+            "refine": false
+          },
+          {
+            "fps": 3739.398804389555,
+            "frames": 30,
+            "instances": 256,
+            "ms": 0.2674226666666667,
+            "refine": false
+          },
+          {
+            "fps": 2474.306798207414,
+            "frames": 30,
+            "instances": 512,
+            "ms": 0.4041536,
+            "refine": false
+          },
+          {
+            "fps": 1548.3614439213677,
+            "frames": 30,
+            "instances": 1024,
+            "ms": 0.6458440333333333,
+            "refine": false
+          },
+          {
+            "fps": 823.7216457848654,
+            "frames": 30,
+            "instances": 2048,
+            "ms": 1.2140023333333332,
+            "refine": false
+          },
+          {
+            "fps": 429.5930499405357,
+            "frames": 30,
+            "instances": 4096,
+            "ms": 2.3277844,
+            "refine": false
+          },
+          {
+            "fps": 226.7077852118451,
+            "frames": 30,
+            "instances": 8192,
+            "ms": 4.410964533333333,
+            "refine": false
+          },
+          {
+            "fps": 114.94516939170755,
+            "frames": 30,
+            "instances": 16384,
+            "ms": 8.699800133333333,
+            "refine": false
+          },
+          {
+            "fps": 78.80872707143163,
+            "frames": 30,
+            "instances": 24576,
+            "ms": 12.688950033333333,
+            "refine": true
+          },
+          {
+            "fps": 68.394845274753,
+            "frames": 30,
+            "instances": 28672,
+            "ms": 14.6209849,
+            "refine": true
+          },
+          {
+            "fps": 62.996472178659054,
+            "frames": 30,
+            "instances": 30720,
+            "ms": 15.873904766666667,
+            "refine": true
+          },
+          {
+            "fps": 61.75659317299966,
+            "frames": 30,
+            "instances": 31744,
+            "ms": 16.192603066666667,
+            "refine": true
+          },
+          {
+            "fps": 60.8390277463423,
+            "frames": 30,
+            "instances": 32256,
+            "ms": 16.43681756666667,
+            "refine": true
+          },
+          {
+            "fps": 58.005787028551,
+            "frames": 30,
+            "instances": 32768,
+            "ms": 17.239659200000002,
+            "refine": false
+          }
+        ],
+        "triangles": 5002
+      },
+      {
+        "budget_instances": 81920,
+        "budget_is_lower_bound": false,
+        "budget_triangles": 171376640.0,
+        "device": "Radeon 8060S Graphics (RADV GFX1151)",
+        "driver": "vulkan",
+        "fps_floor": 60.0,
+        "index_count": 6276,
+        "label": "LOD1",
+        "resolution": [
+          1920,
+          1080
+        ],
+        "samples": [
+          {
+            "fps": 56817.32094968259,
+            "frames": 30,
+            "instances": 1,
+            "ms": 0.017600266666666663,
+            "refine": false
+          },
+          {
+            "fps": 66028.24688401699,
+            "frames": 30,
+            "instances": 2,
+            "ms": 0.015145033333333332,
+            "refine": false
+          },
+          {
+            "fps": 57057.651050621556,
+            "frames": 30,
+            "instances": 4,
+            "ms": 0.01752613333333333,
+            "refine": false
+          },
+          {
+            "fps": 35163.92837342217,
+            "frames": 30,
+            "instances": 8,
+            "ms": 0.028438233333333333,
+            "refine": false
+          },
+          {
+            "fps": 34978.65136311804,
+            "frames": 30,
+            "instances": 16,
+            "ms": 0.028588866666666667,
+            "refine": false
+          },
+          {
+            "fps": 30870.898929705934,
+            "frames": 30,
+            "instances": 32,
+            "ms": 0.03239296666666667,
+            "refine": false
+          },
+          {
+            "fps": 20086.963159170435,
+            "frames": 30,
+            "instances": 64,
+            "ms": 0.04978353333333333,
+            "refine": false
+          },
+          {
+            "fps": 11031.43149003016,
+            "frames": 30,
+            "instances": 128,
+            "ms": 0.09065006666666667,
+            "refine": false
+          },
+          {
+            "fps": 6190.695714511527,
+            "frames": 30,
+            "instances": 256,
+            "ms": 0.16153273333333334,
+            "refine": false
+          },
+          {
+            "fps": 3839.0570047498095,
+            "frames": 30,
+            "instances": 512,
+            "ms": 0.2604806333333333,
+            "refine": false
+          },
+          {
+            "fps": 2615.9956448904504,
+            "frames": 30,
+            "instances": 1024,
+            "ms": 0.38226363333333335,
+            "refine": false
+          },
+          {
+            "fps": 1898.6102868857101,
+            "frames": 30,
+            "instances": 2048,
+            "ms": 0.5267010333333333,
+            "refine": false
+          },
+          {
+            "fps": 1140.18598029599,
+            "frames": 30,
+            "instances": 4096,
+            "ms": 0.8770498999999999,
+            "refine": false
+          },
+          {
+            "fps": 577.9040356830315,
+            "frames": 30,
+            "instances": 8192,
+            "ms": 1.7303910999999998,
+            "refine": false
+          },
+          {
+            "fps": 286.1840745888804,
+            "frames": 30,
+            "instances": 16384,
+            "ms": 3.4942545333333332,
+            "refine": false
+          },
+          {
+            "fps": 142.83415336007823,
+            "frames": 30,
+            "instances": 32768,
+            "ms": 7.001126666666666,
+            "refine": false
+          },
+          {
+            "fps": 73.52329365357149,
+            "frames": 30,
+            "instances": 65536,
+            "ms": 13.6011317,
+            "refine": false
+          },
+          {
+            "fps": 60.38811526222393,
+            "frames": 30,
+            "instances": 81920,
+            "ms": 16.559549766666667,
+            "refine": true
+          },
+          {
+            "fps": 58.747614362189076,
+            "frames": 30,
+            "instances": 83968,
+            "ms": 17.021967800000002,
+            "refine": true
+          },
+          {
+            "fps": 57.412487508836854,
+            "frames": 30,
+            "instances": 86016,
+            "ms": 17.4178135,
+            "refine": true
+          },
+          {
+            "fps": 54.918630936305156,
+            "frames": 30,
+            "instances": 90112,
+            "ms": 18.2087569,
+            "refine": true
+          },
+          {
+            "fps": 50.34828966423659,
+            "frames": 30,
+            "instances": 98304,
+            "ms": 19.861647866666665,
+            "refine": true
+          },
+          {
+            "fps": 37.48728431316098,
+            "frames": 30,
+            "instances": 131072,
+            "ms": 26.675711999999997,
+            "refine": false
+          }
+        ],
+        "triangles": 2092
+      },
+      {
+        "budget_instances": 344064,
+        "budget_is_lower_bound": false,
+        "budget_triangles": 164462592.0,
+        "device": "Radeon 8060S Graphics (RADV GFX1151)",
+        "driver": "vulkan",
+        "fps_floor": 60.0,
+        "index_count": 1434,
+        "label": "LOD2",
+        "resolution": [
+          1920,
+          1080
+        ],
+        "samples": [
+          {
+            "fps": 72377.05550837643,
+            "frames": 30,
+            "instances": 1,
+            "ms": 0.013816533333333332,
+            "refine": false
+          },
+          {
+            "fps": 77188.68516793686,
+            "frames": 30,
+            "instances": 2,
+            "ms": 0.012955266666666666,
+            "refine": false
+          },
+          {
+            "fps": 73860.5168758971,
+            "frames": 30,
+            "instances": 4,
+            "ms": 0.013539033333333334,
+            "refine": false
+          },
+          {
+            "fps": 59057.32694726771,
+            "frames": 30,
+            "instances": 8,
+            "ms": 0.016932700000000002,
+            "refine": false
+          },
+          {
+            "fps": 58343.85143321671,
+            "frames": 30,
+            "instances": 16,
+            "ms": 0.017139766666666667,
+            "refine": false
+          },
+          {
+            "fps": 52196.970487832885,
+            "frames": 30,
+            "instances": 32,
+            "ms": 0.0191582,
+            "refine": false
+          },
+          {
+            "fps": 41355.46677915353,
+            "frames": 30,
+            "instances": 64,
+            "ms": 0.0241806,
+            "refine": false
+          },
+          {
+            "fps": 30827.344265394662,
+            "frames": 30,
+            "instances": 128,
+            "ms": 0.03243873333333333,
+            "refine": false
+          },
+          {
+            "fps": 19551.208525369646,
+            "frames": 30,
+            "instances": 256,
+            "ms": 0.051147733333333334,
+            "refine": false
+          },
+          {
+            "fps": 11106.55742256786,
+            "frames": 30,
+            "instances": 512,
+            "ms": 0.0900369,
+            "refine": false
+          },
+          {
+            "fps": 6554.398558556669,
+            "frames": 30,
+            "instances": 1024,
+            "ms": 0.15256930000000002,
+            "refine": false
+          },
+          {
+            "fps": 4047.870111943848,
+            "frames": 30,
+            "instances": 2048,
+            "ms": 0.2470435,
+            "refine": false
+          },
+          {
+            "fps": 2660.298031414927,
+            "frames": 30,
+            "instances": 4096,
+            "ms": 0.3758977333333334,
+            "refine": false
+          },
+          {
+            "fps": 1886.6370129253503,
+            "frames": 30,
+            "instances": 8192,
+            "ms": 0.5300436666666666,
+            "refine": false
+          },
+          {
+            "fps": 1252.1639479961286,
+            "frames": 30,
+            "instances": 16384,
+            "ms": 0.7986174666666666,
+            "refine": false
+          },
+          {
+            "fps": 637.384148260482,
+            "frames": 30,
+            "instances": 32768,
+            "ms": 1.5689125666666668,
+            "refine": false
+          },
+          {
+            "fps": 309.5092859233887,
+            "frames": 30,
+            "instances": 65536,
+            "ms": 3.2309208333333337,
+            "refine": false
+          },
+          {
+            "fps": 156.20747170224848,
+            "frames": 30,
+            "instances": 131072,
+            "ms": 6.401742433333333,
+            "refine": false
+          },
+          {
+            "fps": 79.20702363529665,
+            "frames": 30,
+            "instances": 262144,
+            "ms": 12.625143,
+            "refine": false
+          },
+          {
+            "fps": 63.26829644898503,
+            "frames": 30,
+            "instances": 327680,
+            "ms": 15.805704533333333,
+            "refine": true
+          },
+          {
+            "fps": 60.41731374448816,
+            "frames": 30,
+            "instances": 344064,
+            "ms": 16.551546866666666,
+            "refine": true
+          },
+          {
+            "fps": 58.9502270892438,
+            "frames": 30,
+            "instances": 352256,
+            "ms": 16.963463066666666,
+            "refine": true
+          },
+          {
+            "fps": 57.79219917466536,
+            "frames": 30,
+            "instances": 360448,
+            "ms": 17.30337336666667,
+            "refine": true
+          },
+          {
+            "fps": 52.87511448916353,
+            "frames": 30,
+            "instances": 393216,
+            "ms": 18.9124886,
+            "refine": true
+          },
+          {
+            "fps": 39.76366508073839,
+            "frames": 30,
+            "instances": 524288,
+            "ms": 25.148587233333334,
+            "refine": false
+          }
+        ],
+        "triangles": 478
+      }
+    ]
+  },
+  "progressive": {
+    "levels": 4115,
+    "min_triangles": 40,
+    "ms": 88.96839000000001,
+    "report": "8533 vertices (4131 welded), 8268 triangles; 4115 levels down to 40 triangles",
+    "transform": "volume-preserving edge collapse"
+  },
+  "provenance": {
+    "concept": "garden_gnome_concept",
+    "cost_credits": 30,
+    "created_at": "2026-10-11T02:33:53Z",
+    "estimated_credits": 30,
+    "license": "Meshy-generated; check Meshy's terms for your plan before shipping",
+    "progress": 100,
+    "prompt": "A classic garden gnome statue: chunky body, tall pointed red hat, big white beard, round nose, blue coat, brown belt, standing on its own feet with arms at its sides. Style: stylized storybook fantasy, cel-shaded, hand-painted look, chunky readable shapes, bold silhouette, simplified masses, clear joint and part separation, saturated but not neon colours. Texture: flat even matte albedo, clean colour regions, no baked lighting or shadows, no dirt, no fine noise. Staging: single subject centred, whole subject in frame with a generous margin, plain light grey background, no floor, no cast shadow, even flat lighting, orthographic camera, front three-quarter view, no text, no labels. Nothing else in the scene: no base, no plinth, no plants, no people.",
+    "request": {
+      "ai_model": "latest",
+      "input_task_id": "01a128cd-999a-7566-a825-2fcdd122ef92",
+      "should_remesh": true,
+      "should_texture": true,
+      "target_polycount": 8000,
+      "topology": "triangle"
+    },
+    "service": "meshy",
+    "status": "SUCCEEDED",
+    "task_id": "01a128cf-3c63-70b5-a233-861e534f610c",
+    "type": "image-to-3d"
+  },
+  "recommended": {
+    "at": "2026-10-11T04:14:45Z",
+    "lods": [
+      {
+        "boundary_edges": 0,
+        "bounds_max": [
+          0.1628393977880478,
+          0.5998284816741943,
+          0.14916056394577026
+        ],
+        "bounds_min": [
+          -0.16277363896369934,
+          -9.572597264195792e-06,
+          -0.1398577243089676
+        ],
+        "degenerate_triangles": 0,
+        "error": {
+          "color": 0.045213845977961756,
+          "silhouette": 0.0017852738398656347,
+          "total": 0.04699911981782739
+        },
+        "file": "rec_lod0.bin",
+        "gpu_bytes": 196636,
+        "index_count": 15006,
+        "level": 0,
+        "max_error": 0.04699999809265137,
+        "non_manifold_edges": 1,
+        "progressive_level": 1634,
+        "size": [
+          0.32561302185058594,
+          0.5998380780220032,
+          0.28901827335357666
+        ],
+        "surface_area_m2": 0.4746939601625972,
+        "switch": {
+          "curve": [
+            {
+              "disagree": 0.03948101451400088,
+              "distance_m": 1.5195684135141638,
+              "error": 0.04685510951259725,
+              "pixels": 441.39573167548986,
+              "wrong_pixels": 2280.1570493210324
+            },
+            {
+              "disagree": 0.039674742244209166,
+              "distance_m": 3.0391368270283277,
+              "error": 0.04485966974354766,
+              "pixels": 220.69786583774493,
+              "wrong_pixels": 545.7627421000008
+            },
+            {
+              "disagree": 0.024665288884895317,
+              "distance_m": 6.078273654056655,
+              "error": 0.040554973849471945,
+              "pixels": 110.34893291887246,
+              "wrong_pixels": 123.34795296316892
+            },
+            {
+              "disagree": 0.01200817577925396,
+              "distance_m": 12.15654730811331,
+              "error": 0.03465708993960002,
+              "pixels": 55.17446645943623,
+              "wrong_pixels": 26.352384762823363
+            },
+            {
+              "disagree": 0.0037359900373599006,
+              "distance_m": 24.31309461622662,
+              "error": 0.027145161354467873,
+              "pixels": 27.587233229718116,
+              "wrong_pixels": 5.160125516225877
+            },
+            {
+              "disagree": 0.0,
+              "distance_m": 48.62618923245324,
+              "error": 0.020020449089165934,
+              "pixels": 13.793616614859058,
+              "wrong_pixels": 0.9514405610109092
+            },
+            {
+              "disagree": 0.0,
+              "distance_m": 97.25237846490649,
+              "error": 0.01301218228761928,
+              "pixels": 6.896808307429529,
+              "wrong_pixels": 0.15459590792107045
+            },
+            {
+              "disagree": 0.0,
+              "distance_m": 194.50475692981297,
+              "error": 0.008726878622646907,
+              "pixels": 3.4484041537147645,
+              "wrong_pixels": 0.025920704424590397
+            }
+          ],
+          "disagree_share": 0.10100000381469726,
+          "disagree_threshold": 0.25,
+          "distance_m": 0.0,
+          "matches_full_from_m": 0.0,
+          "never_reached": false,
+          "pixels": 441.39573167548986
+        },
+        "triangles": 5002,
+        "vertices": 4879,
+        "volume_m3": 0.013232689214518766,
+        "watertight": false,
+        "welded_vertices": 2497
+      },
+      {
+        "boundary_edges": 0,
+        "bounds_max": [
+          0.16311456263065338,
+          0.5984785556793213,
+          0.14926210045814514
+        ],
+        "bounds_min": [
+          -0.16351035237312317,
+          1.2388886716507841e-05,
+          -0.14029823243618011
+        ],
+        "degenerate_triangles": 0,
+        "error": {
+          "color": 0.11022012919181545,
+          "silhouette": 0.00669477689949613,
+          "total": 0.11691490609131158
+        },
+        "file": "rec_lod1.bin",
+        "gpu_bytes": 79396,
+        "index_count": 6276,
+        "level": 1,
+        "max_error": 0.11699999809265137,
+        "non_manifold_edges": 0,
+        "progressive_level": 3088,
+        "size": [
+          0.32662492990493774,
+          0.598466157913208,
+          0.28956031799316406
+        ],
+        "surface_area_m2": 0.47593522513991976,
+        "switch": {
+          "curve": [
+            {
+              "disagree": 0.12040603563324796,
+              "distance_m": 1.5195684135141638,
+              "error": 0.1169735490159087,
+              "pixels": 441.39573167548986,
+              "wrong_pixels": 5692.400789310181
+            },
+            {
+              "disagree": 0.12468336941003086,
+              "distance_m": 3.0391368270283277,
+              "error": 0.11388785929581063,
+              "pixels": 220.69786583774493,
+              "wrong_pixels": 1385.559696192832
+            },
+            {
+              "disagree": 0.09847331661891118,
+              "distance_m": 6.078273654056655,
+              "error": 0.10543135996940478,
+              "pixels": 110.34893291887246,
+              "wrong_pixels": 320.6694813469447
+            },
+            {
+              "disagree": 0.06259554951588245,
+              "distance_m": 12.15654730811331,
+              "error": 0.09192184521601567,
+              "pixels": 55.17446645943623,
+              "wrong_pixels": 69.89507305612791
+            },
+            {
+              "disagree": 0.03161810291382517,
+              "distance_m": 24.31309461622662,
+              "error": 0.07295523435063167,
+              "pixels": 27.587233229718116,
+              "wrong_pixels": 13.86833407984039
+            },
+            {
+              "disagree": 0.004291845493562232,
+              "distance_m": 48.62618923245324,
+              "error": 0.054112439521140705,
+              "pixels": 13.793616614859058,
+              "wrong_pixels": 2.57160913755546
+            },
+            {
+              "disagree": 0.0,
+              "distance_m": 97.25237846490649,
+              "error": 0.03674704662993669,
+              "pixels": 6.896808307429529,
+              "wrong_pixels": 0.43658649345684547
+            },
+            {
+              "disagree": 0.0,
+              "distance_m": 194.50475692981297,
+              "error": 0.02490920675577335,
+              "pixels": 3.4484041537147645,
+              "wrong_pixels": 0.07398569565203579
+            }
+          ],
+          "disagree_share": 0.10100000381469726,
+          "disagree_threshold": 0.25,
+          "distance_m": 5.573801516474384,
+          "never_reached": false,
+          "pixels": 120.33636463939023
+        },
+        "triangles": 2092,
+        "vertices": 1939,
+        "volume_m3": 0.013232689056701113,
+        "watertight": true,
+        "welded_vertices": 1043
+      },
+      {
+        "boundary_edges": 0,
+        "bounds_max": [
+          0.16205859184265137,
+          0.6151981353759766,
+          0.15634889900684357
+        ],
+        "bounds_min": [
+          -0.16201256215572357,
+          -0.0019638838712126017,
+          -0.14072120189666748
+        ],
+        "degenerate_triangles": 0,
+        "error": {
+          "color": 0.2699919698237851,
+          "silhouette": 0.030960406854511926,
+          "total": 0.300952376678297
+        },
+        "file": "rec_lod2.bin",
+        "gpu_bytes": 17412,
+        "index_count": 1434,
+        "level": 2,
+        "max_error": 0.30200000762939455,
+        "non_manifold_edges": 0,
+        "progressive_level": 3895,
+        "size": [
+          0.32407116889953613,
+          0.6171620488166809,
+          0.29707008600234985
+        ],
+        "surface_area_m2": 0.46650195482054585,
+        "switch": {
+          "curve": [
+            {
+              "disagree": 0.37972102234404376,
+              "distance_m": 1.5195684135141638,
+              "error": 0.30062524617934366,
+              "pixels": 441.39573167548986,
+              "wrong_pixels": 14629.62698007158
+            },
+            {
+              "disagree": 0.3882967287869016,
+              "distance_m": 3.0391368270283277,
+              "error": 0.29816489895591686,
+              "pixels": 220.69786583774493,
+              "wrong_pixels": 3627.4741606976845
+            },
+            {
+              "disagree": 0.38081830180378357,
+              "distance_m": 6.078273654056655,
+              "error": 0.2915341218597352,
+              "pixels": 110.34893291887246,
+              "wrong_pixels": 886.7010316363846
+            },
+            {
+              "disagree": 0.3457553475935829,
+              "distance_m": 12.15654730811331,
+              "error": 0.27806277624830167,
+              "pixels": 55.17446645943623,
+              "wrong_pixels": 211.43198348980238
+            },
+            {
+              "disagree": 0.2755474452554745,
+              "distance_m": 24.31309461622662,
+              "error": 0.24915058180369432,
+              "pixels": 27.587233229718116,
+              "wrong_pixels": 47.36196840974601
+            },
+            {
+              "disagree": 0.16597938144329896,
+              "distance_m": 48.62618923245324,
+              "error": 0.20811338507823016,
+              "pixels": 13.793616614859058,
+              "wrong_pixels": 9.890263448678704
+            },
+            {
+              "disagree": 0.06547619047619048,
+              "distance_m": 97.25237846490649,
+              "error": 0.15446301654467043,
+              "pixels": 6.896808307429529,
+              "wrong_pixels": 1.8351533782055278
+            },
+            {
+              "disagree": 0.01,
+              "distance_m": 194.50475692981297,
+              "error": 0.12016870626654548,
+              "pixels": 3.4484041537147645,
+              "wrong_pixels": 0.356926875107127
+            }
+          ],
+          "disagree_share": 0.10100000381469726,
+          "disagree_threshold": 0.25,
+          "distance_m": 74.18402437078466,
+          "never_reached": false,
+          "pixels": 9.041448174361873
+        },
+        "triangles": 478,
+        "vertices": 417,
+        "volume_m3": 0.0132326891767103,
+        "watertight": true,
+        "welded_vertices": 236
+      }
+    ],
+    "method": {
+      "color_scale": 0.25,
+      "metric": "off-screen renders from 14 views; a pixel counts 1 if it switches between object and background, and min(1, color distance / 0.25) if it stays object but changes color; summed over the full mesh's object pixels",
+      "resolution": 256,
+      "switch": "each LOD's switch distance is the first distance, going outward (game camera: 0.9 rad vertical field of view, 1080 lines), at which under 2% of the object's antialiased pixels visibly disagree with the full mesh (a pixel disagrees above a quarter difference in coverage and color), over 14 views, refined by bisection; LOD0 starts at 0; the game multiplies switch distances by its quality factor",
+      "thresholds": [
+        0.04699999809265137,
+        0.11699999809265137,
+        0.30200000762939455
+      ],
+      "views": 14
+    }
+  },
+  "stamped": {
+    "at": "2026-10-11T04:29:32Z",
+    "fixed": "garden_gnome"
+  },
+  "state": "final",
+  "stats": {
+    "boundary_edges": 4,
+    "bounds_max": [
+      0.16249316930770874,
+      0.6000000238418579,
+      0.14916056394577026
+    ],
+    "bounds_min": [
+      -0.16252711415290833,
+      0.0,
+      -0.1396143138408661
+    ],
+    "degenerate_triangles": 0,
+    "gpu_bytes": 338140,
+    "index_count": 24804,
+    "non_manifold_edges": 3,
+    "size": [
+      0.32502028346061707,
+      0.6000000238418579,
+      0.28877487778663635
+    ],
+    "surface_area_m2": 0.4737235798256417,
+    "topology": "list",
+    "triangles": 8268,
+    "vertices": 8533,
+    "volume_m3": 0.013232614757511177,
+    "watertight": false,
+    "welded_vertices": 4131
+  },
+  "switch_share": 0.10100000381469726
+}

@@ -1,6 +1,6 @@
 # Flow
 
-This document describes how packages are laid out and how data flows between them (the source tree itself is organized in `ORG.md`), using the vocabulary in `spine.md`: systems are black boxes, channels are the boundaries between them, and pipelines compose systems.
+This document describes how packages are laid out and how data flows between them (the source tree itself is organized in `ORG.md`). Paths under `src/` are in the source tree; the others are in the workspace root (`demo/` while developing the foundry), using the vocabulary in `spine.md`: systems are black boxes, channels are the boundaries between them, and pipelines compose systems.
 
 ## Package layout
 
@@ -8,11 +8,17 @@ This document describes how packages are laid out and how data flows between the
 |---|---|
 | `pipelines/$name_$version.json` | A pipeline: the DAG of systems it connects. |
 | `src/systems/$name_$version/*` | One system: an independent black box in its own namespace, plus its JSON manifest. Each version is a separate directory, so forking a system means creating a new directory. |
-| `src/channels/$channel_$version.h` | A channel: the structure that crosses a boundary. Channels are versioned, immutable artifacts. Systems are free to share channels. |
+| `src/channels/$channel_$version.json` | A channel's schema: the structure that crosses a boundary, written as JSON rather than C++ so it's easy to diff, approve, and generate from. `tools/gen_channels.py` generates everything under `src/generated/` from it. Channels are versioned, immutable artifacts. Systems are free to share channels. Its approval state lives beside it in `$channel_$version.manifest.json`. |
+| `src/generated/channels/$channel_$version.h` | The C++ structure generated from the schema. |
 | `src/generated/packer/$channel_boundary.{h,cpp}` | Generated code that packs a channel's structure into a `byte[]` and unpacks it again. Used only in the WebAssembly development build. |
 | `src/generated/disk/$disk.{h,cpp}` | Generated code for a disk format: how a channel is written to and read from a file. |
-| `fixed/$name/*` | A fixed asset: a baked disk-format file with its manifest and provenance sidecar, indexed by conformance size (see "Fixed assets"). |
-| `meshy/concepts/*.png` | Concept art, each with a JSON sidecar recording the prompt and the cost. |
+| `src/generated/json/$channel_$version.{h,cpp}` | Generated conversion between a channel and JSON, so the host's MCP tools can run systems with JSON input and show their output. |
+| `meshy/$name_concept/*` | Meshy concept art: `image.png` and `item.json` (state, notes, provenance). `_` in names acts as a path separator in the workspace tree, so the disk stays flat (`design/transforms.md`). |
+| `meshy/$name_mesh/*` | A Meshy mesh item: `model.glb` (Meshy's model), `thumbnail.png`, and `item.json` (state, notes, provenance, sizing ops, fit, stats, recommended LODs, performance). `model.glb` is committed directly, whatever its size (Meshy deletes results after 3 days, and they cost credits to remake). Working files (`import.bin`, `full.bin`, `progressive.bin`, `rec_*.bin`) are regenerated and not committed. |
+| `meshy/ledger.json` | Every Meshy charge, checked against the credit budget in the workspace's `foundry.json`. |
+| `foundry.json` | The workspace's configuration: MCP address, Meshy keys file, and credit budget. |
+| `fixed/$name/*` | A stamped fixed asset, written when its mesh item is approved: `lod0.bin`, `lod1.bin`, `lod2.bin` (vertex-cache-optimized triangle lists), `thumbnail.png`, and a final `manifest.json` (provenance, sizing ops, fit, stats, LODs with their errors, and the performance budget). This is what the future static system loads. |
+| `conformance/$name.json` | A conformance shape that assets are sized against, such as `prop_small` or `hero`. |
 | `sounds/$pipeline/*` | A pipeline's sound table and audio files (`sounds.md`). |
 
 ## The workspace

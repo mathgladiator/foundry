@@ -6,7 +6,18 @@ A human stays in the loop. An AI agent builds and changes the pipelines through 
 
 ## Status
 
-Design phase, moving into the first milestone. See [`PLAN.md`](PLAN.md) for the current milestone and what it needs to prove.
+First milestone (proof of life) in progress. See [`PLAN.md`](PLAN.md) for the current milestone and what it needs to prove.
+
+## Quick start (Linux)
+
+```sh
+tools/bootstrap.sh
+cmake --preset linux-release
+cmake --build --preset linux-release
+build/linux-release/foundry
+```
+
+The window shows the workspace; an agent connects over MCP at `http://127.0.0.1:7878/mcp` (`claude mcp add --transport http foundry http://127.0.0.1:7878/mcp`). The foundry works on a workspace, `demo/` by default (`--workspace` picks another): the project's data and its `foundry.json`, which sets the MCP address, the Meshy keys file, and the credit budget.
 
 ## Core ideas
 
@@ -23,6 +34,7 @@ Design phase, moving into the first milestone. See [`PLAN.md`](PLAN.md) for the 
 | [`ORG.md`](ORG.md) | How the source tree is organized, and its dependency rules |
 | [`design/spine.md`](design/spine.md) | The core architecture: vocabulary, conformance, interactivity, versioning, builds, caching |
 | [`design/flow.md`](design/flow.md) | Package layout, manifests, disk formats, fixed assets |
+| [`design/transforms.md`](design/transforms.md) | Asset-pipeline transforms vs. runtime systems; Meshy mesh items, LODs, and stamping |
 | [`design/submit.md`](design/submit.md) | The runtime engine: update, sleep, rendering, shadows, transparency, the mega shader |
 | [`design/api.md`](design/api.md) | The generated C API a game uses |
 | [`design/playtest.md`](design/playtest.md) | Play testing, recording, and approval |

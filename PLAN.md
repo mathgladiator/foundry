@@ -7,41 +7,23 @@ This file is how the project is managed. It holds one current milestone, with TO
 - **Maximum progress, then questions.** The agent makes as much progress as it can, then writes its questions at the end of the current milestone. I answer them inline, so questions and answers stay together.
 - **Summaries on request.** As a separate step, I can ask the agent to summarize a finished milestone in a new file and suggest the next current milestone.
 
-# Current milestone: proof of life
+# Current milestone: a complex system
 
-Build the foundry binary so that it shows a workspace UI where I can select things and approve them, with the agent able to drive it end to end.
-
-## To validate
-
-- [ ] **The UI.** Does the workspace look like a good start? It should mirror the project layout (`design/flow.md`, "The workspace"): pipelines, systems, fixed assets, and concept art, each selectable, with approval state and notes.
-- [ ] **MCP.** Does the binary launch an MCP server, and can Claude talk to it?
 - [ ] **The build.** Is the build system set up so that each system compiles to WebAssembly, and the same systems also build into a native static library?
 - [ ] **WebAssembly.** Is everything building and linking, with systems actually running in WebAssembly inside the host?
 - [ ] **The agentic flow.** Can the agent create a system, build it, run it, and see the result, all through MCP?
-- [ ] **Static meshes, end to end.** The agent and the foundry together produce a static mesh (`design/systems.md`, "Static things"): the workspace updates, I can see the mesh against its conformance shape, and I can approve it.
+- [ ] **trees that have wind, break apart and genomes**
+- [ ] **rocks that break uniquely**
+- [ ] **single joint system**
 
 ## Not in this milestone
 
 To keep the milestone focused, these wait even though they are designed: trees and other nature, crafted things, buildings, humanoids, creatures, magic, auras, sound, shadows, the sleep and wake engine beyond what static meshes need, recording and replay, and the generated C game API.
 
-## Decisions
-
-These were settled before starting:
-
-| Decision | Choice |
-|---|---|
-| UI toolkit | Dear ImGui, on its SDL3 GPU backend |
-| Build system | CMake, with two toolchains: the native compiler for the host and static libraries, and `wasi-sdk` (Clang targeting WebAssembly) for systems |
-| WebAssembly host runtime | Wasmtime, through its C API |
-| MCP transport | HTTP on localhost; Claude Code connects with `claude mcp add --transport http` |
-| Meshy budget | 250 credits for this milestone without asking. At current prices that is roughly 6 to 8 static meshes taken from concept image to remeshed 3D, so start with one or two and ask before generating in bulk. |
-
-## Questions from the agent
-
-(None yet.)
-
 # Future milestones
 
+
+# Suggestions are great
 Suggestions from the agent, in a proposed order. Each builds on the one before and ends with something the human can play test and approve. They are not in scope until moved into the current milestone.
 
 1. **Static things, for real.** The full static-thing pipeline (`design/systems.md`): concept images, image to 3D, remesh, resize to a conformance shape, bake to a disk format. The fixed asset library with its two-way conformance index (`design/flow.md`). Provenance sidecars. Play test views: explore and battle cameras, the silhouette thumbnail, and the lineup against the hero and the hex (`design/playtest.md`).

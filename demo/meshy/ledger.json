@@ -1,0 +1,60 @@
+{
+  "entries": [
+    {
+      "credits": 3,
+      "name": "oak_chest",
+      "status": "SUCCEEDED",
+      "task_id": "01a1286f-f4c4-74c6-b041-e9b02fd57dbe",
+      "time": "2026-10-11T00:49:58Z",
+      "type": "text-to-image"
+    },
+    {
+      "credits": 3,
+      "name": "garden_gnome",
+      "status": "SUCCEEDED",
+      "task_id": "01a128cd-999a-7566-a825-2fcdd122ef92",
+      "time": "2026-10-11T02:32:15Z",
+      "type": "text-to-image"
+    },
+    {
+      "credits": 30,
+      "name": "garden_gnome",
+      "status": "started (estimate)",
+      "task_id": "01a128cf-3c63-70b5-a233-861e534f610c",
+      "time": "2026-10-11T02:33:53Z",
+      "type": "image-to-3d"
+    },
+    {
+      "credits": 0,
+      "name": "garden_gnome",
+      "status": "SUCCEEDED",
+      "task_id": "01a128cf-3c63-70b5-a233-861e534f610c",
+      "time": "2026-10-11T02:34:40Z",
+      "type": "image-to-3d correction"
+    },
+    {
+      "credits": 3,
+      "name": "gargoyle_statue_concept",
+      "status": "SUCCEEDED",
+      "task_id": "01a1293a-a08e-726e-a608-5d926a50f12f",
+      "time": "2026-10-11T04:31:21Z",
+      "type": "text-to-image"
+    },
+    {
+      "credits": 30,
+      "name": "gargoyle_statue_mesh",
+      "status": "started (estimate)",
+      "task_id": "01a1293b-894e-7020-bb2b-7fa7b27758df",
+      "time": "2026-10-11T04:32:10Z",
+      "type": "image-to-3d"
+    },
+    {
+      "credits": 0,
+      "name": "gargoyle_statue_mesh",
+      "status": "SUCCEEDED",
+      "task_id": "01a1293b-894e-7020-bb2b-7fa7b27758df",
+      "time": "2026-10-11T04:33:28Z",
+      "type": "image-to-3d correction"
+    }
+  ]
+}

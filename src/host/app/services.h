@@ -1,0 +1,26 @@
+// The host's long-lived services, created once in main.
+#pragma once
+
+#include "core/config.h"
+#include "forge/forge.h"
+#include "mcp/handler.h"
+#include "mcp/server.h"
+#include "meshy/meshy.h"
+#include "wasm/runner.h"
+#include "workspace/workspace.h"
+
+namespace app {
+
+struct Services {
+  core::Config config;
+  forge::Paths paths;
+  workspace::Workspace *ws = nullptr;
+  wasm::Runner *runner = nullptr;
+  meshy::Client *meshy = nullptr;
+  mcp::Server *server = nullptr;
+};
+
+// Runs the windowed workspace UI until the window closes. Returns an exit code.
+int run_ui(Services &services);
+
+}  // namespace app

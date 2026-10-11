@@ -53,3 +53,8 @@ dkms.conf
 
 # debug information files
 *.dwo
+
+# Foundry
+/build/
+/.deps/
+**/meshy/*/*.bin

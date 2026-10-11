@@ -21,7 +21,8 @@ The foundry is an AI-driven harness for building game assets as versioned pipeli
 |---|---|
 | `design/spine.md` | Always. Vocabulary, conformance, versioning, builds, caching. |
 | `ORG.md` | Always, before adding or moving source files. The source tree, dependency rules, and build checks. |
-| `design/flow.md` | Laying out files: systems, channels, packers, disk formats, manifests, fixed assets. |
+| `design/flow.md` | Laying out files: systems, channels, packers, disk formats, manifests, Meshy items, fixed assets. |
+| `design/transforms.md` | Working on the asset pipeline: transforms vs. runtime systems, mesh items, LODs, stamping. |
 | `design/submit.md` | Working on the engine: update, sleep, rendering, the mega shader. |
 | `design/api.md` | Working on the game-facing C API. |
 | `design/playtest.md` | Working on play testing, the control pad, or approval. |
@@ -47,7 +48,7 @@ These are invariants. Breaking one is a design change, which needs the human's a
 - **Meshy and other services run at build time only.** Nothing in a runtime system calls an outside service.
 - **Record provenance.** Every generated file gets a JSON sidecar with the service, model version, prompt, inputs, cost, date, and license.
 - **Download Meshy results immediately.** Non-Enterprise API results are deleted after 3 days.
-- **Spend carefully.** Meshy calls cost credits. Stay within the budget set in `PLAN.md`, and ask before generating in bulk.
+- **Spend carefully.** Meshy calls cost credits. Stay within the budget under "Decisions" below, and ask before generating in bulk.
 
 ## Technology
 
@@ -57,7 +58,41 @@ These are invariants. Breaking one is a design change, which needs the human's a
 - **Math types:** plain `float[16]` (column-major) and `float[3]` at boundaries. Don't introduce wrapper math types in the API.
 - **Data:** disk formats are little-endian, laid out like memory, with a header naming the channel type and version. Pipelines and manifests are JSON.
 - **The agent's interface:** the foundry runs an MCP server, and everything a human can do in a play test, the agent can do through it.
-- **Tools:** Dear ImGui (SDL3 GPU backend) for the workspace UI, CMake with `wasi-sdk` for WebAssembly builds, Wasmtime (C API) to host systems, and MCP over HTTP on localhost. These were settled in `PLAN.md`, "Decisions".
+- **Tools:** Dear ImGui (SDL3 GPU backend) for the workspace UI, CMake with `wasi-sdk` for WebAssembly builds, Wasmtime (C API) to host systems, and MCP over HTTP on localhost. See "Decisions" below.
+
+## Decisions
+
+Settled by the human (recorded in `reports/2026-10-10-1.md`):
+
+| Decision | Choice |
+|---|---|
+| UI toolkit | Dear ImGui, on its SDL3 GPU backend |
+| Build system | CMake, with two toolchains: the native compiler for the host and static libraries, and `wasi-sdk` (Clang targeting WebAssembly) for systems |
+| WebAssembly host runtime | Wasmtime, through its C API |
+| MCP transport | HTTP on localhost; Claude Code connects with `claude mcp add --transport http` |
+| Meshy budget | 250 credits without asking. At current prices that is roughly 6 to 8 static meshes taken from concept image to remeshed 3D, so start with one or two and ask before generating in bulk. The ledger (`demo/meshy/ledger.json`) tracks the spend. |
+
+## Building and running
+
+```sh
+tools/bootstrap.sh                      # once: wasi-sdk, Wasmtime, and (if missing) X11 headers into .deps/
+cmake --preset linux-release            # configure into build/linux-release
+cmake --build --preset linux-release    # build the host, every system (WebAssembly + native), and tests
+(cd build/linux-release && ctest)       # run the tests
+build/linux-release/foundry             # the workspace UI on demo/, with MCP at http://127.0.0.1:7878/mcp
+build/linux-release/foundry --headless  # MCP only, no window
+```
+
+- Project data lives in the workspace root, `demo/` (`--workspace` picks another): `foundry.json`, `pipelines/`, `conformance/`, `meshy/`, and `fixed/`. Source code stays at the repo root.
+- After changing a channel schema in `src/channels/`, run `tools/gen_channels.py`; the build fails if `src/generated/` is stale.
+- Connect Claude Code to a running foundry with `claude mcp add --transport http foundry http://127.0.0.1:7878/mcp`.
+- Prefer the MCP tools for system work (`system_create`, `system_build`, `system_run`, `view_screenshot`, `ui_screenshot`): they keep manifests consistent and show the human what you're doing in the activity log.
+- Static things go through Meshy mesh items (`design/transforms.md`): `meshy_text_to_image` makes `<name>_concept`; once the human approves it (`approval_wait`), `meshy_image_to_3d` makes `<name>_mesh`. Size it with `mesh_transform` (fit against a conformance shape) and check `mesh_info` until it's grounded, centred, and sized right; then `mesh_recommend` builds the progressive mesh, recommends LOD0/1/2 by image error, and benchmarks each LOD. Use `mesh_lod_preview` for snippets, and `mesh_regenerate_lod` to change one LOD's error limit (limits always stack: the others are pushed out of its way, and only the LODs that changed are rebaked and re-benchmarked). Each LOD also gets a switch distance: the first distance at which fewer than the item's switch threshold (default 10%; `mesh_switch_threshold` sets it) of its pixels visibly disagree with the full mesh. `view_screenshot` takes `distance` to view an asset from that far with the game camera. Approving the mesh item stamps its LODs into `fixed/<name>/`.
+- While a system or channel is a draft and not committed, patch it in place; don't create a `_v2` for work in progress. Fork only from a final or committed version.
+- When you need the human to approve something, call `approval_wait` on it instead of asking them to tell you; it returns as soon as they approve or reject, with any reason they gave.
+- Systems use `foundry::det` math from `boundary.h` (not `<cmath>` transcendentals), so the native build stays byte-identical to WebAssembly. `system_run` reports whether they match.
+- To keep the foundry running while you rebuild, run a copy (`cp build/linux-release/foundry build/linux-release/foundry-run`): relinking the binary under a running process crashes it.
+- Never run `pkill -f` with a pattern that appears in your own command line; it kills your shell. Use `pkill -x foundry-run`. Process names are cut to 15 characters, so keep copies' names short.
 
 ## Working style
 

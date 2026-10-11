@@ -1,0 +1,26 @@
+{
+  "name": "garden_gnome_concept",
+  "kind": "concept",
+  "state": "final",
+  "notes": [
+    {
+      "author": "agent",
+      "text": "Sizing plan: fit to the prop_tiny conformance (capsule r 0.25 m, h 0.7 m) at a target height of 0.6 m. Real garden gnomes are 0.3-0.5 m, but style.md section 3 sets 0.6 m as the minimum mesh height that reads at battle distance, so 0.6 m is the smallest size that stays readable while still clearly a small garden ornament next to the 1.8 m hero (about a third of hero height). Next step after approval: Meshy image-to-3D (about 30 credits).",
+      "time": "2026-10-11T02:32:24Z"
+    }
+  ],
+  "approved_by": "human",
+  "approved_at": "2026-10-11T02:32:27Z",
+  "provenance": {
+    "ai_model": "nano-banana",
+    "aspect_ratio": "",
+    "cost_credits": 3,
+    "created_at": "2026-10-11T02:32:15Z",
+    "license": "Meshy-generated; check Meshy's terms for your plan before shipping",
+    "pose_mode": "",
+    "prompt": "A classic garden gnome statue: chunky body, tall pointed red hat, big white beard, round nose, blue coat, brown belt, standing on its own feet with arms at its sides. Style: stylized storybook fantasy, cel-shaded, hand-painted look, chunky readable shapes, bold silhouette, simplified masses, clear joint and part separation, saturated but not neon colours. Texture: flat even matte albedo, clean colour regions, no baked lighting or shadows, no dirt, no fine noise. Staging: single subject centred, whole subject in frame with a generous margin, plain light grey background, no floor, no cast shadow, even flat lighting, orthographic camera, front three-quarter view, no text, no labels. Nothing else in the scene: no base, no plinth, no plants, no people.",
+    "service": "meshy",
+    "task_id": "01a128cd-999a-7566-a825-2fcdd122ef92",
+    "type": "text-to-image"
+  }
+}

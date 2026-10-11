@@ -1,0 +1,12 @@
+{
+  "approved_at": "2026-10-11T04:30:06Z",
+  "approved_by": "human",
+  "doc": "The hero capsule (style.md section 2): heroes are 1.70 to 1.85 m tall with a 0.35 m capsule. One hex is about one hero tall.",
+  "height": 1.85,
+  "kind": "conformance",
+  "name": "hero",
+  "notes": [],
+  "radius": 0.35,
+  "shape": "capsule",
+  "state": "final"
+}

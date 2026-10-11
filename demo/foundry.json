@@ -1,0 +1,10 @@
+{
+  "mcp": {
+    "host": "127.0.0.1",
+    "port": 7878
+  },
+  "meshy": {
+    "keys_file": "~/.config/hexbound/keys.env",
+    "budget_credits": 250
+  }
+}

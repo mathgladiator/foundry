@@ -1,0 +1,12 @@
+{
+  "approved_at": "2026-10-11T04:29:39Z",
+  "approved_by": "human",
+  "doc": "Small size class (style.md section 2): 0.6 to 1.2 m tall, footprint radius 0.25 to 0.45 m. Crates, barrels, chests.",
+  "height": 1.2,
+  "kind": "conformance",
+  "name": "prop_small",
+  "notes": [],
+  "radius": 0.45,
+  "shape": "capsule",
+  "state": "final"
+}
