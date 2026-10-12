@@ -121,6 +121,7 @@
     "stiffness": 8.5,
     "swell": 0,
     "tip_up": 0.0,
+    "trunk_diameter": 0.35,
     "twig_angle": 40,
     "twig_curve": -1.9,
     "twig_length": 0.7,

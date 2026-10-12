@@ -1,0 +1,62 @@
+{
+  "family": "physics",
+  "version": 1,
+  "feature": "shape",
+  "doc": "One collision shape, in a body's own space (metres; +Y up, the model's ground at y = 0): one of the shapes Jolt Physics knows (design/spine.md, Layer 1). A body is a compound of these.",
+  "fields": [
+    {
+      "name": "type",
+      "type": "u32",
+      "doc": "Which shape. A capsule, tapered capsule, and cylinder run along their rotated +Y axis.",
+      "enum": [
+        "sphere",
+        "box",
+        "capsule",
+        "tapered_capsule",
+        "cylinder",
+        "convex_hull"
+      ]
+    },
+    {
+      "name": "position",
+      "type": "vec3",
+      "doc": "The shape's centre, metres."
+    },
+    {
+      "name": "rotation",
+      "type": "vec3",
+      "doc": "Axis-angle: the rotation axis scaled by the angle in radians (zero: unrotated)."
+    },
+    {
+      "name": "radius",
+      "type": "f32",
+      "doc": "Sphere, capsule, and cylinder radius; a tapered capsule's bottom radius, metres.",
+      "min": 0,
+      "max": 50
+    },
+    {
+      "name": "radius_top",
+      "type": "f32",
+      "doc": "A tapered capsule's top radius, metres.",
+      "min": 0,
+      "max": 50
+    },
+    {
+      "name": "half_height",
+      "type": "f32",
+      "doc": "Half the height of a capsule's or tapered capsule's straight part, or of a cylinder, metres.",
+      "min": 0,
+      "max": 100
+    },
+    {
+      "name": "half_extents",
+      "type": "vec3",
+      "doc": "A box's half size on each axis, metres."
+    },
+    {
+      "name": "points",
+      "type": "vec3[]",
+      "doc": "A convex hull's points, metres (the hull is built from them)."
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+{
+  "family": "plot",
+  "version": 1,
+  "feature": "exclusion",
+  "doc": "A place to keep clear for one grow (design/plotter.md, Growing): where a player or creature stands.",
+  "fields": [
+    {
+      "name": "position",
+      "type": "vec3",
+      "doc": "The centre, metres (region space)."
+    },
+    {
+      "name": "radius",
+      "type": "f32",
+      "doc": "Keep this clear, metres.",
+      "min": 0,
+      "max": 1000
+    }
+  ]
+}

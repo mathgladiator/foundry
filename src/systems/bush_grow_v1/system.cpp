@@ -654,6 +654,24 @@ bool run(const bush_v1_spec &in, channels::bush_v1_model &out, std::string &erro
   }
   out.height = top;
   out.radius = reach;
+
+  // ---- collision ----
+  // Soft: a cylinder about half the shrub's spread, so a player pushes partway in before it stops them
+  // (design/plotter.md, Footprints and conformance). Static for the build, inside the conformance.
+  out.collision.clear();
+  {
+    channels::physics_v1_shape cyl;
+    cyl.type = channels::physics_v1_shape::kTypeCylinder;
+    const float h = top * 0.8f;
+    cyl.position = v3(0, h * 0.5f, 0);
+    cyl.rotation = v3(0, 0, 0);
+    cyl.radius = maxf(reach * 0.5f, 0.05f);
+    cyl.half_height = h * 0.5f;
+    channels::physics_v1_body body;
+    body.purpose = channels::physics_v1_body::kPurposeSoft;
+    body.shapes.push_back(cyl);
+    out.collision.push_back(body);
+  }
   return true;
 }
 

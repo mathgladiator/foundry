@@ -8,6 +8,7 @@ static const char *const species_values[] = {"acacia", "apple", "baldcypress", "
 static const char *const age_values[] = {"sapling", "young", "mature", "ancient"};
 static const char *const season_values[] = {"winter", "spring", "summer", "fall"};
 static const char *const fruit_values[] = {"false", "true"};
+static const char *const stump_values[] = {"false", "true"};
 static const char *const detail_values[] = {"high", "medium", "low"};
 static const unsigned char fruit_when[] = {1, 1, 0, 1, 0, 0, 0, 0, 1, 0, 1, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 1, 0}; /* per species: applies */
 
@@ -16,6 +17,7 @@ static const stress_param params[] = {
     {"age", STRESS_ENUM, STRESS_BUILD, age_values, 4, 0.0, 0.0, {.u = 2u}, -1, 0},
     {"season", STRESS_ENUM, STRESS_BUILD, season_values, 4, 0.0, 0.0, {.u = 2u}, -1, 0},
     {"fruit", STRESS_ENUM, STRESS_BUILD, fruit_values, 2, 0.0, 0.0, {.u = 1u}, 0, fruit_when},
+    {"stump", STRESS_ENUM, STRESS_BUILD, stump_values, 2, 0.0, 0.0, {.u = 0u}, -1, 0},
     {"seed", STRESS_U32, STRESS_BUILD, 0, 0, 1.0, 1000.0, {.u = 1u}, -1, 0},
     {"detail", STRESS_ENUM, STRESS_BUILD, detail_values, 3, 0.0, 0.0, {.u = 0u}, -1, 0},
     {"wind_speed", STRESS_F32, STRESS_UPDATE, 0, 0, 0.0, 25.0, {.f = 0x1.8000000000000p+2f}, -1, 0},
@@ -33,12 +35,13 @@ static foundry_instance spawn(foundry_runtime *rt, const stress_value *v, const 
   p.age = (foundry_tree_v1_age)v[1].u;
   p.season = (foundry_tree_v1_season)v[2].u;
   p.fruit = v[3].u != 0;
-  p.seed = v[4].u;
-  p.detail = (foundry_tree_v1_detail)v[5].u;
-  p.wind_speed = v[6].f;
-  p.wind_heading = v[7].f;
-  p.gust_damping = v[8].f;
-  p.break_heading = v[11].f;
+  p.stump = v[4].u != 0;
+  p.seed = v[5].u;
+  p.detail = (foundry_tree_v1_detail)v[6].u;
+  p.wind_speed = v[7].f;
+  p.wind_heading = v[8].f;
+  p.gust_damping = v[9].f;
+  p.break_heading = v[12].f;
   return foundry_tree_v1_spawn(rt, &p, transform);
 }
 
@@ -48,26 +51,27 @@ static foundry_status set(foundry_runtime *rt, foundry_instance i, uint32_t para
     case 1: return foundry_tree_v1_set_age(rt, i, (foundry_tree_v1_age)v.u);
     case 2: return foundry_tree_v1_set_season(rt, i, (foundry_tree_v1_season)v.u);
     case 3: return foundry_tree_v1_set_fruit(rt, i, v.u != 0);
-    case 4: return foundry_tree_v1_set_seed(rt, i, v.u);
-    case 5: return foundry_tree_v1_set_detail(rt, i, (foundry_tree_v1_detail)v.u);
-    case 6: return foundry_tree_v1_set_wind_speed(rt, i, v.f);
-    case 7: return foundry_tree_v1_set_wind_heading(rt, i, v.f);
-    case 8: return foundry_tree_v1_set_gust_damping(rt, i, v.f);
-    case 11: return foundry_tree_v1_set_break_heading(rt, i, v.f);
+    case 4: return foundry_tree_v1_set_stump(rt, i, v.u != 0);
+    case 5: return foundry_tree_v1_set_seed(rt, i, v.u);
+    case 6: return foundry_tree_v1_set_detail(rt, i, (foundry_tree_v1_detail)v.u);
+    case 7: return foundry_tree_v1_set_wind_speed(rt, i, v.f);
+    case 8: return foundry_tree_v1_set_wind_heading(rt, i, v.f);
+    case 9: return foundry_tree_v1_set_gust_damping(rt, i, v.f);
+    case 12: return foundry_tree_v1_set_break_heading(rt, i, v.f);
   }
   return FOUNDRY_STATUS_BAD_PARAMETER;
 }
 
 static foundry_status trigger(foundry_runtime *rt, foundry_instance i, uint32_t param) {
   switch (param) {
-    case 10: return foundry_tree_v1_start_break(rt, i);
+    case 11: return foundry_tree_v1_start_break(rt, i);
   }
   return FOUNDRY_STATUS_BAD_PARAMETER;
 }
 
 static const char *const systems[] = {"tree_rig_v1", "tree_mesh_v1", "tree_colorize_v1", "tree_animate_v1"};
 
-static const stress_pipeline pipeline = {"tree_v1", "draft", params, 12, systems, 4, spawn, set, trigger};
+static const stress_pipeline pipeline = {"tree_v1", "draft", params, 13, systems, 4, spawn, set, trigger};
 
 int main(int argc, char **argv) {
   const stress_pipeline *pipelines[] = {&pipeline};

@@ -23,6 +23,8 @@ struct ViewContent {
   std::shared_ptr<const viewport::Image> image;
   std::shared_ptr<const ProgressiveMesh> progressive;
   std::vector<std::shared_ptr<const runtime::Mesh>> lods;  // a fixed asset's stamped LODs, LOD0 first
+  std::vector<viewport::Line> collision;  // collision wireframes (a pipeline's), world space
+  std::vector<viewport::Line> lines;      // other overlays that frame the view (a region's hexes)
   uint32_t full_triangles() const { return mesh ? static_cast<uint32_t>(mesh->triangles()) : 0; }
   bool empty() const { return !mesh && !image; }
 };

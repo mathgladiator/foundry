@@ -440,7 +440,7 @@ PhaseResult run_forest(Ctx &ctx, const json &phase, std::vector<Failure> &failur
               {"drawn", c.drawn},
               {"culled", c.culled},
               {"triangles", c.triangles},
-              {"cache_entries", c.cache_entries},
+              {"cache_entries", c.cache_entries}, {"bodies", c.bodies},
               {"cache_gpu_mb", c.cache_gpu_bytes / 1048576.0},
               {"generations", c.generations - gen0},
               {"memory", to_json(before)}};
@@ -746,6 +746,7 @@ PhaseResult run_soak(Ctx &ctx, const json &phase, std::vector<Failure> &failures
     clear(ctx, handles);
     for (int i = 0; i < static_cast<int>(2.5 / ctx.plan.dt); ++i) ctx.frame();  // the release timer
     foundry_diag_flush(ctx.rt);
+    if (ctx.physics) toy_physics_settle(ctx.physics);
     trim();
     foundry_diag_counters c = counters(ctx);
     Memory m = memory();
@@ -754,11 +755,18 @@ PhaseResult run_soak(Ctx &ctx, const json &phase, std::vector<Failure> &failures
               {"instances", c.instances},
               {"cache_entries", c.cache_entries},
               {"gpu_buffers_live", static_cast<int64_t>(c.gpu_buffers_created - c.gpu_buffers_released)},
-              {"gpu_mb", c.gpu_bytes / 1048576.0}};
+              {"gpu_mb", c.gpu_bytes / 1048576.0},
+              {"bodies", c.bodies},
+              {"physics_bodies", ctx.physics ? toy_physics_bodies(ctx.physics) : 0u}};
     if (c.instances != 0 || c.cache_entries != 0)
       fail(failures, ctx, "soak", "drain", fmt("after a drain, %llu instances and %llu cache entries remain",
                                                static_cast<unsigned long long>(c.instances),
                                                static_cast<unsigned long long>(c.cache_entries)));
+    // Bodies balance: every instance's collision bodies left the physics world with it.
+    if (c.bodies != 0 || (ctx.physics && toy_physics_bodies(ctx.physics) != 0))
+      fail(failures, ctx, "soak", "drain", fmt("after a drain, %llu collision bodies remain in the runtime and %u in the world",
+                                               static_cast<unsigned long long>(c.bodies),
+                                               ctx.physics ? toy_physics_bodies(ctx.physics) : 0u));
     drains.push_back(d);
     for (size_t i = 0; i < population; ++i) spawn_one();
   };
@@ -809,7 +817,7 @@ PhaseResult run_soak(Ctx &ctx, const json &phase, std::vector<Failure> &failures
                          {"memory", to_json(memory())},
                          {"instances", c.instances},
                          {"awake", c.awake},
-                         {"cache_entries", c.cache_entries},
+                         {"cache_entries", c.cache_entries}, {"bodies", c.bodies},
                          {"cache_mb", c.cache_bytes / 1048576.0},
                          {"gpu_mb", c.gpu_bytes / 1048576.0},
                          {"generations", c.generations},
@@ -853,8 +861,8 @@ PhaseResult run_soak(Ctx &ctx, const json &phase, std::vector<Failure> &failures
     double d_heap = drains[i]["memory"]["heap_mb"].get<double>() - drains[0]["memory"]["heap_mb"].get<double>();
     double d_rss = drains[i]["memory"]["rss_mb"].get<double>() - drains[0]["memory"]["rss_mb"].get<double>();
     bool gpu_same = drains[i]["gpu_buffers_live"] == drains[0]["gpu_buffers_live"];
-    worst = std::max({worst, std::fabs(d_heap), std::fabs(d_rss)});
-    if (std::fabs(d_heap) <= drain_tol && std::fabs(d_rss) <= drain_tol && gpu_same) ++within;
+    worst = std::max({worst, d_heap, d_rss});  // only growth is a leak: memory given back is fine
+    if (d_heap <= drain_tol && d_rss <= drain_tol && gpu_same) ++within;
     else fail(failures, ctx, "soak", "drain", fmt("drain %zu: heap %+.1f MB, RSS %+.1f MB from the first%s", i, d_heap, d_rss,
                                                   gpu_same ? "" : ", GPU buffers differ"));
   }

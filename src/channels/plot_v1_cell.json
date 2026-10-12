@@ -1,0 +1,73 @@
+{
+  "family": "plot",
+  "version": 1,
+  "feature": "cell",
+  "doc": "One resolved cell of a region (for viewing, design/plotter.md, In the foundry).",
+  "fields": [
+    {
+      "name": "q",
+      "type": "i32",
+      "doc": "Axial q."
+    },
+    {
+      "name": "r",
+      "type": "i32",
+      "doc": "Axial r."
+    },
+    {
+      "name": "ground",
+      "type": "u32",
+      "doc": "The ground's kind.",
+      "enum": [
+        "soil",
+        "water",
+        "rock",
+        "sand",
+        "path"
+      ]
+    },
+    {
+      "name": "available",
+      "type": "bool",
+      "doc": "Whether things with footprints may stand here."
+    },
+    {
+      "name": "keep_clear_m",
+      "type": "f32",
+      "doc": "Keep-clear distance, metres.",
+      "min": 0,
+      "max": 100
+    },
+    {
+      "name": "height",
+      "type": "f32",
+      "doc": "Ground height, metres.",
+      "min": -1000,
+      "max": 10000
+    },
+    {
+      "name": "moisture",
+      "type": "f32",
+      "doc": "Moisture.",
+      "min": 0,
+      "max": 1
+    },
+    {
+      "name": "edge",
+      "type": "u32",
+      "doc": "Distance to the border in cells (0 on the border), capped at 64."
+    },
+    {
+      "name": "grove",
+      "type": "f32",
+      "doc": "The grove field here, 0 to 1.",
+      "min": 0,
+      "max": 1
+    },
+    {
+      "name": "reserved",
+      "type": "bool",
+      "doc": "Covered by an occupant's footprint."
+    }
+  ]
+}

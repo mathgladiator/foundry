@@ -18,6 +18,8 @@ inline nlohmann::json to_json(const channels::tree_v1_rig &c) {
   j["spec"] = to_json(c.spec);
   j["height"] = c.height;
   j["stump_radius"] = c.stump_radius;
+  j["footprint_radius"] = c.footprint_radius;
+  j["footprint_cells"] = c.footprint_cells;
   j["crown_base"] = c.crown_base;
   j["cut"] = c.cut;
   j["branches"] = nlohmann::json::array();
@@ -41,6 +43,12 @@ inline void from_json(const nlohmann::json &j, channels::tree_v1_rig &c) {
   }
   if (j.contains("stump_radius")) {
     c.stump_radius = j.at("stump_radius").get<float>();
+  }
+  if (j.contains("footprint_radius")) {
+    c.footprint_radius = j.at("footprint_radius").get<float>();
+  }
+  if (j.contains("footprint_cells")) {
+    c.footprint_cells = j.at("footprint_cells").get<uint32_t>();
   }
   if (j.contains("crown_base")) {
     c.crown_base = j.at("crown_base").get<float>();

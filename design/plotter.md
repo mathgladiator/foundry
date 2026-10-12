@@ -6,6 +6,8 @@ The mental model is a survival game. A forest is a resource that the player harv
 
 This document is a design. Nine rounds of the human's review are folded into the text, and no questions are open. Its first steps (Jolt, the tree's stump, and the first plotter, a "happy glen") are in the current milestone in `PLAN.md`; the rest waits.
 
+**Built so far** (see "Status" at the end for the detail): the `plot_v1_*` channels and the `plot_scatter_v1` plot system (native matches WebAssembly); plotters as a workspace primitive, with the happy glen; the foundry's plotter view and its MCP tools; regions in the runtime's C API; and a region run in the stress tool. Footprints are single, flower7, flower19, and flower37 so far: lines (`line2`, `line3`), `tri3`, and boxes are designed, not built. Active entities, sensors, and contacts in results are designed, not built.
+
 ## Vocabulary
 
 | Term | Meaning |
@@ -108,78 +110,50 @@ A tree's footprint comes from its trunk. Trees are drawn at their real heights, 
 
 ## Plotters
 
-A plotter is a new workspace primitive: `plotters/<name>.json`, beside `pipelines/`. It binds a plot system to a biome config and names its shared properties:
+A plotter is a new workspace primitive: `plotters/<name>.json`, beside `pipelines/`. It binds a plot system to a biome config. This is the first one, `plotters/happy_glen_v1.json` (abridged; `book/plotter_happy_glen_v1.md` describes it whole):
 
 ```json
 {
   "kind": "plotter",
-  "name": "cypress_swamp_v1",
+  "name": "happy_glen_v1",
   "state": "draft",
-  "doc": "Blackwater cypress swamp: cypress and tupelo apart in shallow water, shrubs under them, iris and cattail at open edges, river stones.",
-  "reference": ["reference/biomes/cypress_swamp/01.jpg"],
   "system": "plot_scatter_v1",
+  "distinct_seeds": 4,
+  "view": {"preset": "glen", "radius": 12, "seed": 7, "shared": {"season": "summer", "wind_speed": 3}},
   "config": {
-    "fields": {
-      "groves": {"noise": "value", "scale_cells": 9, "octaves": 2},
-      "edge": {"distance_to_border": {"max_cells": 4}}
-    },
+    "grove_scale_cells": 7, "grove_octaves": 2,
     "layers": [
-      {
-        "name": "canopy",
-        "spacing_m": 5.5,
-        "density_per_100_cells": {"base": 1.8, "by_field": {"groves": [0.4, 1.4]}, "by_field_edge": [0.5, 1.0]},
-        "where": {"ground": ["water", "soil"]},
-        "kinds": [
-          {"weight": 0.6, "pipeline": "tree_v1", "params": {"species": "baldcypress"},
-           "vary": {"age": {"young": 0.2, "mature": 0.6, "ancient": 0.2}}, "on_regrow": {"age": "sapling"}},
-          {"weight": 0.4, "pipeline": "tree_v1", "params": {"species": "tupelo"},
-           "vary": {"age": {"young": 0.3, "mature": 0.7}}, "on_regrow": {"age": "sapling"}}
-        ]
-      },
-      {
-        "name": "understory",
-        "spacing_m": 1.6,
-        "keep_clear_of": {"canopy": 1.2},
-        "prefer_near": {"canopy": {"within_m": 4, "boost": 2.0}},
-        "density_per_100_cells": {"base": 9},
-        "where": {"ground": ["soil"]},
-        "kinds": [
-          {"weight": 0.55, "pipeline": "bush_v1", "params": {"species": "buttonbush"}, "on_regrow": {"age": "young"}},
-          {"weight": 0.45, "pipeline": "bush_v1", "params": {"species": "palmetto"}, "on_regrow": {"age": "young"}}
-        ]
-      },
-      {
-        "name": "edge_flowers",
-        "spacing_m": 0.9,
-        "keep_clear_of": {"canopy": 2.0, "understory": 0.8},
-        "density_per_100_cells": {"base": 4, "by_field_edge": [3.0, 0.2]},
-        "kinds": [
-          {"weight": 0.6, "pipeline": "flower_v1", "params": {"species": "cattail"}, "where": {"ground": ["water"]}},
-          {"weight": 0.4, "pipeline": "flower_v1", "params": {"species": "iris"}, "where": {"ground": ["soil", "water"]}}
-        ]
-      },
-      {
-        "name": "stones",
-        "spacing_m": 3.0,
-        "density_per_100_cells": {"base": 1.2},
-        "regrows": false,
-        "kinds": [{"weight": 1, "pipeline": "rock_v1", "params": {"material": "riverstone", "moss": "light"},
-                   "vary": {"size": {"small": 0.7, "medium": 0.3}}}]
-      }
+      {"name": "canopy", "spacing_m": 7.0, "density": 1.5, "grove": [0.25, 1.7], "edge": {"low": 1.4, "cells": 4},
+       "ground": ["soil"], "max_height_delta_m": 0.6, "regrows": true,
+       "kinds": [
+         {"weight": 0.55, "pipeline": "tree_v1", "params": {"species": "oak"},
+          "vary": {"age": {"young": 0.2, "mature": 0.55, "ancient": 0.25}}, "on_regrow": {"age": "sapling"},
+          "footprint_m": 1.71, "footprint_cells": 7},
+         {"weight": 0.12, "pipeline": "tree_v1", "params": {"species": "willow"}, "max_share": 0.2, "...": "..."}],
+       "regrow_kinds": [
+         {"weight": 0.6, "pipeline": "tree_v1", "params": {"species": "oak"}, "on_regrow": {"age": "sapling"}},
+         {"weight": 0.4, "pipeline": "tree_v1", "params": {"species": "birch"}, "on_regrow": {"age": "sapling"}}]},
+      {"name": "hedges", "spacing_m": 2.2, "density": 7.0, "keep_clear": {"canopy": 2.6},
+       "prefer_near": {"canopy": {"within_m": 6.0, "boost": 2.5}}, "edge": {"low": 3.0, "cells": 2}, "...": "..."},
+      {"name": "stones", "spacing_m": 4.0, "density": 0.9, "regrows": false,
+       "kinds": [{"weight": 1.0, "pipeline": "rock_v1", "params": {"material": "riverstone", "moss": "light"},
+                  "vary": {"size": {"small": 0.75, "medium": 0.25}}}]}
     ]
   }
 }
 ```
+
+`footprint_m` and `footprint_cells` are measured, not written: when the foundry loads a plotter, it builds each kind whose footprint is missing at its pipeline's largest age, reads the footprint (a tree's from its rig, others from what their solid and soft collision covers at the ground), and writes it back, so the native runtime can compile it in. `distinct_seeds` caps how many seeds of a kind and its parameters exist (the quality cap, `systems.md`, "Stable randomness"), so a region shares builds. `view` is only the foundry's starting view.
 
 What a biome config can say (for `plot_scatter_v1`, the first plot system):
 
 - **Kinds.** A pipeline with some parameters fixed and others varied by weights (age, size), or a fixed asset. The kinds are listed explicitly, so the QA process judges the plot as it was approved. A species added later never joins a biome without review. The foundry checks every pipeline, parameter, and config entry by name when it loads the plotter, as it checks config values against a channel.
 - **Diversity caps.** A maximum count or share per kind within a region (`"max_share": 0.4`), so no species takes over a region however the weights and fields fall, and regrowth can't drift into a monoculture. Caps are per region, since regions plot on their own.
 - **Layers, in order.** Each has its own spacing and density. A later layer can keep clear of an earlier one (no bush in a trunk), prefer to sit near it (bushes at a tree's drip line), or avoid it.
-- **Density.** In things per 100 cells (about 260 m²), scaled by **fields**: deterministic functions of the cell that make groves and clearings (`noise`), thin things out or crowd them toward the border (`distance_to_border`), or follow the cells' attributes (`moisture`).
-- **Where.** Filters on cell attributes, per layer or per kind. Because a path is an attribute, keeping a path clear is a filter (`"where": {"ground": ["soil", "water"]}` never places on `path`).
+- **Density.** `density` is in things per 100 cells (about 260 m²), scaled by two fields: the **grove** field (value noise of `grove_scale_cells`, from `grove[0]` in clearings to `grove[1]` in groves) and the **edge** field (`edge.low` on the border cells, easing to 1 at `edge.cells` in).
+- **Where.** `ground` lists the grounds a layer (or a kind) takes. Because a path is a ground, keeping a path clear is a filter (`"ground": ["soil"]` never places on `path`); its cells' `available` and `keep_clear_m` keep footprints off and away. `max_height_delta_m` is the most the heights under a footprint may differ.
 - **Regrowth.** The region has no memory of what was cleared: once a thing is vacated, its cells are simply free, subject to a new placement like any other. So what comes back depends on how the game asks. A `grow` in **regrow** mode (as opposed to **seed** mode, for a new region) uses each kind's `on_regrow` parameters (a sapling, not an ancient tree), and the config can give regrow mode its own kinds and weights (an oak wood that comes back as birch first). Whether a layer fills again at all is `regrows` (stones don't). The game rules stay in the config, behind one simple boundary. *When* regrowth happens is the game's decision, since the plotter has no clock.
-- **Order.** Which placements come first when `grow` is asked for fewer than fit (by priority, nearest a focus, the edges of clearings first) is the plot system's behaviour, set in its config.
+- **Order.** Which placements come first when `grow` is asked for fewer than fit is the plot system's behaviour. `plot_scatter_v1` gives layer by layer, highest priority first, or nearest the focus when the game passes one; other orders (the edges of clearings first) are a later plot system's.
 
 Each plotter is specific to a biome. Its kinds' pipelines share some parameters (season, wind), which the game sets on each instance it holds. There is no region-wide setter, on purpose: a spell must be able to override a parameter where it acts (a blizzard turns a forest to winter only while it lasts, only where it falls). The foundry's plotter view unions those parameters into one set of shared controls for viewing (see "In the foundry").
 
@@ -259,12 +233,13 @@ foundry_region_restore(rt, swamp, saved_placements, saved_count);
 
 /* Grow: up to 64 placements, avoiding where the players stand. */
 foundry_placement out[64];
-foundry_exclusion ex = {.cells = player_cells, .count = players};
+foundry_exclusion exclusions[2] = {{.position = {3, 0, 4}, .radius = 1.0f}, {.position = {-2, 0, 1}, .radius = 1.0f}};
+const uint32_t exclusion_count = 2;  /* where the players stand */
 uint32_t volume = 0;  /* how many more placements the region could take after this call */
-uint32_t got = foundry_region_grow(rt, swamp, FOUNDRY_GROW_SEED, &ex, focus, out, 64, &volume);
+uint32_t got = foundry_region_grow(rt, swamp, FOUNDRY_GROW_SEED, exclusions, exclusion_count, focus, out, 64, &volume);
 for (uint32_t i = 0; i < got; ++i) {
     /* out[i]: kind, parameters, position {x, y, z} (y from the cell heights), turn, footprint, slot */
-    foundry_instance h = foundry_placement_spawn(rt, &out[i]);  /* spawns its kind with its parameters */
+    foundry_instance h = foundry_placement_spawn(rt, swamp, &out[i]);  /* spawns its kind with its parameters */
     /* the game keeps h with out[i], sets season and wind, and saves both */
 }
 bool stable = volume == 0;
@@ -343,3 +318,16 @@ A plotter is approved by a human in a play test. The agent prepares it with evid
 The last two answers:
 - **The blind pointer.** The runtime needs only a quick signal that the pointer is Jolt: the game passes it wrapped with a tag and Jolt's version, and the runtime checks those before using it.
 - **Layers and masks.** The game maps each purpose to a Jolt object layer and mask when it creates the runtime: a solid body (a trunk, a rock), a soft body (a bush), a query-only shape (a flower), and each sensor purpose a pipeline declares (reach to pick, reach to chop). A pipeline names purposes and never masks, so the same tree works in any game.
+
+## Status
+
+What exists, and where (2026-10-12):
+
+| Piece | Where | Checked by |
+|---|---|---|
+| The ground and plot channels | `src/channels/plot_v1_*.json` (region, regions, config, layer, kind, clearance, preference, occupant, exclusion, request, placement, cell, result) | `tools/gen_channels.py` |
+| The plot system | `src/systems/plot_scatter_v1/` (a system of kind `plot`) | native matches WebAssembly on every grow the foundry verifies (`plotter_grow` with `verify_native`) |
+| Plotters | `demo/plotters/happy_glen_v1.json`; loaded, checked, and measured by `src/host/plot/plotter.cpp` | `book/plotter_happy_glen_v1.md` |
+| The foundry's plotter view | `src/host/plot/view.cpp`, the Plotters items in the workspace, MCP `plotter_get`, `plotter_set`, `plotter_grow`, `plotter_clear`, `plotter_view` | play testing |
+| Regions in the runtime | `src/library/region.h`, `region.cpp`; each plotter compiled into `src/library/plotters.cpp` | `tests/region_test.cpp`: the same 134 placements as the foundry for the glen's ground and seed |
+| The region run | `stress_plotter_<name>` (`src/tools/stress/region.cpp`) | `demo/perf/report-plotter_*.json` |

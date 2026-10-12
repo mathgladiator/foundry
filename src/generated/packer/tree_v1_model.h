@@ -4,12 +4,15 @@
 #include "channels/tree_v1_model.h"
 #include "packer/tree_v1_bone.h"
 #include "packer/tree_v1_piece.h"
+#include "packer/physics_v1_body.h"
 
 namespace foundry {
 
 inline void pack_fields(Writer &w, const channels::tree_v1_model &c) {
   w.f32(c.height);
   w.f32(c.stump_radius);
+  w.f32(c.footprint_radius);
+  w.u32(c.footprint_cells);
   w.f32(c.crown_base);
   w.array(c.bones, [](Writer &w, const auto &x) { pack_fields(w, x); });
   w.array(c.pieces, [](Writer &w, const auto &x) { pack_fields(w, x); });
@@ -20,11 +23,14 @@ inline void pack_fields(Writer &w, const channels::tree_v1_model &c) {
   w.array(c.bone_b, [](Writer &w, const auto &x) { w.u32(x); });
   w.array(c.bone_w, [](Writer &w, const auto &x) { w.f32(x); });
   w.array(c.colors, [](Writer &w, const auto &x) { w.u32(x); });
+  w.array(c.collision, [](Writer &w, const auto &x) { pack_fields(w, x); });
 }
 
 inline void unpack_fields(Reader &r, channels::tree_v1_model &c) {
   c.height = r.f32();
   c.stump_radius = r.f32();
+  c.footprint_radius = r.f32();
+  c.footprint_cells = r.u32();
   c.crown_base = r.f32();
   r.array(c.bones, 52, [](Reader &r, auto &x) { unpack_fields(r, x); });
   r.array(c.pieces, 40, [](Reader &r, auto &x) { unpack_fields(r, x); });
@@ -35,6 +41,7 @@ inline void unpack_fields(Reader &r, channels::tree_v1_model &c) {
   r.array(c.bone_b, 4, [](Reader &r, auto &x) { x = r.u32(); });
   r.array(c.bone_w, 4, [](Reader &r, auto &x) { x = r.f32(); });
   r.array(c.colors, 4, [](Reader &r, auto &x) { x = r.u32(); });
+  r.array(c.collision, 12, [](Reader &r, auto &x) { unpack_fields(r, x); });
 }
 
 inline void pack(const channels::tree_v1_model &c, std::vector<uint8_t> &out) {

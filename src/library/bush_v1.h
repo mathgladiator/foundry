@@ -73,6 +73,12 @@ foundry_status foundry_bush_v1_set_gust_damping(foundry_runtime *rt, foundry_ins
  * doesn't, the instance ignores fruit and shares its build either way. */
 bool foundry_bush_v1_fruit_applies(foundry_bush_v1_species species);
 
+/* The instance's update result, as current values (see foundry_changed). */
+typedef struct foundry_bush_v1_result {
+  bool ready;  /* the build last asked for (by spawn or a setter) is the one drawn */
+} foundry_bush_v1_result;
+foundry_status foundry_bush_v1_get_result(foundry_runtime *rt, foundry_instance instance, foundry_bush_v1_result *out);
+
 #ifdef __cplusplus
 }
 #endif

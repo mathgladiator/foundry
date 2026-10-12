@@ -59,6 +59,10 @@ typedef struct stress_pipeline {
 
 int stress_main(int argc, char **argv, const stress_pipeline *const *pipelines, uint32_t count);
 
+/* A plotter's region run (design/plotter.md, design/quality.perf.md): regions grown,
+ * spawned, cleared, regrown, and drained, measured, with a report in perf/. */
+int stress_region_main(int argc, char **argv, foundry_plotter plotter, const char *name);
+
 #ifdef __cplusplus
 }
 #endif

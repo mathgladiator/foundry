@@ -237,6 +237,9 @@ bool Ctx::create(std::string &error) {
   desc.quality = FOUNDRY_QUALITY_HIGH;
   desc.update_threads = plan.update_threads;
   desc.build_threads = plan.build_threads;
+  // The stress tool plays the game: it owns a Jolt world and hands it to the runtime.
+  physics = toy_physics_create(1u << 18);
+  desc.physics = toy_physics_desc(physics);
   rt = foundry_runtime_create(&desc);
   if (!rt) {
     error = std::string("runtime: ") + foundry_last_error();
@@ -253,6 +256,8 @@ void Ctx::destroy() {
   }
   if (rt) foundry_runtime_destroy(rt);
   rt = nullptr;
+  if (physics) toy_physics_destroy(physics);
+  physics = nullptr;
 }
 
 FrameTime Ctx::frame(bool render, bool sync) {
@@ -511,7 +516,8 @@ void Ctx::pump() {
     foundry_diag_counters_get(rt, &c);
     foundry_diag_frame f;
     foundry_diag_frame_get(rt, &f);
-    std::string title = fmt("%s  %llu instances (%llu awake)  update %.1f ms  prepare %.1f ms  %s  %s", pipeline->name,
+    std::string title = fmt("%s  %llu instances (%llu awake)  update %.1f ms  prepare %.1f ms  %s  %s",
+                            pipeline ? pipeline->name : title_name.c_str(),
                             static_cast<unsigned long long>(c.instances), static_cast<unsigned long long>(c.awake),
                             f.update_ms, f.prepare_ms,
                             fly.on ? fmt("flying %.0f m/s (Tab: follow the test)", fly.speed).c_str()

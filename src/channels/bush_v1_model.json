@@ -53,6 +53,11 @@
       "name": "colors",
       "type": "u32[]",
       "doc": "Vertex colour, packed RGBA (red in the lowest byte)."
+    },
+    {
+      "name": "collision",
+      "type": "physics_v1_body[]",
+      "doc": "What collides (design/spine.md, Layer 1): static for the build, inside the conformance."
     }
   ]
 }

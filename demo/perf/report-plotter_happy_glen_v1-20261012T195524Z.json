@@ -1,0 +1,158 @@
+{
+ "cycles": [
+  {
+   "bomb_frame_ms": 13.31124997138977,
+   "cleared": 1349,
+   "frames_to_regrow": 23,
+   "grow_call_ms": {
+    "max": 2.488,
+    "mean": 1.024,
+    "n": 86,
+    "p50": 0.995,
+    "p95": 1.309,
+    "p99": 2.167
+   },
+   "occupants_after": 8977,
+   "regrow_frame_ms": {
+    "max": 5.872,
+    "mean": 4.888,
+    "n": 23,
+    "p50": 4.788,
+    "p95": 5.451,
+    "p99": 5.872
+   },
+   "regrown": 1438,
+   "seconds_to_rebuild": 4.76691722869873e-05
+  },
+  {
+   "bomb_frame_ms": 10.785751819610596,
+   "cleared": 1318,
+   "frames_to_regrow": 21,
+   "grow_call_ms": {
+    "max": 2.226,
+    "mean": 1.046,
+    "n": 83,
+    "p50": 0.904,
+    "p95": 1.908,
+    "p99": 2.119
+   },
+   "occupants_after": 8958,
+   "regrow_frame_ms": {
+    "max": 6.05,
+    "mean": 4.925,
+    "n": 21,
+    "p50": 4.832,
+    "p95": 5.702,
+    "p99": 6.05
+   },
+   "regrown": 1299,
+   "seconds_to_rebuild": 3.643798828125e-05
+  },
+  {
+   "bomb_frame_ms": 10.51856279373169,
+   "cleared": 1287,
+   "frames_to_regrow": 21,
+   "grow_call_ms": {
+    "max": 2.267,
+    "mean": 0.949,
+    "n": 83,
+    "p50": 0.909,
+    "p95": 1.184,
+    "p99": 1.706
+   },
+   "occupants_after": 8953,
+   "regrow_frame_ms": {
+    "max": 9.671,
+    "mean": 5.12,
+    "n": 21,
+    "p50": 5.005,
+    "p95": 5.567,
+    "p99": 9.671
+   },
+   "regrown": 1282,
+   "seconds_to_rebuild": 3.987503051757812e-05
+  }
+ ],
+ "drain": {
+  "bodies": 0,
+  "builds": 0,
+  "instances": 0,
+  "world_bodies": 0
+ },
+ "failures": [],
+ "grow": {
+  "frame_ms": {
+   "max": 6.969,
+   "mean": 3.309,
+   "n": 139,
+   "p50": 3.138,
+   "p95": 5.89,
+   "p99": 6.757
+  },
+  "frames": 139,
+  "grow_call_ms": {
+   "max": 2.111,
+   "mean": 1.249,
+   "n": 200,
+   "p50": 1.244,
+   "p95": 1.878,
+   "p99": 2.038
+  },
+  "placements": 8888,
+  "seconds_to_build": 6.102395057678223e-05,
+  "wall_s": 0.7162971558570862
+ },
+ "hectares": 7.798385521919999,
+ "kind": "region",
+ "machine": {
+  "cores": 32,
+  "cpu": "AMD RYZEN AI MAX+ 395 w/ Radeon 8060S",
+  "fingerprint": "deb7535b5a90a4bb",
+  "gpu": "Radeon 8060S Graphics (RADV GFX1151)",
+  "gpu_driver": "vulkan",
+  "memory_gb": 125.0,
+  "os": "Linux 6.18.44+rex+5-amd64"
+ },
+ "memory": {
+  "heap_mb": 68.58,
+  "hwm_mb": 154.82,
+  "private_dirty_mb": 100.83,
+  "rss_anon_mb": 100.83,
+  "rss_mb": 154.82
+ },
+ "pass": true,
+ "plotter": "happy_glen_v1",
+ "settings": {
+  "batch": 64,
+  "blast_m": 8.0,
+  "cycles": 3,
+  "preset": "glen",
+  "radius": 12,
+  "regions": 64,
+  "steady_s": 4.0
+ },
+ "started": "2026-10-12T19:55:24Z",
+ "steady": {
+  "bodies": 8888,
+  "builds": 76,
+  "frame_ms": {
+   "max": 19.112,
+   "mean": 8.033,
+   "n": 240,
+   "p50": 7.378,
+   "p95": 14.872,
+   "p99": 16.768
+  },
+  "instances": 8888,
+  "triangles": 47379738
+ },
+ "summary": [
+  "happy_glen_v1  64 regions of radius 12 (glen, 7.80 ha)  PASS",
+  "grow     8888 placements in 139 frames of 64  grow call p50 1.24 ms max 2.11 ms  built in 0.0 s  frame p95 5.89 ms",
+  "steady   8888 instances, 76 distinct builds, 8888 bodies  frame p50 7.38 ms p95 14.87 ms",
+  "bomb 1   cleared 1349 within 8 m, regrew 1438 in 23 frames, rebuilt in 0.0 s, frame at the blast 13.31 ms",
+  "bomb 2   cleared 1318 within 8 m, regrew 1299 in 21 frames, rebuilt in 0.0 s, frame at the blast 10.79 ms",
+  "bomb 3   cleared 1287 within 8 m, regrew 1282 in 21 frames, rebuilt in 0.0 s, frame at the blast 10.52 ms",
+  "drain    0 instances, 0 builds, 0 bodies left"
+ ]
+}

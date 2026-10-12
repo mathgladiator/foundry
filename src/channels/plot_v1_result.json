@@ -1,0 +1,28 @@
+{
+  "family": "plot",
+  "version": 1,
+  "feature": "result",
+  "doc": "A plot system's answer (design/plotter.md, Growing): placements that work now, and how many more would.",
+  "fields": [
+    {
+      "name": "placements",
+      "type": "plot_v1_placement[]",
+      "doc": "Up to max placements, in the config's order."
+    },
+    {
+      "name": "volume",
+      "type": "u32",
+      "doc": "How many more placements the region could take after these: 0 means it is full and stable."
+    },
+    {
+      "name": "cells",
+      "type": "plot_v1_cell[]",
+      "doc": "The resolved cells, when the request wanted them."
+    },
+    {
+      "name": "cell_count",
+      "type": "u32",
+      "doc": "How many cells the region has."
+    }
+  ]
+}

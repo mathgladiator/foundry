@@ -3,6 +3,7 @@
 
 #include "channels/rock_v1_model.h"
 #include "packer/rock_v1_piece.h"
+#include "packer/physics_v1_body.h"
 
 namespace foundry {
 
@@ -17,6 +18,7 @@ inline void pack_fields(Writer &w, const channels::rock_v1_model &c) {
   w.array(c.bone_b, [](Writer &w, const auto &x) { w.u32(x); });
   w.array(c.bone_w, [](Writer &w, const auto &x) { w.f32(x); });
   w.array(c.colors, [](Writer &w, const auto &x) { w.u32(x); });
+  w.array(c.collision, [](Writer &w, const auto &x) { pack_fields(w, x); });
 }
 
 inline void unpack_fields(Reader &r, channels::rock_v1_model &c) {
@@ -30,6 +32,7 @@ inline void unpack_fields(Reader &r, channels::rock_v1_model &c) {
   r.array(c.bone_b, 4, [](Reader &r, auto &x) { x = r.u32(); });
   r.array(c.bone_w, 4, [](Reader &r, auto &x) { x = r.f32(); });
   r.array(c.colors, 4, [](Reader &r, auto &x) { x = r.u32(); });
+  r.array(c.collision, 12, [](Reader &r, auto &x) { unpack_fields(r, x); });
 }
 
 inline void pack(const channels::rock_v1_model &c, std::vector<uint8_t> &out) {

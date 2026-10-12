@@ -114,6 +114,8 @@ viewport::Image render_view(const ViewContent &content, const viewport::Camera &
   scene.has_conformance = content.has_conformance;
   scene.conformance_radius = content.radius;
   scene.conformance_height = content.height;
+  scene.collision = content.collision;
+  scene.lines = content.lines;
   scene.camera = camera;
   scene.overlays = overlays;
   scene.silhouette = silhouette;

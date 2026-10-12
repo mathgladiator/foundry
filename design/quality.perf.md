@@ -140,6 +140,16 @@ Exit codes:
 
 The window's title shows the instance count, how many are awake, the update and prepare times, and the last action. A window waits on the display (vsync), so its runs never write to the timeline. It still renders off screen and blits to the window, so `--snapshot` works in it. There is no ground yet: the runtime draws pipelines, and terrain is the game's.
 
+## Regions
+
+A plotter gets a region run instead of the phases above: `stress_plotter_<name>` (generated per plotter; `src/tools/stress/region.cpp`) plays a game that fills its world from regions:
+1. **Grow.** A grid of regions (the glen's ground, each with its own world seed; `--regions N` for N x N, `--radius`), grown round-robin at `--batch` placements per frame, every placement spawned into a toy Jolt world. It reports the grow calls' times, the frames, and how long the builds take.
+2. **Steady.** The full scene, swaying, for a few seconds: frame times, instances, distinct builds, and bodies (one per thing that collides).
+3. **Bomb and regrow.** Per cycle, everything within `--blast` metres of a random point in each region is destroyed and vacated, then regrown in regrow mode over frames: the frame at the blast and the frames to regrow.
+4. **Drain.** Every instance and region destroyed: instances, builds, and bodies must all come back to zero, or the run fails.
+
+Reports go to `perf/report-plotter_<name>-<timestamp>.json`.
+
 ## The QA video
 
 `--video OUT.mp4` turns the stress binary into a QA camera: a bulk way to look at a pipeline's whole space. The foundry's Video tab and `pipeline_video` drive it. One video exports at a time, since exports share the GPU and ffmpeg. Each pipeline's Video tab shows its own latest export (progress, then the file or the error), and the others show that they are blocked on the running one, with its progress; `pipeline_video` refuses with the same reason. Pins are kept per pipeline.
@@ -301,7 +311,7 @@ It runs at `speed` times real time (unthrottled with no GPU, or rendering every 
 
 Every `sample_seconds`, the binary records these alongside the heap in use (glibc's `mallinfo2`) and the runtime's counters: cache entries and bytes, live and awake instances, generations, evictions, and GPU buffers and bytes (see "Diagnostics"). It applies two leak checks:
 
-1. **Drain.** Every `drain_minutes`, the binary destroys every instance, waits out the cache's release timer (`spine.md`, "Caching and GPU resources"), and releases what is left. It then returns freed memory to the OS (`malloc_trim(0)` on glibc) and samples. Each drain must come back within `drain_tolerance_mb` of the first drain, in both the heap in use and RSS. The runtime's counters must balance exactly: no instances or cache entries remain, and the live GPU buffers are the same at every drain.
+1. **Drain.** Every `drain_minutes`, the binary destroys every instance, waits out the cache's release timer (`spine.md`, "Caching and GPU resources"), and releases what is left. It then settles the toy Jolt world (rebuilding its broad phase, as a game's physics update does every step; until then Jolt keeps removed bodies' tree nodes), returns freed memory to the OS (`malloc_trim(0)` on glibc), and samples. No drain may grow more than `drain_tolerance_mb` above the first, in either the heap in use or RSS; memory given back is not a failure. The runtime's counters must balance exactly: no instances, cache entries, or bodies remain (in the runtime and in the world), and the live GPU buffers are the same at every drain.
 2. **Plateau.** After a warmup (the first 10% of the soak), it fits a line to the RSS samples. The slope must stay under `soak_rss_slope_mb_per_hour`. A bounded workload with a bounded cache has to plateau. Churn makes RSS swing by tens of megabytes from one sample to the next, so a short soak's slope is mostly noise: the slope is always reported, but it only fails a soak of `plateau_min_minutes` (20 by default) or longer. Short soaks rely on the drains, which compare the same state each time.
 
 The OS numbers are the ground truth. The heap in use is exact but process-wide, and the runtime's counters name what the runtime holds. Together they say both whether memory leaks and whose it is.

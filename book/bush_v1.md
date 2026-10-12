@@ -56,6 +56,10 @@ species, age, season, fruit, seed, detail
 
 The flowers' and trees' simulator for stems and branches, with the same gusts, in closed form. A shrub in no wind settles.
 
+### Collision
+
+Each build carries one **soft** body (`physics_v1_body`): a vertical cylinder of radius half the shrub's reach (at least 5 cm) up to 0.8 of its top, which a player can push a little way into. The runtime adds it to the game's Jolt world when the build is ready, and a plotter reads its footprint from it. Measured on an old elderberry: one cylinder of radius 1.88 m reaching 2.86 m up, which Jolt accepts and which stays inside the conformance (`pipeline_set`'s `collision` fact). The View tab's Collision toggle draws it.
+
 ## Species
 
 | Species | Latin | Height (m) | Habit | Leaves | Flowers | Berries | Biome |
@@ -117,6 +121,7 @@ Native runtime, on an AMD Ryzen AI Max+ 395 with a Radeon 8060S (Vulkan), from t
 
 - **Thicket.** About 16,000 shrubs fit a 60 fps frame (16.4 ms p95), sharing 10 builds at a 99.96% hit rate; 25,600 take 26 ms. Before the fruit work it was 14,400.
 - **Soak: drains fail on RSS, not the heap.** After each drain the heap in use is back within 0.2 MB of the first, and the runtime's counters balance (no instances, cache entries, or GPU buffers left), but the process's RSS sits above the first drain, past the 8 MB tolerance on two of four: +8.4 and +10.7 MB on the third and fourth (3 of 5 drains pass). The run before the fruit work was worse (+8.8, 12.2, 16.3, and 16.3 MB), and a scratch soak then passed four drains of five. That reads as memory the allocator or GPU driver keeps rather than a leak, but it is unexplained, and the check stays failing until it is.
+- **With collision** (`demo/perf/report-bush_v1-20261012T193827Z.json`, every shrub's soft body in a toy Jolt world): about 14,400 shrubs fit the frame (16.0 ms p95), and native still matched WebAssembly 100/100. The soak's drains fail the same way: the heap is back within 0.2 MB at every drain and the bodies balance, but RSS sits 11 to 14 MB above the first drain. The same drift appeared in the tree's soak today and went away with the GPU off (`--gpu none`: drains within 5.6 MB), so it looks like the GPU driver's memory, still unexplained.
 - **Matches WebAssembly.** 100 sampled shrubs and their poses, byte for byte (through the foundry's `perf_stress`); `pipeline_set` with `verify_native` also matched all 14 species in winter, summer, and fall, fruit on and off (84 configurations).
 
 ## QA

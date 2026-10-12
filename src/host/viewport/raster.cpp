@@ -250,6 +250,10 @@ Image render(const Scene &scene, int width, int height) {
     bounds.add({-scene.conformance_radius, 0, -scene.conformance_radius});
     bounds.add({scene.conformance_radius, scene.conformance_height, scene.conformance_radius});
   }
+  for (const Line &l : scene.lines) {
+    bounds.add(l.a);
+    bounds.add(l.b);
+  }
   if (scene.overlays.hero) {
     float hx = hero_x(asset_radius);
     bounds.add({hx - 0.35f, 0, -0.35f});
@@ -369,6 +373,9 @@ Image render(const Scene &scene, int width, int height) {
       draw_capsule(t, pr, {hero_x(asset_radius), 0, 0}, 0.35f, 1.8f, {0.55f, 0.85f, 1.0f}, 0.85f, 0.25f);
     if (scene.has_conformance && scene.overlays.conformance)
       draw_capsule(t, pr, {0, 0, 0}, scene.conformance_radius, scene.conformance_height, {0.45f, 1.0f, 0.55f}, 0.9f, 0.3f);
+    for (const Line &l : scene.lines) draw_line(t, pr, l.a, l.b, {l.r, l.g, l.bl}, l.alpha, l.alpha * 0.25f);
+    if (scene.overlays.collision)
+      for (const Line &l : scene.collision) draw_line(t, pr, l.a, l.b, {l.r, l.g, l.bl}, l.alpha, l.alpha * 0.35f);
   }
 
   Image img;

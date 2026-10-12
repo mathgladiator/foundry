@@ -7,6 +7,7 @@
 #include "mcp/server.h"
 #include "meshy/meshy.h"
 #include "pipeline/live.h"
+#include "plot/view.h"
 #include "wasm/runner.h"
 #include "workspace/workspace.h"
 
@@ -20,6 +21,7 @@ struct Services {
   meshy::Client *meshy = nullptr;
   mcp::Server *server = nullptr;
   pipeline::Live *live = nullptr;  // the pipeline instance the workspace shows
+  plot::View *plot = nullptr;      // the plotter region the workspace shows
 };
 
 // Runs the windowed workspace UI until the window closes. Returns an exit code.

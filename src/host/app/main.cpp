@@ -10,6 +10,7 @@
 
 #include "app/capture.h"
 #include "app/services.h"
+#include "plot/tools.h"
 #include "assets/mesh_item.h"
 #include "assets/tools.h"
 #include "assets/view.h"
@@ -80,10 +81,17 @@ int main(int argc, char **argv) {
   pipeline::Runner pipelines(s.paths, runner);
   pipeline::Live live(pipelines);
   pipeline::register_tools(registry, pipelines, live, ws);
+  plot::View plot_view(s.paths, pipelines, runner);
+  plot::register_tools(registry, plot_view);
   perf::register_stress_tools(registry, s.paths, pipelines);
   // Selecting a pipeline or a config entry shows the live instance, posed for now.
-  assets::set_live_provider([&live](const workspace::Item &item, assets::ViewContent &v) {
+  assets::set_live_provider([&live, &plot_view](const workspace::Item &item, assets::ViewContent &v) {
     std::string error;
+    if (item.kind == "plotter") {
+      // A plotter shows its region, composed in the background.
+      if (!plot_view.show(item.name, error)) return false;
+      return plot::content(plot_view, v, 120000);
+    }
     if (item.kind == "pipeline" ? !live.show(item.name, error) : !live.show_config_file(item.path, error)) return false;
     double now = static_cast<double>(SDL_GetTicks()) / 1000.0;
     pipeline::Frame f = live.frame(now);
@@ -138,6 +146,7 @@ int main(int argc, char **argv) {
   s.meshy = &meshy;
   s.server = &server;
   s.live = &live;
+  s.plot = &plot_view;
 
   int rc = 0;
   if (headless) {

@@ -44,6 +44,15 @@ This file is how the project is managed. It holds one current milestone, with TO
 - [ ] **A happy glen.** `plotters/happy_glen_v1.json`: a sunny, gentle green place of oaks and apple trees in loose groves, hazel, bramble, and elderberry along its edges, daisies, poppies, bluebells, and foxgloves in the open grass, and a few river stones. It reads as a happy place on every shape tried. It has a book with numbers from runs, and the stress tool's region phase.
 
   
+**Questions from the agent** (Jolt, stumps, and the first plotter; everything above is built and in draft, nothing is committed)
+1. **Jolt comes through CMake's FetchContent** (v5.6.0, pinned by tag in `cmake/deps.cmake`, like the other source libraries), not `tools/bootstrap.sh` into `.deps/` as the TODO says. Is that fine, or should it move to `.deps/`?
+2. **New channels to approve**, each a draft with its reason in its manifest: `physics_v1_shape` and `physics_v1_body` (collision descriptions), and 13 for the plotter: `plot_v1_region`, `regions`, `config`, `layer`, `kind`, `clearance`, `preference`, `occupant`, `exclusion`, `request`, `placement`, `cell`, and `result`. The model channels of all four pipelines gained `collision`, and the tree's spec, rig, body, and model gained `stump`, `trunk_diameter`, and the footprint.
+3. **Painted cells.** The plotter view shapes the ground with presets (glen, hex, ring, strip, union, pond, path, slope, ragged, single) and an editable list of prioritized hex regions, but you can't paint single cells with the mouse yet. Is the region list enough for this milestone?
+4. **Hedges are sparse.** A shrub's footprint comes from its soft body at its oldest (radius half its reach), so an old elderberry reserves 7 cells and hedges stand about 5 m apart. Should shrubs get a tighter soft body (or a footprint smaller than their collision) so they can form a hedgerow?
+5. **The bush soak's drift is still open.** The soak's heap growth today was Jolt keeping removed bodies' broad-phase nodes until the world updates; the stress tool now settles its toy world before measuring, and the drain check now judges only growth. Tree, rock, and flower pass. The bush still fails one way: the heap is flat, but RSS sits 11 to 14 MB above the first drain. A tree soak with the GPU off passes (drains within 5.6 MB), so this looks like the GPU driver's memory. Should the drain check measure RSS without GPU mappings, or should I keep digging?
+6. **The QA video with `stump`** is 4,416 clips for every variation. I didn't export it; pinning `stump` to true gives a stump-only video. Do you want a full export before you approve?
+
+
 ## Not in this milestone
 
 To keep the milestone focused, these wait even though they are designed: trees and other nature, crafted things, buildings, humanoids, creatures, magic, auras, sound, shadows, the sleep and wake engine beyond what static meshes need, and recording and replay.

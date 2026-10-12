@@ -60,6 +60,12 @@ foundry_status foundry_flower_v1_set_wind_speed(foundry_runtime *rt, foundry_ins
 foundry_status foundry_flower_v1_set_wind_heading(foundry_runtime *rt, foundry_instance instance, float value);
 foundry_status foundry_flower_v1_set_gust_damping(foundry_runtime *rt, foundry_instance instance, float value);
 
+/* The instance's update result, as current values (see foundry_changed). */
+typedef struct foundry_flower_v1_result {
+  bool ready;  /* the build last asked for (by spawn or a setter) is the one drawn */
+} foundry_flower_v1_result;
+foundry_status foundry_flower_v1_get_result(foundry_runtime *rt, foundry_instance instance, foundry_flower_v1_result *out);
+
 #ifdef __cplusplus
 }
 #endif

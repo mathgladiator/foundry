@@ -68,6 +68,7 @@ typedef struct foundry_tree_v1_params {
   foundry_tree_v1_age age;
   foundry_tree_v1_season season;
   bool fruit;  /* The tree still carries its fruit; clear it when the fruit is picked. Applies only to species whose fruit can be picked (pickable); elsewhere it is disabled. */
+  bool stump;  /* Only the stump is left. The game sets it once a felled tree's break is over (break_over in its result); the trunk's collision becomes the stump's. */
   uint32_t seed;  /* Which of the distinct trees per species, age, and season (the runtime caps how many by quality). [1, 1000] */
   foundry_tree_v1_detail detail;  /* Level of detail; the runtime picks it from distance and quality. */
   float wind_speed;  /*  [0, 25] m/s */
@@ -84,6 +85,7 @@ foundry_status foundry_tree_v1_set_species(foundry_runtime *rt, foundry_instance
 foundry_status foundry_tree_v1_set_age(foundry_runtime *rt, foundry_instance instance, foundry_tree_v1_age value);
 foundry_status foundry_tree_v1_set_season(foundry_runtime *rt, foundry_instance instance, foundry_tree_v1_season value);
 foundry_status foundry_tree_v1_set_fruit(foundry_runtime *rt, foundry_instance instance, bool value);
+foundry_status foundry_tree_v1_set_stump(foundry_runtime *rt, foundry_instance instance, bool value);
 foundry_status foundry_tree_v1_set_seed(foundry_runtime *rt, foundry_instance instance, uint32_t value);
 foundry_status foundry_tree_v1_set_detail(foundry_runtime *rt, foundry_instance instance, foundry_tree_v1_detail value);
 foundry_status foundry_tree_v1_set_wind_speed(foundry_runtime *rt, foundry_instance instance, float value);
@@ -95,6 +97,13 @@ foundry_status foundry_tree_v1_set_break_heading(foundry_runtime *rt, foundry_in
 bool foundry_tree_v1_fruit_applies(foundry_tree_v1_species species);
 /* Seconds since the tree broke; negative while it stands. The game starts it (foundry_tree_v1_start_break). */
 foundry_status foundry_tree_v1_start_break(foundry_runtime *rt, foundry_instance instance);
+
+/* The instance's update result, as current values (see foundry_changed). */
+typedef struct foundry_tree_v1_result {
+  bool break_over;  /* break started and its animation has come to rest */
+  bool ready;  /* the build last asked for (by spawn or a setter) is the one drawn */
+} foundry_tree_v1_result;
+foundry_status foundry_tree_v1_get_result(foundry_runtime *rt, foundry_instance instance, foundry_tree_v1_result *out);
 
 #ifdef __cplusplus
 }

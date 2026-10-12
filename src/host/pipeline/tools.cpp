@@ -68,6 +68,7 @@ assets::ViewContent content_of(const Frame &f, const std::string &label) {
   v.has_conformance = f.conformance_radius > 0;
   v.radius = f.conformance_radius;
   v.height = f.conformance_height;
+  if (f.collision) physics::wireframe(*f.collision, v.collision);
   return v;
 }
 

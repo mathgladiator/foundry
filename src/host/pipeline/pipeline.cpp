@@ -24,11 +24,14 @@ struct Model {
   size_t bones = 0;
   float radius = 0, conformance_height = 0, height = 0;  // radius: the conformance capsule's
   nlohmann::json facts;  // scalar fields, and the sizes of other arrays
+  std::shared_ptr<const physics::Collision> collision;
+  float footprint_radius = 0;
+  uint32_t footprint_cells = 0;
 };
 
 namespace {
 
-constexpr size_t kCacheEntries = 192;
+constexpr size_t kCacheEntries = 4096;  // a plotter's region shows dozens of builds, four stages each
 constexpr size_t kCacheBytes = size_t(1536) << 20;
 
 uint64_t fnv64(const std::vector<uint8_t> &b) {
@@ -51,7 +54,8 @@ std::string hex(uint64_t v) {
 // colors (packed RGBA), and skinning (bone_a, bone_b, bone_w); a pose has matrices
 // (column-major 4x4 per bone) and may say it has settled. Everything else the
 // channel carries is reported as facts.
-const std::set<std::string> kMeshFields = {"positions", "normals", "colors", "indices", "bone_a", "bone_b", "bone_w"};
+const std::set<std::string> kMeshFields = {"positions", "normals", "colors", "indices", "bone_a", "bone_b", "bone_w",
+                                           "collision"};
 
 nlohmann::json facts_of(const nlohmann::json &j, const std::set<std::string> &skip) {
   nlohmann::json out = nlohmann::json::object();
@@ -120,6 +124,12 @@ std::shared_ptr<const Model> decode_model(const Definition &def, const std::stri
   out->radius = scalar(def.conformance_radius);
   out->conformance_height = scalar(def.conformance_height);
   out->facts = facts_of(m, kMeshFields);
+  out->footprint_radius = scalar(def.footprint_radius);
+  out->footprint_cells = static_cast<uint32_t>(scalar(def.footprint_cells));
+  // Collision (the physics_v1_body convention): checked in the toy Jolt world once per model.
+  out->collision = physics::analyze(physics::bodies_from_json(m.value("collision", nlohmann::json::array())),
+                                    def.conformance_radius.empty() ? 0.0f : out->radius, out->conformance_height);
+  out->facts["collision"] = out->collision->report;
   return out;
 }
 
@@ -306,6 +316,9 @@ bool load(const forge::Paths &paths, const std::string &name, Definition &def, s
     const nlohmann::json conf = j.at("draw").value("conformance", nlohmann::json::object());
     def.conformance_radius = conf.value("radius", "");
     def.conformance_height = conf.value("height", "");
+    const nlohmann::json fp = j.at("draw").value("footprint", nlohmann::json::object());
+    def.footprint_radius = fp.value("radius", "");
+    def.footprint_cells = fp.value("cells", "");
   } catch (const std::exception &e) {
     error = std::string("bad pipeline file: ") + e.what();
     return false;
@@ -602,6 +615,9 @@ Runner::Result Runner::run(const Definition &def, const nlohmann::json &input_va
   res.frame.height = model->height;
   res.frame.bones = model->bones;
   res.frame.facts = model->facts;
+  res.frame.collision = model->collision;
+  res.frame.footprint_radius = model->footprint_radius;
+  res.frame.footprint_cells = model->footprint_cells;
   res.frame.facts.update(pose_facts);
   res.ok = true;
   return res;

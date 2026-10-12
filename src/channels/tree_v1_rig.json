@@ -20,6 +20,16 @@
       "doc": "Radius of the colliding stump (the conformance), metres."
     },
     {
+      "name": "footprint_radius",
+      "type": "f32",
+      "doc": "Radius of the ground contact of this species at its largest age, metres: what its footprint must hold (design/plotter.md, Footprints and conformance)."
+    },
+    {
+      "name": "footprint_cells",
+      "type": "u32",
+      "doc": "The footprint on the hex grid at the largest age: 1 (single), 7 (flower7), 19 (flower19), or 37 cells."
+    },
+    {
       "name": "crown_base",
       "type": "f32",
       "doc": "Height where branches start: the top of the colliding stump; everything above is visual."

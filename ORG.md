@@ -63,6 +63,8 @@ The slices so far:
 | `meshy` | The Meshy client, with the credit budget and ledger |
 | `app` | The entry point, the Dear ImGui workspace UI, and window capture |
 | `perf` | The performance phase: GPU benchmarks of meshes, using the runtime's instanced renderer; running pipelines' stress binaries (`perf_stress`) and QA video exports (`pipeline_video`) as background jobs |
+| `physics` | The foundry's toy Jolt Physics world (`toy.h`): checks a build's collision (Jolt makes its shapes, the world adds and removes them, they stay inside the conformance) and turns it into wireframe lines for the viewport |
+| `plot` | Plotters (`plotter.h`: load, check, measure footprints, compile the biome config), the region the workspace shows (`view.h`: its ground, occupants, growth, clearing, and composed picture), and their MCP tools |
 | `pipeline` | Runs pipelines in WebAssembly: parameter bindings, a cache of each stage's output keyed by system build and input, the live instance the workspace shows (its clock and background rebuilds), CPU skinning for the viewport, contact sheets, config tables (`config.h`: generic; no pipeline is known to the host), and the flow analysis and probe (`flow.h`) |
 
 Each slice registers its own MCP tools in a `tools.cpp`.
@@ -96,6 +98,7 @@ The runtime core and everything that supports the graphics engine: instances, up
 
 So far it holds:
 
+- `src/runtime/physics/`: the runtime's side of the game's Jolt Physics world (`jolt.h`): checking the game's pointer, making a build's collision shapes, and adding, moving, and removing an instance's bodies. No Jolt type crosses its header.
 - `src/runtime/core/`: the runtime's world (`world.h`): instances and their timelines, the shared cache of builds, generation on background threads, the update broadcast on a thread pool, sleep, culling, and diagnostics; and the interface a pipeline implements (`pipeline.h`), which generated code fills in.
 - `src/runtime/shaders/skinned.hlsl` and `src/runtime/render/skinned_renderer.*`: skinned, instanced drawing, with bones streamed in a storage buffer.
 - `src/runtime/shaders/cel.hlsl`: the first cut of the mega shader, compiled to SPIR-V by DXC at build time and embedded in the binary (`build/*/shaders/`). DXC comes from `tools/bootstrap.sh`; `SDL_shadercross` will add Metal and Direct3D 12 later.
@@ -109,7 +112,7 @@ The game-facing C API (`design/api.md`) lives here. It is split into fragments s
 - `src/library/$fragment.cpp` implements it, on top of the runtime.
 - `src/library/runtime.h` is the concatenation of the fragment headers, in a fixed order.
 
-`runtime.h` is produced mechanically, never edited by hand, so it stays predictable and stable. The build regenerates it and fails if the committed copy differs. Fragments for pipelines are themselves generated from the pipeline JSON files by `tools/gen_pipelines.py`: `$pipeline.h` (enums, the parameter struct, spawn, setters, and event triggers) and `$pipeline.cpp` (the native executor: each system called directly, its config tables compiled in). `foundry.h` is the handwritten first fragment, `internal.h` is the implementation's view of the runtime, and `runtime_diag.h` holds diagnostics for development builds (`design/quality.perf.md`), never part of `runtime.h`. The library builds as `foundry_library`, with every system's static library linked in.
+`runtime.h` is produced mechanically, never edited by hand, so it stays predictable and stable. The build regenerates it and fails if the committed copy differs. Fragments for pipelines are themselves generated from the pipeline JSON files by `tools/gen_pipelines.py`: `$pipeline.h` (enums, the parameter struct, spawn, setters, and event triggers) and `$pipeline.cpp` (the native executor: each system called directly, its config tables compiled in). `region.h` (handwritten, after `foundry.h`) declares regions (`design/plotter.md`), implemented in `region.cpp` over each plotter compiled into `plotters.cpp` (generated from the workspace's `plotters/` by `tools/gen_pipelines.py`, with `plotters.h` naming them). `foundry.h` is the handwritten first fragment, `internal.h` is the implementation's view of the runtime, and `runtime_diag.h` holds diagnostics for development builds (`design/quality.perf.md`), never part of `runtime.h`. The library builds as `foundry_library`, with every system's static library linked in.
 
 `runtime.h` is the only header a game includes.
 

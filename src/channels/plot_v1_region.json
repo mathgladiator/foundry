@@ -1,0 +1,104 @@
+{
+  "family": "plot",
+  "version": 1,
+  "feature": "region",
+  "doc": "One hex region of the ground a plot system fills (design/plotter.md, Describing cells and their attributes): a shape, a priority, and attribute values. A cell takes its values from the highest-priority region covering it.",
+  "fields": [
+    {
+      "name": "shape",
+      "type": "u32",
+      "doc": "The shape's kind.",
+      "enum": [
+        "cells",
+        "hex",
+        "ring",
+        "line"
+      ]
+    },
+    {
+      "name": "cells",
+      "type": "i32[]",
+      "doc": "For cells: axial coordinates as q, r pairs."
+    },
+    {
+      "name": "q",
+      "type": "i32",
+      "doc": "A hex's or ring's centre, or a line's start: axial q."
+    },
+    {
+      "name": "r",
+      "type": "i32",
+      "doc": "Axial r."
+    },
+    {
+      "name": "q2",
+      "type": "i32",
+      "doc": "A line's end: axial q."
+    },
+    {
+      "name": "r2",
+      "type": "i32",
+      "doc": "A line's end: axial r."
+    },
+    {
+      "name": "radius",
+      "type": "u32",
+      "doc": "A hex's or ring's radius, in cells.",
+      "min": 0,
+      "max": 1000
+    },
+    {
+      "name": "priority",
+      "type": "i32",
+      "doc": "Higher wins where regions overlap; equal priorities resolve in list order."
+    },
+    {
+      "name": "cut",
+      "type": "bool",
+      "doc": "Removes the shape's cells from the region instead of adding them."
+    },
+    {
+      "name": "set",
+      "type": "u32",
+      "doc": "Which attributes this region sets, as bits: 1 ground, 2 available, 4 keep_clear_m, 8 height, 16 moisture. Unset attributes come from lower regions (or the defaults: soil, available, 0, 0, 0.5)."
+    },
+    {
+      "name": "ground",
+      "type": "u32",
+      "doc": "The ground's kind.",
+      "enum": [
+        "soil",
+        "water",
+        "rock",
+        "sand",
+        "path"
+      ]
+    },
+    {
+      "name": "available",
+      "type": "bool",
+      "doc": "Whether anything with a footprint may stand here (false for a road, a building's plot)."
+    },
+    {
+      "name": "keep_clear_m",
+      "type": "f32",
+      "doc": "Keep everything that blocks at least this far from these cells' centres, metres.",
+      "min": 0,
+      "max": 100
+    },
+    {
+      "name": "height",
+      "type": "f32",
+      "doc": "Ground height at the cells' centres, metres.",
+      "min": -1000,
+      "max": 10000
+    },
+    {
+      "name": "moisture",
+      "type": "f32",
+      "doc": "Moisture, 0 dry to 1 wet.",
+      "min": 0,
+      "max": 1
+    }
+  ]
+}

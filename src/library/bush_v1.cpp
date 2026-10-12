@@ -721,6 +721,28 @@ class Type final : public runtime::PipelineType {
     b->mesh.bone_a = std::move(grow_out.bone_a);
     b->mesh.bone_b = std::move(grow_out.bone_b);
     b->mesh.bone_w = std::move(grow_out.bone_w);
+    for (const auto &cb : grow_out.collision) {
+      runtime::CollisionBody body;
+      body.purpose = cb.purpose;
+      body.name = cb.name;
+      for (const auto &cs : cb.shapes) {
+        runtime::CollisionShape sh;
+        sh.type = cs.type;
+        sh.position[0] = cs.position.x; sh.position[1] = cs.position.y; sh.position[2] = cs.position.z;
+        sh.rotation[0] = cs.rotation.x; sh.rotation[1] = cs.rotation.y; sh.rotation[2] = cs.rotation.z;
+        sh.radius = cs.radius;
+        sh.radius_top = cs.radius_top;
+        sh.half_height = cs.half_height;
+        sh.half_extents[0] = cs.half_extents.x; sh.half_extents[1] = cs.half_extents.y; sh.half_extents[2] = cs.half_extents.z;
+        for (const auto &pt : cs.points) {
+          sh.points.push_back(pt.x);
+          sh.points.push_back(pt.y);
+          sh.points.push_back(pt.z);
+        }
+        body.shapes.push_back(std::move(sh));
+      }
+      b->collision.push_back(std::move(body));
+    }
     const auto &m = b->mesh;
     b->triangles = static_cast<uint32_t>(m.indices.size() / 3);
     uint32_t bones = 1;
@@ -908,6 +930,15 @@ bool foundry_bush_v1_fruit_applies(foundry_bush_v1_species species) {
   foundry_bush_v1_default_params(&p);
   p.species = species;
   return applies_fruit(p);
+}
+
+foundry_status foundry_bush_v1_get_result(foundry_runtime *rt, foundry_instance instance, foundry_bush_v1_result *out) {
+  uint32_t bits = 0;
+  const runtime::Status st = rt->world.result(instance, bits);
+  if (st != runtime::Status::ok) return foundry_status_of(st);
+  if (!out) return FOUNDRY_OK;
+  out->ready = (bits & runtime::World::kResultReady) != 0;
+  return FOUNDRY_OK;
 }
 
 }  // extern "C"

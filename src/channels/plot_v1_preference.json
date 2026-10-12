@@ -1,0 +1,27 @@
+{
+  "family": "plot",
+  "version": 1,
+  "feature": "preference",
+  "doc": "A later layer's liking for an earlier layer's things (design/plotter.md, Plotters: prefer_near).",
+  "fields": [
+    {
+      "name": "layer",
+      "type": "u32",
+      "doc": "The earlier layer's index."
+    },
+    {
+      "name": "within_m",
+      "type": "f32",
+      "doc": "Within this distance of that layer's things, metres.",
+      "min": 0,
+      "max": 100
+    },
+    {
+      "name": "boost",
+      "type": "f32",
+      "doc": "How many times denser this layer is there.",
+      "min": 1,
+      "max": 20
+    }
+  ]
+}

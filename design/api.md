@@ -118,6 +118,8 @@ The runtime takes part in the game's physics, which is a baseline (small-p physi
 - **Queries.** The game asks the world raycasts, overlaps, and shape casts.
 - **The cost.** Every game that links the runtime links Jolt, even one that only wants the renderer. That bloat is accepted.
 
+**Built so far:** Jolt v5.6.0 is linked beside the runtime and into the foundry's host. The game's world arrives as `foundry_physics` (`tag = FOUNDRY_PHYSICS_JOLT`, `jolt_version = JPH_VERSION_ID`, the `JPH::PhysicsSystem*`, and an object layer per `foundry_purpose`), and `foundry_runtime_create` refuses a mismatched version with a reason. The runtime adds each instance's bodies when its build is ready, swaps them on a rebuild, moves them with `foundry_set_transform`, and removes them on destroy (`tests/results_test.cpp`, `tests/region_test.cpp`). Queries, active entities, and sensors are designed, not built.
+
 ### Active entities and sensors
 
 The game registers its **active entities** with the runtime: every player and creature (the game is multiplayer). A registration declares an external ID, which the runtime only tracks and reports back, and a collision mask, which the game manages at a higher level: it decides what the entity takes part in, so behaviour (a deer that notices hunters but not other deer) stays the game's. The game moves its entities; the registration is so the runtime can emit events correctly and attribute them. An entity is a handle, like an instance, so using a stale one is an error, never a crash. Instances and entities can carry sensor shapes (cylinders, capsules, spheres) that collide with nothing, and the runtime detects contacts between entities and sensors at full fidelity, including another entity's sensors (a deer's aggro radius noticing a hunter). After each update, an instance's or entity's result lists the entities touching its sensors and how far each is from it (one changed list covers both), so the game can show a prompt ("pick", "chop") and, when several things are in reach of one button, pick the nearest. The runtime maintains these relationships; the game syncs them to its UI.
@@ -138,13 +140,21 @@ foundry_entity_destroy(rt, hero);
 A game that fills its world from biomes registers **regions**: prioritized hex regions with their attributes (ground, height, moisture, and so on), bound to an approved plotter (`plotter.md`). Every plotter takes the same region list, so the game describes its ground once. A region is bookkeeping, not an owner: it indexes what occupies its cells, and it holds no handles.
 
 ```c
-foundry_region swamp = foundry_region_create(rt, &desc);          /* cells, attributes, plotter, world seed */
-foundry_region_restore(rt, swamp, saved, saved_count);              /* on load: what the save holds */
+foundry_region_desc desc = {.plotter = FOUNDRY_PLOTTER_HAPPY_GLEN_V1, .world_seed = 7,
+                            .regions = ground, .region_count = n};      /* foundry_hex_region: shape, priority, attributes */
+foundry_region glen = foundry_region_create(rt, &desc);
+foundry_region_restore(rt, glen, saved, saved_count);                     /* on load; FAILED: drop them and grow anew */
+foundry_placement out[64];
 uint32_t volume;
-uint32_t got = foundry_region_grow(rt, swamp, FOUNDRY_GROW_SEED, &exclusions, focus, out, 64, &volume);  /* up to 64, and how many more fit */
-foundry_instance h = foundry_placement_spawn(rt, &out[0]);          /* the game spawns and owns each one */
-foundry_region_vacate(rt, swamp, &slot, 1);                          /* it's gone: its cells are free */
+uint32_t got = foundry_region_grow(rt, glen, FOUNDRY_GROW_SEED, exclusions, exclusion_count, focus, out, 64, &volume);
+foundry_instance h = foundry_placement_spawn(rt, glen, &out[0]);          /* its kind, its parameters, its place */
+uint32_t n = foundry_region_find(rt, glen, centre, 6.0f, slots, 256);     /* what stands within 6 m */
+foundry_region_vacate(rt, glen, slots, n);                                /* it's gone: its cells are free */
+uint32_t lost = foundry_region_set_regions(rt, glen, ground, count, lost_slots, 256);  /* the ground changed */
+foundry_region_destroy(rt, glen);                                         /* forgets the index; destroys no instances */
 ```
+
+These are built (`src/library/region.h`, `region.cpp`), with each plotter's config and kinds compiled in (`src/library/plotters.cpp`, by `tools/gen_pipelines.py`). `foundry_plotter_kind_name` names a placement's kind (`"tree_v1 oak"`).
 
 - **The game paces growth.** `grow` returns up to the number asked for, and the volume the region could still take; a volume of 0 means it is full and stable. Regrowth is simply a later `grow` in regrow mode, when the game decides, and always converges to the original density. The plotter has no clock.
 - **The game owns everything placed.** It spawns placements as ordinary instances, holds their handles, sets their parameters (season, wind, a break, a stump), saves them, and restores them into the region on load.
@@ -164,6 +174,8 @@ Each update leaves every instance a **result**, generated per pipeline like its 
 | Sounds | The sounds playing now: event, position, handle (`sounds.md`). The sound manager diffs this against the last result to start and stop them; a sound shorter than an update appears once |
 | Sleep | Whether it is asleep |
 | Ready | Which build it is drawing, so a rebuild the game asked for (a tree turned stump, its body swapped) shows when it has happened |
+
+**Built so far:** each pipeline's `foundry_<pipeline>_result` carries one `<event>_over` flag per event and `ready`, read with `foundry_<pipeline>_get_result`; `foundry_changed` returns the handles whose results changed in the last update. Contacts, sounds, and sleep are designed, not built.
 
 `foundry_changed` lists the instances whose results changed in the last update through no action of the game's (an animation ending, a contact starting or ending, a sound, sleep), plus those whose requested rebuild has finished, so the game reads only those. Results last until the next update. Deleting an instance ends its open sounds in its final result before the handle goes stale, so a listener that tracks open sounds or effects can always clean up.
 

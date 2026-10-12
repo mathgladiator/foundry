@@ -1,0 +1,20 @@
+{
+  "family": "plot",
+  "version": 1,
+  "feature": "clearance",
+  "doc": "A later layer's distance from an earlier layer's things (design/plotter.md, Plotters: keep_clear_of).",
+  "fields": [
+    {
+      "name": "layer",
+      "type": "u32",
+      "doc": "The earlier layer's index."
+    },
+    {
+      "name": "metres",
+      "type": "f32",
+      "doc": "How far from that layer's things this layer's must stay, centre to centre, metres.",
+      "min": 0,
+      "max": 100
+    }
+  ]
+}

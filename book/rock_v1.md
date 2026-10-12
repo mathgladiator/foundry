@@ -81,6 +81,10 @@ This is the only stage that runs every frame, and it is closed form: a frame dep
 
 Pieces don't collide with each other, so a piece can come to rest partly inside another.
 
+### Collision
+
+Each build carries one **solid** body: the convex hull of the rock's support points in 26 directions, so it hugs the rock's shape without its every facet. Measured on a medium granite rock: reach 0.81 m, top 0.74 m, accepted by Jolt and inside the conformance. The body is the whole rock's; its broken pieces don't collide (the break is a closed-form animation).
+
 ## Materials
 
 | Material | Kind | Breaks | Pattern | Biome |
@@ -118,6 +122,7 @@ Native runtime, on an AMD Ryzen AI Max+ 395 with a Radeon 8060S (Vulkan), from t
 - **Field of rocks.** 25,600 rocks run at 7.1 ms p95 on 10 shared builds, a 99.96% cache hit rate; the budget held at every count tried, so capacity is higher still.
 - **Bulk breaks.** Breaking 100 rocks in one frame raises the frame time from 0.1 to 0.4 ms; they settle in 1.8 s, and memory comes back exactly. 1,600 breaking at once still fit the frame budget.
 - **Soak.** Five drains all came back within 2.3 MB.
+- **With collision** (`demo/perf/report-rock_v1-20261012T194430Z.json`, every rock's hull in a toy Jolt world): 25,600 rocks at 7.0 ms p95; 100 broken in one frame cost 0.6 ms over 0.1; the soak's five drains within 1.0 MB, bodies balanced.
 - **Matches WebAssembly.** 100 sampled rocks and their poses, byte for byte.
 
 Run `perf_stress` with plan `quick` after a change and `standard` before asking for approval (`design/quality.perf.md`). `build/linux-release/stress/stress_rock_v1 --plan explore --window` opens a field to fly through; B breaks the rocks you look at.

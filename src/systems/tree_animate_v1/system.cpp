@@ -190,7 +190,9 @@ bool run(const channels::tree_v1_motion &in, channels::tree_v1_pose &out, std::s
       world[i] = b.parent >= 0 ? compose(world[static_cast<size_t>(b.parent)], local) : local;
     }
     for (const Xf &x : world) put(x, out.matrices);
-    out.settled = in.wind_speed <= 0;
+    bool bends = false;  // a stump's bones are all rigid, so it sleeps in any wind
+    for (const auto &b : in.bones) bends = bends || (b.parent >= 0 && b.drag > 0);
+    out.settled = in.wind_speed <= 0 || !bends;
     return true;
   }
 

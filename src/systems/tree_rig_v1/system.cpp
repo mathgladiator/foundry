@@ -148,8 +148,8 @@ bool run(const tree_v1_spec &in, channels::tree_v1_rig &out, std::string &error)
     error = "genome needs 4 age_height and 4 age_girth values";
     return false;
   }
-  if (g.height <= 0 || g.slender <= 0) {
-    error = "genome height and slender must be positive";
+  if (g.height <= 0 || g.slender <= 0 || g.trunk_diameter <= 0) {
+    error = "genome height, slender, and trunk_diameter must be positive";
     return false;
   }
   const bool ancient = in.age == tree_v1_spec::kAgeAncient;
@@ -313,8 +313,8 @@ bool run(const tree_v1_spec &in, channels::tree_v1_rig &out, std::string &error)
       }
       b.r = tmp;
     }
-    // Toy-like proportions (style.md section 1): trunks 1.6x stouter again than the cel thickening alone.
-    const float target = H / g.slender * kChunk * 1.6f * 0.5f * g.age_girth[in.age];
+    // The trunk's width comes from nature: the genome's mature diameter at the ground, by age.
+    const float target = g.trunk_diameter * 0.5f * g.age_girth[in.age];
     const float f = target / maxf(br[0].r[1], 1e-5f);
     const float size = clampf(H / 8, 0.5f, 1.3f);
     static const float kMinR[4] = {0.03f, 0.02f, 0.013f, 0.009f};
@@ -468,6 +468,14 @@ bool run(const tree_v1_spec &in, channels::tree_v1_rig &out, std::string &error)
       piece.center = mass[p] > 0 ? moment[p] * (1.0f / mass[p]) : piece.pivot;
       out.pieces.push_back(piece);
     }
+    // A stump has nothing left to break off or sway: only its own piece, every bone rigid on it.
+    if (in.stump) {
+      out.pieces.resize(1);
+      for (auto &bone : out.bones) {
+        bone.piece = 0;
+        bone.drag = 0;
+      }
+    }
   }
 
   // ---- foliage anchors -------------------------------------------------------------
@@ -543,7 +551,16 @@ bool run(const tree_v1_spec &in, channels::tree_v1_rig &out, std::string &error)
     for (const auto &p : b.p) top = maxf(top, p.y);
   for (const auto &f : out.foliage) top = maxf(top, f.position.y + f.radius);
   out.height = top;
-  out.stump_radius = br[0].r[1] / kChunk * 1.25f;
+  // What collides: the trunk at the cut, swell included (the flare's lobes are visual).
+  out.stump_radius = br[0].r[1];
+  {
+    // The footprint holds the ground contact at the largest age: the flared, swollen base of an ancient tree
+    // (the flare at its mean around the trunk; its lobes are roots that may reach a little past it).
+    const float ancient_r = g.trunk_diameter * 0.5f * g.age_girth[3] * 1.12f * (1 + g.swell) * (1 + g.flare * 0.9f);
+    out.footprint_radius = ancient_r;
+    // The smallest arrangement whose inner circle, inset 0.1 m (style.md section 2), holds it.
+    out.footprint_cells = ancient_r <= 0.766f ? 1u : (ancient_r <= 1.9f ? 7u : (ancient_r <= 3.51f ? 19u : 37u));
+  }
   out.cut = cut;
   {
     // The colliding stump reaches up to where the lowest limb leaves the stem.

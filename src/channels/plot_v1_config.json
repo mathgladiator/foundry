@@ -1,0 +1,27 @@
+{
+  "family": "plot",
+  "version": 1,
+  "feature": "config",
+  "doc": "A scatter plot system's config, bound to it by a plotter (design/plotter.md, Plotters): the biome's layers and its grove field.",
+  "fields": [
+    {
+      "name": "grove_scale_cells",
+      "type": "f32",
+      "doc": "The grove field's feature size, in cells.",
+      "min": 1,
+      "max": 1000
+    },
+    {
+      "name": "grove_octaves",
+      "type": "u32",
+      "doc": "Octaves of the grove field.",
+      "min": 1,
+      "max": 6
+    },
+    {
+      "name": "layers",
+      "type": "plot_v1_layer[]",
+      "doc": "The layers, in the order they resolve."
+    }
+  ]
+}

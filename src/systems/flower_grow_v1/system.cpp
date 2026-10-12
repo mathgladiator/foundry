@@ -560,6 +560,22 @@ bool run(const flower_v1_spec &in, channels::flower_v1_model &out, std::string &
     error = "the clump has no geometry";
     return false;
   }
+
+  // ---- collision ----
+  // Query only: the clump collides with nothing, but rays and clicks can find it.
+  out.collision.clear();
+  {
+    channels::physics_v1_shape cyl;
+    cyl.type = channels::physics_v1_shape::kTypeCylinder;
+    cyl.position = v3(0, top * 0.5f, 0);
+    cyl.rotation = v3(0, 0, 0);
+    cyl.radius = maxf(reach, 0.05f);
+    cyl.half_height = maxf(top * 0.5f, 0.05f);
+    channels::physics_v1_body body;
+    body.purpose = channels::physics_v1_body::kPurposeQuery;
+    body.shapes.push_back(cyl);
+    out.collision.push_back(body);
+  }
   return true;
 }
 

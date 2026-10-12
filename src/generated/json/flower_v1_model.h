@@ -6,6 +6,7 @@
 #include "channels/flower_v1_model.h"
 #include "json/enums.h"
 #include "json/flower_v1_bone.h"
+#include "json/physics_v1_body.h"
 
 namespace foundry::json {
 
@@ -29,6 +30,8 @@ inline nlohmann::json to_json(const channels::flower_v1_model &c) {
   for (const auto &x : c.bone_w) j["bone_w"].push_back(x);
   j["colors"] = nlohmann::json::array();
   for (const auto &x : c.colors) j["colors"].push_back(x);
+  j["collision"] = nlohmann::json::array();
+  for (const auto &x : c.collision) j["collision"].push_back(to_json(x));
   return j;
 }
 
@@ -71,6 +74,10 @@ inline void from_json(const nlohmann::json &j, channels::flower_v1_model &c) {
   if (j.contains("colors")) {
     c.colors.clear();
     for (const auto &x : j.at("colors")) c.colors.push_back(x.get<uint32_t>());
+  }
+  if (j.contains("collision")) {
+    c.collision.clear();
+    for (const auto &x : j.at("collision")) c.collision.push_back([&] { channels::physics_v1_body n; from_json(x, n); return n; }());
   }
 }
 

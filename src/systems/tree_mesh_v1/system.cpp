@@ -14,6 +14,10 @@
 //   cones and propagules that can't be picked always show.
 // - Roots and moss: cypress knees around the trunk, a mangrove's arching prop
 //   roots, and Spanish moss hanging in strands from the limbs.
+// - Stump mode: a felled tree is only its stump (and its roots), capped with
+//   end grain at the cut.
+// - Collision (design/spine.md, Layer 1): the trunk, or the stump, as a solid
+//   cylinder from the ground; static for the build, inside the conformance.
 // - Skinning: rigid per bone, blended halfway at bone starts within a piece.
 // - Detail: high, medium, or low tessellation and foliage density.
 #include <vector>
@@ -277,9 +281,12 @@ bool run(const channels::tree_v1_rig &in, channels::tree_v1_body &out, std::stri
   out.spec = spec;
   out.height = in.height;
   out.stump_radius = in.stump_radius;
+  out.footprint_radius = in.footprint_radius;
+  out.footprint_cells = in.footprint_cells;
   out.crown_base = in.crown_base;
   out.bones = in.bones;
   out.pieces = in.pieces;
+  const bool stump = spec.stump;
   Builder bd(out, in.bones);
 
   const uint32_t detail = spec.detail > 2 ? 2 : spec.detail;
@@ -371,6 +378,7 @@ bool run(const channels::tree_v1_rig &in, channels::tree_v1_body &out, std::stri
         prev = ring;
       }
       cap(bd, prev, top, v3(0, 1, 0), 0, kWood, 0.5f);
+      if (stump) continue;  // a felled tree keeps only its stump
       // The log: from the cut up, with its own bottom cap.
       Ring first = make_ring(1, P[1], R[1], 0, B[1], B[1], 0);
       cap(bd, first, P[1], v3(0, -1, 0), B[1], kWood, 0.5f);
@@ -386,6 +394,7 @@ bool run(const channels::tree_v1_rig &in, channels::tree_v1_body &out, std::stri
       continue;
     }
 
+    if (stump) continue;  // limbs went with the log
     Ring prev;
     for (size_t k = 0; k < P.size(); ++k) {
       bool start = k > 0 && B[k] != B[k - 1] && piece_of(B[k]) == piece_of(B[k - 1]);
@@ -404,7 +413,8 @@ bool run(const channels::tree_v1_rig &in, channels::tree_v1_body &out, std::stri
     }
   }
 
-  // ---- foliage, by season ----
+  // ---- foliage, by season (none on a stump) ----
+  if (!stump) {
   const bool deciduous = g.deciduous;
   const uint32_t season = spec.season;
   const Icosphere ico = icosphere(detail == 2 ? 0 : 1);
@@ -582,6 +592,8 @@ bool run(const channels::tree_v1_rig &in, channels::tree_v1_body &out, std::stri
     }
   }
 
+  }  // foliage
+
   // ---- roots and moss ----
   static const float kGrown[4] = {0.0f, 0.35f, 1.0f, 1.35f};  // how far along knees and roots are, by age
   const auto &stem = in.branches[0];
@@ -666,7 +678,7 @@ bool run(const channels::tree_v1_rig &in, channels::tree_v1_body &out, std::stri
     }
   }
   // Spanish moss: grey strands hanging from the limbs and twigs, in every season.
-  if (g.hanging_moss > 0 && spec.age != tree_v1_spec::kAgeSapling) {
+  if (g.hanging_moss > 0 && spec.age != tree_v1_spec::kAgeSapling && !stump) {
     Rng rng(name_seed, 31u);
     const float spacing = detail == 0 ? 0.45f : (detail == 1 ? 0.65f : 0.9f);
     const float len_scale = clampf(H / 10, 0.5f, 1.3f) * (0.6f + 0.6f * g.hanging_moss);
@@ -710,6 +722,23 @@ bool run(const channels::tree_v1_rig &in, channels::tree_v1_body &out, std::stri
         carry = at - seg;  // the distance still to go to the next strand, on the next segment
       }
     }
+  }
+
+  // ---- collision ----
+  // A solid vertical cylinder from the ground: the trunk up to the crown, or the stump up to the cut.
+  out.collision.clear();
+  {
+    const float top_y = stump ? in.cut : maxf(in.crown_base, in.cut);
+    channels::physics_v1_shape cyl;
+    cyl.type = channels::physics_v1_shape::kTypeCylinder;
+    cyl.position = v3(0, top_y * 0.5f, 0);
+    cyl.rotation = v3(0, 0, 0);
+    cyl.radius = in.stump_radius;
+    cyl.half_height = top_y * 0.5f;
+    channels::physics_v1_body body;
+    body.purpose = channels::physics_v1_body::kPurposeSolid;
+    body.shapes.push_back(cyl);
+    out.collision.push_back(body);
   }
   return true;
 }

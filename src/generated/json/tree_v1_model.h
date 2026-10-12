@@ -7,6 +7,7 @@
 #include "json/enums.h"
 #include "json/tree_v1_bone.h"
 #include "json/tree_v1_piece.h"
+#include "json/physics_v1_body.h"
 
 namespace foundry::json {
 
@@ -14,6 +15,8 @@ inline nlohmann::json to_json(const channels::tree_v1_model &c) {
   nlohmann::json j = nlohmann::json::object();
   j["height"] = c.height;
   j["stump_radius"] = c.stump_radius;
+  j["footprint_radius"] = c.footprint_radius;
+  j["footprint_cells"] = c.footprint_cells;
   j["crown_base"] = c.crown_base;
   j["bones"] = nlohmann::json::array();
   for (const auto &x : c.bones) j["bones"].push_back(to_json(x));
@@ -33,6 +36,8 @@ inline nlohmann::json to_json(const channels::tree_v1_model &c) {
   for (const auto &x : c.bone_w) j["bone_w"].push_back(x);
   j["colors"] = nlohmann::json::array();
   for (const auto &x : c.colors) j["colors"].push_back(x);
+  j["collision"] = nlohmann::json::array();
+  for (const auto &x : c.collision) j["collision"].push_back(to_json(x));
   return j;
 }
 
@@ -43,6 +48,12 @@ inline void from_json(const nlohmann::json &j, channels::tree_v1_model &c) {
   }
   if (j.contains("stump_radius")) {
     c.stump_radius = j.at("stump_radius").get<float>();
+  }
+  if (j.contains("footprint_radius")) {
+    c.footprint_radius = j.at("footprint_radius").get<float>();
+  }
+  if (j.contains("footprint_cells")) {
+    c.footprint_cells = j.at("footprint_cells").get<uint32_t>();
   }
   if (j.contains("crown_base")) {
     c.crown_base = j.at("crown_base").get<float>();
@@ -82,6 +93,10 @@ inline void from_json(const nlohmann::json &j, channels::tree_v1_model &c) {
   if (j.contains("colors")) {
     c.colors.clear();
     for (const auto &x : j.at("colors")) c.colors.push_back(x.get<uint32_t>());
+  }
+  if (j.contains("collision")) {
+    c.collision.clear();
+    for (const auto &x : j.at("collision")) c.collision.push_back([&] { channels::physics_v1_body n; from_json(x, n); return n; }());
   }
 }
 

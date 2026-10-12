@@ -1,0 +1,8 @@
+{
+  "kind": "channel",
+  "name": "physics_v1_shape",
+  "state": "draft",
+  "reason": "The shapes of a collision description: the boundary between a pipeline's black box and the physics system (Jolt Physics), decided in the design/plotter.md review. Every pipeline that collides outputs them, so one channel serves all.",
+  "notes": [],
+  "created_at": "2026-10-12T18:00:00Z"
+}

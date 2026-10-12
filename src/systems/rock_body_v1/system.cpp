@@ -582,6 +582,40 @@ bool run(const rock_v1_spec &in, channels::rock_v1_model &out, std::string &erro
   }
   out.height = top;
   out.radius = reach;
+
+  // ---- collision ----
+  // Exact: a convex hull of the whole rock, from its support points in 26 directions (the
+  // cube's faces, edges, and corners), which hold the rock and keep the hull small.
+  out.collision.clear();
+  {
+    channels::physics_v1_shape hull;
+    hull.type = channels::physics_v1_shape::kTypeConvexHull;
+    hull.position = v3(0, 0, 0);
+    hull.rotation = v3(0, 0, 0);
+    for (int dx = -1; dx <= 1; ++dx)
+      for (int dy = -1; dy <= 1; ++dy)
+        for (int dz = -1; dz <= 1; ++dz) {
+          if (dx == 0 && dy == 0 && dz == 0) continue;
+          const vec3 d = v3(static_cast<float>(dx), static_cast<float>(dy), static_cast<float>(dz));
+          float best = -1e30f;
+          vec3 at = v3(0, 0, 0);
+          for (size_t k = 0; k < out.positions.size(); ++k) {
+            if (out.bone_a[k] != 0) break;
+            const float s = dot(out.positions[k], d);
+            if (s > best) {
+              best = s;
+              at = out.positions[k];
+            }
+          }
+          bool seen = false;
+          for (const vec3 &p : hull.points) seen = seen || (p.x == at.x && p.y == at.y && p.z == at.z);
+          if (!seen) hull.points.push_back(at);
+        }
+    channels::physics_v1_body body;
+    body.purpose = channels::physics_v1_body::kPurposeSolid;
+    body.shapes.push_back(hull);
+    out.collision.push_back(body);
+  }
   return true;
 }
 

@@ -20,6 +20,7 @@ inline nlohmann::json to_json(const channels::tree_v1_genome &c) {
   j["deciduous"] = c.deciduous;
   j["height"] = c.height;
   j["slender"] = c.slender;
+  j["trunk_diameter"] = c.trunk_diameter;
   j["crown_ratio"] = c.crown_ratio;
   j["crown_shape"] = enum_name(c.crown_shape, kTreeV1GenomeCrownShape);
   j["lean"] = c.lean;
@@ -101,6 +102,9 @@ inline void from_json(const nlohmann::json &j, channels::tree_v1_genome &c) {
   }
   if (j.contains("slender")) {
     c.slender = j.at("slender").get<float>();
+  }
+  if (j.contains("trunk_diameter")) {
+    c.trunk_diameter = j.at("trunk_diameter").get<float>();
   }
   if (j.contains("crown_ratio")) {
     c.crown_ratio = j.at("crown_ratio").get<float>();

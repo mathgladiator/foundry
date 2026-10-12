@@ -12,6 +12,7 @@ inline void pack_fields(Writer &w, const channels::tree_v1_genome &c) {
   w.boolean(c.deciduous);
   w.f32(c.height);
   w.f32(c.slender);
+  w.f32(c.trunk_diameter);
   w.f32(c.crown_ratio);
   w.u32(c.crown_shape);
   w.f32(c.lean);
@@ -77,6 +78,7 @@ inline void unpack_fields(Reader &r, channels::tree_v1_genome &c) {
   c.deciduous = r.boolean();
   c.height = r.f32();
   c.slender = r.f32();
+  c.trunk_diameter = r.f32();
   c.crown_ratio = r.f32();
   c.crown_shape = r.u32();
   c.lean = r.f32();

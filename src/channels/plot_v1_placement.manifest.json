@@ -1,0 +1,8 @@
+{
+  "kind": "channel",
+  "name": "plot_v1_placement",
+  "state": "draft",
+  "reason": "What a plot system returns per thing: enough for the game to spawn it and the region to index it.",
+  "notes": [],
+  "created_at": "2026-10-12T19:00:00Z"
+}

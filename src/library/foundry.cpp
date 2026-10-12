@@ -18,6 +18,19 @@ foundry_runtime *foundry_runtime_create(const foundry_runtime_desc *desc) {
     if (desc->depth_format != SDL_GPU_TEXTUREFORMAT_INVALID) c.depth_format = desc->depth_format;
     c.update_threads = desc->update_threads;
     c.build_threads = desc->build_threads;
+    if (desc->physics) {
+      if (desc->physics->tag != FOUNDRY_PHYSICS_JOLT) {
+        g_last_error = "the physics pointer isn't tagged as Jolt (FOUNDRY_PHYSICS_JOLT)";
+        return nullptr;
+      }
+      c.physics = desc->physics->system;
+      c.physics_version = desc->physics->jolt_version;
+      for (int i = 0; i < FOUNDRY_PURPOSE_COUNT; ++i) c.physics_layers[i] = desc->physics->layers[i];
+      if (!c.physics) {
+        g_last_error = "the physics pointer is null";
+        return nullptr;
+      }
+    }
   }
   std::string error;
   auto *rt = new foundry_runtime(c, error);
@@ -57,6 +70,12 @@ foundry_status foundry_is_sleeping(foundry_runtime *rt, foundry_instance instanc
   return foundry_status_of(st);
 }
 
+uint32_t foundry_changed(foundry_runtime *rt, const foundry_instance **instances) {
+  const auto &c = rt->world.changed();
+  if (instances) *instances = c.empty() ? nullptr : c.data();
+  return static_cast<uint32_t>(c.size());
+}
+
 foundry_status foundry_destroy(foundry_runtime *rt, foundry_instance instance) {
   return foundry_status_of(rt->world.destroy(instance));
 }
@@ -70,7 +89,7 @@ void foundry_diag_counters_get(foundry_runtime *rt, foundry_diag_counters *out) 
           c.cache_hits, c.cache_misses, c.cache_evictions,
           c.generations, c.generation_failures,
           c.gpu_buffers_created, c.gpu_buffers_released, c.gpu_bytes,
-          c.draws, c.drawn, c.culled, c.triangles};
+          c.draws, c.drawn, c.culled, c.triangles, c.bodies};
 }
 
 void foundry_diag_frame_get(foundry_runtime *rt, foundry_diag_frame *out) {

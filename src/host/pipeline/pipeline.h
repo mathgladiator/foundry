@@ -23,6 +23,7 @@
 #include <nlohmann/json.hpp>
 
 #include "forge/forge.h"
+#include "physics/toy.h"
 #include "render/mesh.h"
 #include "wasm/runner.h"
 
@@ -56,6 +57,8 @@ struct Definition {
   std::string model_stage, pose_stage;  // what the viewport draws, and what poses it
   // Model fields giving the conformance capsule's radius and height (draw.conformance), if any.
   std::string conformance_radius, conformance_height;
+  // Model fields giving the footprint at the largest age (draw.footprint), if any.
+  std::string footprint_radius, footprint_cells;
   const Param *param(const std::string &n) const;
   const Stage *stage(const std::string &id) const;
   // Parameters that only update stages read (time, wind): changing them never rebuilds.
@@ -94,6 +97,9 @@ struct Frame {
   bool settled = false;
   nlohmann::json facts;  // the model's and pose's scalar fields, and the sizes of their other arrays
   int model_version = 0;  // bumps when the model (not just the pose) changes
+  std::shared_ptr<const physics::Collision> collision;  // what collides, checked in the toy Jolt world
+  float footprint_radius = 0;   // the ground contact at the largest age (0: none)
+  uint32_t footprint_cells = 0;  // and its footprint on the hex grid
 };
 
 struct Model;  // a decoded model: rest mesh plus skinning

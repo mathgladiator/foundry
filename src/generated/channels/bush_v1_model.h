@@ -7,6 +7,7 @@
 
 #include "boundary.h"
 #include "channels/bush_v1_bone.h"
+#include "channels/physics_v1_body.h"
 
 namespace channels {
 
@@ -33,6 +34,8 @@ struct bush_v1_model {
   std::vector<float> bone_w;
   // Vertex colour, packed RGBA (red in the lowest byte).
   std::vector<uint32_t> colors;
+  // What collides (design/spine.md, Layer 1): static for the build, inside the conformance.
+  std::vector<physics_v1_body> collision;
 };
 
 }  // namespace channels

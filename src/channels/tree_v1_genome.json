@@ -39,6 +39,13 @@
       "max": 80
     },
     {
+      "name": "trunk_diameter",
+      "type": "f32",
+      "doc": "Diameter of a mature tree's trunk at the ground, metres, from nature (before any swell or flare). It sets the trunk's width, the stump's collision, and the footprint (design/systems.md, Trees).",
+      "min": 0.05,
+      "max": 8
+    },
+    {
       "name": "crown_ratio",
       "type": "f32",
       "doc": "Live crown length over height: where branches start.",

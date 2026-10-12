@@ -1,0 +1,65 @@
+{
+  "family": "plot",
+  "version": 1,
+  "feature": "placement",
+  "doc": "One thing a plot system says belongs (design/plotter.md, Vocabulary): this kind, at this place, turned this way, with a stable slot.",
+  "fields": [
+    {
+      "name": "q",
+      "type": "i32",
+      "doc": "The cell that made its slot."
+    },
+    {
+      "name": "r",
+      "type": "i32",
+      "doc": "Axial r."
+    },
+    {
+      "name": "layer",
+      "type": "u32",
+      "doc": "Its layer's index."
+    },
+    {
+      "name": "index",
+      "type": "u32",
+      "doc": "Its slot's index within the cell."
+    },
+    {
+      "name": "kind",
+      "type": "u32",
+      "doc": "Its kind's id."
+    },
+    {
+      "name": "position",
+      "type": "vec3",
+      "doc": "Where it stands, metres (region space; y is the centre cell's height)."
+    },
+    {
+      "name": "yaw",
+      "type": "f32",
+      "doc": "Its turn about +Y, radians."
+    },
+    {
+      "name": "seed",
+      "type": "u32",
+      "doc": "A seed for its pipeline and its varied parameters."
+    },
+    {
+      "name": "footprint_m",
+      "type": "f32",
+      "doc": "Its footprint's radius, metres.",
+      "min": 0,
+      "max": 50
+    },
+    {
+      "name": "footprint_cells",
+      "type": "u32",
+      "doc": "Its footprint on the hex grid."
+    },
+    {
+      "name": "regrown",
+      "type": "bool",
+      "doc": "Placed by a regrow-mode grow: it starts with its kind's on_regrow parameters."
+    }
+  ]
+}

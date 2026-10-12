@@ -25,6 +25,26 @@ struct DrawMesh {
   void clear() { *this = DrawMesh{}; }
 };
 
+// One collision shape (the physics_v1_shape channel's convention, design/spine.md Layer 1), in the
+// body's space: metres, +Y up.
+struct CollisionShape {
+  enum Type : uint32_t { kSphere = 0, kBox = 1, kCapsule = 2, kTaperedCapsule = 3, kCylinder = 4, kConvexHull = 5 };
+  uint32_t type = kSphere;
+  float position[3] = {0, 0, 0};
+  float rotation[3] = {0, 0, 0};  // axis-angle
+  float radius = 0, radius_top = 0, half_height = 0;
+  float half_extents[3] = {0, 0, 0};
+  std::vector<float> points;  // a convex hull's points, xyz
+};
+
+// One collision body a build outputs: a purpose and a compound of shapes.
+struct CollisionBody {
+  enum Purpose : uint32_t { kSolid = 0, kSoft = 1, kQuery = 2, kSensor = 3 };
+  uint32_t purpose = kSolid;
+  std::string name;  // a sensor's purpose
+  std::vector<CollisionShape> shapes;
+};
+
 // What a pipeline's build stages leave behind, shared by every instance with
 // the same build parameters. Generated code subclasses it to keep the stage
 // outputs that update stages read (the tree keeps its rig).
@@ -38,6 +58,9 @@ struct Build {
   uint64_t model_hash = 0;       // the packed draw output (diagnostics)
   std::vector<double> stage_ms;  // per build stage
   std::string problem;           // a failed geometry check, if any
+  std::vector<CollisionBody> collision;  // static for the build (empty: collides with nothing)
+  float footprint_radius = 0;            // the ground contact at the largest age, metres (0: none)
+  uint32_t footprint_cells = 0;          // its footprint on the hex grid (0: none)
 };
 
 // One instance's update state: the update stages' persistent inputs (filled

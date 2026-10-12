@@ -1,0 +1,64 @@
+{
+  "family": "plot",
+  "version": 1,
+  "feature": "request",
+  "doc": "One call to a plot system (design/plotter.md, Growing): the bound config, the ground, what already stands, what to keep clear this time, and how much to grow.",
+  "fields": [
+    {
+      "name": "config",
+      "type": "plot_v1_config",
+      "doc": "The plotter's bound config."
+    },
+    {
+      "name": "ground",
+      "type": "plot_v1_regions",
+      "doc": "The region's ground."
+    },
+    {
+      "name": "occupants",
+      "type": "plot_v1_occupant[]",
+      "doc": "What already stands there."
+    },
+    {
+      "name": "exclusions",
+      "type": "plot_v1_exclusion[]",
+      "doc": "What to keep clear for this call."
+    },
+    {
+      "name": "seed",
+      "type": "u32",
+      "doc": "The world seed."
+    },
+    {
+      "name": "mode",
+      "type": "u32",
+      "doc": "Seed (a new region) or regrow (filling what was cleared).",
+      "enum": [
+        "seed",
+        "regrow"
+      ]
+    },
+    {
+      "name": "max",
+      "type": "u32",
+      "doc": "The most placements to return.",
+      "min": 0,
+      "max": 1000000
+    },
+    {
+      "name": "focus",
+      "type": "vec3",
+      "doc": "Placements nearest this come first, when use_focus is set."
+    },
+    {
+      "name": "use_focus",
+      "type": "bool",
+      "doc": "Order by distance to focus instead of by priority."
+    },
+    {
+      "name": "want_cells",
+      "type": "bool",
+      "doc": "Also return the resolved cells (for viewing)."
+    }
+  ]
+}

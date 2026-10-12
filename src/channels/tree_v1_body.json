@@ -20,6 +20,16 @@
       "doc": "Conformance stump radius, metres."
     },
     {
+      "name": "footprint_radius",
+      "type": "f32",
+      "doc": "Radius of the ground contact of this species at its largest age, metres: what its footprint must hold (design/plotter.md, Footprints and conformance)."
+    },
+    {
+      "name": "footprint_cells",
+      "type": "u32",
+      "doc": "The footprint on the hex grid at the largest age: 1 (single), 7 (flower7), 19 (flower19), or 37 cells."
+    },
+    {
       "name": "crown_base",
       "type": "f32",
       "doc": "Conformance stump height, metres."
@@ -78,6 +88,11 @@
       "name": "up",
       "type": "f32[]",
       "doc": "How much the surface faces up and is exposed, in [0, 1]: where snow and moss settle."
+    },
+    {
+      "name": "collision",
+      "type": "physics_v1_body[]",
+      "doc": "What collides (design/spine.md, Layer 1): static for the build, inside the conformance."
     }
   ]
 }

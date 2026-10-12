@@ -49,6 +49,7 @@ void config_species_acacia(channels::tree_v1_genome &g) {
   g.deciduous = false;
   g.height = 0x1.0000000000000p+3f;
   g.slender = 0x1.6000000000000p+4f;
+  g.trunk_diameter = 0x1.0000000000000p-1f;
   g.crown_ratio = 0x1.0000000000000p-1f;
   g.crown_shape = 3;
   g.lean = 0x1.47ae140000000p-4f;
@@ -114,6 +115,7 @@ void config_species_apple(channels::tree_v1_genome &g) {
   g.deciduous = true;
   g.height = 0x1.6000000000000p+2f;
   g.slender = 0x1.6000000000000p+4f;
+  g.trunk_diameter = 0x1.99999a0000000p-2f;
   g.crown_ratio = 0x1.8000000000000p-1f;
   g.crown_shape = 1;
   g.lean = 0x1.eb851e0000000p-4f;
@@ -179,6 +181,7 @@ void config_species_baldcypress(channels::tree_v1_genome &g) {
   g.deciduous = true;
   g.height = 0x1.e000000000000p+3f;
   g.slender = 0x1.c000000000000p+4f;
+  g.trunk_diameter = 0x1.3333340000000p+0f;
   g.crown_ratio = 0x1.3333340000000p-1f;
   g.crown_shape = 7;
   g.lean = 0x1.47ae140000000p-6f;
@@ -244,6 +247,7 @@ void config_species_baobab(channels::tree_v1_genome &g) {
   g.deciduous = true;
   g.height = 0x1.a000000000000p+3f;
   g.slender = 0x1.c000000000000p+3f;
+  g.trunk_diameter = 0x1.8000000000000p+1f;
   g.crown_ratio = 0x1.47ae140000000p-2f;
   g.crown_shape = 3;
   g.lean = 0x1.eb851e0000000p-6f;
@@ -309,6 +313,7 @@ void config_species_birch(channels::tree_v1_genome &g) {
   g.deciduous = true;
   g.height = 0x1.6000000000000p+3f;
   g.slender = 0x1.9000000000000p+5f;
+  g.trunk_diameter = 0x1.6666660000000p-2f;
   g.crown_ratio = 0x1.4ccccc0000000p-1f;
   g.crown_shape = 7;
   g.lean = 0x1.47ae140000000p-4f;
@@ -374,6 +379,7 @@ void config_species_bristlecone(channels::tree_v1_genome &g) {
   g.deciduous = false;
   g.height = 0x1.8000000000000p+2f;
   g.slender = 0x1.0000000000000p+4f;
+  g.trunk_diameter = 0x1.99999a0000000p-1f;
   g.crown_ratio = 0x1.8000000000000p-1f;
   g.crown_shape = 4;
   g.lean = 0x1.3333340000000p-2f;
@@ -439,6 +445,7 @@ void config_species_cedar(channels::tree_v1_genome &g) {
   g.deciduous = false;
   g.height = 0x1.e000000000000p+3f;
   g.slender = 0x1.e000000000000p+4f;
+  g.trunk_diameter = 0x1.6666660000000p+0f;
   g.crown_ratio = 0x1.6666660000000p-1f;
   g.crown_shape = 3;
   g.lean = 0x1.99999a0000000p-5f;
@@ -504,6 +511,7 @@ void config_species_cherry(channels::tree_v1_genome &g) {
   g.deciduous = true;
   g.height = 0x1.c000000000000p+2f;
   g.slender = 0x1.0000000000000p+5f;
+  g.trunk_diameter = 0x1.0000000000000p-1f;
   g.crown_ratio = 0x1.6666660000000p-1f;
   g.crown_shape = 1;
   g.lean = 0x1.47ae140000000p-4f;
@@ -569,6 +577,7 @@ void config_species_coconut(channels::tree_v1_genome &g) {
   g.deciduous = false;
   g.height = 0x1.8000000000000p+3f;
   g.slender = 0x1.6800000000000p+5f;
+  g.trunk_diameter = 0x1.99999a0000000p-2f;
   g.crown_ratio = 0x1.99999a0000000p-4f;
   g.crown_shape = 3;
   g.lean = 0x1.3333340000000p-2f;
@@ -634,6 +643,7 @@ void config_species_cypress(channels::tree_v1_genome &g) {
   g.deciduous = false;
   g.height = 0x1.c000000000000p+3f;
   g.slender = 0x1.4000000000000p+5f;
+  g.trunk_diameter = 0x1.3333340000000p-1f;
   g.crown_ratio = 0x1.d70a3e0000000p-1f;
   g.crown_shape = 5;
   g.lean = 0x1.47ae140000000p-6f;
@@ -699,6 +709,7 @@ void config_species_dragonwood(channels::tree_v1_genome &g) {
   g.deciduous = false;
   g.height = 0x1.c000000000000p+2f;
   g.slender = 0x1.8000000000000p+3f;
+  g.trunk_diameter = 0x1.0000000000000p+0f;
   g.crown_ratio = 0x1.0000000000000p-1f;
   g.crown_shape = 3;
   g.lean = 0x1.47ae140000000p-5f;
@@ -764,6 +775,7 @@ void config_species_ebony(channels::tree_v1_genome &g) {
   g.deciduous = false;
   g.height = 0x1.8000000000000p+3f;
   g.slender = 0x1.6800000000000p+5f;
+  g.trunk_diameter = 0x1.6666660000000p-1f;
   g.crown_ratio = 0x1.3333340000000p-1f;
   g.crown_shape = 7;
   g.lean = 0x1.eb851e0000000p-6f;
@@ -829,6 +841,7 @@ void config_species_elm(channels::tree_v1_genome &g) {
   g.deciduous = true;
   g.height = 0x1.e000000000000p+3f;
   g.slender = 0x1.1800000000000p+5f;
+  g.trunk_diameter = 0x1.19999a0000000p+0f;
   g.crown_ratio = 0x1.b333340000000p-1f;
   g.crown_shape = 6;
   g.lean = 0x1.eb851e0000000p-6f;
@@ -894,6 +907,7 @@ void config_species_hickory(channels::tree_v1_genome &g) {
   g.deciduous = true;
   g.height = 0x1.6000000000000p+3f;
   g.slender = 0x1.6800000000000p+5f;
+  g.trunk_diameter = 0x1.3333340000000p-1f;
   g.crown_ratio = 0x1.19999a0000000p-1f;
   g.crown_shape = 7;
   g.lean = 0x1.eb851e0000000p-6f;
@@ -959,6 +973,7 @@ void config_species_jacaranda(channels::tree_v1_genome &g) {
   g.deciduous = true;
   g.height = 0x1.8000000000000p+3f;
   g.slender = 0x1.3000000000000p+5f;
+  g.trunk_diameter = 0x1.3333340000000p-1f;
   g.crown_ratio = 0x1.6666660000000p-1f;
   g.crown_shape = 2;
   g.lean = 0x1.47ae140000000p-4f;
@@ -1024,6 +1039,7 @@ void config_species_larch(channels::tree_v1_genome &g) {
   g.deciduous = true;
   g.height = 0x1.c000000000000p+3f;
   g.slender = 0x1.9000000000000p+5f;
+  g.trunk_diameter = 0x1.6666660000000p-1f;
   g.crown_ratio = 0x1.8000000000000p-1f;
   g.crown_shape = 0;
   g.lean = 0x1.47ae140000000p-6f;
@@ -1089,6 +1105,7 @@ void config_species_lignumvitae(channels::tree_v1_genome &g) {
   g.deciduous = false;
   g.height = 0x1.8000000000000p+2f;
   g.slender = 0x1.2000000000000p+4f;
+  g.trunk_diameter = 0x1.cccccc0000000p-2f;
   g.crown_ratio = 0x1.4ccccc0000000p-1f;
   g.crown_shape = 1;
   g.lean = 0x1.99999a0000000p-4f;
@@ -1154,6 +1171,7 @@ void config_species_liveoak(channels::tree_v1_genome &g) {
   g.deciduous = false;
   g.height = 0x1.8000000000000p+3f;
   g.slender = 0x1.0000000000000p+4f;
+  g.trunk_diameter = 0x1.cccccc0000000p+0f;
   g.crown_ratio = 0x1.a3d70a0000000p-1f;
   g.crown_shape = 2;
   g.lean = 0x1.eb851e0000000p-4f;
@@ -1219,6 +1237,7 @@ void config_species_mahogany(channels::tree_v1_genome &g) {
   g.deciduous = false;
   g.height = 0x1.e000000000000p+3f;
   g.slender = 0x1.1800000000000p+5f;
+  g.trunk_diameter = 0x1.6666660000000p+0f;
   g.crown_ratio = 0x1.cccccc0000000p-2f;
   g.crown_shape = 2;
   g.lean = 0x1.47ae140000000p-5f;
@@ -1284,6 +1303,7 @@ void config_species_mango(channels::tree_v1_genome &g) {
   g.deciduous = false;
   g.height = 0x1.2000000000000p+3f;
   g.slender = 0x1.2000000000000p+4f;
+  g.trunk_diameter = 0x1.cccccc0000000p-1f;
   g.crown_ratio = 0x1.99999a0000000p-1f;
   g.crown_shape = 1;
   g.lean = 0x1.eb851e0000000p-5f;
@@ -1349,6 +1369,7 @@ void config_species_mangrove(channels::tree_v1_genome &g) {
   g.deciduous = false;
   g.height = 0x1.8000000000000p+2f;
   g.slender = 0x1.6000000000000p+4f;
+  g.trunk_diameter = 0x1.6666660000000p-2f;
   g.crown_ratio = 0x1.3333340000000p-1f;
   g.crown_shape = 2;
   g.lean = 0x1.eb851e0000000p-5f;
@@ -1414,6 +1435,7 @@ void config_species_maple(channels::tree_v1_genome &g) {
   g.deciduous = true;
   g.height = 0x1.c000000000000p+3f;
   g.slender = 0x1.4000000000000p+5f;
+  g.trunk_diameter = 0x1.99999a0000000p-1f;
   g.crown_ratio = 0x1.8000000000000p-1f;
   g.crown_shape = 1;
   g.lean = 0x1.eb851e0000000p-5f;
@@ -1479,6 +1501,7 @@ void config_species_mesquite(channels::tree_v1_genome &g) {
   g.deciduous = true;
   g.height = 0x1.8000000000000p+2f;
   g.slender = 0x1.0000000000000p+4f;
+  g.trunk_diameter = 0x1.0000000000000p-1f;
   g.crown_ratio = 0x1.4ccccc0000000p-1f;
   g.crown_shape = 2;
   g.lean = 0x1.0000000000000p-2f;
@@ -1544,6 +1567,7 @@ void config_species_oak(channels::tree_v1_genome &g) {
   g.deciduous = true;
   g.height = 0x1.4000000000000p+3f;
   g.slender = 0x1.a000000000000p+4f;
+  g.trunk_diameter = 0x1.19999a0000000p+0f;
   g.crown_ratio = 0x1.8000000000000p-1f;
   g.crown_shape = 2;
   g.lean = 0x1.eb851e0000000p-5f;
@@ -1609,6 +1633,7 @@ void config_species_olive(channels::tree_v1_genome &g) {
   g.deciduous = false;
   g.height = 0x1.8000000000000p+2f;
   g.slender = 0x1.a000000000000p+3f;
+  g.trunk_diameter = 0x1.6666660000000p-1f;
   g.crown_ratio = 0x1.8000000000000p-1f;
   g.crown_shape = 1;
   g.lean = 0x1.3333340000000p-3f;
@@ -1674,6 +1699,7 @@ void config_species_osage(channels::tree_v1_genome &g) {
   g.deciduous = true;
   g.height = 0x1.0000000000000p+3f;
   g.slender = 0x1.8000000000000p+4f;
+  g.trunk_diameter = 0x1.3333340000000p-1f;
   g.crown_ratio = 0x1.6666660000000p-1f;
   g.crown_shape = 2;
   g.lean = 0x1.70a3d80000000p-3f;
@@ -1739,6 +1765,7 @@ void config_species_pine(channels::tree_v1_genome &g) {
   g.deciduous = false;
   g.height = 0x1.4000000000000p+3f;
   g.slender = 0x1.6800000000000p+5f;
+  g.trunk_diameter = 0x1.3333340000000p-1f;
   g.crown_ratio = 0x1.0000000000000p-1f;
   g.crown_shape = 2;
   g.lean = 0x1.99999a0000000p-5f;
@@ -1804,6 +1831,7 @@ void config_species_redwood(channels::tree_v1_genome &g) {
   g.deciduous = false;
   g.height = 0x1.0000000000000p+4f;
   g.slender = 0x1.c000000000000p+4f;
+  g.trunk_diameter = 0x1.0000000000000p+1f;
   g.crown_ratio = 0x1.0000000000000p-1f;
   g.crown_shape = 0;
   g.lean = 0x1.47ae140000000p-6f;
@@ -1869,6 +1897,7 @@ void config_species_spruce(channels::tree_v1_genome &g) {
   g.deciduous = false;
   g.height = 0x1.a000000000000p+3f;
   g.slender = 0x1.6800000000000p+5f;
+  g.trunk_diameter = 0x1.6666660000000p-1f;
   g.crown_ratio = 0x1.e666660000000p-1f;
   g.crown_shape = 0;
   g.lean = 0x1.47ae140000000p-6f;
@@ -1934,6 +1963,7 @@ void config_species_teak(channels::tree_v1_genome &g) {
   g.deciduous = true;
   g.height = 0x1.c000000000000p+3f;
   g.slender = 0x1.4000000000000p+5f;
+  g.trunk_diameter = 0x1.cccccc0000000p-1f;
   g.crown_ratio = 0x1.cccccc0000000p-2f;
   g.crown_shape = 1;
   g.lean = 0x1.47ae140000000p-5f;
@@ -1999,6 +2029,7 @@ void config_species_tupelo(channels::tree_v1_genome &g) {
   g.deciduous = true;
   g.height = 0x1.c000000000000p+3f;
   g.slender = 0x1.4000000000000p+5f;
+  g.trunk_diameter = 0x1.8000000000000p-1f;
   g.crown_ratio = 0x1.ae147a0000000p-2f;
   g.crown_shape = 7;
   g.lean = 0x1.eb851e0000000p-6f;
@@ -2064,6 +2095,7 @@ void config_species_willow(channels::tree_v1_genome &g) {
   g.deciduous = true;
   g.height = 0x1.6000000000000p+3f;
   g.slender = 0x1.a000000000000p+4f;
+  g.trunk_diameter = 0x1.cccccc0000000p-1f;
   g.crown_ratio = 0x1.6666660000000p-1f;
   g.crown_shape = 2;
   g.lean = 0x1.eb851e0000000p-4f;
@@ -2199,6 +2231,7 @@ class Type final : public runtime::PipelineType {
       const bool v = (applies_fruit(p) ? p.fruit : false);  // shared where it doesn't apply
       key_add(h, v);
     }
+    key_add(h, p.stump);
     key_add(h, p.seed);
     key_add(h, p.detail);
     return h ? h : 1;
@@ -2215,6 +2248,7 @@ class Type final : public runtime::PipelineType {
     rig_in.age = static_cast<uint32_t>(p.age);
     rig_in.season = static_cast<uint32_t>(p.season);
     rig_in.fruit = (applies_fruit(p) ? p.fruit : false);
+    rig_in.stump = p.stump;
     rig_in.seed = p.seed;
     rig_in.detail = static_cast<uint32_t>(p.detail);
     channels::tree_v1_rig rig_out;
@@ -2262,6 +2296,30 @@ class Type final : public runtime::PipelineType {
     b->mesh.bone_a = std::move(colorize_out.bone_a);
     b->mesh.bone_b = std::move(colorize_out.bone_b);
     b->mesh.bone_w = std::move(colorize_out.bone_w);
+    for (const auto &cb : colorize_out.collision) {
+      runtime::CollisionBody body;
+      body.purpose = cb.purpose;
+      body.name = cb.name;
+      for (const auto &cs : cb.shapes) {
+        runtime::CollisionShape sh;
+        sh.type = cs.type;
+        sh.position[0] = cs.position.x; sh.position[1] = cs.position.y; sh.position[2] = cs.position.z;
+        sh.rotation[0] = cs.rotation.x; sh.rotation[1] = cs.rotation.y; sh.rotation[2] = cs.rotation.z;
+        sh.radius = cs.radius;
+        sh.radius_top = cs.radius_top;
+        sh.half_height = cs.half_height;
+        sh.half_extents[0] = cs.half_extents.x; sh.half_extents[1] = cs.half_extents.y; sh.half_extents[2] = cs.half_extents.z;
+        for (const auto &pt : cs.points) {
+          sh.points.push_back(pt.x);
+          sh.points.push_back(pt.y);
+          sh.points.push_back(pt.z);
+        }
+        body.shapes.push_back(std::move(sh));
+      }
+      b->collision.push_back(std::move(body));
+    }
+    b->footprint_radius = colorize_out.footprint_radius;
+    b->footprint_cells = colorize_out.footprint_cells;
     const auto &m = b->mesh;
     b->triangles = static_cast<uint32_t>(m.indices.size() / 3);
     uint32_t bones = 1;
@@ -2363,6 +2421,7 @@ void foundry_tree_v1_default_params(Params *params) {
   p.age = static_cast<foundry_tree_v1_age>(2);
   p.season = static_cast<foundry_tree_v1_season>(2);
   p.fruit = true;
+  p.stump = false;
   p.seed = 1u;
   p.detail = static_cast<foundry_tree_v1_detail>(0);
   p.wind_speed = 0x1.8000000000000p+2f;
@@ -2407,6 +2466,14 @@ foundry_status foundry_tree_v1_set_fruit(foundry_runtime *rt, foundry_instance i
   check.fruit = value;
   if (!valid(check)) return FOUNDRY_STATUS_BAD_PARAMETER;
   return foundry_status_of(rt->world.set_param(instance, &kType, offsetof(Params, fruit), &value, sizeof value, true));
+}
+
+foundry_status foundry_tree_v1_set_stump(foundry_runtime *rt, foundry_instance instance, bool value) {
+  Params check;
+  foundry_tree_v1_default_params(&check);
+  check.stump = value;
+  if (!valid(check)) return FOUNDRY_STATUS_BAD_PARAMETER;
+  return foundry_status_of(rt->world.set_param(instance, &kType, offsetof(Params, stump), &value, sizeof value, true));
 }
 
 foundry_status foundry_tree_v1_set_seed(foundry_runtime *rt, foundry_instance instance, uint32_t value) {
@@ -2466,6 +2533,16 @@ bool foundry_tree_v1_fruit_applies(foundry_tree_v1_species species) {
 
 foundry_status foundry_tree_v1_start_break(foundry_runtime *rt, foundry_instance instance) {
   return foundry_status_of(rt->world.trigger(instance, &kType, 0));
+}
+
+foundry_status foundry_tree_v1_get_result(foundry_runtime *rt, foundry_instance instance, foundry_tree_v1_result *out) {
+  uint32_t bits = 0;
+  const runtime::Status st = rt->world.result(instance, bits);
+  if (st != runtime::Status::ok) return foundry_status_of(st);
+  if (!out) return FOUNDRY_OK;
+  out->break_over = (bits & (1u << 0)) != 0;
+  out->ready = (bits & runtime::World::kResultReady) != 0;
+  return FOUNDRY_OK;
 }
 
 }  // extern "C"

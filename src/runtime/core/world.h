@@ -21,6 +21,10 @@
 
 namespace runtime {
 
+namespace physics {
+struct Shapes;
+}
+
 enum class Status { ok = 0, stale_handle, bad_parameter, wrong_pipeline, failed };
 
 struct Config {
@@ -31,6 +35,11 @@ struct Config {
   unsigned build_threads = 0;   // 0: a quarter of the cores, at least one
   double release_seconds = 2.0;  // how long an unused build stays cached
   uint64_t cache_budget = uint64_t(1) << 30;  // bytes of CPU and GPU memory for unused builds
+  // The game's Jolt world (design/api.md, "Physics"): a blind pointer, checked against our Jolt
+  // version, and the object layer for each collision purpose (solid, soft, query, sensor).
+  void *physics = nullptr;
+  uint64_t physics_version = 0;
+  uint16_t physics_layers[4] = {0, 0, 0, 0};
 };
 
 struct Counters {
@@ -40,6 +49,7 @@ struct Counters {
   uint64_t generations = 0, generation_failures = 0;
   uint64_t gpu_buffers_created = 0, gpu_buffers_released = 0, gpu_bytes = 0;
   uint64_t draws = 0, drawn = 0, culled = 0, triangles = 0;
+  uint64_t bodies = 0;  // collision bodies the runtime has in the game's physics world
 };
 
 struct FrameTimes {
@@ -74,6 +84,13 @@ class World {
                    bool build);
   Status trigger(uint64_t handle, const PipelineType *type, size_t event);
   Status sleeping(uint64_t handle, bool &out) const;
+  // The instance's update result (design/api.md, "Instance results"), as current values: bit i
+  // is event i's flag (it fired and its animation is over: the pose has settled since), and
+  // kResultReady says the build it asked for is the one drawn.
+  static constexpr uint32_t kResultReady = 1u << 31;
+  Status result(uint64_t handle, uint32_t &bits) const;
+  // The instances whose results changed in the last update.
+  const std::vector<uint64_t> &changed() const { return changed_; }
   void set_camera(const float view[16], const float projection[16]);
 
   void update(float dt);
@@ -102,6 +119,8 @@ class World {
     double idle_since = 0;
     SkinnedMesh gpu;
     bool uploaded = false;
+    std::shared_ptr<physics::Shapes> shapes;  // made on first use, if the build collides
+    bool shapes_made = false;
     uint64_t order = 0;  // when it was created, for eviction
   };
   struct Slot {
@@ -115,6 +134,9 @@ class World {
     uint64_t current = 0, wanted = 0;  // build keys; 0 = none
     bool has_current = false;
     std::unique_ptr<PoseState> pose;
+    std::vector<uint32_t> bodies;  // in the game's physics world
+    uint32_t result = 0;           // the last result bits reported
+    double posed_at = -1;          // the instance time of the last pose
     bool awake = true;
     std::string error;
   };
@@ -126,6 +148,8 @@ class World {
   void release_idle(bool all);
   void evict(std::map<uint64_t, Entry>::iterator it);
   void clocks(const Slot &s, std::vector<float> &out) const;
+  void set_bodies(Slot &s, Entry *entry);  // swap the slot's bodies for the entry's (null: none)
+  uint32_t result_of(const Slot &s) const;
 
   Config config_;
   bool ok_ = false;
@@ -154,6 +178,7 @@ class World {
   std::vector<float> frame_bones_;
   std::vector<DrawRange> frame_ranges_;
 
+  std::vector<uint64_t> changed_;  // handles whose results changed in the last update
   Counters counters_;
   FrameTimes times_;
   std::map<std::string, StageTotals> stages_;

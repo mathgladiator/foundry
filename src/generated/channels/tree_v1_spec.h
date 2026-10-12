@@ -36,6 +36,8 @@ struct tree_v1_spec {
   uint32_t detail = 0;
   // The tree carries its fruit, in the seasons its species fruits. The game clears it when the fruit is picked, which rebuilds the tree bare (sharing the build with every other picked tree like it).
   bool fruit = false;
+  // Only the stump is left: the game felled the tree (after its break is over) and declared it a stump. The mesh draws the stump alone, and the collision is the stump's.
+  bool stump = false;
 };
 
 }  // namespace channels

@@ -64,6 +64,10 @@ species, season, seed, detail
 
 The trees' simulator, for stems: each bone bends toward the wind as a damped oscillator driven by the same three gusts as `tree_animate_v1`, plus a resonant sway with a per-stem phase, in closed form. The clump settles (sleeps) when there is no wind.
 
+### Collision
+
+A flower doesn't collide. Each build carries one **query** body, a cylinder around the clump that answers the game's queries (what is under the cursor, what is in reach) but blocks nothing. Measured on a daisy clump: reach 0.48 m, top 0.64 m, accepted by Jolt. Flowers have no conformance, so there is nothing to stay inside; a plotter gives them no footprint.
+
 ## Species
 
 | Species | Latin | Height (m) | Form | Blooms | Biome |
@@ -107,6 +111,7 @@ Native runtime, on an AMD Ryzen AI Max+ 395 with a Radeon 8060S (Vulkan), from t
 
 - **Meadow.** 25,600 clumps run at 9.9 ms p95 on 10 shared builds; the budget held at every count tried.
 - **Soak.** Five drains all came back within 1.2 MB.
+- **With collision** (`demo/perf/report-flower_v1-20261012T194954Z.json`, every clump's query shape in a toy Jolt world): 25,600 clumps at 9.8 ms p95; the soak's five drains within 1.1 MB, bodies balanced.
 - **Matches WebAssembly.** 100 sampled clumps and their poses, byte for byte.
 
 ## QA

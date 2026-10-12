@@ -18,6 +18,7 @@
         "fields": [
           "height",
           "slender",
+          "trunk_diameter",
           "crown_ratio",
           "crown_shape",
           "lean",

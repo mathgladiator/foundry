@@ -44,6 +44,8 @@ struct tree_v1_genome {
   float height = 0.0f;
   // Height over trunk diameter of an open-grown mature tree (Pretzsch 2009); lower is stockier.
   float slender = 0.0f;
+  // Diameter of a mature tree's trunk at the ground, metres, from nature (before any swell or flare). It sets the trunk's width, the stump's collision, and the footprint (design/systems.md, Trees).
+  float trunk_diameter = 0.0f;
   // Live crown length over height: where branches start.
   float crown_ratio = 0.0f;
   // Envelope of first-order branch lengths along the stem (Weber and Penn 1995).

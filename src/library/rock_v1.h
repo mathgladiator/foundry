@@ -70,6 +70,13 @@ foundry_status foundry_rock_v1_set_break_heading(foundry_runtime *rt, foundry_in
 /* Seconds since the rock broke; negative while it is whole. The game starts it (foundry_rock_v1_start_break). */
 foundry_status foundry_rock_v1_start_break(foundry_runtime *rt, foundry_instance instance);
 
+/* The instance's update result, as current values (see foundry_changed). */
+typedef struct foundry_rock_v1_result {
+  bool break_over;  /* break started and its animation has come to rest */
+  bool ready;  /* the build last asked for (by spawn or a setter) is the one drawn */
+} foundry_rock_v1_result;
+foundry_status foundry_rock_v1_get_result(foundry_runtime *rt, foundry_instance instance, foundry_rock_v1_result *out);
+
 #ifdef __cplusplus
 }
 #endif

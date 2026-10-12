@@ -227,6 +227,14 @@ class Pipeline:
         for p in self.events:
             o.append(f"/* {p.get('doc', '')} */\n" if p.get("doc") else "")
             o.append(f"foundry_status {self.C}_start_{self.event_name(p)}(foundry_runtime *rt, foundry_instance instance);\n")
+        # The update result (design/api.md, "Instance results"): current values the game diffs.
+        o.append(f"\n/* The instance's update result, as current values (see foundry_changed). */\n")
+        o.append(f"typedef struct {self.C}_result {{\n")
+        for p in self.events:
+            o.append(f"  bool {self.event_name(p)}_over;  /* {self.event_name(p)} started and its animation has come to rest */\n")
+        o.append(f"  bool ready;  /* the build last asked for (by spawn or a setter) is the one drawn */\n")
+        o.append(f"}} {self.C}_result;\n")
+        o.append(f"foundry_status {self.C}_get_result(foundry_runtime *rt, foundry_instance instance, {self.C}_result *out);\n")
         o.append("\n#ifdef __cplusplus\n}\n#endif\n")
         return "".join(o)
 
@@ -447,6 +455,38 @@ class Pipeline:
         for f in ("positions", "normals", "colors", "indices", "bone_a", "bone_b", "bone_w"):
             if f in mf:
                 o.append(f"    b->mesh.{f} = std::move({self.model}_out.{f});\n")
+        if "collision" in mf:
+            # The physics_v1_body convention: what collides, static for the build.
+            o.append(f"""    for (const auto &cb : {self.model}_out.collision) {{
+      runtime::CollisionBody body;
+      body.purpose = cb.purpose;
+      body.name = cb.name;
+      for (const auto &cs : cb.shapes) {{
+        runtime::CollisionShape sh;
+        sh.type = cs.type;
+        sh.position[0] = cs.position.x; sh.position[1] = cs.position.y; sh.position[2] = cs.position.z;
+        sh.rotation[0] = cs.rotation.x; sh.rotation[1] = cs.rotation.y; sh.rotation[2] = cs.rotation.z;
+        sh.radius = cs.radius;
+        sh.radius_top = cs.radius_top;
+        sh.half_height = cs.half_height;
+        sh.half_extents[0] = cs.half_extents.x; sh.half_extents[1] = cs.half_extents.y; sh.half_extents[2] = cs.half_extents.z;
+        for (const auto &pt : cs.points) {{
+          sh.points.push_back(pt.x);
+          sh.points.push_back(pt.y);
+          sh.points.push_back(pt.z);
+        }}
+        body.shapes.push_back(std::move(sh));
+      }}
+      b->collision.push_back(std::move(body));
+    }}
+""")
+        fp = self.draw.get("footprint")
+        if fp:
+            for k in ("radius", "cells"):
+                if fp.get(k) not in mf:
+                    sys.exit(f"{self.src}: draw.footprint.{k} names no field of {mo}")
+            o.append(f"    b->footprint_radius = {self.model}_out.{fp['radius']};\n")
+            o.append(f"    b->footprint_cells = {self.model}_out.{fp['cells']};\n")
         o.append("""    const auto &m = b->mesh;
     b->triangles = static_cast<uint32_t>(m.indices.size() / 3);
     uint32_t bones = 1;
@@ -574,6 +614,14 @@ class Pipeline:
         for i, p in enumerate(self.events):
             o.append(f"foundry_status {self.C}_start_{self.event_name(p)}(foundry_runtime *rt, foundry_instance instance) {{\n"
                      f"  return foundry_status_of(rt->world.trigger(instance, &kType, {i}));\n}}\n\n")
+        o.append(f"foundry_status {self.C}_get_result(foundry_runtime *rt, foundry_instance instance, {self.C}_result *out) {{\n"
+                 "  uint32_t bits = 0;\n"
+                 "  const runtime::Status st = rt->world.result(instance, bits);\n"
+                 "  if (st != runtime::Status::ok) return foundry_status_of(st);\n"
+                 "  if (!out) return FOUNDRY_OK;\n")
+        for i, p in enumerate(self.events):
+            o.append(f"  out->{self.event_name(p)}_over = (bits & (1u << {i})) != 0;\n")
+        o.append("  out->ready = (bits & runtime::World::kResultReady) != 0;\n  return FOUNDRY_OK;\n}\n\n")
         o.append("}  // extern \"C\"\n")
         return "".join(o)
 
@@ -649,6 +697,164 @@ class Pipeline:
         return "".join(o)
 
 
+# --- plotters (design/plotter.md) ------------------------------------------------
+GROUNDS = ["soil", "water", "rock", "sand", "path"]
+
+
+class PlotterGen:
+    """A plotter compiled into the native runtime: the same config the foundry's plotter loader
+    makes (src/host/plot/plotter.cpp), and a spawn function per kind."""
+
+    def __init__(self, workspace, path, channels, pipelines):
+        with open(path) as f:
+            self.j = json.load(f)
+        self.name = self.j["name"]
+        self.src = f"plotters/{os.path.basename(path)}"
+        self.channels = channels
+        self.pipes = {p.name: p for p in pipelines}
+        self.system = self.j["system"]
+        self.distinct = max(1, int(self.j.get("distinct_seeds", 6)))
+        cfg = self.j.get("config", {})
+        layers = cfg["layers"]
+        names = [L["name"] for L in layers]
+        self.kinds = []
+        out_layers = []
+        for L in layers:
+            def mask(lst):
+                m = 0
+                for g in lst or []:
+                    if g not in GROUNDS:
+                        sys.exit(f"{self.src}: unknown ground {g}")
+                    m |= 1 << GROUNDS.index(g)
+                return m
+            grove = L.get("grove", [1.0, 1.0])
+            edge = L.get("edge", {})
+            lo = {"name": L["name"], "spacing_m": L["spacing_m"], "density": L["density"],
+                  "grove_low": grove[0], "grove_high": grove[1],
+                  "edge_low": edge.get("low", 1.0), "edge_cells": edge.get("cells", 0),
+                  "ground": mask(L.get("ground")), "max_height_delta_m": L.get("max_height_delta_m", 0.5),
+                  # The foundry's JSON objects iterate in key order: so do these.
+                  "keep_clear": [{"layer": names.index(k), "metres": v} for k, v in sorted(L.get("keep_clear", {}).items())],
+                  "prefer_near": [{"layer": names.index(k), "within_m": v.get("within_m", 3.0), "boost": v.get("boost", 2.0)}
+                                  for k, v in sorted(L.get("prefer_near", {}).items())],
+                  "regrows": L.get("regrows", True)}
+            for lst in ("kinds", "regrow_kinds"):
+                ks = []
+                for k in L.get(lst, []):
+                    if "footprint_m" not in k:
+                        sys.exit(f"{self.src}: kind {k.get('pipeline')} {k.get('params')} has no measured footprint; "
+                                 "load the plotter in the foundry (plotter_get) to measure it")
+                    kid = len(self.kinds)
+                    pipe = self.pipes.get(k["pipeline"])
+                    if not pipe:
+                        sys.exit(f"{self.src}: no pipeline {k['pipeline']}")
+                    label = k["pipeline"] + "".join(" " + v for _, v in sorted(k.get("params", {}).items()) if isinstance(v, str))
+                    self.kinds.append({"id": kid, "pipe": pipe, "params": k.get("params", {}), "vary": k.get("vary", {}),
+                                       "on_regrow": k.get("on_regrow", {}), "label": label})
+                    ks.append({"id": kid, "weight": k.get("weight", 1.0), "footprint_m": k["footprint_m"],
+                               "footprint_cells": k.get("footprint_cells", 0), "max_share": k.get("max_share", 1.0),
+                               "ground": mask(k.get("ground"))})
+                lo[lst] = ks
+            out_layers.append(lo)
+        self.config = {"grove_scale_cells": cfg.get("grove_scale_cells", 8.0), "grove_octaves": cfg.get("grove_octaves", 2),
+                       "layers": out_layers}
+        self.C = upper(self.name)
+
+    # The pipeline generator's channel-value writers, shared.
+    value_cpp = Pipeline.value_cpp
+    scalar_cpp = Pipeline.scalar_cpp
+    enum_index = Pipeline.enum_index
+
+    def assign(self, pipe, name, value):
+        p = next((q for q in pipe.params if q["name"] == name), None)
+        if p is None:
+            sys.exit(f"{self.src}: {pipe.name} has no parameter {name}")
+        if p["type"] in ("enum", "config"):
+            return f"p.{name} = {pipe.U}_{upper(name)}_{upper(value)};"
+        if p["type"] == "bool":
+            return f"p.{name} = {'true' if value else 'false'};"
+        if p["type"] == "u32":
+            return f"p.{name} = {int(value)}u;"
+        return f"p.{name} = {f32(value)};"
+
+    def source(self, index_of):
+        o = []
+        o.append(f"// {self.name}: compiled from {self.src}.\n")
+        o.append(f"namespace {self.system} {{\nbool run(const channels::plot_v1_request &in, channels::plot_v1_result &out, std::string &error);\n}}\n\n")
+        o.append("namespace {\n\n")
+        o.append(f"const channels::plot_v1_config &config_{self.name}() {{\n  static const channels::plot_v1_config c = [] {{\n"
+                 "    channels::plot_v1_config g;\n")
+        body = []
+        self.value_cpp("plot_v1_config", self.config, "g", body, "    ")
+        o.extend(body)
+        o.append("    return g;\n  }();\n  return c;\n}\n\n")
+        for k in self.kinds:
+            pipe = k["pipe"]
+            o.append(f"foundry_instance spawn_{self.name}_{k['id']}(foundry_runtime *rt, uint32_t seed, bool regrown, const float t[16]) {{\n")
+            o.append(f"  {pipe.C}_params p;\n  {pipe.C}_default_params(&p);\n")
+            for name, v in sorted(k["params"].items()):
+                o.append("  " + self.assign(pipe, name, v) + "\n")
+            o.append("  uint32_t h = plot_hash(seed ^ 0x51ed270bu);\n  (void)h;\n")
+            for name, choices in sorted(k["vary"].items()):
+                items = sorted(choices.items())
+                o.append("  {\n    float total = 0.0f;\n")
+                for _, w in items:
+                    o.append(f"    total += {f32(w)};\n")
+                o.append("    h = plot_hash(h + 0x9e3779b9u);\n"
+                         "    float pick = static_cast<float>(h >> 8) / 16777216.0f * total;\n")
+                for i, (val, w) in enumerate(items):
+                    last = i == len(items) - 1
+                    o.append(f"    {'' if i == 0 else 'else '}if ({'true' if last else f'pick < {f32(w)}'}) {self.assign(pipe, name, val)}\n")
+                    if not last:
+                        o.append(f"    else if ((pick -= {f32(w)}), false) {{}}\n")
+                o.append("  }\n")
+            if k["on_regrow"]:
+                o.append("  if (regrown) {\n")
+                for name, v in sorted(k["on_regrow"].items()):
+                    o.append("    " + self.assign(pipe, name, v) + "\n")
+                o.append("  }\n")
+            else:
+                o.append("  (void)regrown;\n")
+            if any(q["name"] == "seed" for q in pipe.params):
+                o.append(f"  p.seed = 1u + (seed % {self.distinct}u);\n")
+            o.append(f"  return {pipe.C}_spawn(rt, &p, t);\n}}\n\n")
+        o.append(f"const plotters::Kind kinds_{self.name}[] = {{\n")
+        for k in self.kinds:
+            o.append(f"    {{{c_string(k['label'])}, spawn_{self.name}_{k['id']}}},\n")
+        o.append("};\n\n}  // namespace\n\n")
+        return "".join(o)
+
+
+def plotters_files(plotters):
+    h = [banner("plotters/*.json", True),
+         "/* The approved plotters (design/plotter.md): pass one in foundry_region_desc. */\n"]
+    for i, p in enumerate(plotters):
+        h.append(f"#define FOUNDRY_PLOTTER_{p.C} ((foundry_plotter){i})\n")
+    h.append(f"#define FOUNDRY_PLOTTER_COUNT {len(plotters)}u\n")
+    c = [banner("plotters/*.json"),
+         "// The compiled plotters: each one's config, its plot system called natively, and its kinds.\n"
+         "#include <string>\n\n#include \"plotters_internal.h\"\n\n"]
+    used = []
+    for p in plotters:
+        if "plot_v1_config" not in used:
+            used.append("plot_v1_config")
+    c.append("#include \"channels/plot_v1_config.h\"\n\n")
+    c.append("namespace {\n\nuint32_t plot_hash(uint32_t x) {\n  x ^= x >> 16;\n  x *= 0x7feb352du;\n  x ^= x >> 15;\n"
+             "  x *= 0x846ca68bu;\n  x ^= x >> 16;\n  return x;\n}\n\n}  // namespace\n\n")
+    for i, p in enumerate(plotters):
+        c.append(p.source(i))
+    c.append("namespace plotters {\n\nnamespace {\nconst Info kInfos[] = {\n")
+    for p in plotters:
+        c.append(f"    {{{c_string(p.name)}, config_{p.name}, {p.system}::run, kinds_{p.name}, {len(p.kinds)}u}},\n")
+    if not plotters:
+        c.append("    {nullptr, nullptr, nullptr, nullptr, 0u},\n")
+    c.append("};\n}  // namespace\n\n")
+    c.append(f"uint32_t count() {{ return {len(plotters)}u; }}\n\n"
+             "const Info *info(foundry_plotter plotter) { return plotter < count() ? &kInfos[plotter] : nullptr; }\n\n"
+             "}  // namespace plotters\n")
+    return "".join(h), "".join(c)
+
+
 def main():
     check = "--check" in sys.argv
     workspace = os.path.join(ROOT, "demo")
@@ -658,18 +864,33 @@ def main():
     pdir = os.path.join(workspace, "pipelines")
     pipelines = [Pipeline(workspace, os.path.join(pdir, fn), channels)
                  for fn in sorted(os.listdir(pdir)) if fn.endswith(".json")]
+    pdir2 = os.path.join(workspace, "plotters")
+    plotters = [PlotterGen(workspace, os.path.join(pdir2, fn), channels, pipelines)
+                for fn in sorted(os.listdir(pdir2)) if fn.endswith(".json")] if os.path.isdir(pdir2) else []
     files = {}
     for p in pipelines:
         files[os.path.join(LIBRARY, f"{p.name}.h")] = p.header()
         files[os.path.join(LIBRARY, f"{p.name}.cpp")] = p.executor()
         files[os.path.join(STRESS, f"stress_{p.name}.c")] = p.stress()
+    # A region run per plotter (design/quality.perf.md, "Regions").
+    for p in plotters:
+        files[os.path.join(STRESS, f"stress_plotter_{p.name}.c")] = (
+            banner(p.src, True) + f"/* The region run for {p.name}: regions of it grown, cleared, regrown, and drained. */\n"
+            '#include "runtime.h"\n#include "stress.h"\n\n'
+            f'int main(int argc, char **argv) {{ return stress_region_main(argc, argv, FOUNDRY_PLOTTER_{p.C}, {c_string(p.name)}); }}\n')
+    ph, pc = plotters_files(plotters)
+    files[os.path.join(LIBRARY, "plotters.h")] = ph
+    files[os.path.join(LIBRARY, "plotters.cpp")] = pc
     with open(os.path.join(LIBRARY, "foundry.h")) as f:
         core = f.read()
+    with open(os.path.join(LIBRARY, "region.h")) as f:
+        core += "\n" + f.read()
     runtime_h = ["/* runtime.h: the game-facing API (design/api.md). Assembled by tools/gen_pipelines.py from\n"
-                 " * the fragments in src/library/: foundry.h, then each pipeline by name. Do not edit. */\n"
+                 " * the fragments in src/library/: foundry.h, region.h, each pipeline by name, then the plotters. Do not edit. */\n"
                  "#pragma once\n\n", core]
     for p in pipelines:
         runtime_h.append("\n" + files[os.path.join(LIBRARY, f"{p.name}.h")])
+    runtime_h.append("\n" + ph)
     files[os.path.join(LIBRARY, "runtime.h")] = "".join(runtime_h)
     stale = []
     for path, text in files.items():

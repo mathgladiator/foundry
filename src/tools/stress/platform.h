@@ -12,6 +12,7 @@
 
 #include <nlohmann/json.hpp>
 
+#include "physics.h"
 #include "runtime_diag.h"
 #include "stress.h"
 
@@ -129,6 +130,7 @@ struct Ctx {
   Gpu gpu;
   bool use_gpu = false;
   foundry_runtime *rt = nullptr;
+  ToyPhysics *physics = nullptr;  // the toy Jolt world the runtime puts collision bodies in
   Journal journal;
   Rng rng{7, 1};
   double sim_time = 0;  // seconds simulated so far
@@ -139,6 +141,7 @@ struct Ctx {
   float cam_eye[3] = {0, 10, 30}, cam_target[3] = {0, 0, 0}, cam_far = 1000;
   std::vector<SDL_Keycode> pressed;
   std::string hud;  // shown in the window's title
+  std::string title_name = "region";  // the window title's name without a pipeline (a region run)
   double last_wall = 0, hud_at = 0;
   void pump();       // pumps the window's events: quit, keys, the fly camera
   void apply_camera();

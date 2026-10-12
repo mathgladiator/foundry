@@ -21,6 +21,7 @@
 
 #include "app/capture.h"
 #include "app/services.h"
+#include "plot/tools.h"
 #include "assets/view.h"
 #include "core/jobs.h"
 #include "core/log.h"
@@ -46,7 +47,7 @@ ImVec4 state_color(const std::string &state) {
   return {0.95f, 0.8f, 0.4f, 1};
 }
 
-const char *kKinds[][2] = {{"pipeline", "Pipelines"}, {"system", "Systems"}, {"channel", "Channels"},
+const char *kKinds[][2] = {{"pipeline", "Pipelines"}, {"plotter", "Plotters"}, {"system", "Systems"}, {"channel", "Channels"},
                            {"config", "Config"}, {"conformance", "Conformance"}, {"meshy", "Meshy"}, {"fixed", "Fixed assets"},
                            {"fracture", "Fractures"}, {"reference", "Reference"}};
 
@@ -246,14 +247,25 @@ struct UiState {
     // Per pipeline: parameter -> "" (all) or one value (pipelines share parameter names, such as species).
     std::map<std::string, std::map<std::string, std::string>> pins;
   } video;
+  // The plotter inspector's controls (design/plotter.md, "In the foundry").
+  struct PlotUi {
+    int preset = 0, radius = 12, max = 40, seed = 1;
+    float clear_radius = 5, fell_fraction = 0.4f;
+    bool verify = false, collision = false;
+    std::string message;
+    // A region to add.
+    int shape = 1, q = 0, r = 0, rad = 2, priority = 3, ground = 1;
+    bool available = true;
+    float keep = 0, height = 0;
+  } plot_ui;
 };
 
 std::string render_key(const UiState &s, int w, int h) {
   char buf[512];
-  std::snprintf(buf, sizeof buf, "%s|%u|%d|%d|%d|%.3f|%.3f|%.3f|%.3f|%d%d%d%d|%d|%dx%d", s.selected.c_str(), s.triangles,
+  std::snprintf(buf, sizeof buf, "%s|%u|%d|%d|%d|%.3f|%.3f|%.3f|%.3f|%d%d%d%d%d|%d|%dx%d", s.selected.c_str(), s.triangles,
                 s.ws_version, static_cast<int>(s.camera.view), s.camera.quarter, s.camera.distance, s.camera.yaw, s.camera.pitch, s.camera.zoom, s.overlays.conformance,
-                s.overlays.hero, s.overlays.hex, s.overlays.grid, s.silhouette, w, h);
-  return buf + s.live_key;
+                s.overlays.collision, s.overlays.hero, s.overlays.hex, s.overlays.grid, s.silhouette, w, h);
+  return buf + s.live_key + (s.plot_ui.collision ? "|pc" : "");
 }
 
 // Every item name uses `_` as a path separator, so the tree has virtual folders:
@@ -622,6 +634,7 @@ void draw_lod_limits(Services &sv, UiState &st, const workspace::Item &item) {
 }
 
 bool is_live(const std::string &id) { return id.rfind("pipeline:", 0) == 0 || id.rfind("config:", 0) == 0; }
+bool is_plot(const std::string &id) { return id.rfind("plotter:", 0) == 0; }
 
 double now_seconds() { return static_cast<double>(SDL_GetTicks()) / 1000.0; }
 
@@ -1144,6 +1157,225 @@ void load_reference(Services &sv, UiState &st) {
   st.reference_has_pending = viewport::load_image(sv.paths.workspace + "/" + path, st.reference_pending);
 }
 
+// A plotter: its region's ground, seed, shared values, growth, clearing, and metrics (design/plotter.md).
+void draw_plotter(Services &sv, UiState &st, const workspace::Item &item) {
+  auto &u = st.plot_ui;
+  plot::View &view = *sv.plot;
+  std::string error;
+  if (!view.show(item.name, error)) {
+    ImGui::TextColored({0.95f, 0.45f, 0.4f, 1}, "%s", error.c_str());
+    return;
+  }
+  const plot::Plotter pl = view.plotter();
+  ImGui::Text("Plot system: %s   distinct seeds per kind: %u", pl.system.c_str(), pl.distinct_seeds);
+  if (ImGui::CollapsingHeader("Kinds", ImGuiTreeNodeFlags_None)) {
+    if (ImGui::BeginTable("kinds", 4, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg)) {
+      ImGui::TableSetupColumn("layer");
+      ImGui::TableSetupColumn("kind");
+      ImGui::TableSetupColumn("weight");
+      ImGui::TableSetupColumn("footprint");
+      ImGui::TableHeadersRow();
+      for (const auto &k : pl.kinds) {
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        ImGui::TextUnformatted((k.layer + (k.regrow_only ? " (regrow)" : "")).c_str());
+        ImGui::TableNextColumn();
+        ImGui::TextUnformatted(k.label().c_str());
+        ImGui::TableNextColumn();
+        ImGui::Text("%.2f", k.weight);
+        ImGui::TableNextColumn();
+        if (k.footprint_cells) ImGui::Text("%u cells (%.2f m)", k.footprint_cells, k.footprint_m);
+        else ImGui::TextDisabled("none");
+      }
+      ImGui::EndTable();
+    }
+  }
+  ImGui::SeparatorText("Ground");
+  const auto &presets = plot::View::presets();
+  ImGui::SetNextItemWidth(140);
+  if (ImGui::BeginCombo("##preset", presets[u.preset].c_str())) {
+    for (int i = 0; i < static_cast<int>(presets.size()); ++i)
+      if (ImGui::Selectable(presets[i].c_str(), i == u.preset)) u.preset = i;
+    ImGui::EndCombo();
+  }
+  ImGui::SameLine();
+  ImGui::SetNextItemWidth(120);
+  ImGui::SliderInt("radius (cells)", &u.radius, 1, 40);
+  ImGui::SameLine();
+  if (ImGui::Button("Use shape")) {
+    nlohmann::json out;
+    if (!view.set_regions(plot::View::preset(presets[u.preset], u.radius, view.seed()), out, error)) u.message = error;
+    else u.message = "ground: " + out.dump();
+  }
+  ImGui::SetNextItemWidth(120);
+  u.seed = static_cast<int>(view.seed());
+  if (ImGui::InputInt("world seed", &u.seed)) view.set_seed(static_cast<uint32_t>(std::max(1, u.seed)));
+  // The regions, highest priority last; each can be removed.
+  nlohmann::json regions = view.regions();
+  int remove = -1;
+  for (int i = 0; i < static_cast<int>(regions.size()); ++i) {
+    const auto &r = regions[i];
+    ImGui::PushID(i);
+    if (ImGui::SmallButton("x")) remove = i;
+    ImGui::SameLine();
+    std::string text = r.value("shape", std::string("?")) + " (" + std::to_string(r.value("q", 0)) + ", " +
+                       std::to_string(r.value("r", 0)) + ")";
+    if (r.value("shape", std::string()) == "line")
+      text += " to (" + std::to_string(r.value("q2", 0)) + ", " + std::to_string(r.value("r2", 0)) + ")";
+    else text += " radius " + std::to_string(r.value("radius", 0));
+    text += "  priority " + std::to_string(r.value("priority", 0));
+    if (r.value("cut", false)) text += "  cut";
+    if (r.contains("ground")) text += "  " + r["ground"].get<std::string>();
+    if (r.contains("available") && !r["available"].get<bool>()) text += "  unavailable";
+    if (r.value("keep_clear_m", 0.0f) > 0) text += "  keep clear " + std::to_string(r["keep_clear_m"].get<float>()).substr(0, 4) + " m";
+    if (r.contains("height")) text += "  height " + std::to_string(r["height"].get<float>()).substr(0, 4) + " m";
+    ImGui::TextUnformatted(text.c_str());
+    ImGui::PopID();
+  }
+  if (remove >= 0) {
+    regions.erase(regions.begin() + remove);
+    nlohmann::json out;
+    if (!view.set_regions(regions, out, error)) u.message = error;
+  }
+  if (ImGui::TreeNode("Add a region")) {
+    static const char *shapes[] = {"cells", "hex", "ring", "line"};
+    ImGui::SetNextItemWidth(100);
+    ImGui::Combo("shape", &u.shape, shapes, 4);
+    ImGui::SetNextItemWidth(160);
+    ImGui::InputInt("q", &u.q);
+    ImGui::SetNextItemWidth(160);
+    ImGui::InputInt("r", &u.r);
+    ImGui::SetNextItemWidth(160);
+    ImGui::SliderInt(u.shape == 3 ? "to q (line)" : "radius", &u.rad, u.shape == 3 ? -40 : 0, 40);
+    ImGui::SetNextItemWidth(160);
+    ImGui::InputInt("priority", &u.priority);
+    ImGui::SetNextItemWidth(100);
+    std::vector<const char *> gs;
+    for (const auto &g : plot::grounds()) gs.push_back(g.c_str());
+    ImGui::Combo("ground", &u.ground, gs.data(), static_cast<int>(gs.size()));
+    ImGui::Checkbox("available", &u.available);
+    ImGui::SetNextItemWidth(160);
+    ImGui::SliderFloat("keep clear (m)", &u.keep, 0, 6);
+    ImGui::SetNextItemWidth(160);
+    ImGui::SliderFloat("height (m)", &u.height, -2, 4);
+    if (ImGui::Button("Add")) {
+      nlohmann::json r = {{"shape", shapes[u.shape]}, {"q", u.q}, {"r", u.r}, {"priority", u.priority},
+                          {"ground", plot::grounds()[u.ground]}, {"available", u.available}};
+      if (u.shape == 3) {
+        r["q2"] = u.rad;
+        r["r2"] = u.r;
+      } else {
+        r["radius"] = std::max(0, u.rad);
+      }
+      if (u.shape == 0) r["cells"] = {u.q, u.r};
+      if (u.keep > 0) r["keep_clear_m"] = u.keep;
+      if (u.height != 0) r["height"] = u.height;
+      regions.push_back(r);
+      nlohmann::json out;
+      if (!view.set_regions(regions, out, error)) u.message = error;
+      else u.message = "ground: " + out.dump();
+    }
+    ImGui::TreePop();
+  }
+  // Shared values: set on every occupant shown (the game sets them per instance).
+  ImGui::SeparatorText("Shared");
+  nlohmann::json shared = view.shared();
+  for (auto it = shared.begin(); it != shared.end(); ++it) {
+    ImGui::PushID(it.key().c_str());
+    ImGui::SetNextItemWidth(160);
+    if (it.value().is_string()) {
+      std::vector<std::string> choices;
+      for (const auto &k : pl.kinds) {
+        pipeline::Definition d;
+        std::string e;
+        if (pipeline::load(sv.paths, k.pipeline, d, e))
+          if (const pipeline::Param *p = d.param(it.key())) {
+            choices = p->values;
+            break;
+          }
+      }
+      const std::string cur = it.value().get<std::string>();
+      if (ImGui::BeginCombo(it.key().c_str(), cur.c_str())) {
+        for (const auto &c : choices)
+          if (ImGui::Selectable(c.c_str(), c == cur)) view.set_shared({{it.key(), c}});
+        ImGui::EndCombo();
+      }
+    } else if (it.value().is_number()) {
+      float v = it.value().get<float>();
+      if (ImGui::SliderFloat(it.key().c_str(), &v, 0, it.key().find("heading") != std::string::npos ? 360.0f : 25.0f))
+        view.set_shared({{it.key(), v}});
+    }
+    ImGui::PopID();
+  }
+  ImGui::SeparatorText("Grow and clear");
+  ImGui::SetNextItemWidth(160);
+  ImGui::SliderInt("max per grow", &u.max, 1, 500);
+  ImGui::SameLine();
+  ImGui::Checkbox("verify native", &u.verify);
+  auto grow = [&](bool regrow, uint32_t max) {
+    nlohmann::json out;
+    if (!view.grow(regrow, max, nlohmann::json::array(), false, nullptr, u.verify, out, error)) u.message = error;
+    else u.message = (regrow ? "regrow: " : "grow: ") + out.dump();
+  };
+  if (ImGui::Button("Grow")) grow(false, static_cast<uint32_t>(u.max));
+  ImGui::SameLine();
+  if (ImGui::Button("Grow to full")) grow(false, 100000);
+  ImGui::SameLine();
+  if (ImGui::Button("Regrow")) grow(true, static_cast<uint32_t>(u.max));
+  ImGui::SameLine();
+  if (ImGui::Button("Regrow to full")) grow(true, 100000);
+  if (ImGui::Button("Clear all")) u.message = "clear: " + view.clear({{"all", true}}).dump();
+  ImGui::SameLine();
+  ImGui::SetNextItemWidth(100);
+  ImGui::SliderFloat("##clear_radius", &u.clear_radius, 1, 20, "%.0f m");
+  ImGui::SameLine();
+  if (ImGui::Button("Clear circle at centre")) u.message = "clear: " + view.clear({{"center", {0, 0}}, {"radius", u.clear_radius}}).dump();
+  ImGui::SetNextItemWidth(100);
+  ImGui::SliderFloat("##fell", &u.fell_fraction, 0.05f, 1.0f, "%.0f%%");
+  ImGui::SameLine();
+  if (ImGui::Button("Fell that share of the canopy"))
+    u.message = "fell: " + view.clear({{"layer", "canopy"}, {"fraction", u.fell_fraction}, {"fell", true},
+                                       {"seed", static_cast<uint32_t>(SDL_GetTicks())}})
+                               .dump();
+  ImGui::SameLine();
+  // Stumps are felled trees still standing on their footprints; clearing them frees the slots.
+  if (ImGui::Button("Clear stumps")) u.message = "stumps: " + view.clear({{"stumps", true}}).dump();
+  ImGui::Checkbox("Show collision and footprints", &st.plot_ui.collision);
+  if (!u.message.empty()) ImGui::TextWrapped("%s", u.message.c_str());
+  // Metrics.
+  ImGui::SeparatorText("Metrics");
+  const plot::Picture pic = view.picture();
+  if (pic.building) ImGui::TextDisabled("composing the region...");
+  if (!pic.error.empty()) ImGui::TextColored({0.95f, 0.45f, 0.4f, 1}, "%s", pic.error.c_str());
+  const nlohmann::json m = view.metrics();
+  ImGui::Text("%d cells (%.3f ha), %d occupants, %d distinct builds, %d footprint overlaps", m.value("cells", 0),
+              m.value("hectares", 0.0), m.value("occupants", 0), m.value("distinct_builds", 0), m.value("footprint_overlaps", 0));
+  if (ImGui::BeginTable("layers", 5, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg)) {
+    ImGui::TableSetupColumn("layer");
+    ImGui::TableSetupColumn("count");
+    ImGui::TableSetupColumn("per hectare");
+    ImGui::TableSetupColumn("spacing");
+    ImGui::TableSetupColumn("nearest");
+    ImGui::TableHeadersRow();
+    for (auto it = m["layers"].begin(); it != m["layers"].end(); ++it) {
+      ImGui::TableNextRow();
+      ImGui::TableNextColumn();
+      ImGui::TextUnformatted(it.key().c_str());
+      ImGui::TableNextColumn();
+      ImGui::Text("%d", it.value().value("count", 0));
+      ImGui::TableNextColumn();
+      ImGui::Text("%.0f", it.value().value("per_hectare", 0.0));
+      ImGui::TableNextColumn();
+      ImGui::Text("%.1f m", it.value().value("spacing_m", 0.0));
+      ImGui::TableNextColumn();
+      ImGui::Text("%.2f m", it.value().value("nearest_m", 0.0));
+    }
+    ImGui::EndTable();
+  }
+  const nlohmann::json by_kind = m.value("by_kind", nlohmann::json::object());
+  for (auto it = by_kind.begin(); it != by_kind.end(); ++it) ImGui::BulletText("%s: %d", it.key().c_str(), it.value().get<int>());
+}
+
 void draw_details(Services &sv, UiState &st, const workspace::Item &item) {
   const auto &d = item.data;
   if (d.contains("doc")) ImGui::TextWrapped("%s", d["doc"].get<std::string>().c_str());
@@ -1192,6 +1424,8 @@ void draw_details(Services &sv, UiState &st, const workspace::Item &item) {
   } else if (item.kind == "conformance") {
     ImGui::Text("Shape: %s   radius %.2f m   height %.2f m", d.value("shape", "").c_str(), d.value("radius", 0.0f),
                 d.value("height", 0.0f));
+  } else if (item.kind == "plotter") {
+    draw_plotter(sv, st, item);
   } else if (item.kind == "pipeline") {
     std::string error;
     if (sv.live->show(item.name, error)) draw_live(sv);
@@ -1800,6 +2034,8 @@ void draw_viewport_controls(UiState &st) {
   ImGui::SameLine();
   ImGui::Checkbox("Conformance", &st.overlays.conformance);
   ImGui::SameLine();
+  ImGui::Checkbox("Collision", &st.overlays.collision);
+  ImGui::SameLine();
   ImGui::Checkbox("Hero", &st.overlays.hero);
   ImGui::SameLine();
   ImGui::Checkbox("Hex", &st.overlays.hex);
@@ -1916,7 +2152,8 @@ int run_ui(Services &sv) {
       }
       st.ws_version = version;
       st.selected = selected;
-      st.content = assets::load_view(*sv.ws, st.selected);
+      // A plotter's region composes in the background (below), so it never blocks here.
+      st.content = is_plot(st.selected) ? assets::ViewContent{} : assets::load_view(*sv.ws, st.selected);
       st.live_key.clear();  // whatever replaces the content (live or fracture) sets it again
       st.fracture.loaded_for.clear();  // a regenerated fracture loads again
       // A viewed LOD follows its row: after a regeneration, show its new triangle count.
@@ -1930,6 +2167,24 @@ int run_ui(Services &sv) {
     // A pipeline or config entry shows the live instance: pose it for this moment.
     if (update_fracture_view(sv, st)) {
       // a fracture preview or break
+    } else if (is_plot(st.selected)) {
+      // A plotter shows its region: the latest composed picture.
+      std::string err;
+      if (sv.plot->name() != st.selected.substr(8) && !sv.plot->show(st.selected.substr(8), err)) st.plot_ui.message = err;
+      plot::Picture pic = sv.plot->picture();
+      if (pic.mesh) {
+        const std::string key = "|plot" + std::to_string(pic.version);
+        if (key != st.live_key) {
+          st.live_key = key;
+          st.content.mesh = pic.mesh;
+          st.content.lines = pic.lines;
+          st.content.collision = pic.collision;
+          st.content.has_conformance = false;
+          st.content.progressive = nullptr;
+          st.content.lods.clear();
+          st.camera.frame = 0;
+        }
+      }
     } else if (is_live(st.selected)) {
       pipeline::Frame f = sv.live->frame(now_seconds());
       if (f.mesh) {
@@ -1943,6 +2198,8 @@ int run_ui(Services &sv) {
           st.content.has_conformance = f.conformance_radius > 0;
           st.content.radius = f.conformance_radius;
           st.content.height = f.conformance_height;
+          st.content.collision.clear();
+          if (f.collision) physics::wireframe(*f.collision, st.content.collision);
           st.content.progressive = nullptr;
           st.content.lods.clear();
         }
@@ -2020,7 +2277,9 @@ int run_ui(Services &sv) {
       const int rpx = interacting ? std::max(64, px / 2) : px;
       std::string key = render_key(st, rpx, rpx);
       if (key != st.rendered_key) {
-        st.pending = assets::render_view(st.content, st.camera, st.overlays, st.silhouette, rpx, rpx, st.triangles);
+        // A plotter's region draws its own lines; its collision has its own toggle, off at first.
+        const viewport::Overlays ov = is_plot(st.selected) ? plot::overlays(st.plot_ui.collision) : st.overlays;
+        st.pending = assets::render_view(st.content, st.camera, ov, st.silhouette, rpx, rpx, st.triangles);
         st.has_pending = true;
         st.rendered_key = key;
       }

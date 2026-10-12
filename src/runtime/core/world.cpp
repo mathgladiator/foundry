@@ -1,5 +1,7 @@
 #include "core/world.h"
 
+#include "physics/jolt.h"
+
 #include <algorithm>
 #include <chrono>
 #include <cmath>
@@ -23,6 +25,7 @@ World::World(const Config &config, std::string &error) : config_(config) {
   unsigned updaters = config.update_threads ? config.update_threads : std::max(1u, cores - builders);
   pool_ = std::make_unique<Pool>(updaters - 1);  // the calling thread is one of them
   builders_ = std::make_unique<Queue>(builders);
+  if (config.physics && !physics::check(config.physics, config.physics_version, error)) return;
   if (config.device) {
     if (!renderer_.init(config.device, config.color_format, config.depth_format, error)) return;
     have_renderer_ = true;
@@ -32,6 +35,8 @@ World::World(const Config &config, std::string &error) : config_(config) {
 
 World::~World() {
   builders_.reset();  // finish generation jobs before anything they touch goes away
+  for (Slot &s : slots_)
+    if (s.alive) set_bodies(s, nullptr);
   for (auto &[key, e] : cache_)
     if (e.uploaded) renderer_.release(e.gpu);
   if (have_renderer_) renderer_.shutdown();
@@ -100,15 +105,36 @@ uint64_t World::spawn(const PipelineType *type, const void *params, const float 
   s.current = s.wanted = 0;
   s.has_current = false;
   s.pose.reset();
+  s.result = 0;
+  s.posed_at = -1;
   s.awake = true;
   s.error.clear();
   want(s);
   return make_handle(index, s.generation);
 }
 
+void World::set_bodies(Slot &s, Entry *entry) {
+  if (!config_.physics) return;
+  physics::remove(config_.physics, s.bodies);
+  s.bodies.clear();
+  if (!entry || !entry->build) return;
+  if (!entry->shapes_made) {
+    entry->shapes_made = true;
+    if (!entry->build->collision.empty()) {
+      std::string err;
+      entry->shapes = physics::make_shapes(entry->build->collision, err);
+      if (!entry->shapes) s.error = err;
+    }
+  }
+  if (entry->shapes)
+    s.bodies = physics::add(config_.physics, *entry->shapes, config_.physics_layers, s.rows,
+                            (uint64_t(s.generation) << 32) | (uint32_t(&s - slots_.data()) + 1));
+}
+
 Status World::destroy(uint64_t handle) {
   Slot *s = slot(handle);
   if (!s) return Status::stale_handle;
+  set_bodies(*s, nullptr);
   if (s->wanted && s->wanted != s->current) unref(s->wanted);
   if (s->has_current) unref(s->current);
   s->alive = false;
@@ -125,6 +151,7 @@ Status World::set_transform(uint64_t handle, const float transform[16]) {
   if (!s) return Status::stale_handle;
   for (int c = 0; c < 4; ++c)
     for (int r = 0; r < 3; ++r) s->rows[r * 4 + c] = transform[c * 4 + r];
+  if (config_.physics) physics::move(config_.physics, s->bodies, s->rows);
   return Status::ok;
 }
 
@@ -150,6 +177,23 @@ Status World::trigger(uint64_t handle, const PipelineType *type, size_t event) {
   if (event >= s->fired.size()) return Status::bad_parameter;
   s->fired[event] = s->time;
   s->awake = true;
+  return Status::ok;
+}
+
+uint32_t World::result_of(const Slot &s) const {
+  uint32_t bits = 0;
+  const bool settled = s.pose && s.pose->settled;
+  // Over: it fired, and a pose computed since then has settled (a pose from before is stale).
+  for (size_t i = 0; i < s.fired.size() && i < 31; ++i)
+    if (s.fired[i] >= 0 && settled && s.posed_at > s.fired[i]) bits |= 1u << i;
+  if (s.has_current && s.current == s.wanted) bits |= kResultReady;
+  return bits;
+}
+
+Status World::result(uint64_t handle, uint32_t &bits) const {
+  const Slot *s = slot(handle);
+  if (!s) return Status::stale_handle;
+  bits = result_of(*s);
   return Status::ok;
 }
 
@@ -226,6 +270,7 @@ void World::integrate() {
     s.has_current = true;
     s.pose = s.type->bind(*it->second.build);
     s.awake = true;
+    set_bodies(s, &it->second);  // the new build's collision replaces the old (a stump for a trunk)
   }
 }
 
@@ -282,7 +327,7 @@ void World::update(float dt) {
       if (!s.type->update(*entry.build, *s.pose, s.params.data(), c.data(), err)) {
         s.error = err;
         s.awake = false;
-      } else if (s.pose->settled) {
+      } else if ((s.posed_at = s.time, s.pose->settled)) {
         s.awake = false;  // every update stage voted to sleep (design/submit.md)
       }
     }
@@ -301,6 +346,17 @@ void World::update(float dt) {
         t.max_ms = std::max(t.max_ms, s->pose->stage_ms[u]);
       }
       ++u;
+    }
+  }
+  // Results: list the instances whose current values changed (the game diffs them for edges).
+  changed_.clear();
+  for (size_t i = 0; i < slots_.size(); ++i) {
+    Slot &s = slots_[i];
+    if (!s.alive) continue;
+    const uint32_t bits = result_of(s);
+    if (bits != s.result) {
+      s.result = bits;
+      changed_.push_back(make_handle(static_cast<uint32_t>(i), s.generation));
     }
   }
   release_idle(false);
@@ -435,6 +491,7 @@ Counters World::counters() const {
   Counters c = counters_;
   for (const Slot &s : slots_) {
     if (!s.alive) continue;
+    c.bodies += s.bodies.size();
     ++c.instances;
     if (s.awake) ++c.awake;
     if (!s.has_current) ++c.waiting;

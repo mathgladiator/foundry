@@ -8,6 +8,7 @@
 #include "boundary.h"
 #include "channels/tree_v1_bone.h"
 #include "channels/tree_v1_piece.h"
+#include "channels/physics_v1_body.h"
 
 namespace channels {
 
@@ -18,6 +19,10 @@ struct tree_v1_model {
   float height = 0.0f;
   // Conformance stump radius, metres.
   float stump_radius = 0.0f;
+  // Radius of the ground contact of this species at its largest age, metres: what its footprint must hold (design/plotter.md, Footprints and conformance).
+  float footprint_radius = 0.0f;
+  // The footprint on the hex grid at the largest age: 1 (single), 7 (flower7), 19 (flower19), or 37 cells.
+  uint32_t footprint_cells = 0;
   // Conformance stump height, metres.
   float crown_base = 0.0f;
   // Wind bones, for skinning.
@@ -38,6 +43,8 @@ struct tree_v1_model {
   std::vector<float> bone_w;
   // Vertex colour, packed RGBA (red in the lowest byte).
   std::vector<uint32_t> colors;
+  // What collides (design/spine.md, Layer 1): static for the build, inside the conformance.
+  std::vector<physics_v1_body> collision;
 };
 
 }  // namespace channels

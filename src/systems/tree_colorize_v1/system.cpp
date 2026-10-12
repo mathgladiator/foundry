@@ -62,6 +62,9 @@ bool run(const channels::tree_v1_body &in, channels::tree_v1_model &out, std::st
 
   out.height = in.height;
   out.stump_radius = in.stump_radius;
+  out.footprint_radius = in.footprint_radius;
+  out.footprint_cells = in.footprint_cells;
+  out.collision = in.collision;
   out.crown_base = in.crown_base;
   out.bones = in.bones;
   out.pieces = in.pieces;

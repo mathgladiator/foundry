@@ -31,13 +31,22 @@ struct Camera {
 
 struct Overlays {
   bool conformance = true;
+  bool collision = true;  // the scene's collision wireframes (Scene::collision)
   bool hero = true;
   bool hex = true;
   bool grid = true;
 };
 
+// A line in world space, for overlays the scene's owner computes: collision wireframes, a region's hexes.
+struct Line {
+  foundry::vec3 a, b;
+  float r = 1, g = 1, bl = 1, alpha = 0.9f;
+};
+
 struct Scene {
   const runtime::Mesh *mesh = nullptr;
+  std::vector<Line> collision;  // drawn when overlays.collision is on
+  std::vector<Line> lines;      // always drawn, and included in the framing (a region's hexes)
   bool has_conformance = false;
   float conformance_radius = 0, conformance_height = 0;
   Overlays overlays;

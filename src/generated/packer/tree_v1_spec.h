@@ -13,6 +13,7 @@ inline void pack_fields(Writer &w, const channels::tree_v1_spec &c) {
   w.u32(c.seed);
   w.u32(c.detail);
   w.boolean(c.fruit);
+  w.boolean(c.stump);
 }
 
 inline void unpack_fields(Reader &r, channels::tree_v1_spec &c) {
@@ -22,6 +23,7 @@ inline void unpack_fields(Reader &r, channels::tree_v1_spec &c) {
   c.seed = r.u32();
   c.detail = r.u32();
   c.fruit = r.boolean();
+  c.stump = r.boolean();
 }
 
 inline void pack(const channels::tree_v1_spec &c, std::vector<uint8_t> &out) {

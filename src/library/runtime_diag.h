@@ -16,6 +16,7 @@ typedef struct foundry_diag_counters {
   uint64_t generations, generation_failures;
   uint64_t gpu_buffers_created, gpu_buffers_released, gpu_bytes;
   uint64_t draws, drawn, culled, triangles; /* the last prepared frame */
+  uint64_t bodies;                          /* collision bodies in the game's physics world */
 } foundry_diag_counters;
 
 typedef struct foundry_diag_frame {

@@ -14,6 +14,8 @@ inline void pack_fields(Writer &w, const channels::tree_v1_rig &c) {
   pack_fields(w, c.spec);
   w.f32(c.height);
   w.f32(c.stump_radius);
+  w.f32(c.footprint_radius);
+  w.u32(c.footprint_cells);
   w.f32(c.crown_base);
   w.f32(c.cut);
   w.array(c.branches, [](Writer &w, const auto &x) { pack_fields(w, x); });
@@ -26,6 +28,8 @@ inline void unpack_fields(Reader &r, channels::tree_v1_rig &c) {
   unpack_fields(r, c.spec);
   c.height = r.f32();
   c.stump_radius = r.f32();
+  c.footprint_radius = r.f32();
+  c.footprint_cells = r.u32();
   c.crown_base = r.f32();
   c.cut = r.f32();
   r.array(c.branches, 28, [](Reader &r, auto &x) { unpack_fields(r, x); });

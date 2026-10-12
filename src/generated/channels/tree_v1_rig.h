@@ -23,6 +23,10 @@ struct tree_v1_rig {
   float height = 0.0f;
   // Radius of the colliding stump (the conformance), metres.
   float stump_radius = 0.0f;
+  // Radius of the ground contact of this species at its largest age, metres: what its footprint must hold (design/plotter.md, Footprints and conformance).
+  float footprint_radius = 0.0f;
+  // The footprint on the hex grid at the largest age: 1 (single), 7 (flower7), 19 (flower19), or 37 cells.
+  uint32_t footprint_cells = 0;
   // Height where branches start: the top of the colliding stump; everything above is visual.
   float crown_base = 0.0f;
   // Height of the break cut, metres.

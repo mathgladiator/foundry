@@ -18,6 +18,7 @@ The pipeline's parameters are its whole interface. The generated C API (`src/lib
 | `age` | enum | sapling, young, mature, ancient | Height and girth, branching, dead limbs and moss on ancient trees | yes |
 | `season` | enum | winter, spring, summer, fall | Leaves, blossom, fruit, fall colour, bare winters, snow | yes |
 | `fruit` | bool | | The tree still carries its fruit (in the seasons it fruits). Clear it when the player picks it; the tree rebuilds bare and shares that build with every other picked tree like it. It applies only to the 14 species whose fruit can be picked (`pickable`, see "Fruit"); for the rest it is disabled and ignored, and their cones or propagules stay on | yes, where it applies |
+| `stump` | bool | | Only the stump is left. The game sets it once a felled tree's fall is over (`break_over` in its result); the mesh draws the stump and its roots, and the trunk's collision body becomes the stump's | yes |
 | `seed` | u32 | 1 to 1000 | Which of the distinct trees of that species, age, and season | yes |
 | `detail` | enum | high, medium, low | Level of detail: ring sides, foliage density, sprigs | yes |
 | `wind_speed` | f32 | 0 to 25 m/s | The local wind; 0 lets a standing tree sleep | no: the pose only |
@@ -39,14 +40,22 @@ foundry_tree_v1_set_wind_speed(rt, tree, 9.0f);
 if (foundry_tree_v1_fruit_applies(p.species))  /* offer picking only where there is fruit */
   foundry_tree_v1_set_fruit(rt, tree, false);  /* the player picked it */
 foundry_tree_v1_start_break(rt, tree);  /* a woodcutter finished */
+/* ... after later updates, when the tree is in foundry_changed's list: */
+foundry_tree_v1_result r;
+foundry_tree_v1_get_result(rt, tree, &r);
+if (r.break_over && !last.break_over) foundry_tree_v1_set_stump(rt, tree, true);  /* its rising edge (or the game's own timer) */
 ```
+
+Each update leaves the tree a result of current values (`design/api.md`, "Instance results"): `break_over` (it broke and its fall has come to rest) and `ready` (the build it last asked for is the one drawn: after `set_stump`, the stump). `foundry_changed` lists the instances whose results changed, so the game reads only those.
+
+When the runtime has the game's Jolt world (`foundry_runtime_desc.physics`), each tree has one solid collision body: a cylinder of `stump_radius` up to the crown, or up to the cut once it's a stump. The runtime adds it when the build is ready, swaps it on a rebuild (the stump for the trunk), and removes it with the tree (`tests/results_test.cpp`: a felled oak's body goes from 3.40 m tall to 0.60 m).
 
 ## How it's built
 
 Four systems, each one channel in and one out:
 
 ```
-species, age, season, fruit, seed, detail
+species, age, season, fruit, stump, seed, detail
         |
    tree_v1_spec ──> [tree_rig] ──> tree_v1_rig ──> [tree_mesh] ──> tree_v1_body ──> [tree_colorize] ──> tree_v1_model   (drawn)
                           │
@@ -62,7 +71,8 @@ The rig grows the branch structure from the genome. It works in five steps:
    - **Excurrent species** (pine, spruce, birch, coconut) keep the stem running to the top.
    - **Decurrent species** (oak, apple) turn their upper limbs into leaders.
    - `cluster` pushes branches toward the tip. That is how umbrella crowns (acacia, dragonwood) and a palm's single crown of fronds come about.
-2. **Radii.** Branch radii follow the pipe model (Leonardo's rule, with exponent 2). They are scaled so the trunk matches the species' slenderness, then thickened 1.4 times for the cel look (`style.md` §3). A swamp tree's `swell` widens the bottom quarter of the stem into a bottle-like base, tapering up.
+2. **Radii.** Branch radii follow the pipe model (Leonardo's rule, with exponent 2). They are scaled so the trunk at the ground matches the species' `trunk_diameter` from nature, by age (`age_girth`). A swamp tree's `swell` widens the bottom quarter of the stem into a bottle-like base, tapering up.
+5. **Stump and footprint.** `stump_radius` is the trunk's radius at the cut (swell included): what collides. `footprint_radius` is the ground contact of the species at its largest (ancient) age, its flared, swollen base with the flare at its mean around the trunk, and `footprint_cells` the smallest hex arrangement whose inner circle, inset 0.1 m, holds it: 1 cell up to 0.766 m, 7 up to 1.9 m, 19 up to 3.51 m, else 37 (`design/plotter.md`, "Footprints and conformance"). An oak's is 7 cells (1.71 m), an apple's 1 (0.49 m), a bald cypress's 19, a baobab's 37.
 3. **Wind bones.** There is a rigid stump, three stem bones, two bones per limb, and one per twig, capped at 128. Each bone's natural frequency comes from a cantilever beam made of the species' wood. Bare trees catch less wind.
 4. **Break pieces.** The pieces are the stump, the log above the cut, and each limb.
 5. **Foliage anchors.** Anchors sit on the outer branches, sized from the genome, and are capped at 260 per tree.
@@ -72,7 +82,8 @@ The rig grows the branch structure from the genome. It works in five steps:
 The mesh system wraps the skeleton and dresses it for the season:
 - **Bark.** Bark is built as rings along every branch, with relief and shade from the genome's bark style. The styles are furrowed, plated, shaggy, mottled, fluted, ringed, and papery.
   - Ringed (a palm's leaf scars) and papery (a birch's lenticels) need rings closer together than the rig's points, so the mesh splits the stem's segments for them.
-- **The stump.** The stump flares at its base and has a cut face where the log will break off.
+- **The stump.** The stump flares at its base and has a cut face where the log will break off. With `stump` set, the mesh draws only the stump, capped with end grain, and its knees and prop roots: no log, limbs, foliage, fruit, or moss.
+- **Collision.** A solid cylinder from the ground (`physics_v1_body`): the trunk up to the crown, or the stump up to the cut. It is static for the build: the trunk stands still however the wind moves the crown, and a falling log has no collision.
 - **Foliage.** Foliage is chosen per clump by season:
   - **Clumps:** displaced icospheres, for broadleaves.
   - **Needles:** stretched tufts.
@@ -141,6 +152,31 @@ Each species is a genome (`tree_v1_genome`): about 55 fields of shape, seasons, 
 | Weeping willow | *Salix babylonica* | 11 | deciduous | hemispherical, weeping | fronds (drooping strands) | furrowed | bare hanging twigs in winter, catkins |
 
 Wood densities and stiffness come from the USDA *Wood Handbook* where the species is listed, so heavy woods sway slower and fall harder. Red mangrove isn't listed, so its values are estimates for a dense tropical hardwood.
+
+### Trunks and footprints
+
+Each genome's `trunk_diameter` is its mature trunk's diameter at the ground, from nature (typical for the species, held near the earlier proportions so no tree's look jumps). The footprint is what the species reserves on the hex grid at its largest age: the ancient tree's flared, swollen base (computed by `tree_rig`; plotters read it).
+
+| Species | Trunk (m) | Footprint radius (m) | Cells | Species | Trunk (m) | Footprint radius (m) | Cells |
+|---|---|---|---|---|---|---|---|
+| Acacia | 0.5 | 0.50 | 1 | Lignum vitae | 0.45 | 0.55 | 1 |
+| Apple | 0.4 | 0.49 | 1 | Southern live oak | 1.8 | 3.17 | 19 |
+| Bald cypress | 1.2 | 3.10 | 19 | Mahogany | 1.4 | 2.72 | 19 |
+| Baobab | 3.0 | 4.42 | 37 | Mango | 0.9 | 1.10 | 7 |
+| Birch | 0.35 | 0.32 | 1 | Red mangrove | 0.35 | 0.35 | 1 |
+| Bristlecone pine | 0.8 | 1.31 | 7 | Sugar maple | 0.8 | 0.90 | 7 |
+| Cedar of Lebanon | 1.4 | 1.34 | 7 | Mesquite | 0.5 | 0.61 | 1 |
+| Cherry | 0.5 | 0.57 | 1 | Oak | 1.1 | 1.71 | 7 |
+| Coconut | 0.4 | 0.32 | 1 | Olive | 0.7 | 1.56 | 7 |
+| Italian cypress | 0.6 | 0.57 | 1 | Osage | 0.6 | 0.76 | 1 |
+| Dragonwood | 1.0 | 1.14 | 7 | Pine | 0.6 | 0.58 | 1 |
+| Ebony | 0.7 | 0.85 | 7 | Coast redwood | 2.0 | 3.19 | 19 |
+| American elm | 1.1 | 1.71 | 7 | Spruce | 0.7 | 0.67 | 1 |
+| Hickory | 0.6 | 0.62 | 1 | Teak | 0.9 | 1.10 | 7 |
+| Jacaranda | 0.6 | 0.69 | 1 | Water tupelo | 0.75 | 2.48 | 19 |
+| Larch | 0.7 | 0.67 | 1 | Weeping willow | 0.9 | 1.17 | 7 |
+
+A swamp tree's swell makes its footprint large: a water tupelo's 0.75 m trunk swells to a 2.5 m base, nineteen cells.
 
 ### Fruit
 
@@ -230,9 +266,9 @@ The viewport's **Flow** tab draws this graph: `species` feeds a purple lookup bo
 
 | Stage | Cache key | Distinct outputs |
 |---|---|---|
-| `rig` | species, age, season, fruit, seed, detail | (14 × 2 + 18) × 4 × 4 × 1000 × 3 = 2,208,000: `fruit` counts only where it applies |
-| `mesh` | the same (its input is the whole rig) | 2,208,000 |
-| `colorize` | the same | 2,208,000 |
+| `rig` | species, age, season, fruit, stump, seed, detail | (14 × 2 + 18) × 4 × 4 × 2 × 1000 × 3 = 4,416,000: `fruit` counts only where it applies |
+| `mesh` | the same (its input is the whole rig) | 4,416,000 |
+| `colorize` | the same | 4,416,000 |
 | `animate` | every parameter | every frame, per instance |
 
 Wind and time never rebuild a tree: they rerun only `animate`, which reads two fields of the rig (`bones`, `pieces`), not the mesh. In the native runtime, every tree with the same six build parameters shares one mesh, so a forest of 10 kinds of tree costs 10 meshes, however many instances it has.
@@ -240,24 +276,26 @@ Wind and time never rebuild a tree: they rerun only `animate`, which reads two f
 The probe (`pipeline_flow` with `probe`, or the Flow tab's button) varies each parameter and compares every stage's output. It found one place a cache could be shared:
 - **`detail` reaches `animate`** through the rig's bones, but never changes its output. The skeleton is the same at every level of detail, so poses could be shared across them.
 - **`fruit` reaches `rig`**, whose output carries the request through to the mesh, but it never changes the skeleton, and `animate` never changes with it. Probed on an oak in fall, it changes the rig's output (the request it carries), the mesh, and the colour; probed on a willow, it changes nothing, because the foundry reads it as off where it doesn't apply. The rig could be cached without it, and picking fruit would then rebuild only the mesh and colour.
+- **`stump` reaches `rig`** the same way: it changes the request the rig carries, not the skeleton.
 - **Conditional dependencies are invisible to it.** `break_heading` shows no change when probed on a standing tree, because it only matters once the tree breaks.
 
 ## Performance
 
-Native runtime, on an AMD Ryzen AI Max+ 395 with a Radeon 8060S (Vulkan), from the standard stress plan (`demo/perf/report-tree_v1-20261012T153338Z.json`, 32 species, after the fruit research):
+Native runtime, on an AMD Ryzen AI Max+ 395 with a Radeon 8060S (Vulkan), from the standard stress plan (`demo/perf/report-tree_v1-20261012T193254Z.json`, 32 species, with `stump` and collision bodies in a toy Jolt world):
 
 | | Native | WebAssembly (foundry) |
 |---|---|---|
-| Growing a tree (rig + mesh + colorize) | about 0.6 ms mean (0.12 + 0.41 + 0.05); 1.9 ms from spawn to drawable (p50), 6.3 ms p99 (a mature apple in summer, in fruit) | about 70 ms (measured with 18 species) |
-| Posing a tree (`animate`) | about 13 µs | about 15 ms, almost all instance setup |
-| Triangles | 4,905 (p50) to 37,833 (max) at high detail | |
+| Growing a tree (rig + mesh + colorize) | about 0.35 ms mean (0.11 + 0.21 + 0.03); 0.9 ms from spawn to drawable (p50), 4.2 ms p99 (a mature southern live oak in summer, in fruit) | about 70 ms (measured with 18 species) |
+| Posing a tree (`animate`) | about 8 µs | about 15 ms, almost all instance setup |
+| Triangles | 583 (p50), 17,017 (p95), 42,868 (max) at high detail | |
 
-Growing measured faster than the run before the fruit work (2.6 ms p50 to spawn); I haven't isolated why.
+Half the sampled trees are now stumps (a few hundred triangles each), which is why the median triangles and growing time dropped from the last run (4,905 triangles and 1.9 ms p50 before `stump`).
 
-- **Forest.** About 17,600 trees fit a 60 fps frame (15.6 ms p95), sharing 10 meshes with a 99.96% cache hit rate; 25,600 take 23 ms.
-- **Bulk breaks.** Felling 100 trees in one frame raises the frame time from 0.4 to 1.0 ms. They settle in 3.1 s, and memory comes back exactly. 1,600 felled at once still fit the frame budget.
-- **Soak.** Five drains all came back within 2.0 MB.
-- **Matches what was approved.** Every stress run through the foundry checks 100 sampled trees and their poses byte for byte against WebAssembly (100/100 after the fruit work; running the binary directly skips it). `pipeline_set` with `verify_native` also matched every stage for all 32 species in winter and fall, fruit on and off (96 configurations).
+- **Forest.** All 25,600 trees fit a 60 fps frame (14.9 ms p95), sharing 10 meshes with a 99.96% cache hit rate, each with its trunk's body in the toy Jolt world (25,600 bodies).
+- **Bulk breaks.** Felling 100 trees in one frame raises the frame time from 0.4 to 0.5 ms. They settle in 3.0 s, and memory comes back within 0.1 MB. 1,600 felled at once still fit the frame budget.
+- **Soak.** Five drains all came back within 7.5 MB, and the bodies balanced at every drain (none left in the runtime or the world).
+- **Matches what was approved.** Every stress run through the foundry checks 100 sampled trees and their poses byte for byte against WebAssembly (100/100). `pipeline_set` with `verify_native` also matched every stage for all 32 species in winter and fall, fruit on and off (96 configurations), and for 24 stumps (8 species, including the swamp trees, at sapling, mature, and ancient, in wind and with a break started).
+- **A stump is still.** A stump's rig keeps only the stump's piece and makes every bone rigid, so a stump sleeps in any wind and starting a break on it does nothing (`"settled": true`, `"broken": false`).
 
 Run `perf_stress` with plan `quick` after a change and `standard` before asking for approval (`design/quality.perf.md`). To fly through a forest yourself, run:
 
@@ -268,7 +306,7 @@ build/linux-release/stress/stress_tree_v1 --plan explore --window
 ## QA
 
 - **Contact sheets.** `pipeline_sheet`: species × season, species × age, age × seed.
-- **The QA video.** The viewport's **Video** tab, or `pipeline_video`, exports every combination of species, age, season, and detail at about a second each, behind a 5-second title slide. Each clip orbits the tree with its parameters called out, and an index of start times sits beside the video in `qa/videos/`. The last full run, with 18 species, was 864 variations: 14.5 minutes of video, exported by the native runtime in about 2. With 22 species it was 1,056 variations, exported in 145 s. With 32 species and `fruit` it is 2,208, because species whose fruit isn't pickable get one clip with `fruit` marked disabled instead of two; pin `fruit` (or `detail`) to keep a run short. Every discrete parameter's value is shown under its name at the top of each clip.
+- **The QA video.** The viewport's **Video** tab, or `pipeline_video`, exports every combination of species, age, season, and detail at about a second each, behind a 5-second title slide. Each clip orbits the tree with its parameters called out, and an index of start times sits beside the video in `qa/videos/`. The last full run, with 18 species, was 864 variations: 14.5 minutes of video, exported by the native runtime in about 2. With 22 species it was 1,056 variations, exported in 145 s. With 32 species and `fruit` it is 2,208, because species whose fruit isn't pickable get one clip with `fruit` marked disabled instead of two; with `stump` it doubles to 4,416, so pin `stump` (and `fruit` or `detail`) to keep a run short. Every discrete parameter's value is shown under its name at the top of each clip.
 - **The live instance.** In the foundry, select `pipeline:tree_v1` or a species under Config. The **View** tab plays the wind and the break.
 
 ## Known limits

@@ -1,0 +1,11 @@
+{
+  "name": "plot_scatter",
+  "version": 1,
+  "kind": "plot",
+  "doc": "A plot system (design/plotter.md): fills a region of hex cells with what belongs in a biome, by layers. Candidates come from cells (so editing a region changes things only near the edit), spacing is Matern type II per layer, footprints reserve cells, and what already stands is never moved. Returns up to max placements in the config's order, and the volume left.",
+  "input": "plot_v1_request",
+  "output": "plot_v1_result",
+  "state": "draft",
+  "notes": [],
+  "created_at": "2026-10-12T19:00:00Z"
+}

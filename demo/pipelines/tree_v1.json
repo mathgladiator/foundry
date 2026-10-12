@@ -10,6 +10,7 @@
     {"name": "age", "type": "enum", "values": ["sapling", "young", "mature", "ancient"], "default": "mature"},
     {"name": "season", "type": "enum", "values": ["winter", "spring", "summer", "fall"], "default": "summer"},
     {"name": "fruit", "type": "bool", "default": true, "when": {"param": "species", "field": "pickable"}, "doc": "The tree still carries its fruit; clear it when the fruit is picked. Applies only to species whose fruit can be picked (pickable); elsewhere it is disabled."},
+    {"name": "stump", "type": "bool", "default": false, "doc": "Only the stump is left. The game sets it once a felled tree's break is over (break_over in its result); the trunk's collision becomes the stump's."},
     {"name": "seed", "type": "u32", "min": 1, "max": 1000, "default": 1, "doc": "Which of the distinct trees per species, age, and season (the runtime caps how many by quality)."},
     {"name": "detail", "type": "enum", "values": ["high", "medium", "low"], "default": "high", "doc": "Level of detail; the runtime picks it from distance and quality."},
     {"name": "wind_speed", "type": "f32", "min": 0, "max": 25, "default": 6, "unit": "m/s"},
@@ -21,7 +22,7 @@
   ],
   "stages": [
     {"id": "rig", "system": "tree_rig_v1",
-     "input": {"genome": "$species", "age": "$age", "season": "$season", "fruit": "$fruit", "seed": "$seed", "detail": "$detail"}},
+     "input": {"genome": "$species", "age": "$age", "season": "$season", "fruit": "$fruit", "stump": "$stump", "seed": "$seed", "detail": "$detail"}},
     {"id": "mesh", "system": "tree_mesh_v1", "input": "@rig"},
     {"id": "colorize", "system": "tree_colorize_v1", "input": "@mesh"},
     {"id": "animate", "system": "tree_animate_v1", "phase": "update",
@@ -29,5 +30,5 @@
                "gust_damping": "$gust_damping", "time": "$time", "break_time": "$break_time",
                "break_heading": "$break_heading", "seed": "$seed"}}
   ],
-  "draw": {"model": "colorize", "pose": "animate", "conformance": {"radius": "stump_radius", "height": "crown_base"}}
+  "draw": {"model": "colorize", "pose": "animate", "conformance": {"radius": "stump_radius", "height": "crown_base"}, "footprint": {"radius": "footprint_radius", "cells": "footprint_cells"}}
 }
