@@ -1,0 +1,1861 @@
+{
+ "experiments": [
+  {
+   "awake": 35297,
+   "builds": 76,
+   "by_pipeline": {
+    "bush_v1": {
+     "triangles": 40338768,
+     "visible": 2395
+    },
+    "flower_v1": {
+     "triangles": 116184486,
+     "visible": 28128
+    },
+    "rock_v1": {
+     "triangles": 1666880,
+     "visible": 290
+    },
+    "tree_v1": {
+     "triangles": 30508950,
+     "visible": 1377
+    }
+   },
+   "culled": 3422,
+   "draw_ms": {
+    "max": 0.263,
+    "mean": 0.132,
+    "n": 216,
+    "p50": 0.129,
+    "p95": 0.16,
+    "p99": 0.207
+   },
+   "drawn": 32191,
+   "draws": 76,
+   "experiment": "as placed",
+   "fps": 38.9,
+   "fps_at_p95": 34.2,
+   "frame_ms": {
+    "max": 33.076,
+    "mean": 25.707,
+    "n": 216,
+    "p50": 27.461,
+    "p95": 29.267,
+    "p99": 30.181
+   },
+   "gpu_frame_ms": {
+    "max": 31.758,
+    "mean": 26.196,
+    "n": 24,
+    "p50": 24.778,
+    "p95": 30.438,
+    "p99": 31.758
+   },
+   "gpu_wait_ms": {
+    "max": 3.471,
+    "mean": 0.091,
+    "n": 216,
+    "p50": 0.019,
+    "p95": 0.124,
+    "p99": 2.421
+   },
+   "instances": 35613,
+   "prepare_ms": {
+    "max": 9.712,
+    "mean": 7.346,
+    "n": 216,
+    "p50": 8.192,
+    "p95": 8.633,
+    "p99": 9.187
+   },
+   "trees_visible": 1377,
+   "triangles": 188705605,
+   "update_ms": {
+    "max": 22.861,
+    "mean": 17.978,
+    "n": 216,
+    "p50": 19.148,
+    "p95": 20.627,
+    "p99": 21.378
+   },
+   "update_stages": {
+    "bush_v1.animate": {
+     "calls_per_frame": 2640.0,
+     "cpu_ms_per_frame": 45.7907341500033,
+     "us_per_call": 17.344975056819433
+    },
+    "flower_v1.animate": {
+     "calls_per_frame": 31146.0,
+     "cpu_ms_per_frame": 186.77877064392342,
+     "us_per_call": 5.996878271493078
+    },
+    "tree_v1.animate": {
+     "calls_per_frame": 1511.0,
+     "cpu_ms_per_frame": 27.50397957916633,
+     "us_per_call": 18.20250137602007
+    }
+   }
+  },
+  {
+   "awake": 35297,
+   "builds": 76,
+   "by_pipeline": {
+    "bush_v1": {
+     "triangles": 40338768,
+     "visible": 2395
+    },
+    "flower_v1": {
+     "triangles": 116184486,
+     "visible": 28128
+    },
+    "rock_v1": {
+     "triangles": 1666880,
+     "visible": 290
+    },
+    "tree_v1": {
+     "triangles": 30508950,
+     "visible": 1377
+    }
+   },
+   "culled": 3422,
+   "draw_ms": {
+    "max": 0.117,
+    "mean": 0.117,
+    "n": 240,
+    "p50": 0.117,
+    "p95": 0.117,
+    "p99": 0.117
+   },
+   "drawn": 32191,
+   "draws": 76,
+   "experiment": "no drawing",
+   "fps": 67.2,
+   "fps_at_p95": 62.4,
+   "frame_ms": {
+    "max": 18.526,
+    "mean": 14.888,
+    "n": 240,
+    "p50": 14.899,
+    "p95": 16.028,
+    "p99": 16.757
+   },
+   "gpu_frame_ms": {
+    "max": 0.0,
+    "mean": 0.0,
+    "n": 0,
+    "p50": 0.0,
+    "p95": 0.0,
+    "p99": 0.0
+   },
+   "gpu_wait_ms": {
+    "max": 0.0,
+    "mean": 0.0,
+    "n": 240,
+    "p50": 0.0,
+    "p95": 0.0,
+    "p99": 0.0
+   },
+   "instances": 35613,
+   "prepare_ms": {
+    "max": 5.301,
+    "mean": 2.965,
+    "n": 240,
+    "p50": 2.93,
+    "p95": 3.27,
+    "p99": 3.608
+   },
+   "trees_visible": 1377,
+   "triangles": 188705605,
+   "update_ms": {
+    "max": 14.67,
+    "mean": 11.92,
+    "n": 240,
+    "p50": 11.957,
+    "p95": 12.977,
+    "p99": 13.668
+   },
+   "update_stages": {
+    "bush_v1.animate": {
+     "calls_per_frame": 2640.0,
+     "cpu_ms_per_frame": 26.70650399583489,
+     "us_per_call": 10.116099998422307
+    },
+    "flower_v1.animate": {
+     "calls_per_frame": 31146.0,
+     "cpu_ms_per_frame": 111.64530191218886,
+     "us_per_call": 3.58457914056986
+    },
+    "tree_v1.animate": {
+     "calls_per_frame": 1511.0,
+     "cpu_ms_per_frame": 16.157951637497277,
+     "us_per_call": 10.693548403373446
+    }
+   }
+  },
+  {
+   "awake": 35297,
+   "builds": 76,
+   "by_pipeline": {
+    "bush_v1": {
+     "triangles": 24954127,
+     "visible": 2395
+    },
+    "flower_v1": {
+     "triangles": 77887928,
+     "visible": 28128
+    },
+    "rock_v1": {
+     "triangles": 129200,
+     "visible": 290
+    },
+    "tree_v1": {
+     "triangles": 15071464,
+     "visible": 1377
+    }
+   },
+   "culled": 3422,
+   "draw_ms": {
+    "max": 0.201,
+    "mean": 0.129,
+    "n": 216,
+    "p50": 0.126,
+    "p95": 0.158,
+    "p99": 0.181
+   },
+   "drawn": 32191,
+   "draws": 76,
+   "experiment": "medium detail",
+   "fps": 49.3,
+   "fps_at_p95": 43.0,
+   "frame_ms": {
+    "max": 24.73,
+    "mean": 20.304,
+    "n": 216,
+    "p50": 20.426,
+    "p95": 23.258,
+    "p99": 24.569
+   },
+   "gpu_frame_ms": {
+    "max": 17.804,
+    "mean": 16.048,
+    "n": 24,
+    "p50": 16.046,
+    "p95": 16.569,
+    "p99": 17.804
+   },
+   "gpu_wait_ms": {
+    "max": 0.047,
+    "mean": 0.011,
+    "n": 216,
+    "p50": 0.011,
+    "p95": 0.023,
+    "p99": 0.026
+   },
+   "instances": 35613,
+   "prepare_ms": {
+    "max": 7.696,
+    "mean": 5.687,
+    "n": 216,
+    "p50": 5.738,
+    "p95": 6.999,
+    "p99": 7.56
+   },
+   "trees_visible": 1377,
+   "triangles": 118046601,
+   "update_ms": {
+    "max": 18.22,
+    "mean": 14.352,
+    "n": 216,
+    "p50": 14.425,
+    "p95": 16.286,
+    "p99": 16.921
+   },
+   "update_stages": {
+    "bush_v1.animate": {
+     "calls_per_frame": 2640.0,
+     "cpu_ms_per_frame": 34.048774866672254,
+     "us_per_call": 12.897263207072823
+    },
+    "flower_v1.animate": {
+     "calls_per_frame": 31146.0,
+     "cpu_ms_per_frame": 140.83216406313585,
+     "us_per_call": 4.521677392382195
+    },
+    "tree_v1.animate": {
+     "calls_per_frame": 1511.0,
+     "cpu_ms_per_frame": 20.5261248249982,
+     "us_per_call": 13.584463815352878
+    }
+   }
+  },
+  {
+   "awake": 35297,
+   "builds": 76,
+   "by_pipeline": {
+    "bush_v1": {
+     "triangles": 8443490,
+     "visible": 2395
+    },
+    "flower_v1": {
+     "triangles": 49365310,
+     "visible": 28130
+    },
+    "rock_v1": {
+     "triangles": 129200,
+     "visible": 290
+    },
+    "tree_v1": {
+     "triangles": 5795709,
+     "visible": 1377
+    }
+   },
+   "culled": 3421,
+   "draw_ms": {
+    "max": 0.216,
+    "mean": 0.126,
+    "n": 216,
+    "p50": 0.122,
+    "p95": 0.161,
+    "p99": 0.175
+   },
+   "drawn": 32192,
+   "draws": 76,
+   "experiment": "low detail",
+   "fps": 54.3,
+   "fps_at_p95": 48.7,
+   "frame_ms": {
+    "max": 25.327,
+    "mean": 18.403,
+    "n": 216,
+    "p50": 18.149,
+    "p95": 20.523,
+    "p99": 22.626
+   },
+   "gpu_frame_ms": {
+    "max": 14.195,
+    "mean": 11.667,
+    "n": 24,
+    "p50": 11.547,
+    "p95": 13.983,
+    "p99": 14.195
+   },
+   "gpu_wait_ms": {
+    "max": 0.077,
+    "mean": 0.012,
+    "n": 216,
+    "p50": 0.014,
+    "p95": 0.022,
+    "p99": 0.034
+   },
+   "instances": 35613,
+   "prepare_ms": {
+    "max": 7.526,
+    "mean": 4.97,
+    "n": 216,
+    "p50": 4.816,
+    "p95": 5.807,
+    "p99": 7.504
+   },
+   "trees_visible": 1377,
+   "triangles": 63735398,
+   "update_ms": {
+    "max": 17.439,
+    "mean": 13.175,
+    "n": 216,
+    "p50": 13.076,
+    "p95": 14.355,
+    "p99": 15.111
+   },
+   "update_stages": {
+    "bush_v1.animate": {
+     "calls_per_frame": 2640.0,
+     "cpu_ms_per_frame": 28.946785758323404,
+     "us_per_call": 10.964691575122503
+    },
+    "flower_v1.animate": {
+     "calls_per_frame": 31146.0,
+     "cpu_ms_per_frame": 122.00853112351396,
+     "us_per_call": 3.9173098029767535
+    },
+    "tree_v1.animate": {
+     "calls_per_frame": 1511.0,
+     "cpu_ms_per_frame": 17.445477387495824,
+     "us_per_call": 11.545650157177912
+    }
+   }
+  },
+  {
+   "awake": 0,
+   "builds": 76,
+   "by_pipeline": {
+    "bush_v1": {
+     "triangles": 8443490,
+     "visible": 2395
+    },
+    "flower_v1": {
+     "triangles": 49365310,
+     "visible": 28130
+    },
+    "rock_v1": {
+     "triangles": 129200,
+     "visible": 290
+    },
+    "tree_v1": {
+     "triangles": 5795709,
+     "visible": 1377
+    }
+   },
+   "culled": 3421,
+   "draw_ms": {
+    "max": 0.3,
+    "mean": 0.174,
+    "n": 216,
+    "p50": 0.171,
+    "p95": 0.219,
+    "p99": 0.241
+   },
+   "drawn": 32192,
+   "draws": 76,
+   "experiment": "low detail, no wind",
+   "fps": 98.0,
+   "fps_at_p95": 90.3,
+   "frame_ms": {
+    "max": 12.139,
+    "mean": 10.204,
+    "n": 216,
+    "p50": 10.356,
+    "p95": 11.069,
+    "p99": 11.583
+   },
+   "gpu_frame_ms": {
+    "max": 9.751,
+    "mean": 9.274,
+    "n": 24,
+    "p50": 9.241,
+    "p95": 9.7,
+    "p99": 9.751
+   },
+   "gpu_wait_ms": {
+    "max": 2.096,
+    "mean": 0.027,
+    "n": 216,
+    "p50": 0.01,
+    "p95": 0.025,
+    "p99": 0.684
+   },
+   "instances": 35613,
+   "prepare_ms": {
+    "max": 9.874,
+    "mean": 8.13,
+    "n": 216,
+    "p50": 8.306,
+    "p95": 8.834,
+    "p99": 9.754
+   },
+   "trees_visible": 1377,
+   "triangles": 63735398,
+   "update_ms": {
+    "max": 2.373,
+    "mean": 1.708,
+    "n": 216,
+    "p50": 1.711,
+    "p95": 1.942,
+    "p99": 2.182
+   },
+   "update_stages": {}
+  },
+  {
+   "awake": 0,
+   "builds": 76,
+   "by_pipeline": {
+    "bush_v1": {
+     "triangles": 40338768,
+     "visible": 2395
+    },
+    "flower_v1": {
+     "triangles": 116184486,
+     "visible": 28128
+    },
+    "rock_v1": {
+     "triangles": 1666880,
+     "visible": 290
+    },
+    "tree_v1": {
+     "triangles": 30508950,
+     "visible": 1377
+    }
+   },
+   "culled": 3422,
+   "draw_ms": {
+    "max": 0.337,
+    "mean": 0.186,
+    "n": 216,
+    "p50": 0.182,
+    "p95": 0.228,
+    "p99": 0.268
+   },
+   "drawn": 32191,
+   "draws": 76,
+   "experiment": "high detail, no wind",
+   "fps": 48.4,
+   "fps_at_p95": 40.8,
+   "frame_ms": {
+    "max": 25.865,
+    "mean": 20.651,
+    "n": 216,
+    "p50": 23.508,
+    "p95": 24.484,
+    "p99": 25.371
+   },
+   "gpu_frame_ms": {
+    "max": 40.031,
+    "mean": 38.617,
+    "n": 24,
+    "p50": 38.733,
+    "p95": 40.002,
+    "p99": 40.031
+   },
+   "gpu_wait_ms": {
+    "max": 14.454,
+    "mean": 9.96,
+    "n": 216,
+    "p50": 12.717,
+    "p95": 13.918,
+    "p99": 14.342
+   },
+   "instances": 35613,
+   "prepare_ms": {
+    "max": 10.535,
+    "mean": 8.729,
+    "n": 216,
+    "p50": 8.727,
+    "p95": 9.55,
+    "p99": 9.978
+   },
+   "trees_visible": 1377,
+   "triangles": 188705605,
+   "update_ms": {
+    "max": 2.239,
+    "mean": 1.573,
+    "n": 216,
+    "p50": 1.554,
+    "p95": 1.804,
+    "p99": 1.995
+   },
+   "update_stages": {}
+  }
+ ],
+ "failures": [],
+ "headline": {
+  "fps": 39.2,
+  "frame_ms_p95": 29.369895935058594,
+  "grid": 16,
+  "instances": 32191,
+  "trees_visible": 1377
+ },
+ "kind": "scale",
+ "machine": {
+  "cores": 32,
+  "cpu": "AMD RYZEN AI MAX+ 395 w/ Radeon 8060S",
+  "fingerprint": "deb7535b5a90a4bb",
+  "gpu": "Radeon 8060S Graphics (RADV GFX1151)",
+  "gpu_driver": "vulkan",
+  "memory_gb": 125.0,
+  "os": "Linux 6.18.44+rex+5-amd64"
+ },
+ "pass": true,
+ "plotter": "happy_glen_v1",
+ "settings": {
+  "frames": 240,
+  "gpu": true,
+  "height": 1080,
+  "preset": "glen",
+  "radius": 12,
+  "sizes": [
+   1,
+   2,
+   4,
+   8,
+   12,
+   16
+  ],
+  "width": 1920
+ },
+ "sizes": [
+  {
+   "bodies": 134,
+   "builds": 32,
+   "cameras": {
+    "game": {
+     "awake": 132,
+     "builds": 32,
+     "by_pipeline": {
+      "bush_v1": {
+       "triangles": 172758,
+       "visible": 11
+      },
+      "flower_v1": {
+       "triangles": 472899,
+       "visible": 110
+      },
+      "rock_v1": {
+       "triangles": 5840,
+       "visible": 1
+      },
+      "tree_v1": {
+       "triangles": 120282,
+       "visible": 5
+      }
+     },
+     "culled": 7,
+     "draw_ms": {
+      "max": 0.027,
+      "mean": 0.01,
+      "n": 216,
+      "p50": 0.01,
+      "p95": 0.012,
+      "p99": 0.021
+     },
+     "drawn": 127,
+     "draws": 31,
+     "fps": 3381.4,
+     "fps_at_p95": 2664.4,
+     "frame_ms": {
+      "max": 0.742,
+      "mean": 0.296,
+      "n": 216,
+      "p50": 0.299,
+      "p95": 0.375,
+      "p99": 0.553
+     },
+     "gpu_frame_ms": {
+      "max": 1.053,
+      "mean": 0.582,
+      "n": 24,
+      "p50": 0.561,
+      "p95": 0.618,
+      "p99": 1.053
+     },
+     "gpu_wait_ms": {
+      "max": 0.5,
+      "mean": 0.065,
+      "n": 216,
+      "p50": 0.072,
+      "p95": 0.139,
+      "p99": 0.323
+     },
+     "instances": 134,
+     "prepare_ms": {
+      "max": 0.113,
+      "mean": 0.053,
+      "n": 216,
+      "p50": 0.05,
+      "p95": 0.069,
+      "p99": 0.078
+     },
+     "trees_visible": 5,
+     "triangles": 771779,
+     "update_ms": {
+      "max": 0.193,
+      "mean": 0.152,
+      "n": 216,
+      "p50": 0.15,
+      "p95": 0.173,
+      "p99": 0.177
+     },
+     "update_stages": {
+      "bush_v1.animate": {
+       "calls_per_frame": 11.0,
+       "cpu_ms_per_frame": 0.07239281250000035,
+       "us_per_call": 6.581164772727304
+      },
+      "flower_v1.animate": {
+       "calls_per_frame": 116.0,
+       "cpu_ms_per_frame": 0.34503431250000516,
+       "us_per_call": 2.97443372844832
+      },
+      "tree_v1.animate": {
+       "calls_per_frame": 5.0,
+       "cpu_ms_per_frame": 0.05094548333333316,
+       "us_per_call": 10.189096666666632
+      }
+     }
+    },
+    "overview": {
+     "awake": 132,
+     "builds": 32,
+     "by_pipeline": {
+      "bush_v1": {
+       "triangles": 172758,
+       "visible": 11
+      },
+      "flower_v1": {
+       "triangles": 491419,
+       "visible": 116
+      },
+      "rock_v1": {
+       "triangles": 11680,
+       "visible": 2
+      },
+      "tree_v1": {
+       "triangles": 120282,
+       "visible": 5
+      }
+     },
+     "culled": 0,
+     "draw_ms": {
+      "max": 0.071,
+      "mean": 0.011,
+      "n": 216,
+      "p50": 0.01,
+      "p95": 0.015,
+      "p99": 0.023
+     },
+     "drawn": 134,
+     "draws": 32,
+     "fps": 4222.7,
+     "fps_at_p95": 3640.9,
+     "frame_ms": {
+      "max": 0.641,
+      "mean": 0.237,
+      "n": 216,
+      "p50": 0.231,
+      "p95": 0.275,
+      "p99": 0.337
+     },
+     "gpu_frame_ms": {
+      "max": 0.858,
+      "mean": 0.312,
+      "n": 24,
+      "p50": 0.257,
+      "p95": 0.411,
+      "p99": 0.858
+     },
+     "gpu_wait_ms": {
+      "max": 0.396,
+      "mean": 0.005,
+      "n": 216,
+      "p50": 0.002,
+      "p95": 0.011,
+      "p99": 0.033
+     },
+     "instances": 134,
+     "prepare_ms": {
+      "max": 0.086,
+      "mean": 0.053,
+      "n": 216,
+      "p50": 0.051,
+      "p95": 0.07,
+      "p99": 0.076
+     },
+     "trees_visible": 5,
+     "triangles": 796139,
+     "update_ms": {
+      "max": 0.211,
+      "mean": 0.153,
+      "n": 216,
+      "p50": 0.152,
+      "p95": 0.173,
+      "p99": 0.183
+     },
+     "update_stages": {
+      "bush_v1.animate": {
+       "calls_per_frame": 11.0,
+       "cpu_ms_per_frame": 0.07160426666666661,
+       "us_per_call": 6.509478787878783
+      },
+      "flower_v1.animate": {
+       "calls_per_frame": 116.0,
+       "cpu_ms_per_frame": 0.3559856083333298,
+       "us_per_call": 3.068841451149395
+      },
+      "tree_v1.animate": {
+       "calls_per_frame": 5.0,
+       "cpu_ms_per_frame": 0.05061668333333334,
+       "us_per_call": 10.123336666666669
+      }
+     }
+    }
+   },
+   "grid": 1,
+   "grow_ms": 0.8011689186096191,
+   "hectares": 0.12184977377999999,
+   "memory": {
+    "heap_mb": 76.55,
+    "hwm_mb": 113.2,
+    "private_dirty_mb": 59.27,
+    "rss_anon_mb": 59.27,
+    "rss_mb": 113.2
+   },
+   "placements": 134,
+   "regions": 1,
+   "seconds_to_ready": 0.014502952098846436
+  },
+  {
+   "bodies": 551,
+   "builds": 46,
+   "cameras": {
+    "game": {
+     "awake": 546,
+     "builds": 46,
+     "by_pipeline": {
+      "bush_v1": {
+       "triangles": 354076,
+       "visible": 20
+      },
+      "flower_v1": {
+       "triangles": 970339,
+       "visible": 246
+      },
+      "rock_v1": {
+       "triangles": 5840,
+       "visible": 1
+      },
+      "tree_v1": {
+       "triangles": 270723,
+       "visible": 11
+      }
+     },
+     "culled": 274,
+     "draw_ms": {
+      "max": 0.031,
+      "mean": 0.014,
+      "n": 216,
+      "p50": 0.011,
+      "p95": 0.021,
+      "p99": 0.027
+     },
+     "drawn": 277,
+     "draws": 39,
+     "fps": 2450.7,
+     "fps_at_p95": 2038.7,
+     "frame_ms": {
+      "max": 1.2,
+      "mean": 0.408,
+      "n": 216,
+      "p50": 0.395,
+      "p95": 0.491,
+      "p99": 0.812
+     },
+     "gpu_frame_ms": {
+      "max": 1.279,
+      "mean": 0.741,
+      "n": 24,
+      "p50": 0.747,
+      "p95": 0.778,
+      "p99": 1.279
+     },
+     "gpu_wait_ms": {
+      "max": 0.556,
+      "mean": 0.036,
+      "n": 216,
+      "p50": 0.004,
+      "p95": 0.107,
+      "p99": 0.41
+     },
+     "instances": 551,
+     "prepare_ms": {
+      "max": 0.859,
+      "mean": 0.087,
+      "n": 216,
+      "p50": 0.082,
+      "p95": 0.102,
+      "p99": 0.129
+     },
+     "trees_visible": 11,
+     "triangles": 1600234,
+     "update_ms": {
+      "max": 0.434,
+      "mean": 0.252,
+      "n": 216,
+      "p50": 0.253,
+      "p95": 0.288,
+      "p99": 0.321
+     },
+     "update_stages": {
+      "bush_v1.animate": {
+       "calls_per_frame": 30.0,
+       "cpu_ms_per_frame": 0.2565181499999961,
+       "us_per_call": 8.550604999999871
+      },
+      "flower_v1.animate": {
+       "calls_per_frame": 499.0,
+       "cpu_ms_per_frame": 1.6076291333334367,
+       "us_per_call": 3.2217016700068872
+      },
+      "tree_v1.animate": {
+       "calls_per_frame": 17.0,
+       "cpu_ms_per_frame": 0.1836106208333338,
+       "us_per_call": 10.800624754901987
+      }
+     }
+    },
+    "overview": {
+     "awake": 546,
+     "builds": 46,
+     "by_pipeline": {
+      "bush_v1": {
+       "triangles": 520358,
+       "visible": 29
+      },
+      "flower_v1": {
+       "triangles": 1866445,
+       "visible": 468
+      },
+      "rock_v1": {
+       "triangles": 28720,
+       "visible": 5
+      },
+      "tree_v1": {
+       "triangles": 382731,
+       "visible": 17
+      }
+     },
+     "culled": 31,
+     "draw_ms": {
+      "max": 0.063,
+      "mean": 0.016,
+      "n": 216,
+      "p50": 0.015,
+      "p95": 0.024,
+      "p99": 0.028
+     },
+     "drawn": 520,
+     "draws": 46,
+     "fps": 1865.2,
+     "fps_at_p95": 1525.4,
+     "frame_ms": {
+      "max": 2.361,
+      "mean": 0.536,
+      "n": 216,
+      "p50": 0.545,
+      "p95": 0.656,
+      "p99": 1.171
+     },
+     "gpu_frame_ms": {
+      "max": 1.678,
+      "mean": 1.1,
+      "n": 24,
+      "p50": 1.028,
+      "p95": 1.556,
+      "p99": 1.678
+     },
+     "gpu_wait_ms": {
+      "max": 0.871,
+      "mean": 0.133,
+      "n": 216,
+      "p50": 0.149,
+      "p95": 0.237,
+      "p99": 0.722
+     },
+     "instances": 551,
+     "prepare_ms": {
+      "max": 1.788,
+      "mean": 0.115,
+      "n": 216,
+      "p50": 0.106,
+      "p95": 0.13,
+      "p99": 0.175
+     },
+     "trees_visible": 17,
+     "triangles": 2804836,
+     "update_ms": {
+      "max": 0.315,
+      "mean": 0.253,
+      "n": 216,
+      "p50": 0.253,
+      "p95": 0.29,
+      "p99": 0.31
+     },
+     "update_stages": {
+      "bush_v1.animate": {
+       "calls_per_frame": 30.0,
+       "cpu_ms_per_frame": 0.2629838541666671,
+       "us_per_call": 8.766128472222235
+      },
+      "flower_v1.animate": {
+       "calls_per_frame": 499.0,
+       "cpu_ms_per_frame": 1.68273492500013,
+       "us_per_call": 3.3722142785573745
+      },
+      "tree_v1.animate": {
+       "calls_per_frame": 17.0,
+       "cpu_ms_per_frame": 0.189760754166668,
+       "us_per_call": 11.162397303921647
+      }
+     }
+    }
+   },
+   "grid": 2,
+   "grow_ms": 5.000952959060669,
+   "hectares": 0.48739909511999996,
+   "memory": {
+    "heap_mb": 93.79,
+    "hwm_mb": 133.61,
+    "private_dirty_mb": 79.4,
+    "rss_anon_mb": 79.4,
+    "rss_mb": 133.61
+   },
+   "placements": 551,
+   "regions": 4,
+   "seconds_to_ready": 0.018723042964935304
+  },
+  {
+   "bodies": 2177,
+   "builds": 74,
+   "cameras": {
+    "game": {
+     "awake": 2156,
+     "builds": 74,
+     "by_pipeline": {
+      "bush_v1": {
+       "triangles": 970472,
+       "visible": 59
+      },
+      "flower_v1": {
+       "triangles": 2733446,
+       "visible": 663
+      },
+      "rock_v1": {
+       "triangles": 22592,
+       "visible": 4
+      },
+      "tree_v1": {
+       "triangles": 667872,
+       "visible": 28
+      }
+     },
+     "culled": 1423,
+     "draw_ms": {
+      "max": 0.045,
+      "mean": 0.02,
+      "n": 216,
+      "p50": 0.018,
+      "p95": 0.029,
+      "p99": 0.04
+     },
+     "drawn": 754,
+     "draws": 59,
+     "fps": 1010.7,
+     "fps_at_p95": 826.9,
+     "frame_ms": {
+      "max": 1.87,
+      "mean": 0.989,
+      "n": 216,
+      "p50": 1.014,
+      "p95": 1.209,
+      "p99": 1.721
+     },
+     "gpu_frame_ms": {
+      "max": 2.66,
+      "mean": 2.095,
+      "n": 24,
+      "p50": 2.007,
+      "p95": 2.623,
+      "p99": 2.66
+     },
+     "gpu_wait_ms": {
+      "max": 0.99,
+      "mean": 0.151,
+      "n": 216,
+      "p50": 0.09,
+      "p95": 0.362,
+      "p99": 0.857
+     },
+     "instances": 2177,
+     "prepare_ms": {
+      "max": 0.24,
+      "mean": 0.154,
+      "n": 216,
+      "p50": 0.15,
+      "p95": 0.195,
+      "p99": 0.227
+     },
+     "trees_visible": 28,
+     "triangles": 4394382,
+     "update_ms": {
+      "max": 0.87,
+      "mean": 0.642,
+      "n": 216,
+      "p50": 0.632,
+      "p95": 0.757,
+      "p99": 0.82
+     },
+     "update_stages": {
+      "bush_v1.animate": {
+       "calls_per_frame": 154.0,
+       "cpu_ms_per_frame": 1.3824007125000117,
+       "us_per_call": 8.97662800324683
+      },
+      "flower_v1.animate": {
+       "calls_per_frame": 1916.0,
+       "cpu_ms_per_frame": 5.964909562499544,
+       "us_per_call": 3.11320958376803
+      },
+      "tree_v1.animate": {
+       "calls_per_frame": 86.0,
+       "cpu_ms_per_frame": 0.8510818208333213,
+       "us_per_call": 9.896300242247921
+      }
+     }
+    },
+    "overview": {
+     "awake": 2156,
+     "builds": 74,
+     "by_pipeline": {
+      "bush_v1": {
+       "triangles": 2458712,
+       "visible": 147
+      },
+      "flower_v1": {
+       "triangles": 7168385,
+       "visible": 1776
+      },
+      "rock_v1": {
+       "triangles": 115008,
+       "visible": 20
+      },
+      "tree_v1": {
+       "triangles": 1871059,
+       "visible": 82
+      }
+     },
+     "culled": 152,
+     "draw_ms": {
+      "max": 0.105,
+      "mean": 0.03,
+      "n": 216,
+      "p50": 0.027,
+      "p95": 0.048,
+      "p99": 0.072
+     },
+     "drawn": 2025,
+     "draws": 73,
+     "fps": 496.7,
+     "fps_at_p95": 346.8,
+     "frame_ms": {
+      "max": 4.395,
+      "mean": 2.013,
+      "n": 216,
+      "p50": 2.195,
+      "p95": 2.884,
+      "p99": 3.107
+     },
+     "gpu_frame_ms": {
+      "max": 4.775,
+      "mean": 4.197,
+      "n": 24,
+      "p50": 4.058,
+      "p95": 4.709,
+      "p99": 4.775
+     },
+     "gpu_wait_ms": {
+      "max": 2.031,
+      "mean": 0.902,
+      "n": 216,
+      "p50": 1.093,
+      "p95": 1.738,
+      "p99": 1.925
+     },
+     "instances": 2177,
+     "prepare_ms": {
+      "max": 0.505,
+      "mean": 0.302,
+      "n": 216,
+      "p50": 0.297,
+      "p95": 0.379,
+      "p99": 0.44
+     },
+     "trees_visible": 82,
+     "triangles": 11613164,
+     "update_ms": {
+      "max": 4.018,
+      "mean": 0.747,
+      "n": 216,
+      "p50": 0.681,
+      "p95": 0.967,
+      "p99": 1.03
+     },
+     "update_stages": {
+      "bush_v1.animate": {
+       "calls_per_frame": 154.0,
+       "cpu_ms_per_frame": 1.5474220583333271,
+       "us_per_call": 10.048195183982642
+      },
+      "flower_v1.animate": {
+       "calls_per_frame": 1916.0,
+       "cpu_ms_per_frame": 6.83232467083413,
+       "us_per_call": 3.5659314565940137
+      },
+      "tree_v1.animate": {
+       "calls_per_frame": 86.0,
+       "cpu_ms_per_frame": 0.9748621624999956,
+       "us_per_call": 11.335606540697624
+      }
+     }
+    }
+   },
+   "grid": 4,
+   "grow_ms": 13.992254972457886,
+   "hectares": 1.9495963804799998,
+   "memory": {
+    "heap_mb": 123.48,
+    "hwm_mb": 164.98,
+    "private_dirty_mb": 110.78,
+    "rss_anon_mb": 110.78,
+    "rss_mb": 164.98
+   },
+   "placements": 2177,
+   "regions": 16,
+   "seconds_to_ready": 0.03421643114089966
+  },
+  {
+   "bodies": 8888,
+   "builds": 76,
+   "cameras": {
+    "game": {
+     "awake": 8805,
+     "builds": 76,
+     "by_pipeline": {
+      "bush_v1": {
+       "triangles": 2789676,
+       "visible": 164
+      },
+      "flower_v1": {
+       "triangles": 8104771,
+       "visible": 1974
+      },
+      "rock_v1": {
+       "triangles": 102816,
+       "visible": 18
+      },
+      "tree_v1": {
+       "triangles": 2170436,
+       "visible": 93
+      }
+     },
+     "culled": 6640,
+     "draw_ms": {
+      "max": 0.095,
+      "mean": 0.049,
+      "n": 216,
+      "p50": 0.047,
+      "p95": 0.071,
+      "p99": 0.086
+     },
+     "drawn": 2248,
+     "draws": 74,
+     "fps": 309.6,
+     "fps_at_p95": 271.1,
+     "frame_ms": {
+      "max": 4.494,
+      "mean": 3.23,
+      "n": 216,
+      "p50": 3.184,
+      "p95": 3.689,
+      "p99": 3.916
+     },
+     "gpu_frame_ms": {
+      "max": 6.016,
+      "mean": 3.999,
+      "n": 24,
+      "p50": 4.147,
+      "p95": 5.518,
+      "p99": 6.016
+     },
+     "gpu_wait_ms": {
+      "max": 0.03,
+      "mean": 0.005,
+      "n": 216,
+      "p50": 0.005,
+      "p95": 0.011,
+      "p99": 0.014
+     },
+     "instances": 8888,
+     "prepare_ms": {
+      "max": 1.787,
+      "mean": 0.505,
+      "n": 216,
+      "p50": 0.491,
+      "p95": 0.575,
+      "p99": 0.768
+     },
+     "trees_visible": 93,
+     "triangles": 13166312,
+     "update_ms": {
+      "max": 3.232,
+      "mean": 2.618,
+      "n": 216,
+      "p50": 2.578,
+      "p95": 2.981,
+      "p99": 3.179
+     },
+     "update_stages": {
+      "bush_v1.animate": {
+       "calls_per_frame": 662.0,
+       "cpu_ms_per_frame": 6.676583737500803,
+       "us_per_call": 10.085473923717224
+      },
+      "flower_v1.animate": {
+       "calls_per_frame": 7786.0,
+       "cpu_ms_per_frame": 27.608518566637304,
+       "us_per_call": 3.545918130829348
+      },
+      "tree_v1.animate": {
+       "calls_per_frame": 357.0,
+       "cpu_ms_per_frame": 3.9089967791671993,
+       "us_per_call": 10.949570809992156
+      }
+     }
+    },
+    "overview": {
+     "awake": 8805,
+     "builds": 76,
+     "by_pipeline": {
+      "bush_v1": {
+       "triangles": 10057006,
+       "visible": 601
+      },
+      "flower_v1": {
+       "triangles": 29385033,
+       "visible": 7108
+      },
+      "rock_v1": {
+       "triangles": 441824,
+       "visible": 77
+      },
+      "tree_v1": {
+       "triangles": 7489293,
+       "visible": 327
+      }
+     },
+     "culled": 774,
+     "draw_ms": {
+      "max": 0.15,
+      "mean": 0.095,
+      "n": 216,
+      "p50": 0.09,
+      "p95": 0.125,
+      "p99": 0.14
+     },
+     "drawn": 8114,
+     "draws": 76,
+     "fps": 143.3,
+     "fps_at_p95": 113.5,
+     "frame_ms": {
+      "max": 9.6,
+      "mean": 6.98,
+      "n": 216,
+      "p50": 7.801,
+      "p95": 8.814,
+      "p99": 9.314
+     },
+     "gpu_frame_ms": {
+      "max": 13.744,
+      "mean": 12.999,
+      "n": 24,
+      "p50": 13.049,
+      "p95": 13.483,
+      "p99": 13.744
+     },
+     "gpu_wait_ms": {
+      "max": 4.755,
+      "mean": 2.696,
+      "n": 216,
+      "p50": 3.377,
+      "p95": 4.364,
+      "p99": 4.522
+     },
+     "instances": 8888,
+     "prepare_ms": {
+      "max": 2.263,
+      "mean": 1.441,
+      "n": 216,
+      "p50": 1.34,
+      "p95": 2.048,
+      "p99": 2.251
+     },
+     "trees_visible": 327,
+     "triangles": 47379738,
+     "update_ms": {
+      "max": 3.381,
+      "mean": 2.639,
+      "n": 216,
+      "p50": 2.597,
+      "p95": 3.04,
+      "p99": 3.164
+     },
+     "update_stages": {
+      "bush_v1.animate": {
+       "calls_per_frame": 662.0,
+       "cpu_ms_per_frame": 6.689816054166969,
+       "us_per_call": 10.105462317472762
+      },
+      "flower_v1.animate": {
+       "calls_per_frame": 7786.0,
+       "cpu_ms_per_frame": 27.970706258319222,
+       "us_per_call": 3.592435943786183
+      },
+      "tree_v1.animate": {
+       "calls_per_frame": 357.0,
+       "cpu_ms_per_frame": 3.9323238624999632,
+       "us_per_call": 11.014912780111942
+      }
+     }
+    }
+   },
+   "grid": 8,
+   "grow_ms": 55.89840507507324,
+   "hectares": 7.798385521919999,
+   "memory": {
+    "heap_mb": 160.46,
+    "hwm_mb": 203.48,
+    "private_dirty_mb": 149.27,
+    "rss_anon_mb": 149.27,
+    "rss_mb": 203.48
+   },
+   "placements": 8888,
+   "regions": 64,
+   "seconds_to_ready": 0.1314177188873291
+  },
+  {
+   "bodies": 20094,
+   "builds": 76,
+   "cameras": {
+    "game": {
+     "awake": 19910,
+     "builds": 76,
+     "by_pipeline": {
+      "bush_v1": {
+       "triangles": 5785526,
+       "visible": 343
+      },
+      "flower_v1": {
+       "triangles": 17437922,
+       "visible": 4184
+      },
+      "rock_v1": {
+       "triangles": 223424,
+       "visible": 39
+      },
+      "tree_v1": {
+       "triangles": 4425338,
+       "visible": 194
+      }
+     },
+     "culled": 15336,
+     "draw_ms": {
+      "max": 0.136,
+      "mean": 0.089,
+      "n": 216,
+      "p50": 0.086,
+      "p95": 0.115,
+      "p99": 0.129
+     },
+     "drawn": 4758,
+     "draws": 76,
+     "fps": 123.5,
+     "fps_at_p95": 106.7,
+     "frame_ms": {
+      "max": 10.431,
+      "mean": 8.097,
+      "n": 216,
+      "p50": 7.935,
+      "p95": 9.375,
+      "p99": 10.263
+     },
+     "gpu_frame_ms": {
+      "max": 8.383,
+      "mean": 6.303,
+      "n": 24,
+      "p50": 6.078,
+      "p95": 6.831,
+      "p99": 8.383
+     },
+     "gpu_wait_ms": {
+      "max": 0.03,
+      "mean": 0.01,
+      "n": 216,
+      "p50": 0.011,
+      "p95": 0.02,
+      "p99": 0.024
+     },
+     "instances": 20094,
+     "prepare_ms": {
+      "max": 1.95,
+      "mean": 1.151,
+      "n": 216,
+      "p50": 1.093,
+      "p95": 1.605,
+      "p99": 1.855
+     },
+     "trees_visible": 194,
+     "triangles": 27847878,
+     "update_ms": {
+      "max": 9.018,
+      "mean": 6.738,
+      "n": 216,
+      "p50": 6.619,
+      "p95": 7.666,
+      "p99": 8.308
+     },
+     "update_stages": {
+      "bush_v1.animate": {
+       "calls_per_frame": 1479.0,
+       "cpu_ms_per_frame": 16.842887837499067,
+       "us_per_call": 11.388024230898626
+      },
+      "flower_v1.animate": {
+       "calls_per_frame": 17590.0,
+       "cpu_ms_per_frame": 69.65026023768418,
+       "us_per_call": 3.9596509515454335
+      },
+      "tree_v1.animate": {
+       "calls_per_frame": 841.0,
+       "cpu_ms_per_frame": 10.017816037499328,
+       "us_per_call": 11.911790769915967
+      }
+     }
+    },
+    "overview": {
+     "awake": 19910,
+     "builds": 76,
+     "by_pipeline": {
+      "bush_v1": {
+       "triangles": 22627460,
+       "visible": 1346
+      },
+      "flower_v1": {
+       "triangles": 66123577,
+       "visible": 15965
+      },
+      "rock_v1": {
+       "triangles": 947904,
+       "visible": 165
+      },
+      "tree_v1": {
+       "triangles": 16930841,
+       "visible": 764
+      }
+     },
+     "culled": 1849,
+     "draw_ms": {
+      "max": 0.206,
+      "mean": 0.131,
+      "n": 216,
+      "p50": 0.127,
+      "p95": 0.172,
+      "p99": 0.182
+     },
+     "drawn": 18245,
+     "draws": 76,
+     "fps": 69.6,
+     "fps_at_p95": 58.8,
+     "frame_ms": {
+      "max": 20.703,
+      "mean": 14.366,
+      "n": 216,
+      "p50": 14.808,
+      "p95": 17.005,
+      "p99": 18.425
+     },
+     "gpu_frame_ms": {
+      "max": 26.129,
+      "mean": 20.753,
+      "n": 24,
+      "p50": 20.448,
+      "p95": 25.712,
+      "p99": 26.129
+     },
+     "gpu_wait_ms": {
+      "max": 3.379,
+      "mean": 0.299,
+      "n": 216,
+      "p50": 0.019,
+      "p95": 2.194,
+      "p99": 3.264
+     },
+     "instances": 20094,
+     "prepare_ms": {
+      "max": 5.76,
+      "mean": 4.111,
+      "n": 216,
+      "p50": 4.14,
+      "p95": 5.04,
+      "p99": 5.444
+     },
+     "trees_visible": 764,
+     "triangles": 106659243,
+     "update_ms": {
+      "max": 15.162,
+      "mean": 9.667,
+      "n": 216,
+      "p50": 9.658,
+      "p95": 11.886,
+      "p99": 13.031
+     },
+     "update_stages": {
+      "bush_v1.animate": {
+       "calls_per_frame": 1479.0,
+       "cpu_ms_per_frame": 24.887212041667794,
+       "us_per_call": 16.827053442642185
+      },
+      "flower_v1.animate": {
+       "calls_per_frame": 17590.0,
+       "cpu_ms_per_frame": 102.35027280834471,
+       "us_per_call": 5.818662467785373
+      },
+      "tree_v1.animate": {
+       "calls_per_frame": 841.0,
+       "cpu_ms_per_frame": 14.736715633332734,
+       "us_per_call": 17.52284855330884
+      }
+     }
+    }
+   },
+   "grid": 12,
+   "grow_ms": 119.30931401252747,
+   "hectares": 17.546367424319996,
+   "memory": {
+    "heap_mb": 219.78,
+    "hwm_mb": 263.82,
+    "private_dirty_mb": 209.61,
+    "rss_anon_mb": 209.61,
+    "rss_mb": 263.82
+   },
+   "placements": 20094,
+   "regions": 144,
+   "seconds_to_ready": 0.2787154800891876
+  },
+  {
+   "bodies": 35613,
+   "builds": 76,
+   "cameras": {
+    "game": {
+     "awake": 35297,
+     "builds": 76,
+     "by_pipeline": {
+      "bush_v1": {
+       "triangles": 9445958,
+       "visible": 572
+      },
+      "flower_v1": {
+       "triangles": 29144548,
+       "visible": 7093
+      },
+      "rock_v1": {
+       "triangles": 413296,
+       "visible": 72
+      },
+      "tree_v1": {
+       "triangles": 7592488,
+       "visible": 338
+      }
+     },
+     "culled": 27539,
+     "draw_ms": {
+      "max": 0.142,
+      "mean": 0.098,
+      "n": 216,
+      "p50": 0.097,
+      "p95": 0.123,
+      "p99": 0.14
+     },
+     "drawn": 8074,
+     "draws": 76,
+     "fps": 69.3,
+     "fps_at_p95": 65.1,
+     "frame_ms": {
+      "max": 18.693,
+      "mean": 14.43,
+      "n": 216,
+      "p50": 14.363,
+      "p95": 15.355,
+      "p99": 17.849
+     },
+     "gpu_frame_ms": {
+      "max": 10.305,
+      "mean": 9.498,
+      "n": 24,
+      "p50": 9.588,
+      "p95": 9.997,
+      "p99": 10.305
+     },
+     "gpu_wait_ms": {
+      "max": 0.027,
+      "mean": 0.012,
+      "n": 216,
+      "p50": 0.014,
+      "p95": 0.02,
+      "p99": 0.026
+     },
+     "instances": 35613,
+     "prepare_ms": {
+      "max": 3.193,
+      "mean": 1.818,
+      "n": 216,
+      "p50": 1.776,
+      "p95": 1.99,
+      "p99": 2.802
+     },
+     "trees_visible": 338,
+     "triangles": 46593554,
+     "update_ms": {
+      "max": 16.704,
+      "mean": 12.386,
+      "n": 216,
+      "p50": 12.334,
+      "p95": 13.265,
+      "p99": 14.574
+     },
+     "update_stages": {
+      "bush_v1.animate": {
+       "calls_per_frame": 2640.0,
+       "cpu_ms_per_frame": 27.917239841661225,
+       "us_per_call": 10.574712061235314
+      },
+      "flower_v1.animate": {
+       "calls_per_frame": 31146.0,
+       "cpu_ms_per_frame": 116.58036899487107,
+       "us_per_call": 3.7430286070401033
+      },
+      "tree_v1.animate": {
+       "calls_per_frame": 1511.0,
+       "cpu_ms_per_frame": 16.935188449999973,
+       "us_per_call": 11.207934116479134
+      }
+     }
+    },
+    "overview": {
+     "awake": 35297,
+     "builds": 76,
+     "by_pipeline": {
+      "bush_v1": {
+       "triangles": 40338768,
+       "visible": 2395
+      },
+      "flower_v1": {
+       "triangles": 116184486,
+       "visible": 28128
+      },
+      "rock_v1": {
+       "triangles": 1666880,
+       "visible": 290
+      },
+      "tree_v1": {
+       "triangles": 30508950,
+       "visible": 1377
+      }
+     },
+     "culled": 3422,
+     "draw_ms": {
+      "max": 0.198,
+      "mean": 0.131,
+      "n": 216,
+      "p50": 0.13,
+      "p95": 0.161,
+      "p99": 0.191
+     },
+     "drawn": 32191,
+     "draws": 76,
+     "fps": 39.2,
+     "fps_at_p95": 34.0,
+     "frame_ms": {
+      "max": 30.856,
+      "mean": 25.534,
+      "n": 216,
+      "p50": 27.14,
+      "p95": 29.37,
+      "p99": 30.339
+     },
+     "gpu_frame_ms": {
+      "max": 33.111,
+      "mean": 26.622,
+      "n": 24,
+      "p50": 26.226,
+      "p95": 31.886,
+      "p99": 33.111
+     },
+     "gpu_wait_ms": {
+      "max": 5.919,
+      "mean": 0.195,
+      "n": 216,
+      "p50": 0.019,
+      "p95": 1.581,
+      "p99": 4.2
+     },
+     "instances": 35613,
+     "prepare_ms": {
+      "max": 9.115,
+      "mean": 7.218,
+      "n": 216,
+      "p50": 7.988,
+      "p95": 8.645,
+      "p99": 9.056
+     },
+     "trees_visible": 1377,
+     "triangles": 188705605,
+     "update_ms": {
+      "max": 21.58,
+      "mean": 17.83,
+      "n": 216,
+      "p50": 19.032,
+      "p95": 20.605,
+      "p99": 21.22
+     },
+     "update_stages": {
+      "bush_v1.animate": {
+       "calls_per_frame": 2640.0,
+       "cpu_ms_per_frame": 45.391429074998435,
+       "us_per_call": 17.193723134469103
+      },
+      "flower_v1.animate": {
+       "calls_per_frame": 31146.0,
+       "cpu_ms_per_frame": 185.68158960867652,
+       "us_per_call": 5.9616512428137325
+      },
+      "tree_v1.animate": {
+       "calls_per_frame": 1511.0,
+       "cpu_ms_per_frame": 27.21952494583554,
+       "us_per_call": 18.014245496913
+      }
+     }
+    }
+   },
+   "grid": 16,
+   "grow_ms": 227.78433275222778,
+   "hectares": 31.193542087679997,
+   "memory": {
+    "heap_mb": 307.26,
+    "hwm_mb": 351.28,
+    "private_dirty_mb": 297.07,
+    "rss_anon_mb": 297.07,
+    "rss_mb": 351.28
+   },
+   "placements": 35613,
+   "regions": 256,
+   "seconds_to_ready": 0.5290871138572693
+  }
+ ],
+ "started": "2026-10-12T23:51:28Z",
+ "summary": [
+  " 1x1  overview         4222.7 fps (p95 frame  0.27 ms)  update  0.15  prepare  0.05  draw 0.01  gpu  0.31 ms     134 drawn (5 trees)    0.8 M triangles  32 draws",
+  " 1x1  game             3381.4 fps (p95 frame  0.38 ms)  update  0.15  prepare  0.05  draw 0.01  gpu  0.58 ms     127 drawn (5 trees)    0.8 M triangles  31 draws",
+  " 2x2  overview         1865.2 fps (p95 frame  0.66 ms)  update  0.25  prepare  0.12  draw 0.02  gpu  1.10 ms     520 drawn (17 trees)    2.8 M triangles  46 draws",
+  " 2x2  game             2450.7 fps (p95 frame  0.49 ms)  update  0.25  prepare  0.09  draw 0.01  gpu  0.74 ms     277 drawn (11 trees)    1.6 M triangles  39 draws",
+  " 4x4  overview          496.7 fps (p95 frame  2.88 ms)  update  0.75  prepare  0.30  draw 0.03  gpu  4.20 ms    2025 drawn (82 trees)   11.6 M triangles  73 draws",
+  " 4x4  game             1010.7 fps (p95 frame  1.21 ms)  update  0.64  prepare  0.15  draw 0.02  gpu  2.09 ms     754 drawn (28 trees)    4.4 M triangles  59 draws",
+  " 8x8  overview          143.3 fps (p95 frame  8.81 ms)  update  2.64  prepare  1.44  draw 0.09  gpu 13.00 ms    8114 drawn (327 trees)   47.4 M triangles  76 draws",
+  " 8x8  game              309.6 fps (p95 frame  3.69 ms)  update  2.62  prepare  0.51  draw 0.05  gpu  4.00 ms    2248 drawn (93 trees)   13.2 M triangles  74 draws",
+  "12x12 overview           69.6 fps (p95 frame 17.00 ms)  update  9.67  prepare  4.11  draw 0.13  gpu 20.75 ms   18245 drawn (764 trees)  106.7 M triangles  76 draws",
+  "12x12 game              123.5 fps (p95 frame  9.37 ms)  update  6.74  prepare  1.15  draw 0.09  gpu  6.30 ms    4758 drawn (194 trees)   27.8 M triangles  76 draws",
+  "16x16 overview           39.2 fps (p95 frame 29.37 ms)  update 17.83  prepare  7.22  draw 0.13  gpu 26.62 ms   32191 drawn (1377 trees)  188.7 M triangles  76 draws",
+  "16x16 game               69.3 fps (p95 frame 15.36 ms)  update 12.39  prepare  1.82  draw 0.10  gpu  9.50 ms    8074 drawn (338 trees)   46.6 M triangles  76 draws",
+  "16x16 as placed          38.9 fps (p95 frame 29.27 ms)  update 17.98  prepare  7.35  draw 0.13  gpu 26.20 ms   32191 drawn (1377 trees)  188.7 M triangles  76 draws",
+  "16x16 no drawing         67.2 fps (p95 frame 16.03 ms)  update 11.92  prepare  2.96  draw 0.12  gpu  0.00 ms   32191 drawn (1377 trees)  188.7 M triangles  76 draws",
+  "16x16 medium detail      49.3 fps (p95 frame 23.26 ms)  update 14.35  prepare  5.69  draw 0.13  gpu 16.05 ms   32191 drawn (1377 trees)  118.0 M triangles  76 draws",
+  "16x16 low detail         54.3 fps (p95 frame 20.52 ms)  update 13.18  prepare  4.97  draw 0.13  gpu 11.67 ms   32192 drawn (1377 trees)   63.7 M triangles  76 draws",
+  "16x16 low detail, no wind   98.0 fps (p95 frame 11.07 ms)  update  1.71  prepare  8.13  draw 0.17  gpu  9.27 ms   32192 drawn (1377 trees)   63.7 M triangles  76 draws",
+  "16x16 high detail, no wind   48.4 fps (p95 frame 24.48 ms)  update  1.57  prepare  8.73  draw 0.19  gpu 38.62 ms   32191 drawn (1377 trees)  188.7 M triangles  76 draws"
+ ]
+}

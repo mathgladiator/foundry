@@ -575,6 +575,8 @@ void View::compose(int version) {
     }
   }
   // Every occupant: its kind's pipeline at its values, turned and placed.
+  const auto t_pipelines = std::chrono::steady_clock::now();
+  double run_ms = 0;
   uint32_t failed = 0;
   std::string first_error;
   for (const auto &o : occupants) {
@@ -584,7 +586,9 @@ void View::compose(int version) {
     if (def == defs.end()) continue;
     nlohmann::json v = values_for(p, k, o.placement["seed"].get<uint32_t>(), o.placement.value("regrown", false), shared);
     v.update(o.extra);
+    const auto r0 = std::chrono::steady_clock::now();
     auto res = runner_.run(def->second, v, false, false, false);
+    run_ms += std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - r0).count();
     if (!res.ok || !res.frame.mesh) {
       ++failed;
       if (first_error.empty()) first_error = k.label() + ": " + res.error;
@@ -604,6 +608,10 @@ void View::compose(int version) {
                              {at.x + fr * std::cos(a1), at.y + 0.03f, at.z + fr * std::sin(a1)}, 1.0f, 0.65f, 0.2f, 0.6f});
       }
   }
+  const double total_ms = std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - t_pipelines).count();
+  core::log().add("plot", p.name + ": composed " + std::to_string(occupants.size()) + " occupants, " +
+                              std::to_string(mesh->indices.size() / 3) + " triangles, in " + std::to_string(static_cast<int>(total_ms)) +
+                              " ms (" + std::to_string(static_cast<int>(run_ms)) + " ms running pipelines in WebAssembly)");
   std::lock_guard<std::mutex> lock(mutex_);
   picture_.mesh = mesh;
   picture_.lines = std::move(lines);

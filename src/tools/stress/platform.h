@@ -197,6 +197,13 @@ struct PhaseResult {
   std::string summary;  // one line
 };
 
+// Plotters (region.cpp, scale.cpp): a ground preset as the foundry's plotter view makes it, and the
+// scale plan, which measures a plotter's scenes at several sizes (design/quality.perf.md, "Scale").
+std::vector<foundry_hex_region> plot_ground(const std::string &preset, int radius);
+std::string stamp_now(bool iso);
+int scale_main(int argc, char **argv, foundry_plotter plotter, const char *name, const stress_pipeline *const *pipelines,
+               uint32_t count);
+
 // The clocks diversity hashes poses at: still, swaying, and mid-event.
 std::vector<std::vector<float>> default_clocks(const Ctx &ctx);
 

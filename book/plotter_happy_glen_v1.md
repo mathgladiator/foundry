@@ -100,6 +100,20 @@ Reports: `demo/perf/report-plotter_happy_glen_v1-20261012T195521Z.json` (16) and
 
 Run it with `build/linux-release/stress/stress_plotter_happy_glen_v1 [--regions N] [--radius R] [--blast m]`.
 
+### Scale
+
+The scale plan (`plotter_perf`, or `--plan scale`; `design/quality.perf.md`, "Scale") grows grids of glens and measures the frame rate at 1920 x 1080 (`demo/perf/report-plotter_happy_glen_v1-scale-20261012T224722Z.json`):
+
+| Grid | Hectares | Things | Overview: fps (trees seen, triangles) | Game camera: fps (trees seen) |
+|---|---|---|---|---|
+| 1 x 1 | 0.12 | 134 | 4,972 (5, 0.8 M) | 3,741 (5) |
+| 4 x 4 | 1.95 | 2,177 | 538 (82, 11.6 M) | 1,071 (28) |
+| 8 x 8 | 7.80 | 8,888 | 147 (327, 47.4 M) | 319 (93) |
+| 12 x 12 | 17.6 | 20,094 | 69 (764, 106.7 M) | 130 (194) |
+| 16 x 16 | 31.2 | 35,613 | 39.8 (1,377, 188.7 M) | 73.6 (338) |
+
+With 1,377 trees in view (32,191 things drawn), the glen runs at 39.8 fps. Flowers are most of the cost: 62% of the triangles and 72% of the animation time. `CURRENT.FPS.md` breaks it down and proposes what to change.
+
 ## QA
 
 - **The plotter view.** Select `plotters / happy / glen / v1` in the workspace. The inspector picks a ground preset (glen, hex, ring, strip, union, pond, path, slope, ragged, single) and radius, edits the regions, sets the world seed and the shared season and wind, and grows, regrows, clears, fells a share of the canopy (leaving stumps), and clears stumps. The metrics below it show counts per layer, per hectare, the nearest neighbours against the spacing, footprint overlaps, and distinct builds. "Show collision and footprints" draws every thing's collision and the footprint ring it reserves.

@@ -257,6 +257,11 @@ struct UiState {
     int shape = 1, q = 0, r = 0, rad = 2, priority = 3, ground = 1;
     bool available = true;
     float keep = 0, height = 0;
+    // The newest scale report (design/quality.perf.md, "Scale"), reread every few seconds.
+    nlohmann::json scale;
+    std::string scale_path, scale_for;
+    double scale_read_at = -100;
+    char scale_sizes[64] = "1,2,4,8,12,16";
   } plot_ui;
 };
 
@@ -1158,6 +1163,87 @@ void load_reference(Services &sv, UiState &st) {
 }
 
 // A plotter: its region's ground, seed, shared values, growth, clearing, and metrics (design/plotter.md).
+// The plotter's performance in the native runtime: the newest scale report, summarized, and a button
+// that runs the scale plan (plotter_perf does the same through MCP).
+void draw_plotter_performance(Services &sv, UiState::PlotUi &u, const std::string &name) {
+  if (!ImGui::CollapsingHeader("Performance (native runtime)", ImGuiTreeNodeFlags_DefaultOpen)) return;
+  const int job = perf::latest_plotter_scale(name);
+  const nlohmann::json status = job ? perf::job_status(job) : nlohmann::json();
+  const bool running = job && !status.value("done", true);
+  if (u.scale_for != name || ImGui::GetTime() - u.scale_read_at > (running ? 1.0 : 5.0)) {
+    u.scale = perf::latest_scale_report(sv.paths, name, &u.scale_path);
+    u.scale_for = name;
+    u.scale_read_at = ImGui::GetTime();
+  }
+  ImGui::SetNextItemWidth(160);
+  ImGui::InputText("grid sides", u.scale_sizes, sizeof u.scale_sizes);
+  ImGui::SameLine();
+  ImGui::BeginDisabled(running);
+  if (ImGui::Button(running ? "Running..." : "Run the scale plan")) perf::start_plotter_scale(sv.paths, name, u.scale_sizes, 240, true);
+  ImGui::EndDisabled();
+  if (running) {
+    const auto &out = status["output"];
+    for (size_t i = out.size() > 3 ? out.size() - 3 : 0; i < out.size(); ++i) ImGui::TextDisabled("%s", out[i].get<std::string>().c_str());
+  } else if (job && status.value("exit", 0) != 0) {
+    ImGui::TextColored({0.95f, 0.45f, 0.4f, 1}, "the last run failed: %s", status.value("error", std::string("?")).c_str());
+  }
+  if (u.scale.is_null()) {
+    ImGui::TextDisabled("No scale report yet: run the scale plan.");
+    return;
+  }
+  ImGui::TextDisabled("%s", u.scale_path.c_str());
+  ImGui::TextDisabled("%s, %s", u.scale.value("started", std::string()).c_str(),
+                      u.scale.value("machine", nlohmann::json::object()).value("gpu", std::string()).c_str());
+  const nlohmann::json h = u.scale.value("headline", nlohmann::json());
+  if (h.is_object())
+    ImGui::Text("%d trees visible (%d things drawn, %dx%d regions): %.1f fps, p95 frame %.1f ms", h.value("trees_visible", 0),
+                h.value("instances", 0), h.value("grid", 0), h.value("grid", 0), h.value("fps", 0.0), h.value("frame_ms_p95", 0.0));
+  auto row = [](const std::string &label, const nlohmann::json &c) {
+    ImGui::TableNextRow();
+    ImGui::TableNextColumn();
+    ImGui::TextUnformatted(label.c_str());
+    ImGui::TableNextColumn();
+    ImGui::Text("%.0f", c.value("fps", 0.0));
+    ImGui::TableNextColumn();
+    ImGui::Text("%.1f", c["frame_ms"].value("p95", 0.0));
+    ImGui::TableNextColumn();
+    ImGui::Text("%.1f", c["update_ms"].value("mean", 0.0));
+    ImGui::TableNextColumn();
+    ImGui::Text("%.1f", c["prepare_ms"].value("mean", 0.0));
+    ImGui::TableNextColumn();
+    ImGui::Text("%.1f", c["gpu_frame_ms"].value("mean", 0.0));
+    ImGui::TableNextColumn();
+    ImGui::Text("%d", c.value("drawn", 0));
+    ImGui::TableNextColumn();
+    ImGui::Text("%d", c.value("trees_visible", 0));
+    ImGui::TableNextColumn();
+    ImGui::Text("%.1f M", c.value("triangles", 0.0) / 1e6);
+  };
+  auto header = [](const char *id) {
+    if (!ImGui::BeginTable(id, 9, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg | ImGuiTableFlags_SizingFixedFit)) return false;
+    for (const char *c : {"scene", "fps", "p95 ms", "update", "prepare", "GPU ms", "drawn", "trees", "triangles"})
+      ImGui::TableSetupColumn(c);
+    ImGui::TableHeadersRow();
+    return true;
+  };
+  if (header("scale")) {
+    for (const auto &s : u.scale.value("sizes", nlohmann::json::array())) {
+      const int g = s.value("grid", 0);
+      for (auto it = s["cameras"].begin(); it != s["cameras"].end(); ++it)
+        row(std::to_string(g) + "x" + std::to_string(g) + " " + it.key(), it.value());
+    }
+    ImGui::EndTable();
+  }
+  const nlohmann::json ex = u.scale.value("experiments", nlohmann::json::array());
+  if (!ex.empty()) {
+    ImGui::TextDisabled("The largest scene, from the overview, changed one way at a time:");
+    if (header("experiments")) {
+      for (const auto &e : ex) row(e.value("experiment", std::string()), e);
+      ImGui::EndTable();
+    }
+  }
+}
+
 void draw_plotter(Services &sv, UiState &st, const workspace::Item &item) {
   auto &u = st.plot_ui;
   plot::View &view = *sv.plot;
@@ -1190,6 +1276,7 @@ void draw_plotter(Services &sv, UiState &st, const workspace::Item &item) {
       ImGui::EndTable();
     }
   }
+  draw_plotter_performance(sv, u, item.name);
   ImGui::SeparatorText("Ground");
   const auto &presets = plot::View::presets();
   ImGui::SetNextItemWidth(140);

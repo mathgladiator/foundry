@@ -150,6 +150,12 @@ A plotter gets a region run instead of the phases above: `stress_plotter_<name>`
 
 Reports go to `perf/report-plotter_<name>-<timestamp>.json`.
 
+### Scale
+
+The same binary's scale plan (`--plan scale`, `src/tools/stress/scale.cpp`; `plotter_perf` through MCP, or **Run the scale plan** in the plotter's inspector) asks what frame rate a plotter's world runs at as it grows. Each size is an N x N grid of regions (`--sizes`, default 1, 2, 4, 8, 12, 16), grown to full and spawned with collision bodies, then simulated and drawn for `--frames` frames (240) from two cameras: the overview, which sees the whole scene, and a game camera 12 m up at the scene's centre. Every frame updates, prepares, and draws at 1920 x 1080 with two frames in flight; one frame in ten waits for its own fence to time the GPU alone. It records frames per second (from the mean frame), the p95 frame, the update, prepare, and draw times, the GPU frame, what was drawn (instances, trees, triangles, draws), triangles and visible instances per pipeline (counted by the tool against the same frustum), and each update stage's CPU time per frame. The largest scene is then measured again changed one way at a time: no drawing (CPU only), every instance at medium and at low detail, and no wind (everything asleep), at low and at high detail. The headline is the first overview with at least 1,000 trees visible. The plotter's inspector summarizes the newest report; `CURRENT.FPS.md` reads the first one.
+
+Reports go to `perf/report-plotter_<name>-scale-<timestamp>.json`.
+
 ## The QA video
 
 `--video OUT.mp4` turns the stress binary into a QA camera: a bulk way to look at a pipeline's whole space. The foundry's Video tab and `pipeline_video` drive it. One video exports at a time, since exports share the GPU and ffmpeg. Each pipeline's Video tab shows its own latest export (progress, then the file or the error), and the others show that they are blocked on the running one, with its progress; `pipeline_video` refuses with the same reason. Pins are kept per pipeline.

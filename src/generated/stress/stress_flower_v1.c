@@ -53,9 +53,12 @@ static foundry_status trigger(foundry_runtime *rt, foundry_instance i, uint32_t 
 
 static const char *const systems[] = {"flower_grow_v1", "flower_animate_v1"};
 
-static const stress_pipeline pipeline = {"flower_v1", "draft", params, 8, systems, 2, spawn, set, trigger};
+/* Linked by the plotters' region runs too, which build this file with STRESS_NO_MAIN. */
+const stress_pipeline stress_binding_flower_v1 = {"flower_v1", "draft", params, 8, systems, 2, spawn, set, trigger};
 
+#ifndef STRESS_NO_MAIN
 int main(int argc, char **argv) {
-  const stress_pipeline *pipelines[] = {&pipeline};
+  const stress_pipeline *pipelines[] = {&stress_binding_flower_v1};
   return stress_main(argc, argv, pipelines, 1);
 }
+#endif

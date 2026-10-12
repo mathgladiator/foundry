@@ -25,8 +25,6 @@ namespace fs = std::filesystem;
 
 namespace stress {
 
-namespace {
-
 std::string stamp_now(bool iso) {
   std::time_t t = std::time(nullptr);
   std::tm tm;
@@ -37,7 +35,7 @@ std::string stamp_now(bool iso) {
 }
 
 // The foundry's "glen" ground (src/host/plot/view.cpp) at radius R, or a plain hex.
-std::vector<foundry_hex_region> ground(const std::string &preset, int R) {
+std::vector<foundry_hex_region> plot_ground(const std::string &preset, int R) {
   std::vector<foundry_hex_region> g;
   foundry_hex_region soil = {};
   soil.shape = FOUNDRY_HEX_HEX;
@@ -83,6 +81,8 @@ std::vector<foundry_hex_region> ground(const std::string &preset, int R) {
   return g;
 }
 
+namespace {
+
 struct Live {
   foundry_region region = FOUNDRY_NO_REGION;
   float offset[2] = {0, 0};
@@ -96,8 +96,12 @@ std::tuple<int32_t, int32_t, uint32_t, uint32_t> key(const foundry_slot &s) { re
 
 }  // namespace stress
 
-extern "C" int stress_region_main(int argc, char **argv, foundry_plotter plotter, const char *name) {
+extern "C" int stress_region_main(int argc, char **argv, foundry_plotter plotter, const char *name,
+                                  const stress_pipeline *const *pipelines, uint32_t count) {
   using namespace stress;
+  for (int i = 1; i + 1 < argc; ++i)
+    if (std::string(argv[i]) == "--plan" && std::string(argv[i + 1]) == "scale")
+      return scale_main(argc, argv, plotter, name, pipelines, count);
   std::string workspace = FOUNDRY_WORKSPACE, gpu_mode = "auto", preset = "glen";
   bool write_report = true, window = false;
   int side = 4, R = 12, batch = 64, cycles = 3;
@@ -116,8 +120,9 @@ extern "C" int stress_region_main(int argc, char **argv, foundry_plotter plotter
     else if (a == "--blast") blast = std::atof(next().c_str());
     else if (a == "--steady") steady_s = std::atof(next().c_str());
     else if (a == "--preset") preset = next();
+    else if (a == "--plan") next();  // region (this run); scale is handled above
     else {
-      std::cerr << "usage: stress_plotter_<name> [--regions N (an N x N grid)] [--radius cells] [--preset glen|hex]\n"
+      std::cerr << "usage: stress_plotter_<name> [--plan region|scale] [--regions N (an N x N grid)] [--radius cells] [--preset glen|hex]\n"
                    "                            [--batch placements per frame] [--cycles N] [--blast metres]\n"
                    "                            [--steady seconds] [--gpu auto|none|required] [--window] [--no-report]\n";
       return 2;
@@ -151,7 +156,7 @@ extern "C" int stress_region_main(int argc, char **argv, foundry_plotter plotter
   auto fail = [&](const std::string &check, const std::string &detail) {
     failures.push_back({{"phase", "region"}, {"check", check}, {"detail", detail}});
   };
-  const auto g = ground(preset, R);
+  const auto g = plot_ground(preset, R);
   // Regions side by side: each region's space moved so their hexes don't overlap.
   const float pitch = (2.0f * static_cast<float>(R) + 2.0f) * 1.7320508f;
   std::vector<Live> regions(static_cast<size_t>(side * side));

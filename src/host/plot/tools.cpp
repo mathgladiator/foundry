@@ -3,6 +3,7 @@
 #include <chrono>
 #include <thread>
 
+#include "core/log.h"
 #include "core/util.h"
 #include "viewport/image.h"
 
@@ -164,7 +165,12 @@ void register_tools(mcp::Registry &registry, View &view) {
                   cam.zoom = args.value("zoom", 1.0f);
                   cam.distance = args.value("distance", 0.0f);
                   const int size = std::clamp(args.value("size", 900), 128, 2048);
+                  const auto r0 = std::chrono::steady_clock::now();
                   viewport::Image img = assets::render_view(c, cam, overlays(args.value("collision", false)), false, size, size);
+                  core::log().add("plot", "rendered " + std::to_string(c.mesh ? c.mesh->indices.size() / 3 : 0) + " triangles at " +
+                                              std::to_string(size) + " px on the CPU in " +
+                                              std::to_string(static_cast<int>(std::chrono::duration<double, std::milli>(
+                                                  std::chrono::steady_clock::now() - r0).count())) + " ms");
                   auto png = viewport::encode_png(img);
                   Picture pic = view.picture();
                   mcp::Result r;

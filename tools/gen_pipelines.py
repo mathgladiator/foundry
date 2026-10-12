@@ -690,10 +690,12 @@ class Pipeline:
         o.append("  }\n  return FOUNDRY_STATUS_BAD_PARAMETER;\n}\n\n")
         systems = ", ".join(c_string(s["system"]) for s in self.stages)
         o.append(f"static const char *const systems[] = {{{systems}}};\n\n")
-        o.append(f"static const stress_pipeline pipeline = {{{c_string(self.name)}, {c_string(self.j.get('state', 'draft'))}, "
+        o.append(f"/* Linked by the plotters' region runs too, which build this file with STRESS_NO_MAIN. */\n"
+                 f"const stress_pipeline stress_binding_{self.name} = {{{c_string(self.name)}, {c_string(self.j.get('state', 'draft'))}, "
                  f"params, {len(self.params)}, systems, {len(self.stages)}, spawn, set, trigger}};\n\n")
-        o.append("int main(int argc, char **argv) {\n  const stress_pipeline *pipelines[] = {&pipeline};\n"
-                 "  return stress_main(argc, argv, pipelines, 1);\n}\n")
+        o.append("#ifndef STRESS_NO_MAIN\nint main(int argc, char **argv) {\n"
+                 f"  const stress_pipeline *pipelines[] = {{&stress_binding_{self.name}}};\n"
+                 "  return stress_main(argc, argv, pipelines, 1);\n}\n#endif\n")
         return "".join(o)
 
 
@@ -874,10 +876,16 @@ def main():
         files[os.path.join(STRESS, f"stress_{p.name}.c")] = p.stress()
     # A region run per plotter (design/quality.perf.md, "Regions").
     for p in plotters:
+        used = sorted({k["pipe"].name for k in p.kinds})
+        externs = "".join(f"extern const stress_pipeline stress_binding_{u};\n" for u in used)
+        refs = ", ".join(f"&stress_binding_{u}" for u in used)
         files[os.path.join(STRESS, f"stress_plotter_{p.name}.c")] = (
-            banner(p.src, True) + f"/* The region run for {p.name}: regions of it grown, cleared, regrown, and drained. */\n"
-            '#include "runtime.h"\n#include "stress.h"\n\n'
-            f'int main(int argc, char **argv) {{ return stress_region_main(argc, argv, FOUNDRY_PLOTTER_{p.C}, {c_string(p.name)}); }}\n')
+            banner(p.src, True) + f"/* The region run for {p.name}: regions of it grown, cleared, regrown, and drained, and\n"
+            " * its scale plan (performance at several sizes). The bindings set its kinds' parameters. */\n"
+            '#include "runtime.h"\n#include "stress.h"\n\n' + externs + "\n"
+            "int main(int argc, char **argv) {\n"
+            f"  const stress_pipeline *pipelines[] = {{{refs}}};\n"
+            f"  return stress_region_main(argc, argv, FOUNDRY_PLOTTER_{p.C}, {c_string(p.name)}, pipelines, {len(used)});\n}}\n")
     ph, pc = plotters_files(plotters)
     files[os.path.join(LIBRARY, "plotters.h")] = ph
     files[os.path.join(LIBRARY, "plotters.cpp")] = pc

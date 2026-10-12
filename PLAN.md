@@ -25,7 +25,7 @@ This file is how the project is managed. It holds one current milestone, with TO
 ### Jolt, stumps, and the first plotter (`design/plotter.md`)
 
 **Integrate Jolt**
-- [ ] **Jolt in the build.** Jolt Physics pinned in `.deps/` by `tools/bootstrap.sh`, a static library linked beside the runtime and into the host. `runtime.h` names no Jolt type: the game's world arrives as a tagged pointer (tag and Jolt version, checked), with a map from purpose (solid, soft, query-only, sensor) to Jolt layer and mask.
+- [ ] **Jolt in the build.** Jolt Physics pinned by tag and fetched by CMake (FetchContent, like the other source libraries), a static library linked beside the runtime and into the host. `runtime.h` names no Jolt type: the game's world arrives as a tagged pointer (tag and Jolt version, checked), with a map from purpose (solid, soft, query-only, sensor) to Jolt layer and mask.
 - [ ] **Collision descriptions.** A channel of Jolt shapes that each build outputs, static for the build: a tree's trunk, a bush's soft body, a rock's convex hull, a flower's query-only shape. Native matches WebAssembly.
 - [ ] **Bodies by handle.** The runtime adds each instance's body to the world when its build is ready, swaps it on a rebuild, and removes it on destroy. The stress tool's soak checks that bodies balance.
 - [ ] **Seen in the foundry.** A toy Jolt world in the host; collision drawn over the model in the View tab; an automated check that collision stays inside the conformance.
@@ -45,12 +45,11 @@ This file is how the project is managed. It holds one current milestone, with TO
 
   
 **Questions from the agent** (Jolt, stumps, and the first plotter; everything above is built and in draft, nothing is committed)
-1. **Jolt comes through CMake's FetchContent** (v5.6.0, pinned by tag in `cmake/deps.cmake`, like the other source libraries), not `tools/bootstrap.sh` into `.deps/` as the TODO says. Is that fine, or should it move to `.deps/`?
-2. **New channels to approve**, each a draft with its reason in its manifest: `physics_v1_shape` and `physics_v1_body` (collision descriptions), and 13 for the plotter: `plot_v1_region`, `regions`, `config`, `layer`, `kind`, `clearance`, `preference`, `occupant`, `exclusion`, `request`, `placement`, `cell`, and `result`. The model channels of all four pipelines gained `collision`, and the tree's spec, rig, body, and model gained `stump`, `trunk_diameter`, and the footprint.
-3. **Painted cells.** The plotter view shapes the ground with presets (glen, hex, ring, strip, union, pond, path, slope, ragged, single) and an editable list of prioritized hex regions, but you can't paint single cells with the mouse yet. Is the region list enough for this milestone?
-4. **Hedges are sparse.** A shrub's footprint comes from its soft body at its oldest (radius half its reach), so an old elderberry reserves 7 cells and hedges stand about 5 m apart. Should shrubs get a tighter soft body (or a footprint smaller than their collision) so they can form a hedgerow?
-5. **The bush soak's drift is still open.** The soak's heap growth today was Jolt keeping removed bodies' broad-phase nodes until the world updates; the stress tool now settles its toy world before measuring, and the drain check now judges only growth. Tree, rock, and flower pass. The bush still fails one way: the heap is flat, but RSS sits 11 to 14 MB above the first drain. A tree soak with the GPU off passes (drains within 5.6 MB), so this looks like the GPU driver's memory. Should the drain check measure RSS without GPU mappings, or should I keep digging?
-6. **The QA video with `stump`** is 4,416 clips for every variation. I didn't export it; pinning `stump` to true gives a stump-only video. Do you want a full export before you approve?
+1. **New channels to approve**, each a draft with its reason in its manifest: `physics_v1_shape` and `physics_v1_body` (collision descriptions), and 13 for the plotter: `plot_v1_region`, `regions`, `config`, `layer`, `kind`, `clearance`, `preference`, `occupant`, `exclusion`, `request`, `placement`, `cell`, and `result`. The model channels of all four pipelines gained `collision`, and the tree's spec, rig, body, and model gained `stump`, `trunk_diameter`, and the footprint.
+2. **Painted cells.** The plotter view shapes the ground with presets (glen, hex, ring, strip, union, pond, path, slope, ragged, single) and an editable list of prioritized hex regions, but you can't paint single cells with the mouse yet. Is the region list enough for this milestone?
+3. **Hedges are sparse.** A shrub's footprint comes from its soft body at its oldest (radius half its reach), so an old elderberry reserves 7 cells and hedges stand about 5 m apart. Should shrubs get a tighter soft body (or a footprint smaller than their collision) so they can form a hedgerow?
+4. **The bush soak's drift is still open.** The soak's heap growth today was Jolt keeping removed bodies' broad-phase nodes until the world updates; the stress tool now settles its toy world before measuring, and the drain check now judges only growth. Tree, rock, and flower pass. The bush still fails one way: the heap is flat, but RSS sits 11 to 14 MB above the first drain. A tree soak with the GPU off passes (drains within 5.6 MB), so this looks like the GPU driver's memory. Should the drain check measure RSS without GPU mappings, or should I keep digging?
+5. **The QA video with `stump`** is 4,416 clips for every variation. I didn't export it; pinning `stump` to true gives a stump-only video. Do you want a full export before you approve?
 
 
 ## Not in this milestone
@@ -58,6 +57,8 @@ This file is how the project is managed. It holds one current milestone, with TO
 To keep the milestone focused, these wait even though they are designed: trees and other nature, crafted things, buildings, humanoids, creatures, magic, auras, sound, shadows, the sleep and wake engine beyond what static meshes need, and recording and replay.
 
 # Future milestones
+
+- **The runtime owns cost** (`CURRENT.FPS.md`): a 1,000-tree glen runs at 39.8 fps today, CPU-bound on animating everything every frame and GPU-heavy from flowers at 4,131 triangles each. Proposed thesis change: the game sets a budget, and the runtime picks each instance's detail and animation rate from its size on screen, with a far tier (impostors, flowers as ground colour), poses kept on the GPU, and a standing 60 fps gate in the scale plan. Needs the human's approval as a design change.
 
 - **The rest of the plotter design** (`design/plotter.md`), after the first steps above: active entities (players and creatures, by handle, with collision masks) and sensors with contacts and distances; full instance results (event flags, sounds playing, sleep, ready) for every pipeline; footprints and collision descriptions on bushes, rocks, and flowers and on the conformance files; regrow kinds (succession); and more plotters, one per biome (a cypress swamp first, since its species exist).
 
