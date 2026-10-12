@@ -6,6 +6,8 @@
 #include <map>
 #include <set>
 
+#include "json/registry.h"
+
 namespace pipeline {
 
 namespace {
@@ -113,6 +115,32 @@ Flow analyze(const Definition &def) {
   for (auto &p : f.params)
     for (const auto &s : f.stages)
       if (std::find(s.all.begin(), s.all.end(), p.name) != s.all.end()) p.reruns.push_back(s.id);
+  // The GPU: what the renderer reads from the draw model and the pose, by the fields their channels have.
+  auto fields_of = [&](const std::string &stage, std::initializer_list<const char *> wanted) {
+    std::string out;
+    const Stage *st = def.stage(stage);
+    const auto *info = st ? foundry::json::find_channel(st->output_channel) : nullptr;
+    if (!info) return out;
+    const json schema = json::parse(info->schema, nullptr, false);
+    for (const char *w : wanted)
+      for (const auto &fd : schema.value("fields", json::array()))
+        if (fd.value("name", "") == w) out += (out.empty() ? "" : ", ") + std::string(w);
+    return out;
+  };
+  if (!def.model_stage.empty()) {
+    const std::string verts = fields_of(def.model_stage, {"positions", "normals", "colors", "bone_a", "bone_b", "bone_w"});
+    const std::string idx = fields_of(def.model_stage, {"indices"});
+    if (!verts.empty())
+      f.gpu.push_back({def.model_stage, verts, "GPU vertex buffer",
+                       "36 bytes a vertex; uploaded once per build, shared by every instance"});
+    if (!idx.empty())
+      f.gpu.push_back({def.model_stage, idx, "GPU index buffer", "32-bit; uploaded once per build, shared"});
+  }
+  if (!def.pose_stage.empty()) {
+    const std::string m = fields_of(def.pose_stage, {"matrices"});
+    if (!m.empty())
+      f.gpu.push_back({def.pose_stage, m, "GPU bone buffer (storage)", "3x4 rows (48 bytes) a bone; streamed every frame for every drawn instance"});
+  }
   return f;
 }
 
@@ -133,7 +161,10 @@ json Flow::to_json() const {
                   {"reads", up}, {"params", s.direct}, {"binds", binds}, {"cache_key", s.all},
                   {"distinct_outputs", s.distinct_text}});
   }
-  return {{"params", ps}, {"stages", ss}};
+  json gs = json::array();
+  for (const auto &g : gpu)
+    gs.push_back({{"stage", g.stage}, {"fields", g.fields}, {"destination", g.destination}, {"detail", g.detail}});
+  return {{"params", ps}, {"stages", ss}, {"gpu", gs}};
 }
 
 json probe(Runner &runner, const Definition &def, const json &base_in, int samples) {

@@ -1327,7 +1327,7 @@ void draw_flow(Services &sv, UiState &st) {
   const pipeline::Flow flow = pipeline::analyze(def);
   const auto runs = live.build_stages();
   ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled));
-  ImGui::TextWrapped("Scroll to zoom, drag to pan. Hover a parameter or lookup to see what reruns when it changes; hover a stage to see its cache key.");
+  ImGui::TextWrapped("Scroll to zoom, drag to pan. Hover a parameter or lookup to see what reruns when it changes; hover a stage to see its cache key. Red lines are what the renderer uploads to the GPU.");
   ImGui::PopStyleColor();
   if (ImGui::SmallButton("Fit")) st.flow_fit = true;
   ImGui::SameLine();
@@ -1380,12 +1380,18 @@ void draw_flow(Services &sv, UiState &st) {
     config_text[p.name] = {title, detail};
     cw = std::max({cw, ImGui::CalcTextSize(title.c_str()).x, ImGui::CalcTextSize(detail.c_str()).x});
   }
+  // GPU destinations: a box each in a last column, fed by red lines from the stages whose output the
+  // renderer uploads (the draw model, the pose).
+  float gw = 0;
+  for (const auto &g : flow.gpu)
+    gw = std::max({gw, ImGui::CalcTextSize(g.destination.c_str()).x, ImGui::CalcTextSize(g.detail.c_str()).x});
   // Padding scales with the text, so the graph's width is proportional to the scale and the fit below
   // settles in one step (fixed padding made it flip between two scales near the smallest).
   const float k = st.flow_zoom;
   pw += 14 * k;
   sw += 18 * k;
   if (cw > 0) cw += 16 * k;
+  if (gw > 0) gw += 16 * k;
   const float sh = row * 5.2f, gapx = ImGui::CalcTextSize("bones, pieces").x + 40 * k, gapy = 22 * k, prow = row * 1.6f;
   const float gapc = cw > 0 ? 36 * k : 0.0f, ch = row * 2.4f;
   int max_depth = 0;
@@ -1402,7 +1408,13 @@ void draw_flow(Services &sv, UiState &st) {
   dl->AddRectFilled(canvas, {canvas.x + canvas_size.x, canvas.y + canvas_size.y}, IM_COL32(22, 24, 30, 255), 4);
   const float top = o.y + 6 + (cw > 0 ? (ch - row * 1.3f) * 0.5f : 0.0f);
   const float px = o.x + 4 * k, cx = px + pw + gapc, sx = cx + cw + (cw > 0 ? gapx : gapx - gapc);
-  const float graph_h = std::max(top - o.y + flow.params.size() * prow, tallest * (sh + gapy)) + 20;
+  const float gh = row * 2.4f;
+  const float graph_h = std::max({top - o.y + flow.params.size() * prow, tallest * (sh + gapy),
+                                  flow.gpu.size() * (gh + gapy)}) + 20;
+  // The GPU column, past a gap wide enough for the longest field list on its lines.
+  float gpu_gap = gapx;
+  for (const auto &g : flow.gpu) gpu_gap = std::max(gpu_gap, ImGui::CalcTextSize(g.fields.c_str()).x + 40 * k);
+  const float gx = sx + (max_depth + 1) * (sw + gapx) - gapx + gpu_gap;
 
   // Layout: parameters down the left in the pipeline's order, stages in columns by depth, each column
   // centred and in the pipeline's order.
@@ -1417,6 +1429,20 @@ void draw_flow(Services &sv, UiState &st) {
     const int k = placed[s.depth]++;
     const float colh = per_depth[s.depth] * (sh + gapy);
     spos[s.id] = {sx + s.depth * (sw + gapx), o.y + 6 + (graph_h - colh) * 0.5f + k * (sh + gapy)};
+  }
+
+  float stages_bottom = o.y;
+  for (auto &[n, p] : spos) stages_bottom = std::max(stages_bottom, p.y + sh);
+  // GPU boxes, in the order of their sources' heights, so lines cross as little as they can.
+  std::vector<size_t> gorder(flow.gpu.size());
+  for (size_t i = 0; i < gorder.size(); ++i) gorder[i] = i;
+  std::stable_sort(gorder.begin(), gorder.end(), [&](size_t a, size_t b) {
+    return spos[flow.gpu[a].stage].y < spos[flow.gpu[b].stage].y;
+  });
+  std::vector<ImVec2> gpos(flow.gpu.size());
+  {
+    const float colh = flow.gpu.size() * (gh + gapy);
+    for (size_t j = 0; j < gorder.size(); ++j) gpos[gorder[j]] = {gx, o.y + 6 + (graph_h - colh) * 0.5f + j * (gh + gapy)};
   }
 
   // Hover.
@@ -1473,6 +1499,8 @@ void draw_flow(Services &sv, UiState &st) {
       outs[from].push_back({spos[s.id].y, s.id});
     }
   }
+  for (size_t i = 0; i < flow.gpu.size(); ++i)
+    if (spos.count(flow.gpu[i].stage)) outs[flow.gpu[i].stage].push_back({gpos[i].y + gh * 0.5f, "gpu:" + std::to_string(i)});
   std::map<std::pair<std::string, std::string>, float> out_y;  // (from, to) -> where it leaves the box
   for (auto &[from, list] : outs) {
     std::sort(list.begin(), list.end());
@@ -1504,6 +1532,41 @@ void draw_flow(Services &sv, UiState &st) {
       }
       dl->AddTriangleFilled({b.x, b.y}, {b.x - 7, b.y - 4}, {b.x - 7, b.y + 4}, IM_COL32(170, 180, 200, 255));
     }
+  }
+  // GPU lines (red) and their destinations.
+  const ImU32 gpu_col = IM_COL32(230, 80, 70, 255), gpu_lit = IM_COL32(255, 130, 110, 255);
+  for (size_t i = 0; i < flow.gpu.size(); ++i) {
+    const auto &g = flow.gpu[i];
+    if (!spos.count(g.stage)) continue;
+    const bool lit = hs == g.stage;
+    const ImVec2 a = {spos[g.stage].x + sw, out_y[{g.stage, "gpu:" + std::to_string(i)}]};
+    const ImVec2 b = {gpos[i].x, gpos[i].y + gh * 0.5f};
+    const ImU32 lc = lit ? gpu_lit : gpu_col;
+    const float lw = lit ? 3.0f : 2.0f;
+    int depth = 0;
+    for (const auto &fs : flow.stages)
+      if (fs.id == g.stage) depth = fs.depth;
+    if (depth < max_depth) {
+      // A stage before the last column: drop to a lane under the stages, run right, and rise to the box,
+      // so the line never passes behind a later stage.
+      const float lane = stages_bottom + gapy * (1.0f + static_cast<float>(i)) + row * 0.4f * static_cast<float>(i);
+      const float x1 = a.x + gapx * 0.5f, x2 = gx - gpu_gap * 0.5f;
+      dl->AddBezierCubic(a, {x1, a.y}, {a.x, lane}, {x1 + gapx * 0.2f, lane}, lc, lw);
+      dl->AddLine({x1 + gapx * 0.2f, lane}, {x2 - gapx * 0.2f, lane}, lc, lw);
+      dl->AddBezierCubic({x2 - gapx * 0.2f, lane}, {b.x - gpu_gap * 0.1f, lane}, {x2, b.y}, b, lc, lw);
+    } else {
+      const float bend = std::max(gapx * 0.5f, (b.x - a.x) * 0.35f);
+      dl->AddBezierCubic(a, {a.x + bend, a.y}, {b.x - bend, b.y}, b, lc, lw);
+    }
+    dl->AddTriangleFilled(b, {b.x - 8, b.y - 5}, {b.x - 8, b.y + 5}, lc);
+    // The fields it carries, just before the box, where the gap was made wide enough for them.
+    const float tw = ImGui::CalcTextSize(g.fields.c_str()).x;
+    dl->AddText({b.x - tw - 12, b.y - row}, IM_COL32(240, 150, 140, 255), g.fields.c_str());
+    const ImVec2 c = gpos[i], d = {gpos[i].x + gw, gpos[i].y + gh};
+    dl->AddRectFilled(c, d, lit ? IM_COL32(90, 40, 36, 255) : IM_COL32(58, 30, 30, 255), 6);
+    dl->AddRect(c, d, lit ? gpu_lit : gpu_col, 6.0f, 0, 2.0f);
+    dl->AddText({c.x + 8 * k, c.y + 4}, IM_COL32(255, 230, 226, 255), g.destination.c_str());
+    dl->AddText({c.x + 8 * k, c.y + 4 + row}, IM_COL32(215, 175, 170, 255), g.detail.c_str());
   }
   // Lookup boxes, fed by the parameter that names the entry.
   for (const auto &[param, text] : config_text) {
@@ -1549,13 +1612,15 @@ void draw_flow(Services &sv, UiState &st) {
       }
     line(IM_COL32(140, 150, 170, 255), last);
   }
-  const float graph_w = sx - o.x + (max_depth + 1) * (sw + gapx) - gapx + 8 * k;
+  const float graph_w = flow.gpu.empty() ? sx - o.x + (max_depth + 1) * (sw + gapx) - gapx + 8 * k : gx + gw - o.x + 8 * k;
   dl->PopClipRect();
   ImGui::SetWindowFontScale(1);
   ImGui::SetCursorScreenPos(after_canvas);
   // Fit once: the zoom that shows the whole graph (its size is proportional to the zoom), then left at that.
-  if (st.flow_fit && graph_w > 0 && graph_h > 0) {
-    const float f = std::min((canvas_size.x - 16) / graph_w, (canvas_size.y - 16) / graph_h);
+  // The height includes the lanes GPU lines take under the stages.
+  const float fit_h = std::max(graph_h, stages_bottom - o.y + (gapy + row * 0.4f) * (flow.gpu.size() + 1));
+  if (st.flow_fit && graph_w > 0 && fit_h > 0) {
+    const float f = std::min((canvas_size.x - 16) / graph_w, (canvas_size.y - 16) / fit_h);
     st.flow_zoom = std::clamp(st.flow_zoom * f, 0.25f, 1.5f);
     st.flow_pan = {8, 8};
     st.flow_fit = false;

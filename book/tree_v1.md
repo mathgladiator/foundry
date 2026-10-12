@@ -226,7 +226,7 @@ Spruce was revised after review, because its top ended in a round clump with a g
 
 ## Flow and caching
 
-The viewport's **Flow** tab draws this graph: `species` feeds a purple lookup box (`config/tree_v1_genomes`), and the entry it finds binds the rig's `genome` field. `pipeline_flow` returns the same as data.
+The viewport's **Flow** tab draws this graph: `species` feeds a purple lookup box (`config/tree_v1_genomes`), and the entry it finds binds the rig's `genome` field. Red lines show what reaches the GPU: `colorize`'s vertex fields and indices to the vertex and index buffers (once per build, shared), and `animate`'s matrices to the bone buffer (every frame). `pipeline_flow` returns the same as data.
 
 | Stage | Cache key | Distinct outputs |
 |---|---|---|

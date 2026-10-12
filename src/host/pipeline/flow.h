@@ -41,9 +41,19 @@ struct FlowParam {
   size_t when_on = 0;               // and how many of the gate's entries turn it on
 };
 
+// What a stage's output feeds on the GPU (the runtime's renderer): the draw model's vertices and
+// indices, uploaded once per build, and the pose's bone matrices, streamed every frame.
+struct FlowGpu {
+  std::string stage;        // the stage whose output is uploaded
+  std::string fields;       // the output fields it reads, e.g. "positions, normals, colors"
+  std::string destination;  // e.g. "GPU vertex buffer"
+  std::string detail;       // its layout and how often it's uploaded
+};
+
 struct Flow {
   std::vector<FlowParam> params;
   std::vector<FlowStage> stages;
+  std::vector<FlowGpu> gpu;
   nlohmann::json to_json() const;
 };
 
