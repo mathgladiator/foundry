@@ -47,6 +47,8 @@ One hex ≈ one hero tall is the core visual comparison. Size against both, alwa
 | Gargantuan / Colossal | 9 m + | flower19 + | bosses |
 
 - Footprint ≤ 0.866 m (inradius) for anything that fights in one hex.
+- **Footprint arrangements.** A footprint is the set of hex cells a thing stands on (`spine.md`, "Layer 1"). The arrangements are `single` (1 cell), `line2` and `line3` (cells in a row), `tri3` (3 cells around a vertex), `flower7` (a cell and its 6 neighbours), `flower19` (radius 2), and `box w×h` (a parallelogram of cells, for small buildings). A thing's footprint is the smallest arrangement whose inner circle (or box), shrunk by 0.1 m, holds its ground contact. Footprints turn in 60° steps. Models are built flat. A footprint may span slightly uneven cells (how uneven is the plotter's config, `plotter.md`); the model is set at the height the placement gives and its base is buried where the ground is higher.
+- **Trees take their footprint from their trunk.** Trees are drawn at real heights, so their stumps are real widths too (a mature bald cypress's buttressed base is 2 to 3 m across). The footprint is that of the species' largest age, so an old cypress or baobab can be `flower7` and its sapling reserves the same cells. What collides now is the pipeline's collision output, inside it. The canopy is visual and overhangs freely.
 - Swept reach in idle ≤ 1.0 m (T/S/M), ≤ 1.35 m for Large and for tails, weapons and wings on any class.
 - Multi-hex: ground contact stays inside the footprint cells shrunk by 0.1 m; parts entirely above 2.0 m may
   overhang one extra hex; chain bodies ≤ 0.866 m radius at segment centres, ≤ 0.5 m at joints.

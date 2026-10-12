@@ -28,6 +28,7 @@ The foundry is an AI-driven harness for building game assets as versioned pipeli
 | `design/playtest.md` | Working on play testing, the control pad, or approval. |
 | `design/quality.perf.md` | Working on the flattened runtime's stress tests (diversity, forest caching, bulk events, soak leaks) and the committed reports in `perf/`. |
 | `design/systems.md` | Building a specific pipeline. |
+| `design/plotter.md` | Working on regions of hexes and the plotter rules that fill them (the design; its first steps are in `PLAN.md`). |
 | `design/sounds.md` | Working on sound events. |
 | `design/style.md` | Generating or judging how assets look. It is the current project's style and is opt-in. |
 | `design/third.party.md` | Calling Meshy or other outside services. |
@@ -80,6 +81,7 @@ Settled by the human (recorded in `reports/2026-10-10-1.md`):
 | Build system | CMake, with two toolchains: the native compiler for the host and static libraries, and `wasi-sdk` (Clang targeting WebAssembly) for systems |
 | WebAssembly host runtime | Wasmtime, through its C API |
 | MCP transport | HTTP on localhost; Claude Code connects with `claude mcp add --transport http` |
+| Physics engine | Jolt Physics, a static library linked beside the runtime (and into the host). There is one Jolt world, owned by the game, which hands the runtime a blind pointer to it (tagged with Jolt's version, which the runtime checks), with a purpose-to-layer-and-mask map; the runtime keeps every instance's body and sensors in it, and the game moves its players and creatures through it, registering them with the runtime (by handle, with an external ID and a collision mask) so contacts are reported and attributed. The host and tools build their own toy worlds. It is small-p physics, a baseline rather than a sandbox. Each build outputs a static collision description (a channel of Jolt's shapes), the boundary between a pipeline and physics (decided in the `design/plotter.md` review, 2026-10-12; not yet built) |
 | Meshy budget | 250 credits without asking. At current prices that is roughly 6 to 8 static meshes taken from concept image to remeshed 3D, so start with one or two and ask before generating in bulk. The ledger (`demo/meshy/ledger.json`) tracks the spend. |
 
 ## Building and running

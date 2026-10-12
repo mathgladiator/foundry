@@ -42,12 +42,13 @@ The mega shader's parameters (`style.md` §6) can be added to the control pad to
 
 ## Levels of testing
 
-Play testing happens at four levels, from narrowest to widest:
+Play testing happens at five levels, from narrowest to widest:
 
 1. **System.** One black box in isolation. Its input channel is editable on the control pad and its output channel is visualized: a skeleton as bones, a mesh with wireframe, a texture flat.
 2. **Pipeline.** A full pipeline instance, driven by the gamepad and control pad. This is where most approvals happen.
 3. **Composition.** Pipelines that work together: a sword mounted in a hand, armor on a body, a chest on a pedestal, rooms joined through doorways.
 4. **Crowd.** Many instances at once, with real quality sliders, to check variety, caching, and performance. For example: 200 trees in a forest with wind, or a parameter sweep laid out as a grid.
+5. **Region.** A plotter filling generated regions of hex cells (`plotter.md`, "In the foundry"): shapes and painted attributes, growth step by step or to stable, clearing and regrowth, slopes, adjacent regions and the edge between them, with the plotter's shared properties (season, wind) mapped onto every instance shown.
 
 ## What a play test shows
 

@@ -21,12 +21,36 @@ This file is how the project is managed. It holds one current milestone, with TO
   - `flower_v1` (`book/flower_v1.md`): 15 species in clumps, eight head forms, buds, bloom, seed heads, and winter stalks by season, swaying in the trees' wind.
   - To validate: every species by season, against its reference photos and beside the trees of its biome.
 - [x] **trees have pickable fruit**
+
+### Jolt, stumps, and the first plotter (`design/plotter.md`)
+
+**Integrate Jolt**
+- [ ] **Jolt in the build.** Jolt Physics pinned in `.deps/` by `tools/bootstrap.sh`, a static library linked beside the runtime and into the host. `runtime.h` names no Jolt type: the game's world arrives as a tagged pointer (tag and Jolt version, checked), with a map from purpose (solid, soft, query-only, sensor) to Jolt layer and mask.
+- [ ] **Collision descriptions.** A channel of Jolt shapes that each build outputs, static for the build: a tree's trunk, a bush's soft body, a rock's convex hull, a flower's query-only shape. Native matches WebAssembly.
+- [ ] **Bodies by handle.** The runtime adds each instance's body to the world when its build is ready, swaps it on a rebuild, and removes it on destroy. The stress tool's soak checks that bodies balance.
+- [ ] **Seen in the foundry.** A toy Jolt world in the host; collision drawn over the model in the View tab; an automated check that collision stays inside the conformance.
+
+**The tree's stump**
+- [ ] **Trunks from nature.** `tree_v1`'s genome gets a stump width by species, and the rig reports the footprint of the largest age (hex cells) and the stump's radius now; checked against the reference photos.
+- [ ] **Stump mode.** A `stump` boolean on `tree_v1`: the mesh draws only the stump, and its collision becomes the stump's.
+- [ ] **Knowing the fall is over.** `break_over` in the tree's update result (a current value), and the changed list in the API, so a game can turn a felled tree into a stump.
+- [ ] **Book and checks.** `book/tree_v1.md` updated with numbers from runs; flow, stress, and the QA video cover the stump; native matches WebAssembly.
+
+**Kick-start the plotter**
+- [ ] **The primitive.** `plotters/` in the workspace, plot systems as a kind of system, and the `plot_v1_regions` channel (prioritized hex regions with attributes).
+- [ ] **`plot_scatter_v1`.** Candidates from cells, spacing per layer (Matérn), footprints, keep-clear, smooth ground, caps per kind, seed and regrow modes, and the volume left. Native matches WebAssembly.
+- [ ] **Regions in the runtime.** Create, restore, grow, vacate, set regions, find, destroy; placements spawn as ordinary instances.
+- [ ] **The plotter view.** Configure the shape (a hex, a ring, a line, unions, painted cells and attributes), grow step by step or to full, clear and regrow, the shared season and wind, and the metrics; the same through MCP.
+- [ ] **A happy glen.** `plotters/happy_glen_v1.json`: a sunny, gentle green place of oaks and apple trees in loose groves, hazel, bramble, and elderberry along its edges, daisies, poppies, bluebells, and foxgloves in the open grass, and a few river stones. It reads as a happy place on every shape tried. It has a book with numbers from runs, and the stress tool's region phase.
+
   
 ## Not in this milestone
 
 To keep the milestone focused, these wait even though they are designed: trees and other nature, crafted things, buildings, humanoids, creatures, magic, auras, sound, shadows, the sleep and wake engine beyond what static meshes need, and recording and replay.
 
 # Future milestones
+
+- **The rest of the plotter design** (`design/plotter.md`), after the first steps above: active entities (players and creatures, by handle, with collision masks) and sensors with contacts and distances; full instance results (event flags, sounds playing, sleep, ready) for every pipeline; footprints and collision descriptions on bushes, rocks, and flowers and on the conformance files; regrow kinds (succession); and more plotters, one per biome (a cypress swamp first, since its species exist).
 
 
 # Suggestions are great
