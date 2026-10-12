@@ -1,0 +1,122 @@
+{
+  "created_at": "2026-10-11T00:00:00Z",
+  "doc": "Evergreen with a silvery grey-green round crown on a squat, twisted, fluted trunk that grows enormous with age; small cream blossom in spring. Wood: olive, approximated from dense Mediterranean hardwoods.",
+  "notes": [],
+  "reference": [
+    "reference/trees/olive/01.jpg",
+    "reference/trees/olive/02.jpg",
+    "reference/trees/olive/03.jpg"
+  ],
+  "state": "draft",
+  "value": {
+    "age_girth": [
+      0.7,
+      0.9,
+      1,
+      2.2
+    ],
+    "age_height": [
+      0.25,
+      0.5,
+      1,
+      1.0
+    ],
+    "bark": "fluted",
+    "bark_dark": [
+      0.3,
+      0.29,
+      0.26
+    ],
+    "bark_light": [
+      0.62,
+      0.6,
+      0.55
+    ],
+    "blossom": 0.25,
+    "blossom_color": [
+      0.95,
+      0.94,
+      0.8
+    ],
+    "blossom_leaf": 1,
+    "branch_angle": 58,
+    "branch_angle_var": 15,
+    "branch_curve": 0.2,
+    "branch_length": 0.85,
+    "branches": 9,
+    "clump": 0.085,
+    "cluster": 0,
+    "crown_ratio": 0.75,
+    "crown_shape": "spherical",
+    "dead_limbs": 0.35,
+    "deciduous": false,
+    "density": 0.75,
+    "divergence": 137.5,
+    "excurrent": false,
+    "fall_drop": 0.05,
+    "flare": 0.9,
+    "flex": 0.8,
+    "foliage": "clumps",
+    "fruit": 0,
+    "fruit_ripe": [
+      0.25,
+      0.2,
+      0.25
+    ],
+    "fruit_size": 0.05,
+    "fruit_unripe": [
+      0.45,
+      0.55,
+      0.2
+    ],
+    "height": 6,
+    "latin": "Olea europaea",
+    "leaf_fall": [
+      0.45,
+      0.54,
+      0.38
+    ],
+    "leaf_fall_alt": [
+      0.5,
+      0.57,
+      0.42
+    ],
+    "leaf_spring": [
+      0.52,
+      0.6,
+      0.44
+    ],
+    "leaf_summer": [
+      0.47,
+      0.56,
+      0.4
+    ],
+    "leaf_winter": [
+      0.42,
+      0.5,
+      0.36
+    ],
+    "leafiness": 1.1,
+    "lean": 0.15,
+    "name": "Olive",
+    "slender": 13,
+    "snow": 0.1,
+    "sprig_length": 0.4,
+    "sprigs": 3,
+    "stiffness": 9.0,
+    "tip_up": 0.1,
+    "twig_angle": 45,
+    "twig_curve": 0.0,
+    "twig_length": 0.5,
+    "twigs": 6,
+    "twist": 0.3,
+    "whorl": 0,
+    "winter_keep": 0,
+    "wobble": 0.22,
+    "wood": [
+      0.8,
+      0.68,
+      0.48
+    ]
+  }
+}

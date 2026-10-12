@@ -1,0 +1,12 @@
+{
+  "name": "standard",
+  "doc": "About ten minutes: before asking for approval (design/quality.perf.md).",
+  "seed": 7,
+  "phases": [
+    {"kind": "diversity", "configs": 100, "seconds": 60},
+    {"kind": "forest", "sets": 10, "counts": [100, 200, 400, 800, 1600, 3200, 6400, 12800, 25600], "seconds": 8},
+    {"kind": "events", "sets": 10, "counts": [100, 400, 1600], "seconds": 15},
+    {"kind": "soak", "minutes": 5, "population": 300, "churn_per_second": 20, "sample_seconds": 5, "drain_minutes": 1}
+  ],
+  "thresholds": {"soak_rss_slope_mb_per_hour": 4, "drain_tolerance_mb": 8}
+}

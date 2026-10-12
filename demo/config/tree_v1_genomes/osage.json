@@ -1,0 +1,121 @@
+{
+  "created_at": "2026-10-11T00:00:00Z",
+  "doc": "Osage orange: a low, irregular, leaning crown of arching limbs on a crooked trunk with deep orange-brown furrows and bright yellow-orange heartwood; yellow in fall. Wood: Osage orange (Wood Handbook, green). It has no fruit here: fruit was asked for on the apple only.",
+  "notes": [],
+  "reference": [
+    "reference/trees/osage/01.jpg",
+    "reference/trees/osage/02.jpg"
+  ],
+  "state": "draft",
+  "value": {
+    "age_girth": [
+      0.75,
+      0.9,
+      1,
+      1.6
+    ],
+    "age_height": [
+      0.2,
+      0.5,
+      1,
+      1.05
+    ],
+    "bark": "furrowed",
+    "bark_dark": [
+      0.3,
+      0.2,
+      0.13
+    ],
+    "bark_light": [
+      0.62,
+      0.45,
+      0.3
+    ],
+    "blossom": 0,
+    "blossom_color": [
+      0.7,
+      0.75,
+      0.4
+    ],
+    "blossom_leaf": 1,
+    "branch_angle": 60,
+    "branch_angle_var": 20,
+    "branch_curve": -0.1,
+    "branch_length": 0.7,
+    "branches": 9,
+    "clump": 0.075,
+    "cluster": 0,
+    "crown_ratio": 0.7,
+    "crown_shape": "hemispherical",
+    "dead_limbs": 0.3,
+    "deciduous": true,
+    "density": 0.76,
+    "divergence": 137.5,
+    "excurrent": false,
+    "fall_drop": 0.3,
+    "flare": 0.45,
+    "flex": 0.6,
+    "foliage": "clumps",
+    "fruit": 0,
+    "fruit_ripe": [
+      0.7,
+      0.78,
+      0.3
+    ],
+    "fruit_size": 0.08,
+    "fruit_unripe": [
+      0.6,
+      0.75,
+      0.3
+    ],
+    "height": 8,
+    "latin": "Maclura pomifera",
+    "leaf_fall": [
+      0.85,
+      0.78,
+      0.22
+    ],
+    "leaf_fall_alt": [
+      0.78,
+      0.7,
+      0.25
+    ],
+    "leaf_spring": [
+      0.46,
+      0.64,
+      0.24
+    ],
+    "leaf_summer": [
+      0.24,
+      0.44,
+      0.16
+    ],
+    "leaf_winter": [
+      0.45,
+      0.38,
+      0.22
+    ],
+    "leafiness": 0.9,
+    "lean": 0.18,
+    "name": "Osage",
+    "slender": 24,
+    "snow": 0.4,
+    "sprig_length": 0.4,
+    "sprigs": 3,
+    "stiffness": 9.4,
+    "tip_up": 0.25,
+    "twig_angle": 55,
+    "twig_curve": -0.3,
+    "twig_length": 0.5,
+    "twigs": 5,
+    "twist": 0.22,
+    "whorl": 0,
+    "winter_keep": 0,
+    "wobble": 0.22,
+    "wood": [
+      0.9,
+      0.72,
+      0.2
+    ]
+  }
+}

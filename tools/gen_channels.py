@@ -2,22 +2,29 @@
 """Generates channel code from the schemas in src/channels/*.json.
 
 Each schema produces, under src/generated/:
-  channels/<name>_v<N>.h   the C++ structure
-  packer/<name>_v<N>.h     pack/unpack to a byte[] (header-only; also used in WebAssembly)
-  disk/<name>_v<N>.h       save/load as a disk format with a header (design/flow.md)
-  json/<name>_v<N>.h       conversion to and from JSON, for the host's MCP tools
+  channels/<id>.h   the C++ structure
+  packer/<id>.h     pack/unpack to a byte[] (header-only; also used in WebAssembly)
+  disk/<id>.h       save/load as a disk format with a header (design/flow.md)
+  json/<id>.h       conversion to and from JSON, for the host's MCP tools
   json/registry.cpp        a table of every channel, for the host
 
 Generated files are committed and never edited by hand. Run with --check to fail
 if the committed files differ from what the schemas generate.
 
 Schema format:
-  {"name": "mesh", "version": 1, "doc": "...",
+  {"family": "tree", "version": 1, "feature": "body", "doc": "...",
    "fields": [{"name": "positions", "type": "vec3[]", "doc": "..."}]}
-Field types: u32, i32, f32, bool, string, vec3, and arrays of any of them (T[]).
+A channel's id is <family>_v<version>_<feature> (tree_v1_body), and its file is
+<id>.json, so a family's channels sort together and the version reads first.
+Field types: u32, i32, f32, bool, string, vec3, another schema by its id (a nested
+structure, e.g. "tree_bone_v1"), and arrays of any of them (T[]). A u32 field may
+name its values with "enum": [...]; the structure gets a constant per value
+(kAgeSapling), and JSON uses the names. "min", "max", and other extra keys are kept
+in the schema for tools (the UI's sliders) and ignored here.
 """
 import json
 import os
+import re
 import sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -45,31 +52,91 @@ def load_schemas():
         with open(os.path.join(SRC, fn)) as f:
             s = json.load(f)
         s["_file"] = fn
-        s["id"] = f"{s['name']}_v{s['version']}"
+        if "name" in s or not all(k in s for k in ("family", "version", "feature")):
+            sys.exit(f"{fn}: a channel names its family, version, and feature (tree, 1, rig), not a name")
+        if not re.fullmatch(r"[a-z][a-z0-9]*", s["family"]) or not re.fullmatch(r"[a-z][a-z0-9_]*", s["feature"]):
+            sys.exit(f"{fn}: family is lowercase letters and digits; feature may also use _")
+        s["id"] = f"{s['family']}_v{s['version']}_{s['feature']}"
         if fn != s["id"] + ".json":
             sys.exit(f"{fn}: file name must be {s['id']}.json")
-        for fld in s["fields"]:
-            base = fld["type"][:-2] if fld["type"].endswith("[]") else fld["type"]
-            if base not in SCALARS:
-                sys.exit(f"{fn}: field {fld['name']}: unknown type {fld['type']}")
-            if fld["type"] == "bool[]":
-                sys.exit(f"{fn}: field {fld['name']}: bool[] is not supported; use u32[]")
         schemas.append(s)
-    return schemas
+    ids = {s["id"] for s in schemas}
+    for s in schemas:
+        for fld in s["fields"]:
+            base = base_type(fld["type"])
+            if base not in SCALARS and base not in ids:
+                sys.exit(f"{s['_file']}: field {fld['name']}: unknown type {fld['type']}")
+            if fld["type"] == "bool[]":
+                sys.exit(f"{s['_file']}: field {fld['name']}: bool[] is not supported; use u32[]")
+            if "enum" in fld and fld["type"] != "u32":
+                sys.exit(f"{s['_file']}: field {fld['name']}: enum needs type u32")
+    # Order so every nested type comes before the schemas that use it.
+    by_id = {s["id"]: s for s in schemas}
+    ordered, seen = [], set()
+    def visit(s, stack):
+        if s["id"] in seen:
+            return
+        if s["id"] in stack:
+            sys.exit(f"{s['_file']}: nested types form a cycle")
+        for fld in s["fields"]:
+            b = base_type(fld["type"])
+            if b in by_id:
+                visit(by_id[b], stack | {s["id"]})
+        seen.add(s["id"])
+        ordered.append(s)
+    for s in schemas:
+        visit(s, set())
+    for s in ordered:
+        s["_min"] = sum(min_bytes(f["type"], by_id) for f in s["fields"])
+    return ordered
+
+
+def base_type(t):
+    return t[:-2] if t.endswith("[]") else t
+
+
+def nested(t):
+    return base_type(t) not in SCALARS
+
+
+def min_bytes(t, by_id):
+    if t.endswith("[]"):
+        return 4
+    if t in SCALARS:
+        return SCALARS[t][3]
+    return sum(min_bytes(f["type"], by_id) for f in by_id[t]["fields"])
+
+
+def camel(name):
+    return "".join(p[:1].upper() + p[1:] for p in name.split("_"))
 
 
 def cpp_type(t):
     if t.endswith("[]"):
-        return f"std::vector<{SCALARS[t[:-2]][0]}>"
-    return SCALARS[t][0]
+        return f"std::vector<{cpp_type(t[:-2])}>"
+    if t in SCALARS:
+        return SCALARS[t][0]
+    return t
+
+
+def nested_ids(s):
+    ids = []
+    for f in s["fields"]:
+        if nested(f["type"]) and base_type(f["type"]) not in ids:
+            ids.append(base_type(f["type"]))
+    return ids
 
 
 def gen_struct(s):
-    out = [BANNER.format(src=s["_file"]), "#pragma once\n\n#include <cstdint>\n#include <string>\n#include <vector>\n\n#include \"boundary.h\"\n\nnamespace channels {\n\n"]
+    includes = "".join(f"#include \"channels/{i}.h\"\n" for i in nested_ids(s))
+    out = [BANNER.format(src=s["_file"]), "#pragma once\n\n#include <cstdint>\n#include <string>\n#include <vector>\n\n#include \"boundary.h\"\n" + includes + "\nnamespace channels {\n\n"]
     if s.get("doc"):
         out.append(f"// {s['doc']}\n")
     out.append(f"struct {s['id']} {{\n")
     out.append(f"  static constexpr const char *kName = \"{s['id']}\";\n")
+    for f in s["fields"]:
+        for i, v in enumerate(f.get("enum", [])):
+            out.append(f"  static constexpr uint32_t k{camel(f['name'])}{camel(v)} = {i};\n")
     for f in s["fields"]:
         if f.get("doc"):
             out.append(f"  // {f['doc']}\n")
@@ -85,33 +152,52 @@ def gen_struct(s):
     return "".join(out)
 
 
-def gen_packer(s):
+def write_call(t, v):
+    if t in SCALARS:
+        return SCALARS[t][1].format(v=v)
+    return f"pack_fields(w, {v})"
+
+
+def read_call(t, v):
+    if t in SCALARS:
+        return SCALARS[t][2].format(v=v)
+    return f"unpack_fields(r, {v})"
+
+
+def gen_packer(s, by_id):
     sid = s["id"]
+    includes = "".join(f"#include \"packer/{i}.h\"\n" for i in nested_ids(s))
     out = [BANNER.format(src=s["_file"]), "#pragma once\n\n",
-           f"#include \"channels/{sid}.h\"\n\nnamespace foundry {{\n\n"]
-    out.append(f"inline void pack(const channels::{sid} &c, std::vector<uint8_t> &out) {{\n")
-    out.append("  out.clear();\n  Writer w(out);\n")
-    out.append(f"  w.u32(kChannelMagic);\n  w.u32(fnv1a(\"{sid}\"));\n")
+           f"#include \"channels/{sid}.h\"\n{includes}\nnamespace foundry {{\n\n"]
+    # The fields alone, so other channels can nest this one.
+    out.append(f"inline void pack_fields(Writer &w, const channels::{sid} &c) {{\n")
+    if not s["fields"]:
+        out.append("  (void)w;\n  (void)c;\n")
     for f in s["fields"]:
         t = f["type"]
         if t.endswith("[]"):
-            call = SCALARS[t[:-2]][1].format(v="x")
-            out.append(f"  w.array(c.{f['name']}, [](Writer &w, const auto &x) {{ {call}; }});\n")
+            out.append(f"  w.array(c.{f['name']}, [](Writer &w, const auto &x) {{ {write_call(t[:-2], 'x')}; }});\n")
         else:
-            out.append(f"  {SCALARS[t][1].format(v='c.' + f['name'])};\n")
+            out.append(f"  {write_call(t, 'c.' + f['name'])};\n")
     out.append("}\n\n")
-    out.append(f"inline bool unpack(const uint8_t *data, size_t size, channels::{sid} &c) {{\n")
-    out.append("  Reader r(data, size);\n")
-    out.append(f"  if (r.u32() != kChannelMagic || r.u32() != fnv1a(\"{sid}\")) return false;\n")
+    out.append(f"inline void unpack_fields(Reader &r, channels::{sid} &c) {{\n")
+    if not s["fields"]:
+        out.append("  (void)r;\n  (void)c;\n")
     for f in s["fields"]:
         t = f["type"]
         if t.endswith("[]"):
             base = t[:-2]
-            call = SCALARS[base][2].format(v="x")
-            out.append(f"  r.array(c.{f['name']}, {SCALARS[base][3]}, [](Reader &r, auto &x) {{ {call}; }});\n")
+            out.append(f"  r.array(c.{f['name']}, {max(4, min_bytes(base, by_id))}, [](Reader &r, auto &x) {{ {read_call(base, 'x')}; }});\n")
         else:
-            out.append(f"  {SCALARS[t][2].format(v='c.' + f['name'])};\n")
-    out.append("  return r.ok();\n}\n\n}  // namespace foundry\n")
+            out.append(f"  {read_call(t, 'c.' + f['name'])};\n")
+    out.append("}\n\n")
+    out.append(f"inline void pack(const channels::{sid} &c, std::vector<uint8_t> &out) {{\n")
+    out.append("  out.clear();\n  Writer w(out);\n")
+    out.append(f"  w.u32(kChannelMagic);\n  w.u32(fnv1a(\"{sid}\"));\n  pack_fields(w, c);\n}}\n\n")
+    out.append(f"inline bool unpack(const uint8_t *data, size_t size, channels::{sid} &c) {{\n")
+    out.append("  Reader r(data, size);\n")
+    out.append(f"  if (r.u32() != kChannelMagic || r.u32() != fnv1a(\"{sid}\")) return false;\n")
+    out.append("  unpack_fields(r, c);\n  return r.ok();\n}\n\n}  // namespace foundry\n")
     return "".join(out)
 
 
@@ -163,22 +249,71 @@ inline bool load(const std::string &path, channels::{sid} &c) {{
 """
 
 
-def json_get(t, expr):
+def json_get(t, expr, f=None):
     if t == "vec3":
         return f"foundry::vec3{{{expr}.at(0).get<float>(), {expr}.at(1).get<float>(), {expr}.at(2).get<float>()}}"
+    if t not in SCALARS:
+        return f"[&] {{ channels::{t} n; from_json({expr}, n); return n; }}()"
+    if f is not None and "enum" in f:
+        return f"enum_value({expr}, k{f['_enum_table']})"
     return f"{expr}.get<{SCALARS[t][0]}>()"
 
 
-def json_put(t, expr):
+def json_put(t, expr, f=None):
     if t == "vec3":
         return f"nlohmann::json::array({{{expr}.x, {expr}.y, {expr}.z}})"
+    if t not in SCALARS:
+        return f"to_json({expr})"
+    if f is not None and "enum" in f:
+        return f"enum_name({expr}, k{f['_enum_table']})"
     return expr
+
+
+ENUM_HELPERS = """#pragma once
+
+#include <array>
+#include <cstdint>
+#include <stdexcept>
+#include <string>
+
+#include <nlohmann/json.hpp>
+
+namespace foundry::json {
+
+// Enum fields are u32 in the channel and names in JSON. A number is accepted too.
+template <size_t N>
+inline uint32_t enum_value(const nlohmann::json &j, const std::array<const char *, N> &names) {
+  if (j.is_number()) return j.get<uint32_t>();
+  std::string s = j.get<std::string>();
+  for (size_t i = 0; i < N; ++i)
+    if (s == names[i]) return static_cast<uint32_t>(i);
+  std::string all;
+  for (size_t i = 0; i < N; ++i) all += (i ? ", " : "") + std::string(names[i]);
+  throw std::invalid_argument("'" + s + "' is not one of: " + all);
+}
+
+template <size_t N>
+inline nlohmann::json enum_name(uint32_t v, const std::array<const char *, N> &names) {
+  if (v < N) return names[v];
+  return v;
+}
+
+}  // namespace foundry::json
+"""
 
 
 def gen_json(s):
     sid = s["id"]
+    includes = "".join(f"#include \"json/{i}.h\"\n" for i in nested_ids(s))
     out = [BANNER.format(src=s["_file"]), "#pragma once\n\n#include <nlohmann/json.hpp>\n\n",
-           f"#include \"channels/{sid}.h\"\n\nnamespace foundry::json {{\n\n"]
+           f"#include \"channels/{sid}.h\"\n#include \"json/enums.h\"\n{includes}\nnamespace foundry::json {{\n\n"]
+    for f in s["fields"]:
+        if "enum" in f:
+            f["_enum_table"] = f"{camel(sid)}{camel(f['name'])}"
+            names = ", ".join(f'"{v}"' for v in f["enum"])
+            out.append(f"inline constexpr std::array<const char *, {len(f['enum'])}> k{f['_enum_table']} = {{{names}}};\n")
+    if any("enum" in f for f in s["fields"]):
+        out.append("\n")
     out.append(f"inline nlohmann::json to_json(const channels::{sid} &c) {{\n  nlohmann::json j = nlohmann::json::object();\n")
     for f in s["fields"]:
         t = f["type"]
@@ -186,9 +321,9 @@ def gen_json(s):
             out.append(f"  j[\"{f['name']}\"] = nlohmann::json::array();\n")
             out.append(f"  for (const auto &x : c.{f['name']}) j[\"{f['name']}\"].push_back({json_put(t[:-2], 'x')});\n")
         else:
-            out.append(f"  j[\"{f['name']}\"] = {json_put(t, 'c.' + f['name'])};\n")
+            out.append(f"  j[\"{f['name']}\"] = {json_put(t, 'c.' + f['name'], f)};\n")
     out.append("  return j;\n}\n\n")
-    out.append(f"// Missing fields keep their defaults. Throws nlohmann::json::exception on bad types.\n")
+    out.append(f"// Missing fields keep their defaults. Throws on bad types or unknown enum names.\n")
     out.append(f"inline void from_json(const nlohmann::json &j, channels::{sid} &c) {{\n")
     for f in s["fields"]:
         t = f["type"]
@@ -197,8 +332,10 @@ def gen_json(s):
             out.append(f"    c.{f['name']}.clear();\n")
             out.append(f"    for (const auto &x : j.at(\"{f['name']}\")) c.{f['name']}.push_back({json_get(t[:-2], 'x')});\n")
         else:
-            out.append(f"    c.{f['name']} = {json_get(t, 'j.at(\"' + f['name'] + '\")')};\n")
+            out.append(f"    c.{f['name']} = {json_get(t, 'j.at(\"' + f['name'] + '\")', f)};\n")
         out.append("  }\n")
+    if not s["fields"]:
+        out.append("  (void)j;\n  (void)c;\n")
     out.append("}\n\n}  // namespace foundry::json\n")
     return "".join(out)
 
@@ -210,7 +347,9 @@ def gen_registry(schemas):
     out.append("\nnamespace foundry::json {\n\nconst std::vector<ChannelInfo> &channels() {\n  static const std::vector<ChannelInfo> table = {\n")
     for s in schemas:
         sid = s["id"]
-        schema = json.dumps({k: v for k, v in s.items() if not k.startswith("_") and k != "id"})
+        public = {k: v for k, v in s.items() if not k.startswith("_") and k != "id"}
+        public["fields"] = [{k: v for k, v in f.items() if not k.startswith("_")} for f in s["fields"]]
+        schema = json.dumps(public)
         out.append(f"    {{\"{sid}\", R\"json({schema})json\",\n")
         out.append(f"     [](const nlohmann::json &j, std::vector<uint8_t> &bytes) {{ channels::{sid} c; from_json(j, c); pack(c, bytes); }},\n")
         out.append(f"     [](const uint8_t *data, size_t size, nlohmann::json &j) {{ channels::{sid} c; if (!unpack(data, size, c)) return false; j = to_json(c); return true; }}}},\n")
@@ -249,12 +388,14 @@ const ChannelInfo *find_channel(const std::string &name);
 def main():
     check = "--check" in sys.argv
     schemas = load_schemas()
-    files = {"json/registry.h": REGISTRY_H, "json/registry.cpp": gen_registry(schemas)}
+    by_id = {s["id"]: s for s in schemas}
+    files = {"json/registry.h": REGISTRY_H, "json/enums.h": BANNER.format(src="*.json") + ENUM_HELPERS}
     for s in schemas:
         files[f"channels/{s['id']}.h"] = gen_struct(s)
-        files[f"packer/{s['id']}.h"] = gen_packer(s)
+        files[f"packer/{s['id']}.h"] = gen_packer(s, by_id)
         files[f"disk/{s['id']}.h"] = gen_disk(s)
         files[f"json/{s['id']}.h"] = gen_json(s)
+    files["json/registry.cpp"] = gen_registry(schemas)
     stale = []
     for rel, text in files.items():
         path = os.path.join(GEN, rel)

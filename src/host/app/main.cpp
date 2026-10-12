@@ -12,10 +12,13 @@
 #include "app/services.h"
 #include "assets/mesh_item.h"
 #include "assets/tools.h"
+#include "assets/view.h"
 #include "core/log.h"
 #include "core/util.h"
 #include "forge/tools.h"
 #include "meshy/tools.h"
+#include "perf/stress.h"
+#include "pipeline/tools.h"
 #include "workspace/tools.h"
 
 namespace {
@@ -74,6 +77,30 @@ int main(int argc, char **argv) {
   forge::register_tools(registry, s.paths, runner, ws);
   assets::register_tools(registry, s.paths, runner, ws);
   meshy::register_tools(registry, meshy, ws);
+  pipeline::Runner pipelines(s.paths, runner);
+  pipeline::Live live(pipelines);
+  pipeline::register_tools(registry, pipelines, live, ws);
+  perf::register_stress_tools(registry, s.paths, pipelines);
+  // Selecting a pipeline or a config entry shows the live instance, posed for now.
+  assets::set_live_provider([&live](const workspace::Item &item, assets::ViewContent &v) {
+    std::string error;
+    if (item.kind == "pipeline" ? !live.show(item.name, error) : !live.show_config_file(item.path, error)) return false;
+    double now = static_cast<double>(SDL_GetTicks()) / 1000.0;
+    pipeline::Frame f = live.frame(now);
+    if (!f.mesh) {
+      // The first build runs in the background; wait for it briefly (screenshots need a model).
+      for (int i = 0; i < 300 && !f.mesh && live.error().empty(); ++i) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(20));
+        f = live.frame(static_cast<double>(SDL_GetTicks()) / 1000.0);
+      }
+      if (!f.mesh) return false;
+    }
+    v.mesh = f.mesh;
+    v.has_conformance = f.conformance_radius > 0;
+    v.radius = f.conformance_radius;
+    v.height = f.conformance_height;
+    return true;
+  });
   registry.add({"ui_screenshot",
                 "Capture the whole foundry window (workspace tree, viewport, inspector, activity) as a PNG, to see "
                 "what the human sees. Fails in --headless mode.",
@@ -110,6 +137,7 @@ int main(int argc, char **argv) {
   s.runner = &runner;
   s.meshy = &meshy;
   s.server = &server;
+  s.live = &live;
 
   int rc = 0;
   if (headless) {

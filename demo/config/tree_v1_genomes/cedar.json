@@ -1,0 +1,121 @@
+{
+  "created_at": "2026-10-12T02:11:21Z",
+  "doc": "A mountain cedar of the Levant: young it is a cone; old it spreads into broad flat tiers of level limbs carrying blue-green needle plates, with a flat top. Wood: not in the Wood Handbook; density and stiffness are estimates near other true cedars.",
+  "notes": [],
+  "reference": [
+    "reference/trees/cedar/01.jpg",
+    "reference/trees/cedar/02.jpg"
+  ],
+  "state": "draft",
+  "value": {
+    "age_girth": [
+      0.7,
+      0.85,
+      1,
+      1.35
+    ],
+    "age_height": [
+      0.15,
+      0.45,
+      1,
+      1.25
+    ],
+    "bark": "furrowed",
+    "bark_dark": [
+      0.22,
+      0.19,
+      0.17
+    ],
+    "bark_light": [
+      0.45,
+      0.4,
+      0.36
+    ],
+    "blossom": 0,
+    "blossom_color": [
+      1,
+      1,
+      1
+    ],
+    "blossom_leaf": 1,
+    "branch_angle": 85,
+    "branch_angle_var": 8,
+    "branch_curve": 0.0,
+    "branch_length": 0.7,
+    "branches": 18,
+    "clump": 0.045,
+    "cluster": 0,
+    "crown_ratio": 0.7,
+    "crown_shape": "cylindrical",
+    "dead_limbs": 0.2,
+    "deciduous": false,
+    "density": 0.47,
+    "divergence": 36,
+    "excurrent": false,
+    "fall_drop": 0.05,
+    "flare": 0.3,
+    "flex": 0.9,
+    "foliage": "rosettes",
+    "fruit": 0,
+    "fruit_ripe": [
+      0.5,
+      0.35,
+      0.2
+    ],
+    "fruit_size": 0.06,
+    "fruit_unripe": [
+      0.4,
+      0.5,
+      0.3
+    ],
+    "height": 15,
+    "latin": "Cedrus libani",
+    "leaf_fall": [
+      0.2,
+      0.33,
+      0.29
+    ],
+    "leaf_fall_alt": [
+      0.22,
+      0.35,
+      0.3
+    ],
+    "leaf_spring": [
+      0.28,
+      0.42,
+      0.36
+    ],
+    "leaf_summer": [
+      0.2,
+      0.34,
+      0.3
+    ],
+    "leaf_winter": [
+      0.19,
+      0.31,
+      0.28
+    ],
+    "leafiness": 1.0,
+    "lean": 0.05,
+    "name": "Cedar of Lebanon",
+    "slender": 30,
+    "snow": 0.9,
+    "sprig_length": 0.4,
+    "sprigs": 0,
+    "stiffness": 7.0,
+    "tip_up": 0.1,
+    "twig_angle": 60,
+    "twig_curve": 0.1,
+    "twig_length": 0.45,
+    "twigs": 6,
+    "twist": 0.08,
+    "whorl": 3,
+    "winter_keep": 0,
+    "wobble": 0.08,
+    "wood": [
+      0.84,
+      0.66,
+      0.46
+    ]
+  }
+}

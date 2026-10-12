@@ -26,13 +26,23 @@ The foundry is an AI-driven harness for building game assets as versioned pipeli
 | `design/submit.md` | Working on the engine: update, sleep, rendering, the mega shader. |
 | `design/api.md` | Working on the game-facing C API. |
 | `design/playtest.md` | Working on play testing, the control pad, or approval. |
+| `design/quality.perf.md` | Working on the flattened runtime's stress tests (diversity, forest caching, bulk events, soak leaks) and the committed reports in `perf/`. |
 | `design/systems.md` | Building a specific pipeline. |
 | `design/sounds.md` | Working on sound events. |
 | `design/style.md` | Generating or judging how assets look. It is the current project's style and is opt-in. |
 | `design/third.party.md` | Calling Meshy or other outside services. |
 | `design/future.md` | Never as a source of work; these ideas are deliberately deferred. |
+| `book/$pipeline.md` | Using or changing a pipeline: what it does, its parameters, systems, channels, genomes, flow, performance, and QA. |
 
 The documents describe the foundry at maximum expression. Implement only what the current milestone needs.
+
+## Documentation
+
+Every pipeline has a book: `book/$pipeline.md` (`book/tree_v1.md` is the first). It explains the pipeline to a person who will use or change it: what the game asks for (its parameters and the generated C API), how each system builds its part, the channels between them, its genomes or other data, how information flows and where caching holds (`pipeline_flow`), its measured performance (`perf_stress`), how to QA it (sheets, the QA video), and its known limits. Writing the book is part of building a pipeline, not an afterthought:
+
+- Create it with the pipeline, and update it in the same change as any system, channel, genome, or parameter it describes.
+- Every number in it comes from a run (a stress report, a probe, a sheet), never from memory.
+- Ask for a pipeline's approval only once its book is current.
 
 ## Rules from the design
 
@@ -85,10 +95,19 @@ build/linux-release/foundry --headless  # MCP only, no window
 
 - Project data lives in the workspace root, `demo/` (`--workspace` picks another): `foundry.json`, `pipelines/`, `conformance/`, `meshy/`, and `fixed/`. Source code stays at the repo root.
 - After changing a channel schema in `src/channels/`, run `tools/gen_channels.py`; the build fails if `src/generated/` is stale.
+- Channels are named `$family_v$version_$feature` (`tree_v1_rig`, `tree_v1_genome`): the schema gives `family`, `version`, and `feature`, never a `name` (`design/flow.md`, "Naming"). Systems keep `$name_v$version` (`tree_rig_v1`).
 - Connect Claude Code to a running foundry with `claude mcp add --transport http foundry http://127.0.0.1:7878/mcp`.
 - Prefer the MCP tools for system work (`system_create`, `system_build`, `system_run`, `view_screenshot`, `ui_screenshot`): they keep manifests consistent and show the human what you're doing in the activity log.
 - Static things go through Meshy mesh items (`design/transforms.md`): `meshy_text_to_image` makes `<name>_concept`; once the human approves it (`approval_wait`), `meshy_image_to_3d` makes `<name>_mesh`. Size it with `mesh_transform` (fit against a conformance shape) and check `mesh_info` until it's grounded, centred, and sized right; then `mesh_recommend` builds the progressive mesh, recommends LOD0/1/2 by image error, and benchmarks each LOD. Use `mesh_lod_preview` for snippets, and `mesh_regenerate_lod` to change one LOD's error limit (limits always stack: the others are pushed out of its way, and only the LODs that changed are rebaked and re-benchmarked). Each LOD also gets a switch distance: the first distance at which fewer than the item's switch threshold (default 10%; `mesh_switch_threshold` sets it) of its pixels visibly disagree with the full mesh. `view_screenshot` takes `distance` to view an asset from that far with the game camera. Approving the mesh item stamps its LODs into `fixed/<name>/`.
 - While a system or channel is a draft and not committed, patch it in place; don't create a `_v2` for work in progress. Fork only from a final or committed version.
+- Pipelines run in the foundry (`design/flow.md`, "Pipelines"): `pipeline_get` describes one, `pipeline_set` drives the live instance the human sees (and `verify_native` compares every stage with its native build), `pipeline_view` renders one configuration, and `pipeline_sheet` renders a contact sheet across two parameters at one scale. Use sheets to check every species, age, and season before asking for approval.
+- Systems must draw random numbers one per statement: function argument order is unspecified, and GCC (native) and Clang (WebAssembly) differ, so `v3(rng(), rng(), rng())` breaks the native match.
+- The native runtime is generated: after changing a pipeline (or its genomes), run `tools/gen_pipelines.py`; the build fails if `src/library/` or `src/generated/stress/` is stale. `perf_stress` stress-tests a pipeline in it (`design/quality.perf.md`): `quick` after a change, `standard` before asking for approval. Each run writes `perf/report-$pipeline-$timestamp.json` (committed); pass `no_report` for scratch runs. Run the binary directly (`build/linux-release/stress/stress_tree_v1 --plan quick --no-report --snapshot run`) to see PNGs of what it measured.
+- Pipeline data such as species lives in config tables (`config/$table/`, e.g. `tree_v1_genomes`; `design/flow.md`, "Config"), not in the host: the host knows no pipeline, and its config editor is generic (the channel schema gives the fields, `table.json` the groups and colours). Tune entries through MCP: `config_get` (with `schema` for every field's range) and `config_set` (`from` to create an entry from the closest one). Each change is checked against the channel, rebuilds the live instance, and regenerates the native runtime's compiled-in config. Photograph the result with `pipeline_sheet` and `pipeline_view` (including from below and the side), and compare it with the entry's reference photos (`reference/`, linked with `config_set` `reference`; only public-domain or CC0 photos, each with a provenance sidecar), before calling it done. `workspace_select` with `reference: true` shows them in the viewport's corner.
+- `pipeline_flow` shows how parameters reach each stage, each stage's cache key, and how many distinct outputs it can have; with `probe` it shows which declared dependencies actually change an output. The viewport's Flow tab draws it (`workspace_select` takes `tab`: view, flow, or video).
+- `pipeline_video` exports a QA video of every variation of a pipeline into `qa/videos/` (H.264 MP4, through the system's `ffmpeg`); the viewport's Video tab does the same with pins and settings.
+- `build/linux-release/stress/stress_<pipeline> --plan explore --window` opens a forest to fly through (Tab or the right mouse button flies, B fires events where you look).
+- Fixed assets break through fractures (`design/transforms.md`, "Fracture"): `fracture_preview` cuts the asset's LOD1 with every algorithm (voronoi, impact, radial, slab, splinter) and recommends one; `fracture_generate` cuts and bakes the break into `fixed/<name>/fracture.bin` as a draft `fracture:<name>` item; `fracture_view` shows it at moments of the break. Look at the cut and the break before asking for approval.
 - When you need the human to approve something, call `approval_wait` on it instead of asking them to tell you; it returns as soon as they approve or reject, with any reason they gave.
 - Systems use `foundry::det` math from `boundary.h` (not `<cmath>` transcendentals), so the native build stays byte-identical to WebAssembly. `system_run` reports whether they match.
 - To keep the foundry running while you rebuild, run a copy (`cp build/linux-release/foundry build/linux-release/foundry-run`): relinking the binary under a running process crashes it.

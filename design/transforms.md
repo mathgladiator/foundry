@@ -54,6 +54,32 @@ A `<name>_mesh` goes through a chain of transforms, each visible in the workspac
 
 **Approval stamps the result.** When the human approves a mesh item, its three levels of detail are stamped out into `fixed/<name>/`, each as a vertex-cache-optimized triangle list, with the stats and performance budget in the manifest. Those stamped files are what the future static system will load. The stamped asset is final; changing it means approving a changed mesh item.
 
+## Fracture
+
+A fixed asset can break. Breaking it in the game doesn't simulate anything: the runtime swaps the intact asset for its fracture, the asset's LOD1 cut into pieces, and plays the break baked into it. LOD1 is the baseline because pieces are seen briefly, in motion, and from where the asset already stood, so LOD0's detail is wasted on them and LOD2 cuts visibly coarse. The fracture is its own item, `fracture:<name>`, beside the final asset in `fixed/<name>/` (`fracture.bin` and `fracture.json`); the asset stays final, and the human approves the fracture on its own.
+
+**The algorithms.** Every algorithm is a Voronoi diagram; they differ in where the seeds go and how distance is measured, so each suits a material:
+
+| Algorithm | Seeds | Suits |
+|---|---|---|
+| `voronoi` | Spread through the volume | Plaster, clay: an even, generic break |
+| `impact` | Packed toward the impact point | Stone, statues, anything struck: shards at the blow, big chunks away from it |
+| `radial` | A ring around the blow's axis at one depth, and a small inner ring | Ceramic, glass, hollow things: wedges radiating from the blow, running through along it |
+| `slab` | Stacked up the height, slightly off-centre | Layered stone, slate, brick: tilted layers |
+| `splinter` | Spread through the volume, with distance along the longest axis counting a twelfth | Wood, bone: long pieces along the grain |
+
+The foundry recommends one per asset: from its provenance prompt first ("vase" or "ceramic" is radial, "stone" or "statue" is impact, "wood" is splinter, "slate" is slab), then its shape (thin walls for its size are radial, long and thin is splinter, anything else impact). The piece count it recommends grows with the asset's size, from 8 to 32.
+
+**The cut.** Each cell keeps the part of the mesh's surface inside it (convex clipping, interpolating normals and colours). Where two cells meet, the mesh's cross-section on their shared plane is traced into loops, triangulated with its holes (the inside of a vase cut across is a ring), and clipped to the shared face; both pieces get it, facing opposite ways, so they meet exactly. Cut faces take the surface's mean colour, darkened, or a colour the fracture names. Crossings are computed the same way from either side of an edge, so the surface and the caps share their seams. Where the mesh has a gap, a cross-section doesn't close; it's closed with a straight edge and counted (`open_sections`), so a gap shows as a flat patch rather than a hole through a piece. The pieces' volumes add up to the mesh's: on the gnome and the gargoyle, every algorithm keeps the volume to the last printed digit (0.013233 m3 and 0.19758 m3).
+
+**The break.** A small rigid-body simulation, baked at 30 frames a second for 3 seconds by default. The blow sends each piece out from the impact point, along the blow, and up, falling off with distance from the impact and scaled by the asset's size (small things scatter less, big ones no farther than one about 0.8 m across). Pieces fall under gravity onto the ground (y = 0) through impulses at their hull points, with friction and some rolling resistance; they push each other apart as spheres of their own volume, never closer than they sat at rest, and they settle when slow for 0.4 seconds. The fracture stores each piece's rest centre and, per frame, its position and rotation, so playing it is a lookup and a blend between two frames: a skinned mesh with one bone per piece, the same thing the runtime already draws for trees.
+
+**In the foundry.** A fixed asset's inspector has a Fracture section: pick an algorithm (each with its description), the piece count, and a seed, preview the cut (pieces pushed apart and tinted, with their stats), then generate. The fracture item plays its break in the viewport, loops it, scrubs it, and shows the pieces apart. The agent does the same through `fracture_preview` (every algorithm side by side, with the recommendation), `fracture_generate`, and `fracture_view`.
+
+Measured on this machine: the gnome's LOD1 (1,452 triangles) cuts and bakes into 19 pieces in 17 ms and settles at 1.7 s; the gargoyle's (7,628 triangles) into 31 pieces in 86 ms, settling at 2.2 s.
+
+**Not yet.** Pieces collide with each other only as spheres, so they can overlap briefly while they fall; pieces don't break further when they land; and the game API has no fixed assets yet, so the swap and playback in the runtime wait for the static system.
+
 ## Triangle strips: measured and dropped
 
 Strips were the standard way to save memory and vertex work when GPUs had tiny post-transform caches (the NvTriStrip era). Modern GPUs reuse transformed vertices well, so an indexed triangle list reordered for that cache (meshoptimizer's `optimizeVertexCache`) is the standard choice, and the foundry uses lists only.

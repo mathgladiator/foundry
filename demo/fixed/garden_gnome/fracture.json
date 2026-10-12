@@ -1,0 +1,48 @@
+{
+  "baseline": "lod1.bin",
+  "created_at": "2026-10-11T23:57:47Z",
+  "doc": "The break of fixed/garden_gnome: its LOD1 cut by the slab algorithm into 5 pieces, with the fall baked.",
+  "generated_at": "2026-10-12T00:23:04Z",
+  "kind": "fracture",
+  "name": "garden_gnome",
+  "notes": [],
+  "settings": {
+    "algorithm": "slab",
+    "direction": [
+      0.0,
+      0.0,
+      -1.0
+    ],
+    "duration": 3.0,
+    "fps": 30.0,
+    "pieces": 5,
+    "seed": 3535,
+    "strength": 1.0
+  },
+  "state": "draft",
+  "stats": {
+    "algorithm": "slab",
+    "cap_triangles": 516,
+    "farthest_m": 0.864691700013509,
+    "fastest_at_end_m_s": 0.0,
+    "fps": 30.0,
+    "impact": [
+      -0.0006075650453567505,
+      0.36053603887557983,
+      0.11927107721567154
+    ],
+    "largest_share": 0.34960611169582473,
+    "moving_at_end": 0,
+    "ms": 2.312844,
+    "open_sections": 0,
+    "pieces": 5,
+    "seconds": 3.0,
+    "seeds": 5,
+    "settled_s": 1.6333333333333333,
+    "smallest_share": 0.03474011515016298,
+    "source_triangles": 1452,
+    "triangles": 2504,
+    "vertices": 2519,
+    "volume_m3": 0.01323268906981982
+  }
+}

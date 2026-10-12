@@ -1,7 +1,9 @@
 #include "assets/view.h"
 
 #include <cstdlib>
+#include <mutex>
 
+#include "assets/fracture_item.h"
 #include "assets/lod.h"
 #include "assets/mesh_item.h"
 #include "core/util.h"
@@ -18,7 +20,15 @@ void conformance_from_fit(const nlohmann::json &d, ViewContent &v) {
   }
 }
 
+std::mutex g_provider_mutex;
+LiveProvider g_provider;
+
 }  // namespace
+
+void set_live_provider(LiveProvider provider) {
+  std::lock_guard<std::mutex> lock(g_provider_mutex);
+  g_provider = std::move(provider);
+}
 
 ViewContent load_view(const workspace::Workspace &ws, const std::string &id) {
   ViewContent v;
@@ -34,10 +44,21 @@ ViewContent load_view(const workspace::Workspace &ws, const std::string &id) {
   workspace::Item item;
   if (!ws.find(id, item)) return v;
   v.label = item.id;
+  if (item.kind == "pipeline" || item.kind == "config") {
+    LiveProvider provider;
+    {
+      std::lock_guard<std::mutex> lock(g_provider_mutex);
+      provider = g_provider;
+    }
+    if (provider && provider(item, v)) return v;
+  }
   const std::string sub = item.data.value("kind", "");
   if (item.kind == "meshy" && sub == "concept") {
     auto img = std::make_shared<viewport::Image>();
     if (viewport::load_image(item.path + "/image.png", *img)) v.image = img;
+  } else if (item.kind == "reference") {
+    auto img = std::make_shared<viewport::Image>();
+    if (viewport::load_image(item.path, *img)) v.image = img;
   } else if (item.kind == "meshy" && sub == "mesh") {
     auto mesh = std::make_shared<runtime::Mesh>();
     std::string ignored;
@@ -53,6 +74,11 @@ ViewContent load_view(const workspace::Workspace &ws, const std::string &id) {
     }
     if (!v.lods.empty()) v.mesh = v.lods[0];
     conformance_from_fit(item.data, v);
+  } else if (item.kind == "fracture") {
+    // A fracture shows assembled (the moment it breaks); the inspector plays it.
+    fracture::Fracture f;
+    if (fracture_load(ws.root(), item.name, f)) v.mesh = std::make_shared<runtime::Mesh>(fracture::pose(f, 0));
+    conformance_from_fit(core::read_json(ws.root() + "/fixed/" + item.name + "/manifest.json"), v);
   } else if (item.kind == "conformance") {
     v.has_conformance = true;
     v.radius = item.data.value("radius", 0.0f);

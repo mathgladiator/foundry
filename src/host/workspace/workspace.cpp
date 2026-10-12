@@ -49,6 +49,13 @@ void Workspace::scan() {
       add("channel", name, p, source / "src/channels" / (name + ".manifest.json"));
     }
   });
+  // Config tables: config/<table>/<entry>.json, named <table>_<entry> (table.json describes the table).
+  each(root / "config", [&](const fs::path &t) {
+    each(t, [&](const fs::path &p) {
+      if (p.extension() == ".json" && p.stem() != "table")
+        add("config", t.filename().string() + "_" + p.stem().string(), p, p);
+    });
+  });
   each(root / "conformance", [&](const fs::path &p) {
     if (p.extension() == ".json") add("conformance", p.stem().string(), p, p);
   });
@@ -58,6 +65,25 @@ void Workspace::scan() {
   each(root / "fixed", [&](const fs::path &p) {
     if (fs::exists(p / "manifest.json")) add("fixed", p.filename().string(), p, p / "manifest.json");
   });
+  // A fixed asset's fracture is its own item, beside it (design/transforms.md, "Fracture").
+  each(root / "fixed", [&](const fs::path &p) {
+    if (fs::exists(p / "fracture.json")) add("fracture", p.filename().string(), p, p / "fracture.json");
+  });
+  // Reference material: photos under reference/ (any depth), each with a JSON sidecar naming its file and
+  // provenance; reference/trees/pine/01.json is reference:trees_pine_01 (design/flow.md, "Reference").
+  std::function<void(const fs::path &, const std::string &)> refs = [&](const fs::path &dir, const std::string &prefix) {
+    each(dir, [&](const fs::path &p) {
+      std::error_code ec;
+      if (fs::is_directory(p, ec)) {
+        refs(p, prefix + p.filename().string() + "_");
+      } else if (p.extension() == ".json") {
+        const nlohmann::json side = core::read_json(p.string());
+        if (side.is_object() && side.contains("file"))
+          add("reference", prefix + p.stem().string(), p.parent_path() / side["file"].get<std::string>(), p);
+      }
+    });
+  };
+  refs(root / "reference", "");
   std::lock_guard<std::mutex> lock(mutex_);
   bool changed = found.size() != items_.size();
   for (size_t i = 0; !changed && i < found.size(); ++i)
@@ -102,6 +128,10 @@ bool Workspace::update_manifest(const std::string &id, const std::function<void(
 }
 
 bool Workspace::approve(const std::string &id, std::string &error) {
+  if (id.rfind("reference:", 0) == 0) {
+    error = "reference material isn't approved; it's what assets are checked against";
+    return false;
+  }
   bool ok = update_manifest(id, [](nlohmann::json &j) {
     j["state"] = "final";
     j["approved_by"] = "human";
@@ -121,6 +151,10 @@ bool Workspace::approve(const std::string &id, std::string &error) {
 }
 
 bool Workspace::reject(const std::string &id, const std::string &reason, std::string &error) {
+  if (id.rfind("reference:", 0) == 0) {
+    error = "reference material isn't approved or rejected";
+    return false;
+  }
   Item item;
   if (find(id, item) && item.state() == "final") {
     error = id + " is final; fork it instead";
@@ -150,6 +184,30 @@ void Workspace::select(const std::string &id) {
     selected_ = id;
     ++version_;
   }
+}
+
+void Workspace::request_tab(const std::string &tab) {
+  std::lock_guard<std::mutex> lock(mutex_);
+  tab_ = tab;
+}
+
+void Workspace::request_reference(bool on) {
+  std::lock_guard<std::mutex> lock(mutex_);
+  reference_ = on ? 1 : 0;
+}
+
+int Workspace::take_reference() {
+  std::lock_guard<std::mutex> lock(mutex_);
+  const int r = reference_;
+  reference_ = -1;
+  return r;
+}
+
+std::string Workspace::take_tab() {
+  std::lock_guard<std::mutex> lock(mutex_);
+  std::string t;
+  t.swap(tab_);
+  return t;
 }
 
 std::string Workspace::selected() const {

@@ -1,0 +1,122 @@
+{
+  "created_at": "2026-10-12T00:24:00Z",
+  "doc": "A wetland and riverbank tree: a short trunk splitting into ascending limbs, hung all round with long weeping twigs that sweep the ground, narrow pale leaves turning yellow late in fall, and early catkins. Wood: black willow (Wood Handbook): light and whippy, so it streams in the wind.",
+  "notes": [],
+  "reference": [
+    "reference/trees/willow/01.jpg",
+    "reference/trees/willow/02.jpg",
+    "reference/trees/willow/03.jpg"
+  ],
+  "state": "draft",
+  "value": {
+    "age_girth": [
+      0.7,
+      0.85,
+      1,
+      1.7
+    ],
+    "age_height": [
+      0.15,
+      0.45,
+      1,
+      1.1
+    ],
+    "bark": "furrowed",
+    "bark_dark": [
+      0.3,
+      0.27,
+      0.22
+    ],
+    "bark_light": [
+      0.55,
+      0.5,
+      0.42
+    ],
+    "blossom": 0.25,
+    "blossom_color": [
+      0.86,
+      0.88,
+      0.5
+    ],
+    "blossom_leaf": 0.9,
+    "branch_angle": 45,
+    "branch_angle_var": 12,
+    "branch_curve": -2.2,
+    "branch_length": 0.7,
+    "branches": 40,
+    "clump": 0.028,
+    "cluster": 0.2,
+    "crown_ratio": 0.7,
+    "crown_shape": "hemispherical",
+    "dead_limbs": 0.15,
+    "deciduous": true,
+    "density": 0.39,
+    "divergence": 137.5,
+    "excurrent": false,
+    "fall_drop": 0.25,
+    "flare": 0.4,
+    "flex": 2.2,
+    "foliage": "fronds",
+    "fruit": 0,
+    "fruit_ripe": [
+      0.55,
+      0.38,
+      0.2
+    ],
+    "fruit_size": 0.05,
+    "fruit_unripe": [
+      0.45,
+      0.5,
+      0.25
+    ],
+    "height": 11,
+    "latin": "Salix babylonica",
+    "leaf_fall": [
+      0.85,
+      0.78,
+      0.3
+    ],
+    "leaf_fall_alt": [
+      0.7,
+      0.72,
+      0.32
+    ],
+    "leaf_spring": [
+      0.62,
+      0.78,
+      0.36
+    ],
+    "leaf_summer": [
+      0.42,
+      0.62,
+      0.3
+    ],
+    "leaf_winter": [
+      0.55,
+      0.5,
+      0.3
+    ],
+    "leafiness": 0.9,
+    "lean": 0.12,
+    "name": "Weeping willow",
+    "slender": 26,
+    "snow": 0.4,
+    "sprig_length": 0.9,
+    "sprigs": 0,
+    "stiffness": 7.0,
+    "tip_up": -0.3,
+    "twig_angle": 50,
+    "twig_curve": -2.5,
+    "twig_length": 1.0,
+    "twigs": 3,
+    "twist": 0.1,
+    "whorl": 0,
+    "winter_keep": 0,
+    "wobble": 0.12,
+    "wood": [
+      0.86,
+      0.8,
+      0.66
+    ]
+  }
+}

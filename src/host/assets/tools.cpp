@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <cstdio>
 
+#include "assets/fracture_item.h"
 #include "assets/lod.h"
 #include "assets/mesh_item.h"
 #include "assets/quality.h"
@@ -244,6 +245,162 @@ void register_tools(mcp::Registry &registry, const forge::Paths &paths, wasm::Ru
                   if (shown) label += ", " + std::to_string(shown->triangles()) + " triangles";
                   r.content.push_back({"text", label, "", ""});
                   r.content.push_back({"image", "", core::base64(png.data(), png.size()), "image/png"});
+                  return r;
+                }});
+
+  // ---- fracture (design/transforms.md, "Fracture") ----
+  std::string algos;
+  for (const auto &a : fracture::algorithms()) algos += std::string(" ") + a.name + ": " + a.doc;
+  const json settings_schema = {
+      {"asset", {{"type", "string"}, {"description", "a fixed asset, e.g. garden_gnome"}}},
+      {"algorithm", {{"type", "string"}, {"enum", {"voronoi", "impact", "radial", "slab", "splinter"}}}},
+      {"pieces", {{"type", "integer"}, {"description", "seeds, 2 to 64 (cells that miss the mesh are dropped)"}}},
+      {"seed", {{"type", "integer"}}},
+      {"impact", {{"type", "array"}, {"items", {{"type", "number"}}}, {"description", "where the blow lands (m); default: where it first meets the mesh at 60% height"}}},
+      {"direction", {{"type", "array"}, {"items", {{"type", "number"}}}, {"description", "the blow's direction; default [0,0,-1], from the front"}}},
+      {"strength", {{"type", "number"}, {"description", "scales the blow, default 1"}}},
+      {"duration", {{"type", "number"}, {"description", "seconds baked, default 3"}}},
+      {"interior", {{"type", "string"}, {"description", "cut faces' colour, e.g. #8a7a6a; default the surface's mean, darkened"}}}};
+  auto conformance_of = [](const json &manifest, ViewContent &v) {
+    if (manifest.contains("fit") && manifest["fit"].contains("conformance")) {
+      v.has_conformance = true;
+      v.radius = manifest["fit"]["conformance"].value("radius", 0.0f);
+      v.height = manifest["fit"]["conformance"].value("height", 0.0f);
+    }
+  };
+  auto shot = [](const runtime::Mesh &m, const ViewContent &base, float frame, const json &args, int size) {
+    ViewContent v = base;
+    v.mesh = std::make_shared<runtime::Mesh>(m);
+    viewport::Camera cam;
+    cam.view = viewport::parse_view(args.value("view", "orbit"));
+    cam.yaw = args.value("yaw", cam.yaw);
+    cam.pitch = args.value("pitch", cam.pitch);
+    cam.zoom = args.value("zoom", 1.0f);
+    cam.frame = frame;
+    viewport::Overlays overlays;
+    overlays.hero = false;
+    overlays.hex = false;
+    overlays.conformance = false;
+    auto png = viewport::encode_png(render_view(v, cam, overlays, false, size, size, 0));
+    return core::base64(png.data(), png.size());
+  };
+  registry.add({"fracture_preview",
+                "Cut a fixed asset's LOD1 with one fracture algorithm, or all of them (the default), and show the "
+                "pieces pushed apart and tinted, with stats, plus the algorithm recommended for this asset. Nothing "
+                "is saved; fracture_generate makes the fracture. Algorithms:" + algos,
+                mcp::schema([&] {
+                  json sc = settings_schema;
+                  sc["algorithm"]["enum"].push_back("all");
+                  sc["explode"] = {{"type", "number"}, {"description", "0 to 1, default 0.35"}};
+                  sc["view"] = {{"type", "string"}, {"enum", {"orbit", "front", "side", "top", "iso"}}};
+                  sc["yaw"] = {{"type", "number"}};
+                  sc["pitch"] = {{"type", "number"}};
+                  sc["size"] = {{"type", "integer"}, {"description", "pixels, default 320"}};
+                  return sc;
+                }(), {"asset"}),
+                [root, conformance_of, shot](const json &args) {
+                  const std::string name = args.value("asset", "");
+                  runtime::Mesh lod1;
+                  json manifest;
+                  std::string error;
+                  if (!fracture_baseline(root, name, lod1, manifest, error)) return mcp::Result::error(error);
+                  const json rec = fracture::recommend(lod1, manifest.value("provenance", json::object()).value("prompt", ""));
+                  json base_args = args;
+                  if (!base_args.contains("pieces")) base_args["pieces"] = rec["pieces"];
+                  std::vector<std::string> which;
+                  const std::string algo = args.value("algorithm", "all");
+                  if (algo == "all")
+                    for (const auto &a : fracture::algorithms()) which.push_back(a.name);
+                  else
+                    which.push_back(algo);
+                  ViewContent base;
+                  conformance_of(manifest, base);
+                  const int size = std::clamp(args.value("size", 320), 128, 768);
+                  const float explode = std::clamp(args.value("explode", 0.35f), 0.0f, 1.0f);
+                  mcp::Result r;
+                  r.content.push_back({"text", "recommended for " + name + ": " + rec.dump(), "", ""});
+                  for (const auto &a : which) {
+                    fracture::Settings st;
+                    json sa = base_args;
+                    sa["algorithm"] = a;
+                    if (!st.from_json(sa, error)) return mcp::Result::error(error);
+                    fracture::Fracture f;
+                    if (!fracture::cut(lod1, st, f, error)) {
+                      r.content.push_back({"text", a + ": " + error, "", ""});
+                      continue;
+                    }
+                    r.content.push_back({"text", a + ": " + f.stats.dump(), "", ""});
+                    r.content.push_back({"image", "", shot(fracture::exploded(f, explode, true), base, 0, args, size), "image/png"});
+                  }
+                  return r;
+                }});
+  registry.add({"fracture_generate",
+                "Make a fixed asset's fracture: cut its LOD1 with an algorithm and bake the break (pieces thrown by "
+                "the blow, falling, and settling on the ground). Writes fixed/<asset>/fracture.bin and fracture.json "
+                "as a draft item (fracture:<asset>) for the human to approve, and returns its stats and a strip of "
+                "the break. Missing settings take the recommended algorithm and piece count.",
+                mcp::schema(settings_schema, {"asset"}),
+                [root, &ws, conformance_of, shot](const json &args) {
+                  const std::string name = args.value("asset", "");
+                  runtime::Mesh lod1;
+                  json manifest;
+                  std::string error;
+                  if (!fracture_baseline(root, name, lod1, manifest, error)) return mcp::Result::error(error);
+                  const json rec = fracture::recommend(lod1, manifest.value("provenance", json::object()).value("prompt", ""));
+                  json sa = args;
+                  if (!sa.contains("algorithm")) sa["algorithm"] = rec["algorithm"];
+                  if (!sa.contains("pieces")) sa["pieces"] = rec["pieces"];
+                  fracture::Settings st;
+                  if (!st.from_json(sa, error)) return mcp::Result::error(error);
+                  fracture::Fracture f;
+                  if (!fracture_generate(root, name, st, f, error)) return mcp::Result::error(error);
+                  ws.scan();
+                  ViewContent base;
+                  conformance_of(manifest, base);
+                  const float frame = std::max(base.height, 0.4f) * 1.6f;  // room for the pieces to land
+                  mcp::Result r;
+                  r.content.push_back({"text", json({{"item", "fracture:" + name}, {"settings", st.to_json()}, {"stats", f.stats}}).dump(), "", ""});
+                  for (float t : {0.0f, 0.2f, 0.5f, 1.0f, f.seconds()}) {
+                    char label[32];
+                    std::snprintf(label, sizeof label, "t = %.2f s", t);
+                    r.content.push_back({"text", label, "", ""});
+                    r.content.push_back({"image", "", shot(fracture::pose(f, t), base, frame, json({{"pitch", 0.55}}), 256), "image/png"});
+                  }
+                  return r;
+                }});
+  registry.add({"fracture_view",
+                "Render a fixed asset's generated fracture at moments of its break (times, in seconds since it "
+                "broke), or pushed apart and tinted (explode > 0) to judge the pieces.",
+                mcp::schema({{"asset", {{"type", "string"}}},
+                             {"times", {{"type", "array"}, {"items", {{"type", "number"}}}}},
+                             {"explode", {{"type", "number"}}},
+                             {"view", {{"type", "string"}, {"enum", {"orbit", "front", "side", "top", "iso"}}}},
+                             {"yaw", {{"type", "number"}}},
+                             {"pitch", {{"type", "number"}}},
+                             {"zoom", {{"type", "number"}}},
+                             {"size", {{"type", "integer"}, {"description", "pixels, default 384"}}}},
+                            {"asset"}),
+                [root, conformance_of, shot](const json &args) {
+                  const std::string name = args.value("asset", "");
+                  fracture::Fracture f;
+                  if (!fracture_load(root, name, f)) return mcp::Result::error("no fracture for " + name + "; run fracture_generate");
+                  ViewContent base;
+                  conformance_of(core::read_json(root + "/fixed/" + name + "/manifest.json"), base);
+                  const int size = std::clamp(args.value("size", 384), 128, 1024);
+                  const float frame = std::max(base.height, 0.4f) * 1.6f;  // room for the pieces to land
+                  mcp::Result r;
+                  r.content.push_back({"text", f.stats.dump(), "", ""});
+                  if (args.value("explode", 0.0f) > 0) {
+                    r.content.push_back({"image", "", shot(fracture::exploded(f, args.value("explode", 0.35f), true), base, 0, args, size), "image/png"});
+                    return r;
+                  }
+                  json times = args.value("times", json::array({0.0, 0.25, 0.6, 1.2, f.seconds()}));
+                  for (const auto &t : times) {
+                    char label[32];
+                    std::snprintf(label, sizeof label, "t = %.2f s", t.get<float>());
+                    r.content.push_back({"text", label, "", ""});
+                    r.content.push_back({"image", "", shot(fracture::pose(f, t.get<float>()), base, frame, args, size), "image/png"});
+                  }
                   return r;
                 }});
 }

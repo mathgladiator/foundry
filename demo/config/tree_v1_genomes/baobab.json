@@ -1,0 +1,121 @@
+{
+  "created_at": "2026-10-12T00:24:00Z",
+  "doc": "A dry tropical woodland tree: an enormous bottle trunk, bare most of the year, with a short crown of stubby limbs like roots in the air, big white flowers, and long velvety pods hanging on stalks. Wood: spongy and very light (baobab stores water in its trunk).",
+  "notes": [],
+  "reference": [
+    "reference/trees/baobab/01.jpg",
+    "reference/trees/baobab/02.jpg"
+  ],
+  "state": "draft",
+  "value": {
+    "age_girth": [
+      0.8,
+      1.15,
+      1.5,
+      2.0
+    ],
+    "age_height": [
+      0.12,
+      0.4,
+      1.0,
+      1.15
+    ],
+    "bark": "smooth",
+    "bark_dark": [
+      0.46,
+      0.4,
+      0.37
+    ],
+    "bark_light": [
+      0.7,
+      0.6,
+      0.55
+    ],
+    "blossom": 0.3,
+    "blossom_color": [
+      0.97,
+      0.95,
+      0.88
+    ],
+    "blossom_leaf": 0.4,
+    "branch_angle": 62,
+    "branch_angle_var": 14,
+    "branch_curve": 0.3,
+    "branch_length": 0.42,
+    "branches": 12,
+    "clump": 0.06,
+    "cluster": 0.55,
+    "crown_ratio": 0.32,
+    "crown_shape": "cylindrical",
+    "dead_limbs": 0.1,
+    "deciduous": true,
+    "density": 0.25,
+    "divergence": 137.5,
+    "excurrent": false,
+    "fall_drop": 0.6,
+    "flare": 0.35,
+    "flex": 0.4,
+    "foliage": "clumps",
+    "fruit": 0.7,
+    "fruit_ripe": [
+      0.62,
+      0.55,
+      0.42
+    ],
+    "fruit_size": 0.17,
+    "fruit_unripe": [
+      0.48,
+      0.55,
+      0.36
+    ],
+    "height": 13,
+    "latin": "Adansonia digitata",
+    "leaf_fall": [
+      0.7,
+      0.6,
+      0.28
+    ],
+    "leaf_fall_alt": [
+      0.6,
+      0.55,
+      0.3
+    ],
+    "leaf_spring": [
+      0.5,
+      0.66,
+      0.3
+    ],
+    "leaf_summer": [
+      0.35,
+      0.52,
+      0.24
+    ],
+    "leaf_winter": [
+      0.5,
+      0.45,
+      0.3
+    ],
+    "leafiness": 0.6,
+    "lean": 0.03,
+    "name": "Baobab",
+    "slender": 14,
+    "snow": 0,
+    "sprig_length": 0.3,
+    "sprigs": 1,
+    "stiffness": 3.5,
+    "tip_up": 0.45,
+    "twig_angle": 45,
+    "twig_curve": 0.3,
+    "twig_length": 0.4,
+    "twigs": 3,
+    "twist": 0.05,
+    "whorl": 0,
+    "winter_keep": 0,
+    "wobble": 0.15,
+    "wood": [
+      0.88,
+      0.82,
+      0.7
+    ]
+  }
+}

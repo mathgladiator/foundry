@@ -1,0 +1,18 @@
+{
+  "kind": "reference",
+  "file": "02.jpg",
+  "subject": "willow",
+  "title": "Saule tortueux.jpg",
+  "description": "Saule tortueux - Salix matsudana",
+  "provenance": {
+    "service": "Wikimedia Commons",
+    "page": "https://commons.wikimedia.org/wiki/File:Saule_tortueux.jpg",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/d/dd/Saule_tortueux.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+    "license": "Public domain",
+    "license_url": "",
+    "author": "KoS",
+    "attribution_required": false,
+    "retrieved": "2026-10-11",
+    "size": "800 px copy of 1496x2256"
+  }
+}

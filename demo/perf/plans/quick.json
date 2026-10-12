@@ -1,0 +1,10 @@
+{
+  "name": "quick",
+  "doc": "About a minute: the agent's default after a change (design/quality.perf.md).",
+  "seed": 7,
+  "phases": [
+    {"kind": "diversity", "configs": 100, "seconds": 20},
+    {"kind": "forest", "sets": 10, "counts": [100, 200, 400, 800], "seconds": 4},
+    {"kind": "events", "sets": 10, "counts": [100], "seconds": 15}
+  ]
+}

@@ -1,0 +1,121 @@
+{
+  "created_at": "2026-10-11T21:44:59Z",
+  "doc": "A dense, dark evergreen dome on a short trunk: bronze new leaves and cream flower panicles in spring, mangoes ripening from green to gold. Wood: mango.",
+  "notes": [],
+  "reference": [
+    "reference/trees/mango/01.jpg",
+    "reference/trees/mango/02.jpg"
+  ],
+  "state": "draft",
+  "value": {
+    "age_girth": [
+      0.75,
+      0.88,
+      1,
+      1.5
+    ],
+    "age_height": [
+      0.2,
+      0.5,
+      1,
+      1.1
+    ],
+    "bark": "furrowed",
+    "bark_dark": [
+      0.2,
+      0.18,
+      0.16
+    ],
+    "bark_light": [
+      0.42,
+      0.38,
+      0.34
+    ],
+    "blossom": 0.35,
+    "blossom_color": [
+      0.95,
+      0.86,
+      0.7
+    ],
+    "blossom_leaf": 1,
+    "branch_angle": 60,
+    "branch_angle_var": 14,
+    "branch_curve": 0.2,
+    "branch_length": 0.65,
+    "branches": 9,
+    "clump": 0.1,
+    "cluster": 0.1,
+    "crown_ratio": 0.8,
+    "crown_shape": "spherical",
+    "dead_limbs": 0.15,
+    "deciduous": false,
+    "density": 0.52,
+    "divergence": 137.5,
+    "excurrent": false,
+    "fall_drop": 0.05,
+    "flare": 0.5,
+    "flex": 0.6,
+    "foliage": "clumps",
+    "fruit": 1.2,
+    "fruit_ripe": [
+      0.96,
+      0.62,
+      0.16
+    ],
+    "fruit_size": 0.09,
+    "fruit_unripe": [
+      0.36,
+      0.55,
+      0.2
+    ],
+    "height": 9,
+    "latin": "Mangifera indica",
+    "leaf_fall": [
+      0.15,
+      0.32,
+      0.15
+    ],
+    "leaf_fall_alt": [
+      0.2,
+      0.34,
+      0.14
+    ],
+    "leaf_spring": [
+      0.5,
+      0.32,
+      0.2
+    ],
+    "leaf_summer": [
+      0.12,
+      0.3,
+      0.14
+    ],
+    "leaf_winter": [
+      0.14,
+      0.3,
+      0.15
+    ],
+    "leafiness": 1.5,
+    "lean": 0.06,
+    "name": "Mango",
+    "slender": 18,
+    "snow": 0,
+    "sprig_length": 0.4,
+    "sprigs": 3,
+    "stiffness": 9.5,
+    "tip_up": 0.05,
+    "twig_angle": 50,
+    "twig_curve": -0.2,
+    "twig_length": 0.5,
+    "twigs": 6,
+    "twist": 0.15,
+    "whorl": 0,
+    "winter_keep": 0,
+    "wobble": 0.14,
+    "wood": [
+      0.8,
+      0.68,
+      0.45
+    ]
+  }
+}

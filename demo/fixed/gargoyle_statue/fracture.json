@@ -1,0 +1,48 @@
+{
+  "baseline": "lod1.bin",
+  "created_at": "2026-10-12T00:04:38Z",
+  "doc": "The break of fixed/gargoyle_statue: its LOD1 cut by the impact algorithm into 31 pieces, with the fall baked.",
+  "generated_at": "2026-10-12T00:06:05Z",
+  "kind": "fracture",
+  "name": "gargoyle_statue",
+  "notes": [],
+  "settings": {
+    "algorithm": "impact",
+    "direction": [
+      0.0,
+      0.0,
+      -1.0
+    ],
+    "duration": 3.0,
+    "fps": 30.0,
+    "pieces": 31,
+    "seed": 1,
+    "strength": 1.0
+  },
+  "state": "draft",
+  "stats": {
+    "algorithm": "impact",
+    "cap_triangles": 10200,
+    "farthest_m": 2.232485220488287,
+    "fastest_at_end_m_s": 0.0,
+    "fps": 30.0,
+    "impact": [
+      -3.829598426818848e-06,
+      0.8914023041725159,
+      0.14588692784309387
+    ],
+    "largest_share": 0.3385819695931225,
+    "moving_at_end": 0,
+    "ms": 86.308461,
+    "open_sections": 0,
+    "pieces": 31,
+    "seconds": 3.0,
+    "seeds": 31,
+    "settled_s": 2.2333333333333334,
+    "smallest_share": 3.7661398098733525e-06,
+    "source_triangles": 7628,
+    "triangles": 21274,
+    "vertices": 18575,
+    "volume_m3": 0.19757911345785165
+  }
+}

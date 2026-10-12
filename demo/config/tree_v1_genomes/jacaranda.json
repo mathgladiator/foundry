@@ -1,0 +1,122 @@
+{
+  "created_at": "2026-10-12T02:11:22Z",
+  "doc": "A subtropical highland street tree: a wide umbrella of arching limbs and fine fern-like leaves that turns violet-blue with blossom on nearly bare wood in spring. Wood: not in the Wood Handbook; density and stiffness are estimates.",
+  "notes": [],
+  "reference": [
+    "reference/trees/jacaranda/01.jpg",
+    "reference/trees/jacaranda/02.jpg",
+    "reference/trees/jacaranda/03.jpg"
+  ],
+  "state": "draft",
+  "value": {
+    "age_girth": [
+      0.7,
+      0.85,
+      1,
+      1.5
+    ],
+    "age_height": [
+      0.18,
+      0.5,
+      1,
+      1.1
+    ],
+    "bark": "furrowed",
+    "bark_dark": [
+      0.26,
+      0.22,
+      0.2
+    ],
+    "bark_light": [
+      0.5,
+      0.44,
+      0.38
+    ],
+    "blossom": 0.9,
+    "blossom_color": [
+      0.55,
+      0.45,
+      0.86
+    ],
+    "blossom_leaf": 0.15,
+    "branch_angle": 55,
+    "branch_angle_var": 12,
+    "branch_curve": -0.2,
+    "branch_length": 0.65,
+    "branches": 9,
+    "clump": 0.08,
+    "cluster": 0,
+    "crown_ratio": 0.7,
+    "crown_shape": "hemispherical",
+    "dead_limbs": 0.15,
+    "deciduous": true,
+    "density": 0.5,
+    "divergence": 137.5,
+    "excurrent": false,
+    "fall_drop": 0.1,
+    "flare": 0.4,
+    "flex": 1.0,
+    "foliage": "clumps",
+    "fruit": 0,
+    "fruit_ripe": [
+      0.6,
+      0.08,
+      0.1
+    ],
+    "fruit_size": 0.05,
+    "fruit_unripe": [
+      0.7,
+      0.2,
+      0.15
+    ],
+    "height": 12,
+    "latin": "Jacaranda mimosifolia",
+    "leaf_fall": [
+      0.55,
+      0.58,
+      0.25
+    ],
+    "leaf_fall_alt": [
+      0.65,
+      0.6,
+      0.28
+    ],
+    "leaf_spring": [
+      0.4,
+      0.6,
+      0.3
+    ],
+    "leaf_summer": [
+      0.3,
+      0.52,
+      0.24
+    ],
+    "leaf_winter": [
+      0.4,
+      0.48,
+      0.25
+    ],
+    "leafiness": 1.1,
+    "lean": 0.08,
+    "name": "Jacaranda",
+    "slender": 38,
+    "snow": 0,
+    "sprig_length": 0.35,
+    "sprigs": 3,
+    "stiffness": 8.0,
+    "tip_up": 0.1,
+    "twig_angle": 45,
+    "twig_curve": 0.1,
+    "twig_length": 0.5,
+    "twigs": 6,
+    "twist": 0.1,
+    "whorl": 0,
+    "winter_keep": 0.3,
+    "wobble": 0.1,
+    "wood": [
+      0.86,
+      0.78,
+      0.62
+    ]
+  }
+}

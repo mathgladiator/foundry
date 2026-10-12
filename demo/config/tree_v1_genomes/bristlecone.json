@@ -1,0 +1,120 @@
+{
+  "created_at": "2026-10-12T00:24:00Z",
+  "doc": "An alpine treeline pine: short, stout, and twisted by wind and millennia, with half its limbs dead and bleached to bare golden wood, dense bottlebrush needles on the living ones, and snow. Wood: dense and resinous (estimated from the hard pines; not in the Wood Handbook).",
+  "notes": [],
+  "reference": [
+    "reference/trees/bristlecone/01.jpg"
+  ],
+  "state": "draft",
+  "value": {
+    "age_girth": [
+      0.7,
+      0.95,
+      1.2,
+      1.7
+    ],
+    "age_height": [
+      0.15,
+      0.45,
+      1.0,
+      1.1
+    ],
+    "bark": "fluted",
+    "bark_dark": [
+      0.34,
+      0.22,
+      0.16
+    ],
+    "bark_light": [
+      0.62,
+      0.42,
+      0.28
+    ],
+    "blossom": 0,
+    "blossom_color": [
+      1,
+      1,
+      1
+    ],
+    "blossom_leaf": 1,
+    "branch_angle": 70,
+    "branch_angle_var": 30,
+    "branch_curve": 0.4,
+    "branch_length": 0.5,
+    "branches": 16,
+    "clump": 0.05,
+    "cluster": 0.35,
+    "crown_ratio": 0.75,
+    "crown_shape": "tapered",
+    "dead_limbs": 0.45,
+    "deciduous": false,
+    "density": 0.55,
+    "divergence": 120,
+    "excurrent": false,
+    "fall_drop": 0.02,
+    "flare": 0.8,
+    "flex": 0.5,
+    "foliage": "needles",
+    "fruit": 0.3,
+    "fruit_ripe": [
+      0.5,
+      0.36,
+      0.22
+    ],
+    "fruit_size": 0.06,
+    "fruit_unripe": [
+      0.4,
+      0.25,
+      0.35
+    ],
+    "height": 6,
+    "latin": "Pinus longaeva",
+    "leaf_fall": [
+      0.2,
+      0.34,
+      0.27
+    ],
+    "leaf_fall_alt": [
+      0.22,
+      0.36,
+      0.28
+    ],
+    "leaf_spring": [
+      0.26,
+      0.42,
+      0.3
+    ],
+    "leaf_summer": [
+      0.2,
+      0.36,
+      0.28
+    ],
+    "leaf_winter": [
+      0.18,
+      0.31,
+      0.26
+    ],
+    "leafiness": 0.9,
+    "lean": 0.3,
+    "name": "Bristlecone pine",
+    "slender": 16,
+    "snow": 1,
+    "sprig_length": 0.4,
+    "sprigs": 0,
+    "stiffness": 9.0,
+    "tip_up": 0.5,
+    "twig_angle": 40,
+    "twig_curve": 0.4,
+    "twig_length": 0.35,
+    "twigs": 3,
+    "twist": 0.35,
+    "whorl": 0,
+    "winter_keep": 0,
+    "wobble": 0.4,
+    "wood": [
+      0.9,
+      0.76,
+      0.5
+    ]
+  }
+}

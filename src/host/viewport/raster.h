@@ -25,6 +25,8 @@ struct Camera {
   int quarter = 0;     // quarter turns (90 degrees each) around +Y, for every view
   float distance = 0;  // orbit only: > 0 places the camera this many metres from the asset, with the
                        // game camera's 0.9 rad field of view (to see an asset as at a LOD switch)
+  float frame = 0;     // > 0: frame a box this many metres tall and wide instead of the content, so
+                       // several renders (a contact sheet) share one scale
 };
 
 struct Overlays {

@@ -1,0 +1,43 @@
+{
+  "family": "tree",
+  "version": 1,
+  "feature": "branch",
+  "doc": "One branch of the skeleton, as a polyline with radii.",
+  "fields": [
+    {
+      "name": "parent",
+      "type": "i32",
+      "doc": "Parent branch, or -1 for the stem."
+    },
+    {
+      "name": "at",
+      "type": "u32",
+      "doc": "Index of the parent's point it grows from."
+    },
+    {
+      "name": "level",
+      "type": "u32",
+      "doc": "Branch order: 0 stem, 1 limb, 2 twig, 3 sprig."
+    },
+    {
+      "name": "dead",
+      "type": "bool",
+      "doc": "Dead wood: bare, never leafs."
+    },
+    {
+      "name": "points",
+      "type": "vec3[]",
+      "doc": "Points along the branch, base first (metres)."
+    },
+    {
+      "name": "radii",
+      "type": "f32[]",
+      "doc": "Radius at each point (metres), by the pipe model."
+    },
+    {
+      "name": "bones",
+      "type": "u32[]",
+      "doc": "The bone that owns each point."
+    }
+  ]
+}

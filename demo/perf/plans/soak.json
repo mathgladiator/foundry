@@ -1,0 +1,9 @@
+{
+  "name": "soak",
+  "doc": "Hours: overnight, and later in the cloud (design/quality.perf.md).",
+  "seed": 7,
+  "phases": [
+    {"kind": "soak", "minutes": 240, "population": 500, "churn_per_second": 20, "sample_seconds": 30, "drain_minutes": 20}
+  ],
+  "thresholds": {"soak_rss_slope_mb_per_hour": 4, "drain_tolerance_mb": 8}
+}

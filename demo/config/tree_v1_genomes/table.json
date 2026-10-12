@@ -1,0 +1,117 @@
+{
+  "channel": "tree_v1_genome",
+  "doc": "Tree species for tree_v1: each entry is one genome, everything that makes a pine a pine. The pipeline's species parameter picks one by name; the native runtime compiles every entry in (tools/gen_pipelines.py), so the game sees only the names.",
+  "label": "species",
+  "editor": {
+    "groups": [
+      {
+        "label": "Identity",
+        "fields": [
+          "name",
+          "latin",
+          "deciduous",
+          "excurrent"
+        ]
+      },
+      {
+        "label": "Trunk and crown",
+        "fields": [
+          "height",
+          "slender",
+          "crown_ratio",
+          "crown_shape",
+          "lean",
+          "twist",
+          "wobble",
+          "flare",
+          "age_height",
+          "age_girth"
+        ]
+      },
+      {
+        "label": "Limbs",
+        "fields": [
+          "branches",
+          "branch_angle",
+          "branch_angle_var",
+          "branch_length",
+          "whorl",
+          "divergence",
+          "branch_curve",
+          "tip_up",
+          "cluster",
+          "dead_limbs"
+        ]
+      },
+      {
+        "label": "Twigs",
+        "fields": [
+          "twigs",
+          "twig_angle",
+          "twig_length",
+          "twig_curve",
+          "sprigs",
+          "sprig_length"
+        ]
+      },
+      {
+        "label": "Foliage and seasons",
+        "fields": [
+          "foliage",
+          "clump",
+          "leafiness",
+          "fall_drop",
+          "winter_keep",
+          "snow",
+          "leaf_spring",
+          "leaf_summer",
+          "leaf_fall",
+          "leaf_fall_alt",
+          "leaf_winter"
+        ]
+      },
+      {
+        "label": "Blossom and fruit",
+        "fields": [
+          "blossom",
+          "blossom_leaf",
+          "blossom_color",
+          "fruit",
+          "fruit_size",
+          "fruit_unripe",
+          "fruit_ripe"
+        ]
+      },
+      {
+        "label": "Bark and wood",
+        "fields": [
+          "bark",
+          "bark_light",
+          "bark_dark",
+          "wood",
+          "density"
+        ]
+      },
+      {
+        "label": "Motion",
+        "fields": [
+          "flex",
+          "stiffness"
+        ]
+      }
+    ],
+    "colors": [
+      "bark_light",
+      "bark_dark",
+      "wood",
+      "leaf_spring",
+      "leaf_summer",
+      "leaf_fall",
+      "leaf_fall_alt",
+      "leaf_winter",
+      "blossom_color",
+      "fruit_unripe",
+      "fruit_ripe"
+    ]
+  }
+}

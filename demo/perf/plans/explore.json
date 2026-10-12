@@ -1,0 +1,6 @@
+{
+  "name": "explore",
+  "doc": "A forest to fly through with --window (design/quality.perf.md, The binary). Tab or the right mouse button flies; B fires events near where you look; R regrows; N draws new sets; - and = turn the wind.",
+  "seed": 7,
+  "phases": [{"kind": "explore", "count": 2000, "sets": 10}]
+}

@@ -6,6 +6,7 @@
 #include "mcp/handler.h"
 #include "mcp/server.h"
 #include "meshy/meshy.h"
+#include "pipeline/live.h"
 #include "wasm/runner.h"
 #include "workspace/workspace.h"
 
@@ -18,6 +19,7 @@ struct Services {
   wasm::Runner *runner = nullptr;
   meshy::Client *meshy = nullptr;
   mcp::Server *server = nullptr;
+  pipeline::Live *live = nullptr;  // the pipeline instance the workspace shows
 };
 
 // Runs the windowed workspace UI until the window closes. Returns an exit code.

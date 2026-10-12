@@ -1,0 +1,53 @@
+{
+  "family": "tree",
+  "version": 1,
+  "feature": "bone",
+  "doc": "One wind bone: a stretch of trunk or branch that bends as one, about its pivot.",
+  "fields": [
+    {
+      "name": "parent",
+      "type": "i32",
+      "doc": "Parent bone, or -1 for the root."
+    },
+    {
+      "name": "pivot",
+      "type": "vec3",
+      "doc": "Where it bends, in the rest pose (metres, tree space)."
+    },
+    {
+      "name": "axis",
+      "type": "vec3",
+      "doc": "Unit direction along the wood, from the pivot."
+    },
+    {
+      "name": "length",
+      "type": "f32",
+      "doc": "Length of wood carried beyond the pivot, metres."
+    },
+    {
+      "name": "frequency",
+      "type": "f32",
+      "doc": "First natural sway frequency, Hz (cantilever beam, Moore and Maguire 2004 range)."
+    },
+    {
+      "name": "damping",
+      "type": "f32",
+      "doc": "Damping ratio."
+    },
+    {
+      "name": "drag",
+      "type": "f32",
+      "doc": "Bend in radians at a steady 10 m/s wind."
+    },
+    {
+      "name": "level",
+      "type": "u32",
+      "doc": "Branch order: 0 stem, 1 limb, 2 twig."
+    },
+    {
+      "name": "piece",
+      "type": "u32",
+      "doc": "The break piece this bone belongs to."
+    }
+  ]
+}

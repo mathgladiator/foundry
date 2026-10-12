@@ -1,0 +1,122 @@
+{
+  "created_at": "2026-10-12T02:11:21Z",
+  "doc": "A temperate hardwood forest tree: dense oval crown on a straight grey furrowed trunk, famous for its fall blaze of red, orange, and gold. Wood: sugar maple (Wood Handbook, green).",
+  "notes": [],
+  "reference": [
+    "reference/trees/maple/01.jpg",
+    "reference/trees/maple/02.jpg",
+    "reference/trees/maple/03.jpg"
+  ],
+  "state": "draft",
+  "value": {
+    "age_girth": [
+      0.7,
+      0.85,
+      1,
+      1.7
+    ],
+    "age_height": [
+      0.15,
+      0.45,
+      1,
+      1.1
+    ],
+    "bark": "furrowed",
+    "bark_dark": [
+      0.27,
+      0.25,
+      0.23
+    ],
+    "bark_light": [
+      0.55,
+      0.52,
+      0.48
+    ],
+    "blossom": 0,
+    "blossom_color": [
+      0.8,
+      0.8,
+      0.5
+    ],
+    "blossom_leaf": 1,
+    "branch_angle": 55,
+    "branch_angle_var": 14,
+    "branch_curve": 0.1,
+    "branch_length": 0.8,
+    "branches": 16,
+    "clump": 0.085,
+    "cluster": 0,
+    "crown_ratio": 0.75,
+    "crown_shape": "spherical",
+    "dead_limbs": 0.25,
+    "deciduous": true,
+    "density": 0.56,
+    "divergence": 137.5,
+    "excurrent": false,
+    "fall_drop": 0.15,
+    "flare": 0.2,
+    "flex": 0.75,
+    "foliage": "clumps",
+    "fruit": 0,
+    "fruit_ripe": [
+      0.55,
+      0.38,
+      0.2
+    ],
+    "fruit_size": 0.05,
+    "fruit_unripe": [
+      0.45,
+      0.5,
+      0.25
+    ],
+    "height": 14,
+    "latin": "Acer saccharum",
+    "leaf_fall": [
+      0.86,
+      0.26,
+      0.1
+    ],
+    "leaf_fall_alt": [
+      0.96,
+      0.62,
+      0.12
+    ],
+    "leaf_spring": [
+      0.45,
+      0.62,
+      0.28
+    ],
+    "leaf_summer": [
+      0.24,
+      0.45,
+      0.18
+    ],
+    "leaf_winter": [
+      0.45,
+      0.3,
+      0.18
+    ],
+    "leafiness": 1.4,
+    "lean": 0.06,
+    "name": "Sugar maple",
+    "slender": 40,
+    "snow": 0.6,
+    "sprig_length": 0.35,
+    "sprigs": 3,
+    "stiffness": 10.7,
+    "tip_up": 0.1,
+    "twig_angle": 50,
+    "twig_curve": 0.2,
+    "twig_length": 0.45,
+    "twigs": 6,
+    "twist": 0.15,
+    "whorl": 0,
+    "winter_keep": 0,
+    "wobble": 0.16,
+    "wood": [
+      0.9,
+      0.82,
+      0.68
+    ]
+  }
+}

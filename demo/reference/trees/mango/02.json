@@ -1,0 +1,18 @@
+{
+  "kind": "reference",
+  "file": "02.jpg",
+  "subject": "mango",
+  "title": "Mango tree within a homestead.jpg",
+  "description": "A mango tree with green raw  fruits",
+  "provenance": {
+    "service": "Wikimedia Commons",
+    "page": "https://commons.wikimedia.org/wiki/File:Mango_tree_within_a_homestead.jpg",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/c/c6/Mango_tree_within_a_homestead.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+    "license": "CC0",
+    "license_url": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
+    "author": "Nana Pearls",
+    "attribution_required": false,
+    "retrieved": "2026-10-11",
+    "size": "800 px copy of 2593x3457"
+  }
+}

@@ -1,0 +1,122 @@
+{
+  "created_at": "2026-10-12T02:11:21Z",
+  "doc": "A Mediterranean column: a narrow dark flame of upswept limbs hugging the trunk, evergreen, with little snow. Wood: not in the Wood Handbook; density and stiffness are estimates near other cypresses.",
+  "notes": [],
+  "reference": [
+    "reference/trees/cypress/01.jpg",
+    "reference/trees/cypress/02.jpg",
+    "reference/trees/cypress/03.jpg"
+  ],
+  "state": "draft",
+  "value": {
+    "age_girth": [
+      0.7,
+      0.85,
+      1,
+      1.3
+    ],
+    "age_height": [
+      0.15,
+      0.45,
+      1,
+      1.2
+    ],
+    "bark": "shaggy",
+    "bark_dark": [
+      0.3,
+      0.24,
+      0.19
+    ],
+    "bark_light": [
+      0.55,
+      0.45,
+      0.36
+    ],
+    "blossom": 0,
+    "blossom_color": [
+      1,
+      1,
+      1
+    ],
+    "blossom_leaf": 1,
+    "branch_angle": 18,
+    "branch_angle_var": 6,
+    "branch_curve": 0.4,
+    "branch_length": 0.14,
+    "branches": 48,
+    "clump": 0.04,
+    "cluster": 0,
+    "crown_ratio": 0.92,
+    "crown_shape": "flame",
+    "dead_limbs": 0.05,
+    "deciduous": false,
+    "density": 0.48,
+    "divergence": 137.5,
+    "excurrent": true,
+    "fall_drop": 0.02,
+    "flare": 0.35,
+    "flex": 0.8,
+    "foliage": "clumps",
+    "fruit": 0.4,
+    "fruit_ripe": [
+      0.5,
+      0.32,
+      0.2
+    ],
+    "fruit_size": 0.07,
+    "fruit_unripe": [
+      0.45,
+      0.3,
+      0.25
+    ],
+    "height": 14,
+    "latin": "Cupressus sempervirens",
+    "leaf_fall": [
+      0.12,
+      0.25,
+      0.15
+    ],
+    "leaf_fall_alt": [
+      0.14,
+      0.27,
+      0.16
+    ],
+    "leaf_spring": [
+      0.16,
+      0.3,
+      0.18
+    ],
+    "leaf_summer": [
+      0.12,
+      0.26,
+      0.15
+    ],
+    "leaf_winter": [
+      0.12,
+      0.24,
+      0.16
+    ],
+    "leafiness": 2.2,
+    "lean": 0.02,
+    "name": "Italian cypress",
+    "slender": 40,
+    "snow": 0.3,
+    "sprig_length": 0.4,
+    "sprigs": 0,
+    "stiffness": 8.0,
+    "tip_up": 0.3,
+    "twig_angle": 25,
+    "twig_curve": -0.3,
+    "twig_length": 0.4,
+    "twigs": 3,
+    "twist": 0.04,
+    "whorl": 0,
+    "winter_keep": 0,
+    "wobble": 0.05,
+    "wood": [
+      0.86,
+      0.72,
+      0.52
+    ]
+  }
+}

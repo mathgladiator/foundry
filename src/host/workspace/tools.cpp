@@ -36,14 +36,26 @@ void register_tools(mcp::Registry &registry, Workspace &ws) {
                   return mcp::Result::json({{"id", item.id}, {"kind", item.kind}, {"path", item.path},
                                             {"manifest", item.manifest}, {"data", item.data}});
                 }});
-  registry.add({"workspace_select", "Select an item in the workspace UI, so the human sees it in the viewport.",
-                mcp::schema({{"id", {{"type", "string"}}}}, {"id"}),
+  registry.add({"workspace_select",
+                "Select an item in the workspace UI, so the human sees it in the viewport. For a pipeline or config entry, "
+                "tab switches the viewport to view (the live instance), flow (how parameters reach each stage and "
+                "where caching holds), or video (QA video export). reference shows or hides the reference photos that the config "
+                "entries in use link to, in the viewport's corner.",
+                mcp::schema({{"id", {{"type", "string"}}},
+                             {"tab", {{"type", "string"}, {"enum", {"view", "flow", "video"}}}},
+                             {"reference", {{"type", "boolean"}}}},
+                            {"id"}),
                 [&ws](const json &args) {
                   ws.scan();
                   Item item;
                   std::string id = args.value("id", "");
                   if (id != "preview" && !ws.find(id, item)) return mcp::Result::error("no item " + id);
                   ws.select(id);
+                  if (args.contains("tab")) ws.request_tab(args["tab"]);
+                  if (args.contains("reference")) {
+                    const json &r = args["reference"];
+                    ws.request_reference(r.is_boolean() ? r.get<bool>() : r.is_string() && r.get<std::string>() == "true");
+                  }
                   return mcp::Result::text("selected " + id);
                 }});
   registry.add({"approval_wait",

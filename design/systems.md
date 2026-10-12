@@ -29,6 +29,8 @@ A tree pipeline is made of these systems:
 - **Coloring.** Colors the tree from its genome, age, and season. It supports both flat palette regions and real textures (such as bark); which one a project uses is a style choice, and `style.md` is opt-in per project.
 - **Simulator.** Updates the rig's values each frame so that an individual instance can be animated.
 
+The first tree pipeline (`pipelines/tree_v1.json`) has four systems: `tree_rig` (the skeleton), `tree_mesh` (the body), `tree_colorize`, and `tree_animate` (the simulator). Ages are sapling, young, mature, and ancient; seasons are winter, spring, summer, and fall. Genomes are data in the config table `config/tree_v1_genomes/`: pine, cherry, oak, apple (with fruit), hickory, osage, olive, ebony, dragonwood (a fantasy species after the dragon's blood tree), lignum vitae, teak, mahogany, mango, coconut (a palm, with fronds and coconuts), acacia, mesquite, spruce, birch, weeping willow (wetland), baobab (dry tropical woodland), bristlecone pine (alpine treeline), coast redwood (temperate rainforest), sugar maple, Italian cypress, cedar of Lebanon, American elm, larch, and jacaranda. Each links to public-domain or CC0 photos of the real tree in `reference/trees/`. `book/tree_v1.md` documents the pipeline.
+
 This is a complex pipeline, but the key is that the runtime is responsible for every part of generation, the cache levels between systems are clear, and ownership is well defined. The game can simply say: "at this position, I want a spruce that is young, in autumn, with the local wind."
 
 The game states the most it wants and provides the inputs. The runtime and caching layer then minimize context switching between resources and collapse parameters to maximize cache hits:

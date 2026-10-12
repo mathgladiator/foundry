@@ -20,7 +20,7 @@ namespace workspace {
 
 struct Item {
   std::string id;        // "<kind>:<name>", e.g. "system:mesh_progressive_v1"
-  std::string kind;      // pipeline, system, channel, conformance, meshy, fixed
+  std::string kind;      // pipeline, system, channel, config, conformance, meshy, fixed, fracture
   std::string name;      // e.g. mesh_progressive_v1
   std::string path;      // the item's file or directory
   std::string manifest;  // the JSON file holding state and notes
@@ -39,7 +39,7 @@ struct Preview {
 class Workspace {
  public:
   // Systems and channels come from the source root; everything else (pipelines,
-  // conformance shapes, Meshy items, fixed assets) from the workspace root.
+  // config tables, conformance shapes, Meshy items, fixed assets) from the workspace root.
   Workspace(std::string source_root, std::string root);
 
   void scan();
@@ -53,6 +53,12 @@ class Workspace {
 
   void select(const std::string &id);
   std::string selected() const;
+  // A viewport tab the UI should switch to (view, flow, video), taken once.
+  void request_tab(const std::string &tab);
+  std::string take_tab();
+  // Whether the viewport shows reference photos in its corner, taken once (-1: no request).
+  void request_reference(bool on);
+  int take_reference();
 
   void set_preview(Preview preview);  // also selects the preview
   Preview preview() const;
@@ -76,6 +82,8 @@ class Workspace {
   mutable std::mutex mutex_;
   std::vector<Item> items_;
   std::string selected_;
+  std::string tab_;
+  int reference_ = -1;
   Preview preview_;
   std::function<void(const Item &)> on_approved_;
   int version_ = 0;

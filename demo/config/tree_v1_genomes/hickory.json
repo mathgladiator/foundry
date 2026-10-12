@@ -1,0 +1,120 @@
+{
+  "created_at": "2026-10-11T00:00:00Z",
+  "doc": "Tall and straight with a narrow oval crown; shaggy bark that peels in long strips; golden in fall. Wood: shagbark hickory (Wood Handbook, green).",
+  "notes": [],
+  "reference": [
+    "reference/trees/hickory/01.jpg"
+  ],
+  "state": "draft",
+  "value": {
+    "age_girth": [
+      0.7,
+      0.85,
+      1,
+      1.4
+    ],
+    "age_height": [
+      0.15,
+      0.45,
+      1,
+      1.15
+    ],
+    "bark": "shaggy",
+    "bark_dark": [
+      0.22,
+      0.2,
+      0.18
+    ],
+    "bark_light": [
+      0.6,
+      0.57,
+      0.52
+    ],
+    "blossom": 0,
+    "blossom_color": [
+      0.7,
+      0.7,
+      0.4
+    ],
+    "blossom_leaf": 1,
+    "branch_angle": 50,
+    "branch_angle_var": 12,
+    "branch_curve": 0.3,
+    "branch_length": 0.38,
+    "branches": 12,
+    "clump": 0.075,
+    "cluster": 0,
+    "crown_ratio": 0.55,
+    "crown_shape": "tend_flame",
+    "dead_limbs": 0.2,
+    "deciduous": true,
+    "density": 0.64,
+    "divergence": 137.5,
+    "excurrent": true,
+    "fall_drop": 0.3,
+    "flare": 0.35,
+    "flex": 0.7,
+    "foliage": "clumps",
+    "fruit": 0,
+    "fruit_ripe": [
+      0.4,
+      0.32,
+      0.2
+    ],
+    "fruit_size": 0.05,
+    "fruit_unripe": [
+      0.45,
+      0.5,
+      0.25
+    ],
+    "height": 11,
+    "latin": "Carya ovata",
+    "leaf_fall": [
+      0.88,
+      0.72,
+      0.18
+    ],
+    "leaf_fall_alt": [
+      0.78,
+      0.58,
+      0.16
+    ],
+    "leaf_spring": [
+      0.5,
+      0.66,
+      0.26
+    ],
+    "leaf_summer": [
+      0.28,
+      0.46,
+      0.18
+    ],
+    "leaf_winter": [
+      0.5,
+      0.4,
+      0.25
+    ],
+    "leafiness": 1.0,
+    "lean": 0.03,
+    "name": "Hickory",
+    "slender": 45,
+    "snow": 0.5,
+    "sprig_length": 0.35,
+    "sprigs": 2,
+    "stiffness": 10.8,
+    "tip_up": 0.15,
+    "twig_angle": 45,
+    "twig_curve": 0.1,
+    "twig_length": 0.45,
+    "twigs": 5,
+    "twist": 0.06,
+    "whorl": 0,
+    "winter_keep": 0,
+    "wobble": 0.1,
+    "wood": [
+      0.85,
+      0.72,
+      0.55
+    ]
+  }
+}

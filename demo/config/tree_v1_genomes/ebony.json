@@ -1,0 +1,120 @@
+{
+  "created_at": "2026-10-11T00:00:00Z",
+  "doc": "Tall tropical evergreen with a dense, deep-green crown, buttressed base, near-black plated bark, and jet-black heartwood. Wood: ebony, from published densities (very heavy, very stiff).",
+  "notes": [],
+  "reference": [
+    "reference/trees/ebony/01.jpg"
+  ],
+  "state": "draft",
+  "value": {
+    "age_girth": [
+      0.7,
+      0.85,
+      1,
+      1.4
+    ],
+    "age_height": [
+      0.12,
+      0.4,
+      1,
+      1.2
+    ],
+    "bark": "plated",
+    "bark_dark": [
+      0.1,
+      0.09,
+      0.09
+    ],
+    "bark_light": [
+      0.3,
+      0.28,
+      0.27
+    ],
+    "blossom": 0,
+    "blossom_color": [
+      0.9,
+      0.9,
+      0.8
+    ],
+    "blossom_leaf": 1,
+    "branch_angle": 60,
+    "branch_angle_var": 12,
+    "branch_curve": 0.2,
+    "branch_length": 0.4,
+    "branches": 14,
+    "clump": 0.08,
+    "cluster": 0,
+    "crown_ratio": 0.6,
+    "crown_shape": "tend_flame",
+    "dead_limbs": 0.15,
+    "deciduous": false,
+    "density": 0.9,
+    "divergence": 137.5,
+    "excurrent": true,
+    "fall_drop": 0.05,
+    "flare": 0.6,
+    "flex": 0.6,
+    "foliage": "clumps",
+    "fruit": 0,
+    "fruit_ripe": [
+      0.3,
+      0.2,
+      0.15
+    ],
+    "fruit_size": 0.05,
+    "fruit_unripe": [
+      0.5,
+      0.55,
+      0.3
+    ],
+    "height": 12,
+    "latin": "Diospyros ebenum",
+    "leaf_fall": [
+      0.15,
+      0.3,
+      0.16
+    ],
+    "leaf_fall_alt": [
+      0.18,
+      0.33,
+      0.17
+    ],
+    "leaf_spring": [
+      0.24,
+      0.4,
+      0.22
+    ],
+    "leaf_summer": [
+      0.14,
+      0.3,
+      0.16
+    ],
+    "leaf_winter": [
+      0.14,
+      0.28,
+      0.16
+    ],
+    "leafiness": 1.4,
+    "lean": 0.03,
+    "name": "Ebony",
+    "slender": 45,
+    "snow": 0.0,
+    "sprig_length": 0.4,
+    "sprigs": 2,
+    "stiffness": 16,
+    "tip_up": 0.1,
+    "twig_angle": 45,
+    "twig_curve": 0.0,
+    "twig_length": 0.45,
+    "twigs": 6,
+    "twist": 0.05,
+    "whorl": 0,
+    "winter_keep": 0,
+    "wobble": 0.08,
+    "wood": [
+      0.08,
+      0.07,
+      0.07
+    ]
+  }
+}

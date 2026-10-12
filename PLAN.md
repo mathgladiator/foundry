@@ -9,16 +9,12 @@ This file is how the project is managed. It holds one current milestone, with TO
 
 # Current milestone: a complex system
 
-- [ ] **The build.** Is the build system set up so that each system compiles to WebAssembly, and the same systems also build into a native static library?
-- [ ] **WebAssembly.** Is everything building and linking, with systems actually running in WebAssembly inside the host?
-- [ ] **The agentic flow.** Can the agent create a system, build it, run it, and see the result, all through MCP?
-- [ ] **trees that have wind, break apart and genomes**
 - [ ] **rocks that break uniquely**
 - [ ] **single joint system**
 
 ## Not in this milestone
 
-To keep the milestone focused, these wait even though they are designed: trees and other nature, crafted things, buildings, humanoids, creatures, magic, auras, sound, shadows, the sleep and wake engine beyond what static meshes need, recording and replay, and the generated C game API.
+To keep the milestone focused, these wait even though they are designed: trees and other nature, crafted things, buildings, humanoids, creatures, magic, auras, sound, shadows, the sleep and wake engine beyond what static meshes need, and recording and replay.
 
 # Future milestones
 

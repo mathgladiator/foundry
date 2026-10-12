@@ -1,0 +1,121 @@
+{
+  "created_at": "2026-10-11T21:44:59Z",
+  "doc": "Tall, straight, clear bole under a rounded crown of very large leaves; drops them in the dry season (winter here) and carries white flower panicles. Wood: golden teak (Wood Handbook).",
+  "notes": [],
+  "reference": [
+    "reference/trees/teak/01.jpg",
+    "reference/trees/teak/02.jpg"
+  ],
+  "state": "draft",
+  "value": {
+    "age_girth": [
+      0.7,
+      0.85,
+      1,
+      1.5
+    ],
+    "age_height": [
+      0.15,
+      0.45,
+      1,
+      1.15
+    ],
+    "bark": "furrowed",
+    "bark_dark": [
+      0.36,
+      0.31,
+      0.26
+    ],
+    "bark_light": [
+      0.62,
+      0.57,
+      0.5
+    ],
+    "blossom": 0.25,
+    "blossom_color": [
+      0.96,
+      0.94,
+      0.86
+    ],
+    "blossom_leaf": 1,
+    "branch_angle": 55,
+    "branch_angle_var": 12,
+    "branch_curve": 0.25,
+    "branch_length": 0.45,
+    "branches": 9,
+    "clump": 0.1,
+    "cluster": 0.1,
+    "crown_ratio": 0.45,
+    "crown_shape": "spherical",
+    "dead_limbs": 0.15,
+    "deciduous": true,
+    "density": 0.55,
+    "divergence": 137.5,
+    "excurrent": true,
+    "fall_drop": 0.5,
+    "flare": 0.5,
+    "flex": 0.6,
+    "foliage": "clumps",
+    "fruit": 0,
+    "fruit_ripe": [
+      0.55,
+      0.38,
+      0.2
+    ],
+    "fruit_size": 0.05,
+    "fruit_unripe": [
+      0.45,
+      0.5,
+      0.25
+    ],
+    "height": 14,
+    "latin": "Tectona grandis",
+    "leaf_fall": [
+      0.56,
+      0.43,
+      0.2
+    ],
+    "leaf_fall_alt": [
+      0.46,
+      0.34,
+      0.18
+    ],
+    "leaf_spring": [
+      0.5,
+      0.62,
+      0.25
+    ],
+    "leaf_summer": [
+      0.3,
+      0.45,
+      0.18
+    ],
+    "leaf_winter": [
+      0.5,
+      0.38,
+      0.24
+    ],
+    "leafiness": 0.9,
+    "lean": 0.04,
+    "name": "Teak",
+    "slender": 40,
+    "snow": 0,
+    "sprig_length": 0.35,
+    "sprigs": 2,
+    "stiffness": 10.7,
+    "tip_up": 0.1,
+    "twig_angle": 50,
+    "twig_curve": 0.2,
+    "twig_length": 0.5,
+    "twigs": 5,
+    "twist": 0.08,
+    "whorl": 0,
+    "winter_keep": 0.05,
+    "wobble": 0.1,
+    "wood": [
+      0.76,
+      0.55,
+      0.26
+    ]
+  }
+}

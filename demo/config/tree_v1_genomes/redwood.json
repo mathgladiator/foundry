@@ -1,0 +1,121 @@
+{
+  "created_at": "2026-10-12T00:24:00Z",
+  "doc": "A temperate rainforest giant: a straight, buttressed, fluted red trunk clear of limbs for half its height, then a narrow spire of short drooping limbs with flat dark sprays of needles. The tallest tree in the set. Wood: redwood, old growth (Wood Handbook): light and stiff for its weight.",
+  "notes": [],
+  "reference": [
+    "reference/trees/redwood/01.jpg",
+    "reference/trees/redwood/02.jpg"
+  ],
+  "state": "draft",
+  "value": {
+    "age_girth": [
+      0.7,
+      0.9,
+      1.0,
+      1.5
+    ],
+    "age_height": [
+      0.12,
+      0.4,
+      1.0,
+      1.3
+    ],
+    "bark": "fluted",
+    "bark_dark": [
+      0.38,
+      0.18,
+      0.13
+    ],
+    "bark_light": [
+      0.62,
+      0.34,
+      0.24
+    ],
+    "blossom": 0,
+    "blossom_color": [
+      1,
+      1,
+      1
+    ],
+    "blossom_leaf": 1,
+    "branch_angle": 98,
+    "branch_angle_var": 10,
+    "branch_curve": -0.6,
+    "branch_length": 0.24,
+    "branches": 44,
+    "clump": 0.03,
+    "cluster": 0,
+    "crown_ratio": 0.5,
+    "crown_shape": "conical",
+    "dead_limbs": 0.2,
+    "deciduous": false,
+    "density": 0.4,
+    "divergence": 137.5,
+    "excurrent": true,
+    "fall_drop": 0.03,
+    "flare": 1.0,
+    "flex": 0.6,
+    "foliage": "needles",
+    "fruit": 0.2,
+    "fruit_ripe": [
+      0.48,
+      0.32,
+      0.2
+    ],
+    "fruit_size": 0.04,
+    "fruit_unripe": [
+      0.4,
+      0.45,
+      0.3
+    ],
+    "height": 16,
+    "latin": "Sequoia sempervirens",
+    "leaf_fall": [
+      0.15,
+      0.31,
+      0.2
+    ],
+    "leaf_fall_alt": [
+      0.17,
+      0.33,
+      0.21
+    ],
+    "leaf_spring": [
+      0.24,
+      0.42,
+      0.24
+    ],
+    "leaf_summer": [
+      0.15,
+      0.32,
+      0.2
+    ],
+    "leaf_winter": [
+      0.14,
+      0.29,
+      0.2
+    ],
+    "leafiness": 1.2,
+    "lean": 0.02,
+    "name": "Coast redwood",
+    "slender": 28,
+    "snow": 0.3,
+    "sprig_length": 0.4,
+    "sprigs": 0,
+    "stiffness": 9.2,
+    "tip_up": 0.3,
+    "twig_angle": 55,
+    "twig_curve": -0.3,
+    "twig_length": 0.45,
+    "twigs": 4,
+    "twist": 0.03,
+    "whorl": 0,
+    "winter_keep": 0,
+    "wobble": 0.04,
+    "wood": [
+      0.78,
+      0.45,
+      0.33
+    ]
+  }
+}

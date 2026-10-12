@@ -1,0 +1,121 @@
+{
+  "created_at": "2026-10-11T21:44:59Z",
+  "doc": "A low, sprawling desert tree: twisted limbs leaving the trunk near the ground, drooping under feathery bright leaves, yellow catkins in spring and tan bean pods. Bare in winter. Wood: mesquite.",
+  "notes": [],
+  "reference": [
+    "reference/trees/mesquite/01.jpg",
+    "reference/trees/mesquite/02.jpg"
+  ],
+  "state": "draft",
+  "value": {
+    "age_girth": [
+      0.75,
+      0.9,
+      1,
+      1.6
+    ],
+    "age_height": [
+      0.2,
+      0.5,
+      1,
+      1.1
+    ],
+    "bark": "shaggy",
+    "bark_dark": [
+      0.18,
+      0.13,
+      0.1
+    ],
+    "bark_light": [
+      0.42,
+      0.34,
+      0.28
+    ],
+    "blossom": 0.4,
+    "blossom_color": [
+      0.95,
+      0.85,
+      0.35
+    ],
+    "blossom_leaf": 0.6,
+    "branch_angle": 50,
+    "branch_angle_var": 20,
+    "branch_curve": 0.05,
+    "branch_length": 0.85,
+    "branches": 9,
+    "clump": 0.06,
+    "cluster": 0,
+    "crown_ratio": 0.65,
+    "crown_shape": "hemispherical",
+    "dead_limbs": 0.25,
+    "deciduous": true,
+    "density": 0.7,
+    "divergence": 137.5,
+    "excurrent": false,
+    "fall_drop": 0.3,
+    "flare": 0.4,
+    "flex": 0.8,
+    "foliage": "clumps",
+    "fruit": 0.8,
+    "fruit_ripe": [
+      0.78,
+      0.65,
+      0.4
+    ],
+    "fruit_size": 0.05,
+    "fruit_unripe": [
+      0.6,
+      0.65,
+      0.35
+    ],
+    "height": 6,
+    "latin": "Prosopis glandulosa",
+    "leaf_fall": [
+      0.6,
+      0.6,
+      0.28
+    ],
+    "leaf_fall_alt": [
+      0.65,
+      0.55,
+      0.25
+    ],
+    "leaf_spring": [
+      0.55,
+      0.7,
+      0.3
+    ],
+    "leaf_summer": [
+      0.4,
+      0.58,
+      0.25
+    ],
+    "leaf_winter": [
+      0.45,
+      0.38,
+      0.25
+    ],
+    "leafiness": 1.5,
+    "lean": 0.25,
+    "name": "Mesquite",
+    "slender": 16,
+    "snow": 0.25,
+    "sprig_length": 0.4,
+    "sprigs": 3,
+    "stiffness": 8,
+    "tip_up": 0.2,
+    "twig_angle": 55,
+    "twig_curve": -0.2,
+    "twig_length": 0.55,
+    "twigs": 6,
+    "twist": 0.35,
+    "whorl": 0,
+    "winter_keep": 0,
+    "wobble": 0.32,
+    "wood": [
+      0.6,
+      0.3,
+      0.18
+    ]
+  }
+}

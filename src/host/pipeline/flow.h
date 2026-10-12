@@ -1,0 +1,55 @@
+// How information flows through a pipeline, and where caching can hold
+// (design/flow.md, "Pipelines"): which parameters reach each stage, what a
+// change to each parameter reruns, how many distinct outputs each stage can
+// have, and (by probing) which declared dependencies actually change a
+// stage's output.
+#pragma once
+
+#include <string>
+#include <vector>
+
+#include <nlohmann/json.hpp>
+
+#include "pipeline/pipeline.h"
+
+namespace pipeline {
+
+struct FlowEdge {
+  std::string from;   // a stage id
+  std::string field;  // the field read ("bones"), or empty for the whole output
+};
+
+struct FlowStage {
+  std::string id, system, phase, in, out;
+  int depth = 0;                    // longest path from the parameters
+  std::vector<std::string> direct;  // parameters its input binds
+  std::vector<std::pair<std::string, std::string>> binds;  // (parameter, the input field it binds), e.g. (species, genome)
+  std::vector<std::string> all;     // every parameter its output depends on: its cache key
+  std::vector<FlowEdge> upstream;
+  double distinct = 0;    // how many distinct outputs it can have; 0 when unbounded
+  std::string distinct_text;
+};
+
+struct FlowParam {
+  std::string name, type;
+  double cardinality = 0;  // 0 when continuous or a clock
+  std::string cardinality_text;
+  std::vector<std::string> reruns;  // stages that rerun when it changes
+  std::string table;                // config parameters: the table they pick from (config/<table>/)
+  size_t entries = 0;               // and how many entries it has
+};
+
+struct Flow {
+  std::vector<FlowParam> params;
+  std::vector<FlowStage> stages;
+  nlohmann::json to_json() const;
+};
+
+Flow analyze(const Definition &def);
+
+// Varies each parameter away from `base` (other values held) and reports, per
+// parameter and stage, whether the stage's output changed. A declared
+// dependency that never changes an output is where a cache could be shared.
+nlohmann::json probe(Runner &runner, const Definition &def, const nlohmann::json &base, int samples = 3);
+
+}  // namespace pipeline

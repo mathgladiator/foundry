@@ -261,6 +261,12 @@ Image render(const Scene &scene, int width, int height) {
     bounds.add({-1, 0, -1});
     bounds.add({1, 1.8f, 1});
   }
+  if (scene.camera.frame > 0) {
+    const float f = scene.camera.frame;
+    bounds = Bounds();
+    bounds.add({-0.5f * f, 0, -0.5f * f});
+    bounds.add({0.5f * f, f, 0.5f * f});
+  }
   vec3 centre = (bounds.lo + bounds.hi) * 0.5f;
   vec3 ext = bounds.hi - bounds.lo;
   float radius = 0.5f * std::sqrt(dot(ext, ext)) + 0.05f;

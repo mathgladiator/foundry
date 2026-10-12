@@ -1,0 +1,33 @@
+{
+  "family": "tree",
+  "version": 1,
+  "feature": "foliage",
+  "doc": "Where a foliage clump grows: tree_rig places them, tree_mesh decides by season which are leaves, blossom, or bare.",
+  "fields": [
+    {
+      "name": "position",
+      "type": "vec3",
+      "doc": "Centre, metres."
+    },
+    {
+      "name": "normal",
+      "type": "vec3",
+      "doc": "Outward direction from the crown's centre."
+    },
+    {
+      "name": "radius",
+      "type": "f32",
+      "doc": "Clump radius, metres."
+    },
+    {
+      "name": "bone",
+      "type": "u32",
+      "doc": "The bone it rides on."
+    },
+    {
+      "name": "random",
+      "type": "f32",
+      "doc": "A stable random number in [0, 1) for per-clump choices (drop, blossom, fruit)."
+    }
+  ]
+}

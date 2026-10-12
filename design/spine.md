@@ -115,6 +115,7 @@ This is the hosting spine. The application runs on SDL3 with a good UI, so that 
 - `transforms.md`: asset-pipeline transforms, which run in the foundry and bake their results, as opposed to runtime systems.
 - `submit.md`: the engine that updates, sleeps, and draws pipeline instances, and the mega shader.
 - `playtest.md`: how humans and the agent play test and approve.
+- `quality.perf.md`: stress-testing a pipeline in the native runtime: diversity, caching at scale, and leaks.
 - `systems.md`: the individual pipelines.
 - `api.md`: the generated front door a game uses to drive the runtime.
 - `sounds.md`: how pipelines fire sound events.

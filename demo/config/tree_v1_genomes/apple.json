@@ -1,0 +1,122 @@
+{
+  "created_at": "2026-10-11T00:00:00Z",
+  "doc": "Small, low, gnarled orchard tree with a wide round crown; white-pink blossom with the leaves in spring, apples green in summer and red in fall. Scaly plated bark. Wood: apple (Wood Handbook, green).",
+  "notes": [],
+  "reference": [
+    "reference/trees/apple/01.jpg",
+    "reference/trees/apple/02.jpg",
+    "reference/trees/apple/03.jpg"
+  ],
+  "state": "draft",
+  "value": {
+    "age_girth": [
+      0.75,
+      0.9,
+      1,
+      1.6
+    ],
+    "age_height": [
+      0.25,
+      0.55,
+      1,
+      1.05
+    ],
+    "bark": "plated",
+    "bark_dark": [
+      0.26,
+      0.22,
+      0.19
+    ],
+    "bark_light": [
+      0.52,
+      0.47,
+      0.42
+    ],
+    "blossom": 0.55,
+    "blossom_color": [
+      0.98,
+      0.9,
+      0.92
+    ],
+    "blossom_leaf": 0.6,
+    "branch_angle": 58,
+    "branch_angle_var": 15,
+    "branch_curve": 0.2,
+    "branch_length": 0.75,
+    "branches": 8,
+    "clump": 0.09,
+    "cluster": 0,
+    "crown_ratio": 0.75,
+    "crown_shape": "spherical",
+    "dead_limbs": 0.3,
+    "deciduous": true,
+    "density": 0.61,
+    "divergence": 137.5,
+    "excurrent": false,
+    "fall_drop": 0.3,
+    "flare": 0.4,
+    "flex": 0.9,
+    "foliage": "clumps",
+    "fruit": 1.6,
+    "fruit_ripe": [
+      0.8,
+      0.14,
+      0.12
+    ],
+    "fruit_size": 0.065,
+    "fruit_unripe": [
+      0.55,
+      0.7,
+      0.25
+    ],
+    "height": 5.5,
+    "latin": "Malus domestica",
+    "leaf_fall": [
+      0.6,
+      0.58,
+      0.2
+    ],
+    "leaf_fall_alt": [
+      0.7,
+      0.45,
+      0.15
+    ],
+    "leaf_spring": [
+      0.5,
+      0.68,
+      0.28
+    ],
+    "leaf_summer": [
+      0.3,
+      0.5,
+      0.2
+    ],
+    "leaf_winter": [
+      0.4,
+      0.32,
+      0.2
+    ],
+    "leafiness": 1.1,
+    "lean": 0.12,
+    "name": "Apple",
+    "slender": 22,
+    "snow": 0.5,
+    "sprig_length": 0.4,
+    "sprigs": 3,
+    "stiffness": 8.8,
+    "tip_up": 0.15,
+    "twig_angle": 48,
+    "twig_curve": -0.2,
+    "twig_length": 0.5,
+    "twigs": 6,
+    "twist": 0.2,
+    "whorl": 0,
+    "winter_keep": 0,
+    "wobble": 0.2,
+    "wood": [
+      0.8,
+      0.62,
+      0.45
+    ]
+  }
+}

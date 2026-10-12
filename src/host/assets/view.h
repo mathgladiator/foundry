@@ -4,6 +4,7 @@
 // fixed asset's LOD0.
 #pragma once
 
+#include <functional>
 #include <memory>
 #include <string>
 
@@ -27,6 +28,11 @@ struct ViewContent {
 };
 
 ViewContent load_view(const workspace::Workspace &ws, const std::string &id);
+
+// Pipelines and config entries show the live pipeline instance; the pipeline slice
+// provides it (so assets doesn't depend on pipelines). Returns false to fall back.
+using LiveProvider = std::function<bool(const workspace::Item &item, ViewContent &out)>;
+void set_live_provider(LiveProvider provider);
 
 // The mesh shown at a triangle budget (the full mesh when 0 or no progressive
 // mesh). For a fixed asset, the stamped LOD nearest that count (LOD0 when 0).

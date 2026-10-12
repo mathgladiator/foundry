@@ -1,0 +1,121 @@
+{
+  "created_at": "2026-10-12T02:11:21Z",
+  "doc": "The street elm: a short trunk splitting into a fan of upswept limbs that arch out into a tall vase, yellow in fall. Wood: American elm (Wood Handbook, green).",
+  "notes": [],
+  "reference": [
+    "reference/trees/elm/01.jpg",
+    "reference/trees/elm/02.jpg"
+  ],
+  "state": "draft",
+  "value": {
+    "age_girth": [
+      0.7,
+      0.85,
+      1,
+      1.7
+    ],
+    "age_height": [
+      0.15,
+      0.45,
+      1,
+      1.1
+    ],
+    "bark": "furrowed",
+    "bark_dark": [
+      0.26,
+      0.23,
+      0.21
+    ],
+    "bark_light": [
+      0.52,
+      0.48,
+      0.44
+    ],
+    "blossom": 0,
+    "blossom_color": [
+      0.8,
+      0.8,
+      0.5
+    ],
+    "blossom_leaf": 1,
+    "branch_angle": 26,
+    "branch_angle_var": 8,
+    "branch_curve": -0.9,
+    "branch_length": 0.9,
+    "branches": 12,
+    "clump": 0.06,
+    "cluster": 0,
+    "crown_ratio": 0.85,
+    "crown_shape": "inverse_conical",
+    "dead_limbs": 0.25,
+    "deciduous": true,
+    "density": 0.46,
+    "divergence": 137.5,
+    "excurrent": false,
+    "fall_drop": 0.25,
+    "flare": 0.7,
+    "flex": 0.75,
+    "foliage": "clumps",
+    "fruit": 0,
+    "fruit_ripe": [
+      0.55,
+      0.38,
+      0.2
+    ],
+    "fruit_size": 0.05,
+    "fruit_unripe": [
+      0.45,
+      0.5,
+      0.25
+    ],
+    "height": 15,
+    "latin": "Ulmus americana",
+    "leaf_fall": [
+      0.82,
+      0.7,
+      0.24
+    ],
+    "leaf_fall_alt": [
+      0.7,
+      0.55,
+      0.2
+    ],
+    "leaf_spring": [
+      0.45,
+      0.6,
+      0.28
+    ],
+    "leaf_summer": [
+      0.25,
+      0.42,
+      0.18
+    ],
+    "leaf_winter": [
+      0.45,
+      0.35,
+      0.2
+    ],
+    "leafiness": 0.9,
+    "lean": 0.03,
+    "name": "American elm",
+    "slender": 35,
+    "snow": 0.6,
+    "sprig_length": 0.35,
+    "sprigs": 3,
+    "stiffness": 7.7,
+    "tip_up": 0,
+    "twig_angle": 40,
+    "twig_curve": -0.7,
+    "twig_length": 0.55,
+    "twigs": 6,
+    "twist": 0.05,
+    "whorl": 0,
+    "winter_keep": 0,
+    "wobble": 0.08,
+    "wood": [
+      0.8,
+      0.66,
+      0.5
+    ]
+  }
+}

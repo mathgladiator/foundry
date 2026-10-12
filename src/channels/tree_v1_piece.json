@@ -1,0 +1,43 @@
+{
+  "family": "tree",
+  "version": 1,
+  "feature": "piece",
+  "doc": "A break piece: what the tree falls apart into.",
+  "fields": [
+    {
+      "name": "kind",
+      "type": "u32",
+      "doc": "What it is.",
+      "enum": [
+        "stump",
+        "log",
+        "limb"
+      ]
+    },
+    {
+      "name": "bone",
+      "type": "u32",
+      "doc": "The piece's root bone."
+    },
+    {
+      "name": "pivot",
+      "type": "vec3",
+      "doc": "Where it detaches: the cut for the log, the branch base for a limb."
+    },
+    {
+      "name": "center",
+      "type": "vec3",
+      "doc": "Centre of mass, rest pose."
+    },
+    {
+      "name": "length",
+      "type": "f32",
+      "doc": "Length, metres."
+    },
+    {
+      "name": "mass",
+      "type": "f32",
+      "doc": "Mass, kg (green wood)."
+    }
+  ]
+}

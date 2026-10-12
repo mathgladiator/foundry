@@ -5,10 +5,16 @@
 // the right, and the activity log along the bottom.
 #include <SDL3/SDL.h>
 
+#include <filesystem>
+#include <map>
+#include <memory>
+#include <mutex>
+
 #include <algorithm>
 #include <cmath>
 #include <cstring>
 #include <map>
+#include <set>
 #include <string>
 #include <thread>
 #include <vector>
@@ -19,10 +25,16 @@
 #include "core/jobs.h"
 #include "core/log.h"
 #include "core/util.h"
+#include "assets/fracture_item.h"
 #include "assets/mesh_item.h"
 #include "imgui.h"
 #include "imgui_impl_sdl3.h"
 #include "imgui_impl_sdlgpu3.h"
+#include "json/registry.h"
+#include "perf/stress.h"
+#include "pipeline/config.h"
+#include "pipeline/flow.h"
+#include "pipeline/live.h"
 
 namespace app {
 
@@ -35,7 +47,8 @@ ImVec4 state_color(const std::string &state) {
 }
 
 const char *kKinds[][2] = {{"pipeline", "Pipelines"}, {"system", "Systems"}, {"channel", "Channels"},
-                           {"conformance", "Conformance"}, {"meshy", "Meshy"}, {"fixed", "Fixed assets"}};
+                           {"config", "Config"}, {"conformance", "Conformance"}, {"meshy", "Meshy"}, {"fixed", "Fixed assets"},
+                           {"fracture", "Fractures"}, {"reference", "Reference"}};
 
 // A GPU texture holding the viewport image, re-uploaded when it changes.
 struct ViewTexture {
@@ -173,15 +186,74 @@ struct UiState {
   std::string limits_item;     // the mesh item the LOD limit sliders belong to
   float limits[3] = {1, 5, 20};  // LOD error limits, in percent
   float limits_saved[3] = {0, 0, 0};
+  std::string live_key;  // what the live pipeline frame was for (model version and values)
   float share = 2, share_saved = -1;  // the switch threshold, in percent  // the saved limits last frame, to notice the foundry changing them
+  int view_tab = 0;  // for pipelines and config entries: 0 view, 1 flow, 2 video
+  // The flow graph's canvas: zoom (the text scale), pan (the graph's offset in the canvas), and whether
+  // to fit it on the next frame (once, when first shown or asked; never continuously, so it holds still).
+  float flow_zoom = 1;
+  ImVec2 flow_pan = {8, 8};
+  bool flow_fit = true;
+  // Reference photos for what the viewport shows (the config entries the live instance uses link them),
+  // drawn in the viewport's corner when show_reference is on.
+  bool show_reference = false;
+  std::vector<std::string> references;  // workspace-relative paths
+  std::string references_key;            // what references was found for
+  int reference_pick = 0;
+  std::string reference_loaded;  // the photo in the reference texture
+  viewport::Image reference_pending;
+  bool reference_has_pending = false;
+  // The flow tab's probe, run in the background.
+  struct Probe {
+    std::mutex mutex;
+    nlohmann::json result;
+    bool running = false;
+    std::string pipeline;
+  };
+  std::shared_ptr<Probe> probe = std::make_shared<Probe>();
+  // A fixed asset's fracture: the preview cut, and playback of the generated one.
+  struct Fracture {
+    std::string asset;            // what the settings and preview are for
+    int algorithm = 0;            // index into assets::fracture::algorithms()
+    int pieces = 16;
+    int seed = 1;
+    float explode = 0.35f;
+    nlohmann::json recommended;
+    bool show_preview = false;
+    int version = 0;              // bumps when the preview changes
+    // Background work: a preview cut or a generate.
+    struct Work {
+      std::mutex mutex;
+      bool running = false, done = false;
+      std::string error, label;
+      std::shared_ptr<assets::fracture::Fracture> result;
+    };
+    std::shared_ptr<Work> work = std::make_shared<Work>();
+    std::shared_ptr<assets::fracture::Fracture> preview;  // cut, not baked
+    std::shared_ptr<assets::fracture::Fracture> loaded;   // the generated fracture of the selected fracture item
+    std::string loaded_for;
+    std::string generated_at;  // of the fracture the settings were last read from
+    bool playing = true, tint = false;
+    float time = 0;
+    double origin = 0;
+  } fracture;
+  // The video tab's settings and its export job.
+  struct Video {
+    int floats = 1;
+    float seconds = 1.0f;
+    int fps = 30;
+    int size = 0;  // 0 720p, 1 1080p
+    std::map<std::string, std::string> pins;  // parameter -> "" (all) or one value
+    int job = 0;
+  } video;
 };
 
 std::string render_key(const UiState &s, int w, int h) {
-  char buf[256];
+  char buf[512];
   std::snprintf(buf, sizeof buf, "%s|%u|%d|%d|%d|%.3f|%.3f|%.3f|%.3f|%d%d%d%d|%d|%dx%d", s.selected.c_str(), s.triangles,
                 s.ws_version, static_cast<int>(s.camera.view), s.camera.quarter, s.camera.distance, s.camera.yaw, s.camera.pitch, s.camera.zoom, s.overlays.conformance,
                 s.overlays.hero, s.overlays.hex, s.overlays.grid, s.silhouette, w, h);
-  return buf;
+  return buf + s.live_key;
 }
 
 // Every item name uses `_` as a path separator, so the tree has virtual folders:
@@ -549,6 +621,517 @@ void draw_lod_limits(Services &sv, UiState &st, const workspace::Item &item) {
     ImGui::SetTooltip("Recompute every LOD's switch distance with this threshold. The LODs don't change.");
 }
 
+bool is_live(const std::string &id) { return id.rfind("pipeline:", 0) == 0 || id.rfind("config:", 0) == 0; }
+
+double now_seconds() { return static_cast<double>(SDL_GetTicks()) / 1000.0; }
+
+// What the viewport shows for fractures: a fixed asset's preview cut, or a fracture item's break at
+// this moment. Returns false when neither applies.
+bool update_fracture_view(Services &sv, UiState &st) {
+  auto &fr = st.fracture;
+  std::shared_ptr<const runtime::Mesh> mesh;
+  std::string key;
+  float frame = 0;
+  const bool previewing = fr.show_preview && fr.preview &&
+                          (st.selected == "fixed:" + fr.asset || st.selected == "fracture:" + fr.asset);
+  if (previewing) {
+    key = "|preview" + std::to_string(fr.version);
+    if (key != st.live_key) mesh = std::make_shared<runtime::Mesh>(assets::fracture::exploded(*fr.preview, fr.explode, true));
+  } else if (st.selected.rfind("fracture:", 0) == 0) {
+    const std::string name = st.selected.substr(9);
+    if (fr.loaded_for != name) {
+      auto f = std::make_shared<assets::fracture::Fracture>();
+      fr.loaded = assets::fracture_load(sv.paths.workspace, name, *f) ? f : nullptr;
+      fr.loaded_for = name;
+      fr.origin = now_seconds();
+      fr.playing = true;
+    }
+    if (!fr.loaded) return false;
+    const float end = fr.loaded->seconds();
+    if (fr.playing) {
+      fr.time = static_cast<float>(now_seconds() - fr.origin);
+      if (fr.time > end + 1.0f) {  // hold the settled pieces a moment, then break again
+        fr.origin = now_seconds();
+        fr.time = 0;
+      }
+    }
+    const float t = std::min(fr.time, end);
+    char buf[96];
+    std::snprintf(buf, sizeof buf, "|fracture%s%d%d", name.c_str(), fr.tint, static_cast<int>(t * fr.loaded->fps));
+    key = buf;
+    if (key != st.live_key)
+      mesh = std::make_shared<runtime::Mesh>(fr.tint ? assets::fracture::exploded(*fr.loaded, 0.35f, true)
+                                                     : assets::fracture::pose(*fr.loaded, t));
+    frame = std::max(st.content.height, 0.4f) * 1.6f;
+  } else {
+    return false;
+  }
+  if (key != st.live_key) {
+    st.live_key = key;
+    st.content.mesh = mesh;
+    st.content.progressive = nullptr;
+    st.content.lods.clear();
+    st.camera.frame = frame;
+  }
+  return true;
+}
+
+// The live pipeline instance's parameters, clock, break, and last build.
+void draw_live(Services &sv) {
+  pipeline::Live &live = *sv.live;
+  const pipeline::Definition def = live.definition();
+  const nlohmann::json values = live.values();
+  nlohmann::json patch = nlohmann::json::object();
+  ImGui::Text("Pipeline %s", def.name.c_str());
+  for (const auto &p : def.params) {
+    ImGui::PushID(p.name.c_str());
+    const nlohmann::json &v = values[p.name];
+    ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x * 0.55f);
+    if (p.type == "enum" || p.type == "config") {
+      std::string cur = v.is_string() ? v.get<std::string>() : "";
+      if (ImGui::BeginCombo(p.name.c_str(), cur.c_str())) {
+        for (const auto &choice : p.values)
+          if (ImGui::Selectable(choice.c_str(), choice == cur)) patch[p.name] = choice;
+        ImGui::EndCombo();
+      }
+    } else if (p.type == "u32") {
+      int x = v.get<int>();
+      if (ImGui::SliderInt(p.name.c_str(), &x, static_cast<int>(p.min), static_cast<int>(p.max))) patch[p.name] = x;
+    } else if (p.type == "f32") {
+      float x = v.get<float>();
+      std::string fmt = "%.2f" + (p.unit.empty() ? "" : " " + p.unit);
+      if (ImGui::SliderFloat(p.name.c_str(), &x, static_cast<float>(p.min), static_cast<float>(p.max), fmt.c_str()))
+        patch[p.name] = x;
+    } else if (p.type == "time" || p.type == "event") {
+      const bool running = live.running(p.name);
+      const double x = v.get<double>();
+      if (p.type == "time") {
+        if (ImGui::Button(running ? "Pause" : "Play")) {
+          if (running) live.set({{p.name, x}});
+          else live.start(p.name, now_seconds(), x);
+        }
+        ImGui::SameLine();
+        ImGui::Text("time %.1f s", x);
+      } else if (x < 0) {
+        if (ImGui::Button(("Start " + p.name).c_str())) live.start(p.name, now_seconds());
+        if (!p.doc.empty()) {
+          ImGui::SameLine();
+          ImGui::TextDisabled("(%s)", p.doc.c_str());
+        }
+      } else {
+        if (ImGui::Button("Reset")) live.set({{p.name, -1.0}});
+        ImGui::SameLine();
+        ImGui::Text("%s %.1f s", p.name.c_str(), x);
+      }
+    }
+    if (!p.doc.empty() && p.type != "time" && p.type != "event" && ImGui::IsItemHovered()) ImGui::SetTooltip("%s", p.doc.c_str());
+    ImGui::PopID();
+  }
+  if (!patch.empty()) live.set(patch);
+  if (live.building()) ImGui::TextColored({0.95f, 0.8f, 0.4f, 1}, "building...");
+  if (!live.error().empty()) ImGui::TextColored({0.95f, 0.45f, 0.4f, 1}, "%s", live.error().c_str());
+  const auto stages = live.build_stages();
+  if (!stages.empty() && ImGui::BeginTable("stages", 5, ImGuiTableFlags_RowBg | ImGuiTableFlags_SizingStretchProp)) {
+    ImGui::TableSetupColumn("Stage");
+    ImGui::TableSetupColumn("System");
+    ImGui::TableSetupColumn("Time");
+    ImGui::TableSetupColumn("Output");
+    ImGui::TableSetupColumn("Native");
+    ImGui::TableHeadersRow();
+    for (const auto &s : stages) {
+      ImGui::TableNextRow();
+      ImGui::TableNextColumn();
+      ImGui::TextUnformatted(s.id.c_str());
+      ImGui::TableNextColumn();
+      if (ImGui::SmallButton(s.system.c_str())) sv.ws->select("system:" + s.system);
+      ImGui::TableNextColumn();
+      if (s.cached) ImGui::TextDisabled("cached");
+      else ImGui::Text("%.1f ms", s.milliseconds);
+      ImGui::TableNextColumn();
+      ImGui::Text("%zu KB", s.output_bytes / 1024);
+      ImGui::TableNextColumn();
+      if (s.native_checked) ImGui::TextColored(s.native_match ? ImVec4(0.45f, 0.85f, 0.5f, 1) : ImVec4(0.95f, 0.45f, 0.4f, 1),
+                                               s.native_match ? "matches" : "DIFFERS");
+      else ImGui::TextDisabled("-");
+    }
+    ImGui::EndTable();
+  }
+  if (ImGui::Button("Rebuild and verify native")) {
+    std::thread([&live] { live.build_now(true); }).detach();
+  }
+}
+
+// One field of a config entry, edited with a widget chosen from its schema type.
+bool draw_config_field(const nlohmann::json &f, nlohmann::json &value, bool color) {
+  const std::string name = f.value("name", ""), type = f.value("type", "");
+  nlohmann::json &x = value[name];
+  bool changed = false;
+  ImGui::PushID(name.c_str());
+  ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x * 0.55f);
+  const float lo = f.value("min", 0.0f), hi = f.value("max", 1.0f);
+  const bool ranged = f.contains("min") && f.contains("max");
+  if (f.contains("enum")) {
+    const std::string cur = x.is_string() ? x.get<std::string>() : "";
+    if (ImGui::BeginCombo(name.c_str(), cur.c_str())) {
+      for (const auto &e : f["enum"])
+        if (ImGui::Selectable(e.get<std::string>().c_str(), e == x)) {
+          x = e;
+          changed = true;
+        }
+      ImGui::EndCombo();
+    }
+  } else if (type == "f32") {
+    float v = x.get<float>();
+    if (ranged ? ImGui::SliderFloat(name.c_str(), &v, lo, hi) : ImGui::DragFloat(name.c_str(), &v, 0.01f)) x = v;
+    changed |= ImGui::IsItemDeactivatedAfterEdit();
+  } else if (type == "u32") {
+    int v = x.get<int>();
+    if (ranged ? ImGui::SliderInt(name.c_str(), &v, static_cast<int>(lo), static_cast<int>(hi))
+               : ImGui::DragInt(name.c_str(), &v, 0.2f, 0, INT32_MAX))
+      x = v;
+    changed |= ImGui::IsItemDeactivatedAfterEdit();
+  } else if (type == "bool") {
+    bool v = x.get<bool>();
+    if (ImGui::Checkbox(name.c_str(), &v)) {
+      x = v;
+      changed = true;
+    }
+  } else if (type == "string") {
+    char buf[256];
+    std::snprintf(buf, sizeof buf, "%s", x.is_string() ? x.get<std::string>().c_str() : "");
+    if (ImGui::InputText(name.c_str(), buf, sizeof buf)) x = std::string(buf);
+    changed |= ImGui::IsItemDeactivatedAfterEdit();
+  } else if (type == "vec3") {
+    float c[3] = {x[0].get<float>(), x[1].get<float>(), x[2].get<float>()};
+    if (color ? ImGui::ColorEdit3(name.c_str(), c) : ImGui::DragFloat3(name.c_str(), c, 0.01f)) x = {c[0], c[1], c[2]};
+    changed |= ImGui::IsItemDeactivatedAfterEdit();
+  } else if (type == "f32[]" && x.is_array() && !x.empty()) {
+    std::vector<float> a = x.get<std::vector<float>>();
+    const int n = static_cast<int>(a.size());
+    if (ranged ? ImGui::SliderScalarN(name.c_str(), ImGuiDataType_Float, a.data(), n, &lo, &hi)
+               : ImGui::DragScalarN(name.c_str(), ImGuiDataType_Float, a.data(), n, 0.01f))
+      x = a;
+    changed |= ImGui::IsItemDeactivatedAfterEdit();
+  } else {
+    ImGui::Text("%s: %s", name.c_str(), x.dump().c_str());
+  }
+  if (f.contains("doc") && ImGui::IsItemHovered()) ImGui::SetTooltip("%s", f["doc"].get<std::string>().c_str());
+  ImGui::PopID();
+  return changed;
+}
+
+// A config entry's fields, edited in place. The editor is generic: the table's channel schema gives each
+// field's type and range, and its table.json may group the fields and name which vec3s are colours.
+void draw_config(Services &sv, const workspace::Item &item) {
+  std::string table_name, entry;
+  if (!pipeline::config::split(item.path, table_name, entry)) return;
+  nlohmann::json file = core::read_json(item.path);
+  const nlohmann::json table = pipeline::config::table(sv.paths, table_name);
+  if (!file.is_object() || !file.contains("value") || table.is_null()) return;
+  const nlohmann::json fields = pipeline::config::fields(table);
+  if (fields.empty()) {
+    ImGui::TextDisabled("unknown channel %s", table.value("channel", "").c_str());
+    return;
+  }
+  ImGui::TextDisabled("config/%s (%s), entry %s", table_name.c_str(), table.value("channel", "").c_str(), entry.c_str());
+  const nlohmann::json editor = table.value("editor", nlohmann::json::object());
+  std::set<std::string> colors;
+  for (const auto &c : editor.value("colors", nlohmann::json::array())) colors.insert(c.get<std::string>());
+  // Groups from table.json; fields it doesn't name go under "Other".
+  std::vector<std::pair<std::string, std::vector<std::string>>> groups;
+  std::set<std::string> placed;
+  for (const auto &g : editor.value("groups", nlohmann::json::array())) {
+    groups.push_back({g.value("label", ""), g.value("fields", std::vector<std::string>())});
+    for (const auto &f : groups.back().second) placed.insert(f);
+  }
+  std::vector<std::string> rest;
+  for (const auto &f : fields)
+    if (!placed.count(f["name"].get<std::string>())) rest.push_back(f["name"]);
+  if (!rest.empty()) groups.push_back({groups.empty() ? "" : "Other", rest});
+
+  nlohmann::json &value = file["value"];
+  const bool editable = item.state() != "final";
+  bool changed = false;
+  if (!editable) ImGui::BeginDisabled();
+  if (ImGui::BeginChild("config", ImVec2(-1, ImGui::GetTextLineHeightWithSpacing() * 16), ImGuiChildFlags_Borders)) {
+    for (const auto &[label, names] : groups) {
+      if (!label.empty() && !ImGui::CollapsingHeader(label.c_str(), ImGuiTreeNodeFlags_DefaultOpen)) continue;
+      for (const auto &n : names)
+        for (const auto &f : fields)
+          if (f["name"] == n && value.contains(n)) changed |= draw_config_field(f, value, colors.count(n) > 0);
+    }
+  }
+  ImGui::EndChild();
+  if (!editable) ImGui::EndDisabled();
+  // Live editing: keeping the file current while dragging is too slow, so it saves on release.
+  if (changed && core::write_json(item.path, file)) {
+    core::log().add("config", table_name + "/" + entry + " edited");
+    sv.live->reload();
+  }
+}
+
+// Fracture (design/transforms.md, "Fracture"): on a fixed asset, pick an algorithm and preview its
+// cut on LOD1 (pieces pushed apart and tinted), then generate the fracture item.
+void draw_fracture_controls(Services &sv, UiState &st, const workspace::Item &item) {
+  auto &fr = st.fracture;
+  const auto &algos = assets::fracture::algorithms();
+  const std::string root = sv.paths.workspace;
+  if (fr.asset != item.name) {
+    const std::string generated_at = fr.generated_at;
+    fr = {};
+    fr.asset = item.name;
+    fr.generated_at = generated_at;
+    runtime::Mesh lod1;
+    nlohmann::json manifest;
+    std::string error;
+    if (assets::fracture_baseline(root, item.name, lod1, manifest, error)) {
+      fr.recommended = assets::fracture::recommend(lod1, manifest.value("provenance", nlohmann::json::object()).value("prompt", ""));
+      // Start from the generated fracture's settings if there is one, else the recommendation.
+      const nlohmann::json saved = core::read_json(root + "/fixed/" + item.name + "/fracture.json");
+      const nlohmann::json from = saved.is_object() && saved.contains("settings") ? saved["settings"] : fr.recommended;
+      for (size_t k = 0; k < algos.size(); ++k)
+        if (from.value("algorithm", "") == algos[k].name) fr.algorithm = static_cast<int>(k);
+      fr.pieces = from.value("pieces", 16);
+      fr.seed = from.value("seed", 1);
+    }
+  }
+  ImGui::Text("Fracture");
+  ImGui::TextDisabled("The break, cut from LOD1 and baked. Preview each algorithm, then generate.");
+  if (!fr.recommended.is_null())
+    ImGui::TextWrapped("Recommended: %s (%s)", fr.recommended.value("algorithm", "").c_str(),
+                       fr.recommended.value("reason", "").c_str());
+  bool changed = false;
+  ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x * 0.5f);
+  if (ImGui::BeginCombo("algorithm", algos[static_cast<size_t>(fr.algorithm)].name)) {
+    for (size_t k = 0; k < algos.size(); ++k) {
+      if (ImGui::Selectable(algos[k].name, static_cast<int>(k) == fr.algorithm)) {
+        fr.algorithm = static_cast<int>(k);
+        changed = true;
+      }
+      if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", algos[k].doc);
+    }
+    ImGui::EndCombo();
+  }
+  ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x * 0.5f);
+  ImGui::SliderInt("pieces", &fr.pieces, 2, 64);
+  changed |= ImGui::IsItemDeactivatedAfterEdit();
+  ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x * 0.5f);
+  if (ImGui::InputInt("seed", &fr.seed)) changed = true;
+  ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x * 0.5f);
+  if (ImGui::SliderFloat("explode", &fr.explode, 0, 1)) ++fr.version;
+  assets::fracture::Settings settings;
+  settings.algorithm = algos[static_cast<size_t>(fr.algorithm)].name;
+  settings.pieces = fr.pieces;
+  settings.seed = static_cast<uint32_t>(std::max(fr.seed, 1));
+  auto work = fr.work;
+  bool running;
+  {
+    std::lock_guard<std::mutex> lock(work->mutex);
+    running = work->running;
+    if (work->done) {
+      work->done = false;
+      if (!work->error.empty()) st.message = work->error;
+      else if (work->label == "preview") {
+        fr.preview = work->result;
+        fr.show_preview = true;
+        ++fr.version;
+      } else {
+        fr.show_preview = false;
+        sv.ws->scan();
+        sv.ws->select("fracture:" + fr.asset);
+        st.ws_version = -1;  // reload the viewport even if the fracture item was already selected
+      }
+    }
+  }
+  auto start = [&](const std::string &label) {
+    {
+      std::lock_guard<std::mutex> lock(work->mutex);
+      work->running = true;
+      work->label = label;
+    }
+    std::thread([work, label, root, asset = fr.asset, settings] {
+      auto f = std::make_shared<assets::fracture::Fracture>();
+      std::string error;
+      bool ok;
+      if (label == "preview") {
+        runtime::Mesh lod1;
+        nlohmann::json manifest;
+        ok = assets::fracture_baseline(root, asset, lod1, manifest, error) && assets::fracture::cut(lod1, settings, *f, error);
+      } else {
+        ok = assets::fracture_generate(root, asset, settings, *f, error);
+      }
+      std::lock_guard<std::mutex> lock(work->mutex);
+      work->running = false;
+      work->done = true;
+      work->error = ok ? "" : error;
+      work->result = ok ? f : nullptr;
+    }).detach();
+  };
+  if (running) ImGui::BeginDisabled();
+  if (ImGui::Button("Preview cut") || (changed && fr.show_preview && !running)) start("preview");
+  ImGui::SameLine();
+  if (ImGui::Button(st.selected.rfind("fracture:", 0) == 0 ? "Regenerate" : "Generate fracture")) start("generate");
+  if (running) ImGui::EndDisabled();
+  if (fr.show_preview) {
+    ImGui::SameLine();
+    if (ImGui::Button("Hide preview")) {
+      fr.show_preview = false;
+      ++fr.version;
+    }
+  }
+  if (running) ImGui::TextDisabled("Working...");
+  if (fr.preview && fr.show_preview) {
+    const auto &x = fr.preview->stats;
+    ImGui::Text("%d pieces, %d triangles (%d cap), largest %.0f%%, smallest %.2f%%", x.value("pieces", 0),
+                x.value("triangles", 0), x.value("cap_triangles", 0), x.value("largest_share", 0.0) * 100,
+                x.value("smallest_share", 0.0) * 100);
+  }
+}
+
+// A generated fracture: its stats, and its break played in the viewport.
+void draw_fracture_item(Services &sv, UiState &st, const workspace::Item &item) {
+  // Regenerated (here or through MCP): read its settings into the controls again.
+  if (st.fracture.generated_at != item.data.value("generated_at", "")) {
+    st.fracture.asset.clear();
+    st.fracture.generated_at = item.data.value("generated_at", "");
+  }
+  auto &fr = st.fracture;
+  const auto &d = item.data;
+  const auto set = d.value("settings", nlohmann::json::object());
+  const auto x = d.value("stats", nlohmann::json::object());
+  ImGui::Text("%s, %d pieces from LOD1 (%d triangles)", set.value("algorithm", "").c_str(), x.value("pieces", 0),
+              x.value("source_triangles", 0));
+  ImGui::Text("%d triangles (%d on cut faces), largest piece %.0f%%", x.value("triangles", 0), x.value("cap_triangles", 0),
+              x.value("largest_share", 0.0) * 100);
+  if (x.contains("settled_s") && x["settled_s"].is_number())
+    ImGui::Text("Settles at %.2f s; the farthest piece lands %.2f m away", x["settled_s"].get<double>(), x.value("farthest_m", 0.0));
+  else
+    ImGui::TextColored({0.95f, 0.8f, 0.4f, 1}, "Still moving when the bake ends (%.1f s)", x.value("seconds", 0.0));
+  if (x.value("open_sections", 0) > 0)
+    ImGui::TextColored({0.95f, 0.8f, 0.4f, 1}, "%d cut faces crossed gaps in the mesh and were closed straight", x.value("open_sections", 0));
+  ImGui::Spacing();
+  if (!fr.loaded || fr.loaded_for != item.name) {
+    ImGui::TextDisabled("No fracture.bin");
+    return;
+  }
+  if (ImGui::Button(fr.playing ? "Pause" : "Play")) {
+    fr.playing = !fr.playing;
+    fr.origin = now_seconds() - fr.time;
+  }
+  ImGui::SameLine();
+  if (ImGui::Button("Break again")) {
+    fr.playing = true;
+    fr.origin = now_seconds();
+  }
+  ImGui::SameLine();
+  ImGui::Checkbox("pieces tinted, pushed apart", &fr.tint);
+  ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x * 0.6f);
+  if (ImGui::SliderFloat("time", &fr.time, 0, fr.loaded->seconds(), "%.2f s")) fr.playing = false;
+  ImGui::Separator();
+  draw_fracture_controls(sv, st, item);
+}
+
+// The reference photos linked by the config entries the live instance uses (a config entry's
+// "reference" list), found again only when the selection, the workspace, or a config choice changes.
+void update_references(Services &sv, UiState &st) {
+  std::vector<std::string> refs;
+  if (is_live(st.selected)) {
+    const pipeline::Definition def = sv.live->definition();
+    const nlohmann::json values = sv.live->values();
+    std::string key = st.selected + "|" + std::to_string(st.ws_version);
+    std::vector<std::pair<std::string, std::string>> picks;  // (table, entry)
+    for (const auto &p : def.params)
+      if (!p.table.empty() && values.contains(p.name) && values[p.name].is_string()) {
+        picks.push_back({p.table, values[p.name].get<std::string>()});
+        key += "|" + p.table + "/" + picks.back().second;
+      }
+    if (key == st.references_key) return;
+    st.references_key = key;
+    for (const auto &[table, entry] : picks) {
+      const nlohmann::json file = pipeline::config::entry(sv.paths, table, entry);
+      if (file.is_object())
+        for (const auto &r : file.value("reference", nlohmann::json::array()))
+          if (r.is_string()) refs.push_back(r);
+    }
+  } else {
+    if (st.references_key.empty()) return;
+    st.references_key.clear();
+  }
+  if (refs != st.references) {
+    st.references = refs;
+    st.reference_pick = 0;
+  }
+}
+
+// The workspace-relative path of a file in the workspace.
+std::string workspace_relative(const Services &sv, const std::string &path) {
+  const std::string root = sv.paths.workspace + "/";
+  return path.rfind(root, 0) == 0 ? path.substr(root.size()) : path;
+}
+
+// A reference photo: where it came from, its license, and the config entries that link it.
+void draw_reference(Services &sv, UiState &st, const workspace::Item &item) {
+  const auto &d = item.data;
+  const nlohmann::json prov = d.value("provenance", nlohmann::json::object());
+  ImGui::TextWrapped("%s", d.value("title", "").c_str());
+  if (!d.value("description", "").empty()) ImGui::TextWrapped("%s", d.value("description", "").c_str());
+  ImGui::Spacing();
+  ImGui::Text("License: %s%s", prov.value("license", "?").c_str(),
+              prov.value("attribution_required", true) ? "" : " (no attribution required)");
+  if (!prov.value("author", "").empty()) ImGui::TextWrapped("Author: %s", prov.value("author", "").c_str());
+  ImGui::TextWrapped("Source: %s, %s", prov.value("service", "").c_str(), prov.value("page", "").c_str());
+  ImGui::TextDisabled("Retrieved %s; %s", prov.value("retrieved", "").c_str(), prov.value("size", "").c_str());
+  ImGui::Spacing();
+  const std::string rel = workspace_relative(sv, item.path);
+  ImGui::Text("Linked from:");
+  bool any = false;
+  for (const auto &i : sv.ws->items()) {
+    if (i.kind != "config") continue;
+    for (const auto &r : i.data.value("reference", nlohmann::json::array()))
+      if (r.is_string() && r.get<std::string>() == rel) {
+        ImGui::SameLine();
+        if (ImGui::SmallButton(i.name.c_str())) sv.ws->select(i.id);
+        any = true;
+      }
+  }
+  if (!any) {
+    ImGui::SameLine();
+    ImGui::TextDisabled("nothing yet");
+  }
+  (void)st;
+}
+
+// The reference photo in the viewport's top-right corner (over the image between a and b): click it
+// for the next photo.
+void draw_reference_corner(UiState &st, SDL_GPUTexture *texture, int tw, int th, ImVec2 a, ImVec2 b) {
+  if (!st.show_reference || st.references.empty() || !texture || tw <= 0 || th <= 0) return;
+  const float w = (b.x - a.x) * 0.34f, h = w * th / tw;
+  const ImVec2 lo = {b.x - w - 10, a.y + 10}, hi = {b.x - 10, a.y + 10 + h};
+  ImDrawList *dl = ImGui::GetWindowDrawList();
+  dl->AddRectFilled({lo.x - 3, lo.y - 3}, {hi.x + 3, hi.y + 3 + ImGui::GetTextLineHeightWithSpacing()},
+                    IM_COL32(20, 22, 28, 230), 4);
+  dl->AddImage(reinterpret_cast<ImTextureID>(texture), lo, hi);
+  dl->AddRect(lo, hi, IM_COL32(200, 150, 230, 255), 0, 0, 1.5f);
+  const int n = static_cast<int>(st.references.size());
+  const std::string &path = st.references[st.reference_pick % n];
+  std::string label = path.substr(0, path.rfind('/'));
+  label = label.substr(label.rfind('/') + 1) + "  " + std::to_string(st.reference_pick % n + 1) + "/" + std::to_string(n);
+  if (n > 1) label += "  (click for next)";
+  dl->AddText({lo.x + 2, hi.y + 2}, IM_COL32(220, 210, 235, 255), label.c_str());
+  const ImVec2 m = ImGui::GetIO().MousePos;
+  if (n > 1 && ImGui::IsMouseClicked(ImGuiMouseButton_Left) && m.x >= lo.x && m.x <= hi.x && m.y >= lo.y && m.y <= hi.y)
+    st.reference_pick = (st.reference_pick + 1) % n;
+}
+
+// Loads the picked reference photo when it changes (uploaded to the GPU by the frame loop).
+void load_reference(Services &sv, UiState &st) {
+  if (!st.show_reference || st.references.empty()) return;
+  const std::string &path = st.references[st.reference_pick % st.references.size()];
+  if (path == st.reference_loaded) return;
+  st.reference_loaded = path;
+  st.reference_has_pending = viewport::load_image(sv.paths.workspace + "/" + path, st.reference_pending);
+}
+
 void draw_details(Services &sv, UiState &st, const workspace::Item &item) {
   const auto &d = item.data;
   if (d.contains("doc")) ImGui::TextWrapped("%s", d["doc"].get<std::string>().c_str());
@@ -588,13 +1171,45 @@ void draw_details(Services &sv, UiState &st, const workspace::Item &item) {
     if (d.contains("stats")) draw_stats(d["stats"]);
     draw_lods(d.value("lods", nlohmann::json::array()));
     if (d.contains("perf") && d["perf"].contains("runs")) draw_perf(d["perf"]);
+    ImGui::Separator();
+    draw_fracture_controls(sv, st, item);
+  } else if (item.kind == "fracture") {
+    draw_fracture_item(sv, st, item);
+  } else if (item.kind == "reference") {
+    draw_reference(sv, st, item);
   } else if (item.kind == "conformance") {
     ImGui::Text("Shape: %s   radius %.2f m   height %.2f m", d.value("shape", "").c_str(), d.value("radius", 0.0f),
                 d.value("height", 0.0f));
-  } else if (item.kind == "pipeline" && d.contains("nodes")) {
-    for (const auto &n : d["nodes"])
-      ImGui::BulletText("%s: %s", n.value("id", "").c_str(),
-                        n.contains("system") ? n["system"].get<std::string>().c_str() : n.value("doc", "").c_str());
+  } else if (item.kind == "pipeline") {
+    std::string error;
+    if (sv.live->show(item.name, error)) draw_live(sv);
+    else ImGui::TextColored({0.95f, 0.45f, 0.4f, 1}, "%s", error.c_str());
+  } else if (item.kind == "config") {
+    std::string error;
+    const nlohmann::json refs = item.data.value("reference", nlohmann::json::array());
+    if (!refs.empty()) {
+      ImGui::Checkbox("Show reference photo in the viewport corner", &st.show_reference);
+      ImGui::SameLine();
+      ImGui::TextDisabled("open:");
+      int k = 0;
+      for (const auto &r : refs) {
+        if (!r.is_string()) continue;
+        ImGui::SameLine();
+        ImGui::PushID(k++);
+        // reference/trees/pine/01.jpg is the item reference:trees_pine_01.
+        std::string id = r.get<std::string>().substr(std::string("reference/").size());
+        id = id.substr(0, id.rfind('.'));
+        std::replace(id.begin(), id.end(), '/', '_');
+        if (ImGui::SmallButton(std::to_string(k).c_str())) sv.ws->select("reference:" + id);
+        ImGui::PopID();
+      }
+    } else {
+      ImGui::TextDisabled("No reference photos linked (config_set reference).");
+    }
+    draw_config(sv, item);
+    ImGui::Separator();
+    if (sv.live->show_config_file(item.path, error)) draw_live(sv);
+    else ImGui::TextColored({0.95f, 0.45f, 0.4f, 1}, "%s", error.c_str());
   } else if (item.kind == "channel") {
     nlohmann::json schema = core::read_json(item.path);
     if (schema.is_object()) {
@@ -619,7 +1234,8 @@ void draw_inspector(Services &sv, UiState &st) {
   workspace::Item item;
   if (!sv.ws->find(st.selected, item)) return;
   ImGui::Text("%s", item.id.c_str());
-  ImGui::TextColored(state_color(item.state()), "%s", item.state().c_str());
+  const bool approvable = item.kind != "reference";
+  if (approvable) ImGui::TextColored(state_color(item.state()), "%s", item.state().c_str());
   if (item.data.contains("approved_at"))
     ImGui::TextDisabled("approved %s", item.data["approved_at"].get<std::string>().c_str());
   ImGui::TextDisabled("%s", item.path.c_str());
@@ -627,7 +1243,9 @@ void draw_inspector(Services &sv, UiState &st) {
 
   std::string error;
   const bool is_mesh = item.kind == "meshy" && item.data.value("kind", "") == "mesh";
-  if (item.state() == "final") {
+  if (!approvable) {
+    ImGui::TextDisabled("Reference material: what assets are compared against, not approved itself.");
+  } else if (item.state() == "final") {
     ImGui::TextDisabled(item.kind == "fixed" ? "Stamped and final." : "Final: immutable. Changes need a fork.");
   } else {
     const bool ready = !is_mesh || item.data.contains("recommended");
@@ -688,6 +1306,381 @@ void draw_inspector(Services &sv, UiState &st) {
   }
 }
 
+// The flow tab: parameters on the left, stages in columns by depth, edges for
+// what each reads. Hovering a parameter lights what reruns when it changes;
+// hovering a stage lights its cache key. Below, the probe matrix.
+void draw_flow(Services &sv, UiState &st) {
+  pipeline::Live &live = *sv.live;
+  const pipeline::Definition def = live.definition();
+  const pipeline::Flow flow = pipeline::analyze(def);
+  const auto runs = live.build_stages();
+  ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled));
+  ImGui::TextWrapped("Scroll to zoom, drag to pan. Hover a parameter or lookup to see what reruns when it changes; hover a stage to see its cache key.");
+  ImGui::PopStyleColor();
+  if (ImGui::SmallButton("Fit")) st.flow_fit = true;
+  ImGui::SameLine();
+  if (ImGui::SmallButton("100%")) {
+    st.flow_zoom = 1;
+    st.flow_pan = {8, 8};
+  }
+  ImGui::SameLine();
+  ImGui::TextDisabled("%.0f%%", st.flow_zoom * 100);
+  // The canvas: a fixed share of the tab. The graph's zoom and pan change only when the human scrolls,
+  // drags, or asks to fit, so resizing the window never moves it.
+  const ImVec2 canvas = ImGui::GetCursorScreenPos();
+  const ImVec2 canvas_size = {std::max(100.0f, ImGui::GetContentRegionAvail().x),
+                              std::max(240.0f, ImGui::GetContentRegionAvail().y * 0.62f)};
+  ImGui::InvisibleButton("flow_canvas", canvas_size, ImGuiButtonFlags_MouseButtonLeft | ImGuiButtonFlags_MouseButtonMiddle);
+  const bool canvas_hovered = ImGui::IsItemHovered();
+  {
+    ImGuiIO &io = ImGui::GetIO();
+    if (ImGui::IsItemActive() && (io.MouseDelta.x != 0 || io.MouseDelta.y != 0)) {
+      st.flow_pan.x += io.MouseDelta.x;
+      st.flow_pan.y += io.MouseDelta.y;
+    }
+    if (canvas_hovered && io.MouseWheel != 0) {
+      // Zoom about the mouse: the point under it stays under it.
+      const float z = std::clamp(st.flow_zoom * std::pow(1.15f, io.MouseWheel), 0.25f, 3.0f);
+      const float f = z / st.flow_zoom;
+      st.flow_pan.x = io.MousePos.x - canvas.x - (io.MousePos.x - canvas.x - st.flow_pan.x) * f;
+      st.flow_pan.y = io.MousePos.y - canvas.y - (io.MousePos.y - canvas.y - st.flow_pan.y) * f;
+      st.flow_zoom = z;
+    }
+  }
+  const ImVec2 after_canvas = ImGui::GetCursorScreenPos();
+  ImGui::SetWindowFontScale(st.flow_zoom);
+  const float row = ImGui::GetTextLineHeightWithSpacing();
+  // Nodes are as wide as their longest line.
+  float pw = 0, sw = 0, cw = 0;
+  for (const auto &p : flow.params) pw = std::max(pw, ImGui::CalcTextSize((p.name + "  (" + p.cardinality_text + ")").c_str()).x);
+  for (const auto &s : flow.stages)
+    for (const std::string &t : {s.id + "   [every frame]", s.system, s.in + " -> " + s.out, "distinct: " + s.distinct_text,
+                                 std::string("last build: 000.0 ms")})
+      sw = std::max(sw, ImGui::CalcTextSize(t.c_str()).x);
+  // Config lookups: a box each, right of the parameter that picks from it, since the parameter's value is
+  // the name the lookup finds; the entry it finds is what reaches the stages.
+  std::map<std::string, std::pair<std::string, std::string>> config_text;  // parameter -> (title, detail)
+  for (const auto &p : flow.params) {
+    if (p.table.empty()) continue;
+    const nlohmann::json t = pipeline::config::table(sv.paths, p.table);
+    const std::string title = "lookup config/" + p.table;
+    const std::string detail = std::to_string(p.entries) + " entries of " + (t.is_object() ? t.value("channel", "?") : "?");
+    config_text[p.name] = {title, detail};
+    cw = std::max({cw, ImGui::CalcTextSize(title.c_str()).x, ImGui::CalcTextSize(detail.c_str()).x});
+  }
+  // Padding scales with the text, so the graph's width is proportional to the scale and the fit below
+  // settles in one step (fixed padding made it flip between two scales near the smallest).
+  const float k = st.flow_zoom;
+  pw += 14 * k;
+  sw += 18 * k;
+  if (cw > 0) cw += 16 * k;
+  const float sh = row * 5.2f, gapx = ImGui::CalcTextSize("bones, pieces").x + 40 * k, gapy = 22 * k, prow = row * 1.6f;
+  const float gapc = cw > 0 ? 36 * k : 0.0f, ch = row * 2.4f;
+  int max_depth = 0;
+  std::map<int, int> per_depth;
+  for (const auto &s : flow.stages) {
+    max_depth = std::max(max_depth, s.depth);
+    per_depth[s.depth]++;
+  }
+  int tallest = 0;
+  for (auto &[d, n] : per_depth) tallest = std::max(tallest, n);
+  const ImVec2 o = {canvas.x + st.flow_pan.x, canvas.y + st.flow_pan.y};
+  ImDrawList *dl = ImGui::GetWindowDrawList();
+  dl->PushClipRect(canvas, {canvas.x + canvas_size.x, canvas.y + canvas_size.y}, true);
+  dl->AddRectFilled(canvas, {canvas.x + canvas_size.x, canvas.y + canvas_size.y}, IM_COL32(22, 24, 30, 255), 4);
+  const float top = o.y + 6 + (cw > 0 ? (ch - row * 1.3f) * 0.5f : 0.0f);
+  const float px = o.x + 4 * k, cx = px + pw + gapc, sx = cx + cw + (cw > 0 ? gapx : gapx - gapc);
+  const float graph_h = std::max(top - o.y + flow.params.size() * prow, tallest * (sh + gapy)) + 20;
+
+  // Layout: parameters down the left in the pipeline's order, stages in columns by depth, each column
+  // centred and in the pipeline's order.
+  std::map<std::string, float> pyc;  // parameter centre heights
+  std::map<std::string, ImVec2> ppos, spos;
+  for (size_t i = 0; i < flow.params.size(); ++i) {
+    ppos[flow.params[i].name] = {px, top + i * prow};
+    pyc[flow.params[i].name] = top + i * prow + row * 0.65f;
+  }
+  std::map<int, int> placed;
+  for (const auto &s : flow.stages) {
+    const int k = placed[s.depth]++;
+    const float colh = per_depth[s.depth] * (sh + gapy);
+    spos[s.id] = {sx + s.depth * (sw + gapx), o.y + 6 + (graph_h - colh) * 0.5f + k * (sh + gapy)};
+  }
+
+  // Hover.
+  const ImVec2 mouse = canvas_hovered ? ImGui::GetIO().MousePos : ImVec2(-1e9f, -1e9f);
+  std::string hp, hs;
+  for (auto &[n, p] : ppos) {
+    if (mouse.x >= p.x && mouse.x <= p.x + pw && mouse.y >= p.y && mouse.y <= p.y + row * 1.3f) hp = n;
+    if (config_text.count(n) && mouse.x >= cx && mouse.x <= cx + cw && mouse.y >= pyc[n] - ch * 0.5f &&
+        mouse.y <= pyc[n] + ch * 0.5f)
+      hp = n;
+  }
+  for (auto &[n, p] : spos)
+    if (mouse.x >= p.x && mouse.x <= p.x + sw && mouse.y >= p.y && mouse.y <= p.y + sh) hs = n;
+  auto lit_stage = [&](const pipeline::FlowStage &s) {
+    if (!hp.empty()) return std::find(s.all.begin(), s.all.end(), hp) != s.all.end();
+    return hs == s.id;
+  };
+  auto lit_param = [&](const std::string &p) {
+    if (!hs.empty())
+      for (const auto &s : flow.stages)
+        if (s.id == hs) return std::find(s.all.begin(), s.all.end(), p) != s.all.end();
+    return hp == p;
+  };
+  const ImU32 dim = IM_COL32(110, 115, 130, 255), bright = IM_COL32(255, 196, 90, 255), cache = IM_COL32(120, 190, 255, 255);
+  const ImU32 config_col = IM_COL32(200, 150, 230, 255);
+
+  // Edges. Each stage takes its incoming lines at points spread down its left side in the order of their
+  // sources, and its outgoing ones down its right side in the order of their targets.
+  struct In {
+    float from_y;
+    ImVec2 a;
+    bool param;
+    std::string source, label;
+  };
+  std::map<std::string, std::vector<In>> ins;
+  std::map<std::string, std::vector<std::pair<float, std::string>>> outs;  // stage -> (target y, target)
+  for (const auto &s : flow.stages) {
+    for (const auto &p : s.direct) {
+      std::string fields;
+      for (const auto &[param, field] : s.binds)
+        if (param == p && field != p) fields += (fields.empty() ? "" : ", ") + field;
+      // A config parameter's line leaves from its lookup, carrying the entry it found.
+      const float ax = config_text.count(p) ? cx + cw : px + pw;
+      ins[s.id].push_back({pyc[p], {ax, pyc[p]}, true, p, fields});
+    }
+    std::map<std::string, std::string> reads;  // upstream stage -> the fields read, one edge each
+    for (const auto &e : s.upstream) {
+      std::string &l = reads[e.from];
+      l += (l.empty() ? "" : ", ") + (e.field.empty() ? std::string("all") : e.field);
+    }
+    for (const auto &[from, label] : reads) {
+      if (!spos.count(from)) continue;
+      ins[s.id].push_back({spos[from].y, {}, false, from, label});
+      outs[from].push_back({spos[s.id].y, s.id});
+    }
+  }
+  std::map<std::pair<std::string, std::string>, float> out_y;  // (from, to) -> where it leaves the box
+  for (auto &[from, list] : outs) {
+    std::sort(list.begin(), list.end());
+    for (size_t k = 0; k < list.size(); ++k)
+      out_y[{from, list[k].second}] = spos[from].y + sh * (k + 1) / (list.size() + 1);
+  }
+  for (const auto &s : flow.stages) {
+    auto &list = ins[s.id];
+    std::stable_sort(list.begin(), list.end(), [](const In &a, const In &b) { return a.from_y < b.from_y; });
+    const ImVec2 sp = spos[s.id];
+    for (size_t k = 0; k < list.size(); ++k) {
+      const In &e = list[k];
+      const ImVec2 b = {sp.x, sp.y + sh * (k + 1) / (list.size() + 1)};
+      if (e.param) {
+        const bool lit = (!hp.empty() && hp == e.source) || (!hs.empty() && hs == s.id);
+        const float bend = std::min((b.x - e.a.x) * 0.45f, gapx * 0.9f);
+        const ImU32 c = lit ? bright : (config_text.count(e.source) ? config_col : dim);
+        dl->AddBezierCubic(e.a, {e.a.x + bend, e.a.y}, {b.x - bend, b.y}, b, c, lit ? 2.5f : 1.0f);
+        if (!e.label.empty()) {
+          const float lw = ImGui::CalcTextSize(e.label.c_str()).x;
+          dl->AddText({b.x - lw - 6, b.y - row * 0.95f}, lit ? bright : IM_COL32(170, 180, 200, 255), e.label.c_str());
+        }
+      } else {
+        const ImVec2 a = {spos[e.source].x + sw, out_y[{e.source, s.id}]};
+        const bool lit = (!hs.empty() && (hs == s.id || hs == e.source));
+        dl->AddBezierCubic(a, {a.x + gapx * 0.5f, a.y}, {b.x - gapx * 0.5f, b.y}, b, lit ? cache : IM_COL32(150, 160, 180, 255), 2.0f);
+        // The fields read, just above where the line leaves its source (lines leave level, so labels don't sit on them).
+        dl->AddText({a.x + 8, a.y - row}, IM_COL32(170, 180, 200, 255), e.label.c_str());
+      }
+      dl->AddTriangleFilled({b.x, b.y}, {b.x - 7, b.y - 4}, {b.x - 7, b.y + 4}, IM_COL32(170, 180, 200, 255));
+    }
+  }
+  // Lookup boxes, fed by the parameter that names the entry.
+  for (const auto &[param, text] : config_text) {
+    const ImVec2 a = {cx, pyc[param] - ch * 0.5f}, b = {cx + cw, pyc[param] + ch * 0.5f};
+    const bool lit = lit_param(param);
+    dl->AddLine({px + pw, pyc[param]}, {cx, pyc[param]}, lit ? bright : config_col, lit ? 2.5f : 1.5f);
+    dl->AddTriangleFilled({cx, pyc[param]}, {cx - 7, pyc[param] - 4}, {cx - 7, pyc[param] + 4}, IM_COL32(170, 180, 200, 255));
+    dl->AddRectFilled(a, b, lit ? IM_COL32(90, 70, 30, 255) : IM_COL32(52, 40, 62, 255), 6);
+    dl->AddRect(a, b, lit ? bright : config_col, 6.0f, 0, 2.0f);
+    dl->AddText({a.x + 8 * k, a.y + 4}, IM_COL32(240, 230, 250, 255), text.first.c_str());
+    dl->AddText({a.x + 8 * k, a.y + 4 + row}, IM_COL32(190, 180, 205, 255), text.second.c_str());
+  }
+  // Nodes.
+  for (const auto &p : flow.params) {
+    const ImVec2 a = ppos[p.name];
+    const bool lit = lit_param(p.name);
+    dl->AddRectFilled(a, {a.x + pw, a.y + row * 1.3f}, lit ? IM_COL32(90, 70, 30, 255) : IM_COL32(45, 48, 58, 255), 4);
+    dl->AddRect(a, {a.x + pw, a.y + row * 1.3f}, lit ? bright : dim, 4.0f);
+    const std::string t = p.name + "  (" + p.cardinality_text + ")";
+    dl->AddText({a.x + 6 * k, a.y + 3}, IM_COL32(230, 232, 240, 255), t.c_str());
+  }
+  for (const auto &s : flow.stages) {
+    const ImVec2 a = spos[s.id];
+    const bool lit = lit_stage(s);
+    const bool update = s.phase == "update";
+    dl->AddRectFilled(a, {a.x + sw, a.y + sh}, lit ? IM_COL32(90, 70, 30, 255) : IM_COL32(40, 46, 60, 255), 6);
+    dl->AddRect(a, {a.x + sw, a.y + sh}, lit ? bright : (update ? IM_COL32(120, 200, 140, 255) : cache), 6.0f, 0, 2.0f);
+    float y = a.y + 4;
+    auto line = [&](ImU32 c, const std::string &t) {
+      dl->AddText({a.x + 8 * k, y}, c, t.c_str());
+      y += row;
+    };
+    line(IM_COL32(255, 255, 255, 255), s.id + (update ? "   [every frame]" : "   [built, cached]"));
+    line(IM_COL32(190, 200, 220, 255), s.system);
+    line(IM_COL32(160, 170, 190, 255), s.in + " -> " + s.out);
+    line(IM_COL32(160, 170, 190, 255), "distinct: " + s.distinct_text);
+    std::string last = "-";
+    for (const auto &r : runs)
+      if (r.id == s.id) {
+        char buf[64];
+        std::snprintf(buf, sizeof buf, r.cached ? "last build: cached" : "last build: %.1f ms", r.milliseconds);
+        last = buf;
+      }
+    line(IM_COL32(140, 150, 170, 255), last);
+  }
+  const float graph_w = sx - o.x + (max_depth + 1) * (sw + gapx) - gapx + 8 * k;
+  dl->PopClipRect();
+  ImGui::SetWindowFontScale(1);
+  ImGui::SetCursorScreenPos(after_canvas);
+  // Fit once: the zoom that shows the whole graph (its size is proportional to the zoom), then left at that.
+  if (st.flow_fit && graph_w > 0 && graph_h > 0) {
+    const float f = std::min((canvas_size.x - 16) / graph_w, (canvas_size.y - 16) / graph_h);
+    st.flow_zoom = std::clamp(st.flow_zoom * f, 0.25f, 1.5f);
+    st.flow_pan = {8, 8};
+    st.flow_fit = false;
+  }
+  ImGui::Separator();
+
+  // The probe: which declared dependencies actually change each stage's output.
+  auto &pr = *st.probe;
+  bool running;
+  nlohmann::json result;
+  {
+    std::lock_guard<std::mutex> lock(pr.mutex);
+    running = pr.running;
+    if (pr.pipeline == def.name) result = pr.result;
+  }
+  ImGui::BeginDisabled(running);
+  if (ImGui::Button(running ? "Probing..." : "Probe dependencies")) {
+    auto probe = st.probe;
+    {
+      std::lock_guard<std::mutex> lock(probe->mutex);
+      probe->running = true;
+      probe->pipeline = def.name;
+    }
+    pipeline::Runner *runner = &live.runner();
+    const nlohmann::json base = live.values();
+    std::thread([probe, runner, def, base] {
+      nlohmann::json r = pipeline::probe(*runner, def, base, 3);
+      std::lock_guard<std::mutex> lock(probe->mutex);
+      probe->result = r;
+      probe->running = false;
+    }).detach();
+  }
+  ImGui::EndDisabled();
+  ImGui::SameLine();
+  ImGui::TextDisabled("varies each parameter from the current values and compares every stage's output");
+  if (result.contains("params") &&
+      ImGui::BeginTable("probe", static_cast<int>(flow.stages.size()) + 1,
+                        ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg | ImGuiTableFlags_SizingStretchSame)) {
+    ImGui::TableSetupColumn("parameter");
+    for (const auto &s : flow.stages) ImGui::TableSetupColumn(s.id.c_str());
+    ImGui::TableHeadersRow();
+    for (const auto &p : result["params"]) {
+      ImGui::TableNextRow();
+      ImGui::TableNextColumn();
+      ImGui::TextUnformatted(p["name"].get<std::string>().c_str());
+      for (const auto &s : flow.stages) {
+        ImGui::TableNextColumn();
+        const bool declared = std::find(s.all.begin(), s.all.end(), p["name"].get<std::string>()) != s.all.end();
+        const bool changed = p["changes"].value(s.id, false);
+        if (changed) ImGui::TextColored({0.45f, 0.85f, 0.5f, 1}, "changes");
+        else if (declared) ImGui::TextColored({0.95f, 0.8f, 0.4f, 1}, "reaches, no change");
+        else ImGui::TextDisabled("-");
+      }
+    }
+    ImGui::EndTable();
+    ImGui::TextDisabled("\"reaches, no change\": the stage reruns for this parameter but its output didn't move in the "
+                       "values tried; a cache keyed without it could be shared.");
+  }
+}
+
+// The video tab: export a QA video of every variation of the pipeline
+// (design/quality.perf.md, "The QA video").
+void draw_video(Services &sv, UiState &st) {
+  const pipeline::Definition def = sv.live->definition();
+  auto &v = st.video;
+  ImGui::TextWrapped("A QA video of pipeline '%s': a 5-second title slide, then one clip per variation, titled with its "
+                     "parameters. Every combination of the discrete parameters is enumerated; continuous ones are sampled.",
+                     def.name.c_str());
+  ImGui::Spacing();
+  double combos = 1;
+  int continuous = 0;
+  for (const auto &p : def.params) {
+    if (p.type == "u32" || p.type == "f32") ++continuous;
+    if (p.type != "enum" && p.type != "config") continue;
+    ImGui::PushID(p.name.c_str());
+    std::string &pin = v.pins[p.name];
+    ImGui::SetNextItemWidth(220);
+    if (ImGui::BeginCombo(p.name.c_str(), pin.empty() ? "all" : pin.c_str())) {
+      if (ImGui::Selectable("all", pin.empty())) pin.clear();
+      for (const auto &c : p.values)
+        if (ImGui::Selectable(c.c_str(), pin == c)) pin = c;
+      ImGui::EndCombo();
+    }
+    ImGui::SameLine();
+    ImGui::TextDisabled(pin.empty() ? "%zu values" : "pinned", p.values.size());
+    combos *= pin.empty() ? static_cast<double>(p.values.size()) : 1.0;
+    ImGui::PopID();
+  }
+  ImGui::SetNextItemWidth(220);
+  ImGui::SliderInt("samples of continuous values", &v.floats, 1, 10);
+  ImGui::SameLine();
+  ImGui::TextDisabled("(%d continuous parameters, sampled at random per variation)", continuous);
+  ImGui::SetNextItemWidth(220);
+  ImGui::SliderFloat("seconds per variation", &v.seconds, 0.5f, 3.0f, "%.1f s");
+  ImGui::SetNextItemWidth(220);
+  ImGui::SliderInt("fps", &v.fps, 15, 60);
+  ImGui::SetNextItemWidth(220);
+  ImGui::Combo("size", &v.size, "1280x720\0" "1920x1080\0");
+  const double variations = combos * v.floats, seconds = 5 + variations * v.seconds;
+  ImGui::Text("%.0f variations, %d:%02d long", variations, static_cast<int>(seconds) / 60, static_cast<int>(seconds) % 60);
+  nlohmann::json status = v.job ? perf::job_status(v.job) : nlohmann::json();
+  const bool running = status.is_object() && !status.value("done", true);
+  ImGui::BeginDisabled(running || variations < 1);
+  if (ImGui::Button("Export video")) {
+    perf::VideoRequest q;
+    q.pipeline = def.name;
+    q.floats = v.floats;
+    q.seconds = v.seconds;
+    q.fps = v.fps;
+    q.size = v.size == 1 ? "1920x1080" : "1280x720";
+    for (const auto &[name, pin] : v.pins)
+      if (!pin.empty()) q.fixed[name] = pin;
+    v.job = perf::start_video(sv.paths, q);
+  }
+  ImGui::EndDisabled();
+  if (status.is_object()) {
+    const auto lines = status.value("output", nlohmann::json::array());
+    float progress = 0;
+    for (const auto &l : lines) {
+      size_t a = 0, b = 0;
+      if (std::sscanf(l.get<std::string>().c_str(), "video: %zu/%zu", &a, &b) == 2 && b) progress = static_cast<float>(a) / b;
+    }
+    if (running) {
+      ImGui::ProgressBar(progress, ImVec2(-1, 0));
+    } else if (status.contains("video")) {
+      const std::string path = status["video"];
+      ImGui::TextColored({0.45f, 0.85f, 0.5f, 1}, "Wrote %s", path.c_str());
+      if (ImGui::Button("Play")) SDL_OpenURL(("file://" + path).c_str());
+      ImGui::SameLine();
+      if (ImGui::Button("Open folder")) SDL_OpenURL(("file://" + std::filesystem::path(path).parent_path().string()).c_str());
+    } else if (status.value("done", false)) {
+      ImGui::TextColored({0.95f, 0.45f, 0.4f, 1}, "Export failed: %s", status.value("error", std::string("")).c_str());
+      for (const auto &l : lines) ImGui::TextDisabled("%s", l.get<std::string>().c_str());
+    }
+  }
+}
+
 void draw_viewport_controls(UiState &st) {
   const char *views[] = {"Orbit", "Front", "Side", "Top", "Iso"};
   for (int v = 0; v < 5; ++v) {
@@ -716,6 +1709,11 @@ void draw_viewport_controls(UiState &st) {
   ImGui::Checkbox("Grid", &st.overlays.grid);
   ImGui::SameLine();
   ImGui::Checkbox("Silhouette", &st.silhouette);
+  if (!st.references.empty()) {
+    ImGui::SameLine();
+    ImGui::Checkbox("Reference", &st.show_reference);
+    ImGui::SetItemTooltip("Show the photos the config entries in use link to, in the corner (click it for the next)");
+  }
   if (st.camera.distance > 0) {
     ImGui::SameLine();
     ImGui::Text("| camera at %.1f m (game FOV)", st.camera.distance);
@@ -780,8 +1778,9 @@ int run_ui(Services &sv) {
   init.MSAASamples = SDL_GPU_SAMPLECOUNT_1;
   ImGui_ImplSDLGPU3_Init(&init);
 
-  ViewTexture tex;
+  ViewTexture tex, ref_tex;
   tex.device = device;
+  ref_tex.device = device;
   capture().set_ui_running(true);
   UiState st;
   g_ui = &st;
@@ -820,6 +1819,8 @@ int run_ui(Services &sv) {
       st.ws_version = version;
       st.selected = selected;
       st.content = assets::load_view(*sv.ws, st.selected);
+      st.live_key.clear();  // whatever replaces the content (live or fracture) sets it again
+      st.fracture.loaded_for.clear();  // a regenerated fracture loads again
       // A viewed LOD follows its row: after a regeneration, show its new triangle count.
       workspace::Item item;
       if (st.selected_lod >= 0 && sv.ws->find(st.selected, item) && item.data.contains("recommended")) {
@@ -827,6 +1828,30 @@ int run_ui(Services &sv) {
         if (st.selected_lod < static_cast<int>(lods.size()))
           st.triangles = lods[st.selected_lod].value("triangles", st.triangles);
       }
+    }
+    // A pipeline or config entry shows the live instance: pose it for this moment.
+    if (update_fracture_view(sv, st)) {
+      // a fracture preview or break
+    } else if (is_live(st.selected)) {
+      pipeline::Frame f = sv.live->frame(now_seconds());
+      if (f.mesh) {
+        std::string key = "|live" + std::to_string(f.model_version) + sv.live->values().dump();
+        if (key != st.live_key) {
+          // A stable frame per model, so swaying and falling don't refit the camera.
+          if (st.live_key.rfind("|live" + std::to_string(f.model_version) + "{", 0) != 0)
+            st.camera.frame = std::max(f.height, 2.0f) * 1.15f;
+          st.live_key = key;
+          st.content.mesh = f.mesh;
+          st.content.has_conformance = f.conformance_radius > 0;
+          st.content.radius = f.conformance_radius;
+          st.content.height = f.conformance_height;
+          st.content.progressive = nullptr;
+          st.content.lods.clear();
+        }
+      }
+    } else {
+      st.live_key.clear();
+      st.camera.frame = 0;
     }
 
     ImGui_ImplSDLGPU3_NewFrame();
@@ -853,6 +1878,36 @@ int run_ui(Services &sv) {
     ImGui::SetNextWindowPos({vp->WorkPos.x + left, vp->WorkPos.y});
     ImGui::SetNextWindowSize({W - left - right, H - bottom});
     ImGui::Begin("Viewport", nullptr, fixed | ImGuiWindowFlags_NoScrollbar);
+    const std::string want_tab = sv.ws->take_tab();
+    if (const int r = sv.ws->take_reference(); r >= 0) st.show_reference = r == 1;
+    auto tab_flags = [&](const char *name) {
+      return want_tab == name ? ImGuiTabItemFlags_SetSelected : ImGuiTabItemFlags_None;
+    };
+    if (is_live(st.selected) && ImGui::BeginTabBar("viewtabs")) {
+      if (ImGui::BeginTabItem("View", nullptr, tab_flags("view"))) {
+        st.view_tab = 0;
+        ImGui::EndTabItem();
+      }
+      if (ImGui::BeginTabItem("Flow", nullptr, tab_flags("flow"))) {
+        st.view_tab = 1;
+        ImGui::EndTabItem();
+      }
+      if (ImGui::BeginTabItem("Video", nullptr, tab_flags("video"))) {
+        st.view_tab = 2;
+        ImGui::EndTabItem();
+      }
+      ImGui::EndTabBar();
+    }
+    const int tab = is_live(st.selected) ? st.view_tab : 0;
+    if (tab == 1) {
+      ImGui::BeginChild("flow", ImVec2(0, 0));
+      draw_flow(sv, st);
+      ImGui::EndChild();
+    } else if (tab == 2) {
+      draw_video(sv, st);
+    } else {
+    update_references(sv, st);
+    load_reference(sv, st);
     draw_viewport_controls(st);
     ImVec2 avail = ImGui::GetContentRegionAvail();
     int side = std::max(64, static_cast<int>(std::min(avail.x, avail.y)));
@@ -861,7 +1916,9 @@ int run_ui(Services &sv) {
       ImGui::TextDisabled("Nothing to show. Select a fixed asset, concept, or conformance shape.");
     } else {
       // While dragging or zooming, render a quarter of the pixels; sharpen once idle.
-      const bool interacting = SDL_GetTicks() < st.interact_until;
+      const bool interacting = SDL_GetTicks() < st.interact_until ||
+                               (is_live(st.selected) && sv.live->any_running()) ||
+                               (st.selected.rfind("fracture:", 0) == 0 && st.fracture.playing);
       const int rpx = interacting ? std::max(64, px / 2) : px;
       std::string key = render_key(st, rpx, rpx);
       if (key != st.rendered_key) {
@@ -873,7 +1930,11 @@ int run_ui(Services &sv) {
         float aspect = tex.height > 0 ? static_cast<float>(tex.width) / static_cast<float>(tex.height) : 1;
         ImVec2 size = aspect >= 1 ? ImVec2(static_cast<float>(side), side / aspect) : ImVec2(side * aspect, static_cast<float>(side));
         ImGui::Image(reinterpret_cast<ImTextureID>(tex.texture), size);
-        if (ImGui::IsItemHovered() && !st.content.image) {
+        const bool over_reference = st.show_reference && !st.references.empty() && ref_tex.texture &&
+                                    ImGui::GetIO().MousePos.x >= ImGui::GetItemRectMax().x - size.x * 0.34f - 10 &&
+                                    ImGui::GetIO().MousePos.y <= ImGui::GetItemRectMin().y + 10 + size.x * 0.34f * ref_tex.height / std::max(1, ref_tex.width);
+        draw_reference_corner(st, ref_tex.texture, ref_tex.width, ref_tex.height, ImGui::GetItemRectMin(), ImGui::GetItemRectMax());
+        if (ImGui::IsItemHovered() && !st.content.image && !over_reference) {
           if (ImGui::IsMouseDragging(ImGuiMouseButton_Left) || io.MouseWheel != 0) st.interact_until = SDL_GetTicks() + 200;
           if (ImGui::IsMouseDragging(ImGuiMouseButton_Left)) {
             ImVec2 d = io.MouseDelta;
@@ -888,6 +1949,7 @@ int run_ui(Services &sv) {
         }
       }
     }
+    }  // the view tab
     ImGui::End();
 
     ImGui::SetNextWindowPos({vp->WorkPos.x, vp->WorkPos.y + H - bottom});
@@ -921,6 +1983,10 @@ int run_ui(Services &sv) {
     ImGui::Render();
     ImDrawData *draw = ImGui::GetDrawData();
     SDL_GPUCommandBuffer *cmd = SDL_AcquireGPUCommandBuffer(device);
+    if (st.reference_has_pending) {
+      ref_tex.upload(cmd, st.reference_pending);
+      st.reference_has_pending = false;
+    }
     if (st.has_pending) {
       tex.upload(cmd, st.pending);
       st.has_pending = false;
@@ -946,11 +2012,13 @@ int run_ui(Services &sv) {
     }
     SDL_SubmitGPUCommandBuffer(cmd);
     tex.release_retired();
+    ref_tex.release_retired();
   }
 
   capture().set_ui_running(false);
   SDL_WaitForGPUIdle(device);
   tex.release();
+  ref_tex.release();
   ImGui_ImplSDL3_Shutdown();
   ImGui_ImplSDLGPU3_Shutdown();
   ImGui::DestroyContext();

@@ -1,0 +1,83 @@
+{
+  "family": "tree",
+  "version": 1,
+  "feature": "body",
+  "doc": "A tree's geometry before colour: the mesh with its skinning and paint regions, plus the skeleton the animator needs.",
+  "fields": [
+    {
+      "name": "spec",
+      "type": "tree_v1_spec",
+      "doc": "The request, passed through for colouring."
+    },
+    {
+      "name": "height",
+      "type": "f32",
+      "doc": "Height, metres."
+    },
+    {
+      "name": "stump_radius",
+      "type": "f32",
+      "doc": "Conformance stump radius, metres."
+    },
+    {
+      "name": "crown_base",
+      "type": "f32",
+      "doc": "Conformance stump height, metres."
+    },
+    {
+      "name": "bones",
+      "type": "tree_v1_bone[]",
+      "doc": "Wind bones."
+    },
+    {
+      "name": "pieces",
+      "type": "tree_v1_piece[]",
+      "doc": "Break pieces."
+    },
+    {
+      "name": "positions",
+      "type": "vec3[]",
+      "doc": "Vertex positions, rest pose, metres."
+    },
+    {
+      "name": "normals",
+      "type": "vec3[]",
+      "doc": "Vertex normals."
+    },
+    {
+      "name": "indices",
+      "type": "u32[]",
+      "doc": "Triangle list."
+    },
+    {
+      "name": "bone_a",
+      "type": "u32[]",
+      "doc": "First bone per vertex."
+    },
+    {
+      "name": "bone_b",
+      "type": "u32[]",
+      "doc": "Second bone per vertex (smooth bends along a branch)."
+    },
+    {
+      "name": "bone_w",
+      "type": "f32[]",
+      "doc": "Weight of bone_b per vertex (0 = all bone_a)."
+    },
+    {
+      "name": "region",
+      "type": "u32[]",
+      "doc": "Paint region per vertex: 0 bark, 1 wood (cut faces), 2 leaf, 3 blossom, 4 fruit, 5 dead leaf, 6 dead wood."
+    },
+    {
+      "name": "shade",
+      "type": "f32[]",
+      "doc": "Per-vertex variation in [0, 1]: bark relief (0 furrow, 1 ridge) or a clump's random tint."
+    },
+    {
+      "name": "up",
+      "type": "f32[]",
+      "doc": "How much the surface faces up and is exposed, in [0, 1]: where snow and moss settle."
+    }
+  ]
+}
