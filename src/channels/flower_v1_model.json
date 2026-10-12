@@ -1,0 +1,58 @@
+{
+  "family": "flower",
+  "version": 1,
+  "feature": "model",
+  "doc": "A finished clump of flowers, ready to draw and to skin with a flower_v1_pose.",
+  "fields": [
+    {
+      "name": "height",
+      "type": "f32",
+      "doc": "Height of the tallest stem, metres."
+    },
+    {
+      "name": "radius",
+      "type": "f32",
+      "doc": "Radius of the clump, metres."
+    },
+    {
+      "name": "bones",
+      "type": "flower_v1_bone[]",
+      "doc": "Wind bones: 0 is the clump's root, then two per stem."
+    },
+    {
+      "name": "positions",
+      "type": "vec3[]",
+      "doc": "Vertex positions, rest pose, metres."
+    },
+    {
+      "name": "normals",
+      "type": "vec3[]",
+      "doc": "Vertex normals."
+    },
+    {
+      "name": "indices",
+      "type": "u32[]",
+      "doc": "Triangle list."
+    },
+    {
+      "name": "bone_a",
+      "type": "u32[]",
+      "doc": "First bone per vertex."
+    },
+    {
+      "name": "bone_b",
+      "type": "u32[]",
+      "doc": "Second bone per vertex (smooth bends along a stem)."
+    },
+    {
+      "name": "bone_w",
+      "type": "f32[]",
+      "doc": "Weight of bone_b per vertex (0 = all bone_a)."
+    },
+    {
+      "name": "colors",
+      "type": "u32[]",
+      "doc": "Vertex colour, packed RGBA (red in the lowest byte)."
+    }
+  ]
+}

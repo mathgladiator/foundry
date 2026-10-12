@@ -1,0 +1,58 @@
+{
+  "created_at": "2026-10-12T08:00:00Z",
+  "doc": "A water-worn cobble of any hard rock: smooth, rounded, and grey, from riverbeds, beaches, and swamp edges. Splits into a few halves.",
+  "notes": [],
+  "reference": [
+    "reference/rocks/riverstone/01.jpg",
+    "reference/rocks/riverstone/02.jpg"
+  ],
+  "state": "draft",
+  "value": {
+    "accent": [
+      0.7,
+      0.7,
+      0.68
+    ],
+    "color_dark": [
+      0.44,
+      0.45,
+      0.44
+    ],
+    "color_light": [
+      0.6,
+      0.6,
+      0.58
+    ],
+    "density": 2.65,
+    "elongation": 1.4,
+    "facets": 12,
+    "flatness": 0.6,
+    "fracture": "split",
+    "fresh": [
+      0.68,
+      0.66,
+      0.62
+    ],
+    "grain": [
+      0,
+      1,
+      0
+    ],
+    "grain_strength": 0.0,
+    "kind": "water-worn cobble",
+    "lichen": 0.5,
+    "moss_color": [
+      0.36,
+      0.47,
+      0.22
+    ],
+    "name": "River stone",
+    "pattern": "plain",
+    "pattern_scale": 0.2,
+    "pieces": 3,
+    "relief_scale": 0.6,
+    "roughness": 0.008,
+    "roundness": 0.9,
+    "snow": 0.7
+  }
+}

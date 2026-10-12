@@ -249,7 +249,7 @@
     {
       "name": "fruit",
       "type": "f32",
-      "doc": "Fruit per foliage clump in summer and fall (0 = none).",
+      "doc": "Fruit (or cones) per foliage clump in the seasons it bears (0 = none).",
       "min": 0,
       "max": 3
     },
@@ -259,6 +259,18 @@
       "doc": "Fruit radius, metres (style.md section 3 wants it chunky).",
       "min": 0.03,
       "max": 0.2
+    },
+    {
+      "name": "fruit_seasons",
+      "type": "f32[]",
+      "doc": "How ripe the fruit is per season (winter, spring, summer, fall; 4 values): 0 none, then unripe (just above 0) to ripe (1). Cones and pods that stay on the tree are fruit here too.",
+      "min": 0,
+      "max": 1
+    },
+    {
+      "name": "pickable",
+      "type": "bool",
+      "doc": "Its fruit can be picked: the pipeline's fruit parameter applies, and the game can offer picking. Otherwise the parameter is disabled and whatever it bears (cones, propagules, seed pods) stays on."
     },
     {
       "name": "bark",
@@ -288,6 +300,39 @@
       "doc": "How much snow settles on it in winter (0 for tropical trees).",
       "min": 0,
       "max": 1
+    },
+    {
+      "name": "swell",
+      "type": "f32",
+      "min": 0,
+      "max": 2,
+      "doc": "Swollen lower trunk, as on water tupelo and bald cypress: how much wider the bottom quarter of the stem grows, tapering up (0 = none)."
+    },
+    {
+      "name": "knees",
+      "type": "u32",
+      "min": 0,
+      "max": 40,
+      "doc": "Cypress knees: woody cones rising from the roots around the trunk of a mature tree (0 = none)."
+    },
+    {
+      "name": "prop_roots",
+      "type": "u32",
+      "min": 0,
+      "max": 24,
+      "doc": "Prop roots: arching roots from the lower trunk down into the ground, as on a red mangrove (0 = none)."
+    },
+    {
+      "name": "hanging_moss",
+      "type": "f32",
+      "min": 0,
+      "max": 1,
+      "doc": "Spanish moss (an epiphyte) hanging in strands from the limbs, in every season (0 = none)."
+    },
+    {
+      "name": "moss_color",
+      "type": "vec3",
+      "doc": "Colour of the hanging moss, sRGB 0..1."
     },
     {
       "name": "age_height",

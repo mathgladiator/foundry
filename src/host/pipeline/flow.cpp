@@ -60,12 +60,16 @@ Flow analyze(const Definition &def) {
       fp.table = p.table;
       fp.entries = p.values.size();
     }
-    if (p.type == "enum" || p.type == "config") fp.cardinality = static_cast<double>(p.values.size());
+    if (p.type == "enum" || p.type == "config" || p.type == "bool") fp.cardinality = static_cast<double>(p.values.size());
     else if (p.type == "u32") fp.cardinality = p.max - p.min + 1;
     fp.cardinality_text = p.type == "time" || p.type == "event" ? "every frame"
                           : p.type == "f32"                       ? "continuous"
                                                                   : count_text(fp.cardinality);
     card[p.name] = fp.cardinality;
+    if (!p.when_param.empty()) {
+      fp.when = p.when_param + "." + p.when_field;
+      fp.when_on = p.when_on.size();
+    }
     f.params.push_back(fp);
   }
   std::map<std::string, size_t> index;
@@ -88,8 +92,15 @@ Flow analyze(const Definition &def) {
       fs.depth = std::max(fs.depth, up.depth + 1);
     }
     fs.all.assign(all.begin(), all.end());
+    // Discrete parameters through the definition, so a gated one counts once where it doesn't apply.
     double n = 1;
-    for (const auto &p : fs.all) n = card[p] > 0 && n > 0 ? n * card[p] : 0;
+    std::map<std::string, std::vector<std::string>> choices;
+    for (const auto &p : fs.all) {
+      const Param *dp = def.param(p);
+      if (dp && (dp->type == "enum" || dp->type == "config" || dp->type == "bool")) choices[p] = dp->values;
+      else n = card[p] > 0 && n > 0 ? n * card[p] : 0;
+    }
+    n *= def.combinations(choices);
     fs.distinct = n;
     bool clock = false;
     for (const auto &p : fs.all)
@@ -110,6 +121,7 @@ json Flow::to_json() const {
   for (const auto &p : params) {
     json j = {{"name", p.name}, {"type", p.type}, {"cardinality", p.cardinality_text}, {"reruns", p.reruns}};
     if (!p.table.empty()) j["config"] = {{"table", p.table}, {"entries", p.entries}};
+    if (!p.when.empty()) j["when"] = {{"field", p.when}, {"applies_in", p.when_on}};
     ps.push_back(j);
   }
   for (const auto &s : stages) {
@@ -134,7 +146,9 @@ json probe(Runner &runner, const Definition &def, const json &base_in, int sampl
   }
   for (const auto &p : def.params) {
     std::vector<json> alts;
-    if (p.type == "enum" || p.type == "config") {
+    if (p.type == "bool") {
+      alts.push_back(!base[p.name].get<bool>());
+    } else if (p.type == "enum" || p.type == "config") {
       for (const auto &v : p.values)
         if (json(v) != base[p.name] && static_cast<int>(alts.size()) < samples) alts.push_back(v);
     } else if (p.type == "u32" || p.type == "f32") {

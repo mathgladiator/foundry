@@ -1,0 +1,88 @@
+{
+  "created_at": "2026-10-12T09:00:00Z",
+  "doc": "Old woodland floors of Atlantic Europe, in spring before the canopy closes: strap leaves and arching stems hung on one side with violet-blue bells.",
+  "notes": [],
+  "reference": [
+    "reference/flowers/bluebell/01.jpg",
+    "reference/flowers/bluebell/02.jpg"
+  ],
+  "state": "draft",
+  "value": {
+    "bloom": [
+      0,
+      1,
+      0.2,
+      0
+    ],
+    "bud": [
+      0.4,
+      0.45,
+      0.6
+    ],
+    "center": [
+      0.35,
+      0.35,
+      0.7
+    ],
+    "center_height": 0.3,
+    "center_size": 0.3,
+    "clump_radius": 0.15,
+    "dormant": true,
+    "evergreen": false,
+    "flex": 1.2,
+    "florets": 8,
+    "head": "bell",
+    "head_size": 0.024,
+    "height": 0.45,
+    "latin": "Hyacinthoides non-scripta",
+    "leaf": "strap",
+    "leaf_color": [
+      0.27,
+      0.47,
+      0.22
+    ],
+    "leaf_droop": 1.0,
+    "leaf_fall": [
+      0.55,
+      0.52,
+      0.3
+    ],
+    "leaf_length": 0.3,
+    "leaf_width": 0.08,
+    "leaves": 10,
+    "name": "Bluebell",
+    "nod": 1.2,
+    "one_sided": true,
+    "petal": [
+      0.32,
+      0.32,
+      0.75
+    ],
+    "petal_cup": 10,
+    "petal_curl": 0,
+    "petal_layers": 1,
+    "petal_tip": [
+      0.42,
+      0.4,
+      0.85
+    ],
+    "petal_width": 0.4,
+    "petals": 6,
+    "raceme": 0.45,
+    "seed_head": [
+      0.5,
+      0.5,
+      0.32
+    ],
+    "stem_color": [
+      0.35,
+      0.5,
+      0.28
+    ],
+    "stem_curve": 0.6,
+    "stem_lean": 0.15,
+    "stem_leaves": 0,
+    "stem_radius": 0.004,
+    "stems": 8
+  }
+}

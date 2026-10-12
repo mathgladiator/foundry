@@ -36,6 +36,10 @@ struct Param {
   double min = 0, max = 1;
   nlohmann::json fallback;          // the default value
   std::string unit, doc;
+  // "when": the parameter applies only where a config parameter's entry sets a bool field
+  // (fruit: when species.pickable). Where it doesn't apply, every stage reads it as off.
+  std::string when_param, when_field;
+  std::vector<std::string> when_on;  // the entries of when_param where it applies
 };
 
 struct Stage {
@@ -56,7 +60,16 @@ struct Definition {
   const Stage *stage(const std::string &id) const;
   // Parameters that only update stages read (time, wind): changing them never rebuilds.
   bool is_update_param(const std::string &n) const;
+  // Whether parameter p applies under values (its "when" gate, if any, is on).
+  bool applies(const Param &p, const nlohmann::json &values) const;
+  // How many combinations the discrete choices give (param -> values chosen), counting a
+  // gated parameter once wherever it doesn't apply. Parameters not in choices count 1.
+  double combinations(const std::map<std::string, std::vector<std::string>> &choices) const;
 };
+
+// A parameter's off value, which stages read where it doesn't apply: false, the first
+// value, or the minimum.
+nlohmann::json off_value(const Param &p);
 
 // Loads a pipeline and fills in config choices and the systems' channels.
 bool load(const forge::Paths &paths, const std::string &name, Definition &def, std::string &error);

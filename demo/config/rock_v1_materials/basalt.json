@@ -1,0 +1,58 @@
+{
+  "created_at": "2026-10-12T08:00:00Z",
+  "doc": "Volcanic, fine-grained: a dark lava rock that cools into joined columns, rusting where it weathers. Breaks into prisms along its columns.",
+  "notes": [],
+  "reference": [
+    "reference/rocks/basalt/01.jpg",
+    "reference/rocks/basalt/02.jpg"
+  ],
+  "state": "draft",
+  "value": {
+    "accent": [
+      0.48,
+      0.32,
+      0.22
+    ],
+    "color_dark": [
+      0.2,
+      0.2,
+      0.22
+    ],
+    "color_light": [
+      0.38,
+      0.38,
+      0.4
+    ],
+    "density": 2.9,
+    "elongation": 1.6,
+    "facets": 10,
+    "flatness": 0.9,
+    "fracture": "columnar",
+    "fresh": [
+      0.38,
+      0.38,
+      0.4
+    ],
+    "grain": [
+      0,
+      1,
+      0
+    ],
+    "grain_strength": 0.9,
+    "kind": "volcanic, fine-grained",
+    "lichen": 0.6,
+    "moss_color": [
+      0.36,
+      0.47,
+      0.22
+    ],
+    "name": "Basalt",
+    "pattern": "jointed",
+    "pattern_scale": 0.35,
+    "pieces": 10,
+    "relief_scale": 0.4,
+    "roughness": 0.025,
+    "roundness": 0.05,
+    "snow": 0.8
+  }
+}

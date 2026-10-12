@@ -63,13 +63,21 @@
       0.38,
       0.2
     ],
+    "fruit_seasons": [
+      0,
+      0,
+      0,
+      0
+    ],
     "fruit_size": 0.05,
     "fruit_unripe": [
       0.45,
       0.5,
       0.25
     ],
+    "hanging_moss": 0,
     "height": 11,
+    "knees": 0,
     "latin": "Salix babylonica",
     "leaf_fall": [
       0.85,
@@ -98,12 +106,20 @@
     ],
     "leafiness": 0.9,
     "lean": 0.12,
+    "moss_color": [
+      0.6,
+      0.63,
+      0.55
+    ],
     "name": "Weeping willow",
+    "pickable": false,
+    "prop_roots": 0,
     "slender": 26,
     "snow": 0.4,
     "sprig_length": 0.9,
     "sprigs": 0,
     "stiffness": 7.0,
+    "swell": 0,
     "tip_up": -0.3,
     "twig_angle": 50,
     "twig_curve": -2.5,

@@ -237,14 +237,14 @@ struct UiState {
     float time = 0;
     double origin = 0;
   } fracture;
-  // The video tab's settings and its export job.
+  // The video tab's settings. Its export jobs live in perf, per pipeline.
   struct Video {
     int floats = 1;
     float seconds = 1.0f;
     int fps = 30;
     int size = 0;  // 0 720p, 1 1080p
-    std::map<std::string, std::string> pins;  // parameter -> "" (all) or one value
-    int job = 0;
+    // Per pipeline: parameter -> "" (all) or one value (pipelines share parameter names, such as species).
+    std::map<std::string, std::map<std::string, std::string>> pins;
   } video;
 };
 
@@ -693,6 +693,18 @@ void draw_live(Services &sv) {
         for (const auto &choice : p.values)
           if (ImGui::Selectable(choice.c_str(), choice == cur)) patch[p.name] = choice;
         ImGui::EndCombo();
+      }
+    } else if (p.type == "bool") {
+      // A gated parameter that doesn't apply here (fruit on a species without any) is shown off and disabled.
+      const bool applies = def.applies(p, values);
+      bool x = applies && v.is_boolean() && v.get<bool>();
+      ImGui::BeginDisabled(!applies);
+      if (ImGui::Checkbox(p.name.c_str(), &x)) patch[p.name] = x;
+      ImGui::EndDisabled();
+      if (!applies) {
+        ImGui::SameLine();
+        const std::string gate = values.value(p.when_param, std::string());
+        ImGui::TextDisabled("disabled: %s is off for %s", p.when_field.c_str(), gate.c_str());
       }
     } else if (p.type == "u32") {
       int x = v.get<int>();
@@ -1613,13 +1625,13 @@ void draw_video(Services &sv, UiState &st) {
                      "parameters. Every combination of the discrete parameters is enumerated; continuous ones are sampled.",
                      def.name.c_str());
   ImGui::Spacing();
-  double combos = 1;
+  std::map<std::string, std::vector<std::string>> chosen;  // what the video enumerates, per parameter
   int continuous = 0;
   for (const auto &p : def.params) {
     if (p.type == "u32" || p.type == "f32") ++continuous;
-    if (p.type != "enum" && p.type != "config") continue;
+    if (p.type != "enum" && p.type != "config" && p.type != "bool") continue;
     ImGui::PushID(p.name.c_str());
-    std::string &pin = v.pins[p.name];
+    std::string &pin = v.pins[def.name][p.name];
     ImGui::SetNextItemWidth(220);
     if (ImGui::BeginCombo(p.name.c_str(), pin.empty() ? "all" : pin.c_str())) {
       if (ImGui::Selectable("all", pin.empty())) pin.clear();
@@ -1629,9 +1641,14 @@ void draw_video(Services &sv, UiState &st) {
     }
     ImGui::SameLine();
     ImGui::TextDisabled(pin.empty() ? "%zu values" : "pinned", p.values.size());
-    combos *= pin.empty() ? static_cast<double>(p.values.size()) : 1.0;
+    chosen[p.name] = pin.empty() ? p.values : std::vector<std::string>{pin};
+    if (!p.when_param.empty()) {
+      ImGui::SameLine();
+      ImGui::TextDisabled("(only where %s.%s: %zu entries)", p.when_param.c_str(), p.when_field.c_str(), p.when_on.size());
+    }
     ImGui::PopID();
   }
+  const double combos = def.combinations(chosen);
   ImGui::SetNextItemWidth(220);
   ImGui::SliderInt("samples of continuous values", &v.floats, 1, 10);
   ImGui::SameLine();
@@ -1644,9 +1661,22 @@ void draw_video(Services &sv, UiState &st) {
   ImGui::Combo("size", &v.size, "1280x720\0" "1920x1080\0");
   const double variations = combos * v.floats, seconds = 5 + variations * v.seconds;
   ImGui::Text("%.0f variations, %d:%02d long", variations, static_cast<int>(seconds) / 60, static_cast<int>(seconds) % 60);
-  nlohmann::json status = v.job ? perf::job_status(v.job) : nlohmann::json();
-  const bool running = status.is_object() && !status.value("done", true);
-  ImGui::BeginDisabled(running || variations < 1);
+  // Progress for a job: the last "video: a/b" line it printed.
+  auto progress_of = [](const nlohmann::json &status) {
+    float progress = 0;
+    for (const auto &l : status.value("output", nlohmann::json::array())) {
+      size_t a = 0, b = 0;
+      if (std::sscanf(l.get<std::string>().c_str(), "video: %zu/%zu", &a, &b) == 2 && b) progress = static_cast<float>(a) / b;
+    }
+    return progress;
+  };
+  // This pipeline's latest export, and whatever export is running (one at a time, of any pipeline).
+  const int job = perf::latest_video(def.name), busy = perf::running_video();
+  const nlohmann::json status = job ? perf::job_status(job) : nlohmann::json();
+  const nlohmann::json busy_status = busy ? perf::job_status(busy) : nlohmann::json();
+  const bool running = busy && busy == job;
+  const std::string blocker = busy && !running ? busy_status.value("pipeline", std::string()) : "";
+  ImGui::BeginDisabled(busy != 0 || variations < 1);
   if (ImGui::Button("Export video")) {
     perf::VideoRequest q;
     q.pipeline = def.name;
@@ -1654,20 +1684,23 @@ void draw_video(Services &sv, UiState &st) {
     q.seconds = v.seconds;
     q.fps = v.fps;
     q.size = v.size == 1 ? "1920x1080" : "1280x720";
-    for (const auto &[name, pin] : v.pins)
+    for (const auto &[name, pin] : v.pins[def.name])
       if (!pin.empty()) q.fixed[name] = pin;
-    v.job = perf::start_video(sv.paths, q);
+    perf::start_video(sv.paths, q);
   }
   ImGui::EndDisabled();
+  if (!blocker.empty()) {
+    // Another pipeline's export holds the exporter: say which, and how far along it is.
+    ImGui::TextColored({0.95f, 0.75f, 0.3f, 1}, "Blocked: pipeline '%s' is exporting its video; this one can start when it finishes.",
+                       blocker.c_str());
+    char overlay[96];
+    std::snprintf(overlay, sizeof overlay, "%s: %.0f%%", blocker.c_str(), progress_of(busy_status) * 100);
+    ImGui::ProgressBar(progress_of(busy_status), ImVec2(-1, 0), overlay);
+  }
   if (status.is_object()) {
     const auto lines = status.value("output", nlohmann::json::array());
-    float progress = 0;
-    for (const auto &l : lines) {
-      size_t a = 0, b = 0;
-      if (std::sscanf(l.get<std::string>().c_str(), "video: %zu/%zu", &a, &b) == 2 && b) progress = static_cast<float>(a) / b;
-    }
     if (running) {
-      ImGui::ProgressBar(progress, ImVec2(-1, 0));
+      ImGui::ProgressBar(progress_of(status), ImVec2(-1, 0));
     } else if (status.contains("video")) {
       const std::string path = status["video"];
       ImGui::TextColored({0.45f, 0.85f, 0.5f, 1}, "Wrote %s", path.c_str());

@@ -9,9 +9,19 @@ This file is how the project is managed. It holds one current milestone, with TO
 
 # Current milestone: a complex system
 
-- [ ] **rocks that break uniquely**
-- [ ] **single joint system**
-
+- [x] **rocks that break uniquely**
+  - `rock_v1` (`book/rock_v1.md`): 8 materials (granite, basalt, sandstone, limestone, slate, marble, obsidian, river stone), each with its own fracture; 4 sizes, moss, and season.
+  - Pieces are cut at a lower level of detail when the rock is built, so a break never rebuilds; a closed-form animator throws, bounces, and settles them.
+  - To validate: each material whole, mid-break, and settled (Start `break_time` in the View tab), against its reference photos.
+- [x] **bushes that pair with the trees**
+  - `bush_v1` (`book/bush_v1.md`): 14 species across the trees' biomes, swamp included; several stems from the ground, the trees' wind, flowers and berries by season.
+  - Fruit can be picked: the `fruit` parameter applies only to species whose config marks them `pickable`, and is disabled for the rest.
+  - To validate: every species by age and season, fruit on and off, and the soak's drain check (RSS stays over tolerance while the heap is flat).
+- [x] **flowers that pair with the trees**
+  - `flower_v1` (`book/flower_v1.md`): 15 species in clumps, eight head forms, buds, bloom, seed heads, and winter stalks by season, swaying in the trees' wind.
+  - To validate: every species by season, against its reference photos and beside the trees of its biome.
+- [x] **trees have pickable fruit**
+  
 ## Not in this milestone
 
 To keep the milestone focused, these wait even though they are designed: trees and other nature, crafted things, buildings, humanoids, creatures, magic, auras, sound, shadows, the sleep and wake engine beyond what static meshes need, and recording and replay.

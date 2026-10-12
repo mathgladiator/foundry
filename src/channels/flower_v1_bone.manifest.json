@@ -1,0 +1,8 @@
+{
+  "kind": "channel",
+  "name": "flower_v1_bone",
+  "state": "draft",
+  "reason": "A flower's wind bones cross from flower_grow_v1 to flower_animate_v1 inside the model and the motion: the pivot, direction, and dynamics the closed-form sway needs.",
+  "notes": [],
+  "created_at": "2026-10-12T09:00:00Z"
+}

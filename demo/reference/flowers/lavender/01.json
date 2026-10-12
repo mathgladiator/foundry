@@ -1,0 +1,18 @@
+{
+  "kind": "reference",
+  "file": "01.jpg",
+  "subject": "lavender",
+  "title": "Lavandula angustifolia in Geisenheim.jpg",
+  "description": "Echter Lavendel in Geisenheim, Hessen, Deutschland.",
+  "provenance": {
+    "service": "Wikimedia Commons",
+    "page": "https://commons.wikimedia.org/wiki/File:Lavandula_angustifolia_in_Geisenheim.jpg",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/7/79/Lavandula_angustifolia_in_Geisenheim.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+    "license": "Public domain",
+    "license_url": "",
+    "author": "Nils E.",
+    "attribution_required": false,
+    "retrieved": "2026-10-12",
+    "size": "800 px copy of 1909x2100"
+  }
+}

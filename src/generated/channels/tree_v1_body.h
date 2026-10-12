@@ -39,7 +39,7 @@ struct tree_v1_body {
   std::vector<uint32_t> bone_b;
   // Weight of bone_b per vertex (0 = all bone_a).
   std::vector<float> bone_w;
-  // Paint region per vertex: 0 bark, 1 wood (cut faces), 2 leaf, 3 blossom, 4 fruit, 5 dead leaf, 6 dead wood.
+  // Paint region per vertex: 0 bark, 1 wood (cut faces), 2 leaf, 3 blossom, 4 fruit, 5 dead leaf, 6 dead wood, 7 hanging moss.
   std::vector<uint32_t> region;
   // Per-vertex variation in [0, 1]: bark relief (0 furrow, 1 ridge) or a clump's random tint.
   std::vector<float> shade;

@@ -1,0 +1,138 @@
+{
+  "created_at": "2026-10-12T06:49:20Z",
+  "doc": "A tree of southern swamps and blackwater rivers: a deciduous conifer with a swollen, buttressed base standing in water, woody knees rising from its roots, horizontal limbs hung with Spanish moss, feathery needles that turn rust-orange in fall and drop. Young trees are narrow cones; old ones flatten on top. Wood: baldcypress (Wood Handbook, green).",
+  "notes": [],
+  "reference": [
+    "reference/trees/baldcypress/01.jpg",
+    "reference/trees/baldcypress/02.jpg",
+    "reference/trees/baldcypress/03.jpg"
+  ],
+  "state": "draft",
+  "value": {
+    "age_girth": [
+      0.7,
+      0.9,
+      1.0,
+      1.5
+    ],
+    "age_height": [
+      0.12,
+      0.4,
+      1.0,
+      1.3
+    ],
+    "bark": "shaggy",
+    "bark_dark": [
+      0.36,
+      0.28,
+      0.24
+    ],
+    "bark_light": [
+      0.62,
+      0.5,
+      0.42
+    ],
+    "blossom": 0,
+    "blossom_color": [
+      1,
+      1,
+      1
+    ],
+    "blossom_leaf": 1,
+    "branch_angle": 80,
+    "branch_angle_var": 10,
+    "branch_curve": -0.2,
+    "branch_length": 0.42,
+    "branches": 30,
+    "clump": 0.032,
+    "cluster": 0,
+    "crown_ratio": 0.6,
+    "crown_shape": "tend_flame",
+    "dead_limbs": 0.25,
+    "deciduous": true,
+    "density": 0.42,
+    "divergence": 137.5,
+    "excurrent": true,
+    "fall_drop": 0.2,
+    "flare": 0.6,
+    "flex": 0.6,
+    "foliage": "needles",
+    "fruit": 0.3,
+    "fruit_ripe": [
+      0.48,
+      0.32,
+      0.2
+    ],
+    "fruit_seasons": [
+      0,
+      0,
+      0.3,
+      1
+    ],
+    "fruit_size": 0.035,
+    "fruit_unripe": [
+      0.4,
+      0.45,
+      0.3
+    ],
+    "hanging_moss": 0.45,
+    "height": 15,
+    "knees": 16,
+    "latin": "Taxodium distichum",
+    "leaf_fall": [
+      0.72,
+      0.38,
+      0.16
+    ],
+    "leaf_fall_alt": [
+      0.8,
+      0.5,
+      0.2
+    ],
+    "leaf_spring": [
+      0.55,
+      0.72,
+      0.36
+    ],
+    "leaf_summer": [
+      0.33,
+      0.5,
+      0.25
+    ],
+    "leaf_winter": [
+      0.5,
+      0.32,
+      0.2
+    ],
+    "leafiness": 1.6,
+    "lean": 0.02,
+    "moss_color": [
+      0.58,
+      0.62,
+      0.55
+    ],
+    "name": "Bald cypress",
+    "pickable": false,
+    "prop_roots": 0,
+    "slender": 28,
+    "snow": 0.3,
+    "sprig_length": 0.4,
+    "sprigs": 0,
+    "stiffness": 8.1,
+    "swell": 1.0,
+    "tip_up": 0.2,
+    "twig_angle": 55,
+    "twig_curve": -0.3,
+    "twig_length": 0.45,
+    "twigs": 4,
+    "twist": 0.03,
+    "whorl": 0,
+    "winter_keep": 0,
+    "wobble": 0.04,
+    "wood": [
+      0.86,
+      0.72,
+      0.55
+    ]
+  }
+}

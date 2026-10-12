@@ -63,13 +63,21 @@
       0.08,
       0.1
     ],
+    "fruit_seasons": [
+      0,
+      0,
+      0,
+      0
+    ],
     "fruit_size": 0.05,
     "fruit_unripe": [
       0.7,
       0.2,
       0.15
     ],
+    "hanging_moss": 0,
     "height": 12,
+    "knees": 0,
     "latin": "Jacaranda mimosifolia",
     "leaf_fall": [
       0.55,
@@ -98,12 +106,20 @@
     ],
     "leafiness": 1.1,
     "lean": 0.08,
+    "moss_color": [
+      0.6,
+      0.63,
+      0.55
+    ],
     "name": "Jacaranda",
+    "pickable": false,
+    "prop_roots": 0,
     "slender": 38,
     "snow": 0,
     "sprig_length": 0.35,
     "sprigs": 3,
     "stiffness": 8.0,
+    "swell": 0,
     "tip_up": 0.1,
     "twig_angle": 45,
     "twig_curve": 0.1,

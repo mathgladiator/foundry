@@ -62,13 +62,21 @@
       0.32,
       0.2
     ],
+    "fruit_seasons": [
+      1,
+      0.4,
+      0.6,
+      1
+    ],
     "fruit_size": 0.07,
     "fruit_unripe": [
       0.45,
       0.3,
       0.25
     ],
+    "hanging_moss": 0,
     "height": 14,
+    "knees": 0,
     "latin": "Larix decidua",
     "leaf_fall": [
       0.88,
@@ -97,12 +105,20 @@
     ],
     "leafiness": 1.1,
     "lean": 0.02,
+    "moss_color": [
+      0.6,
+      0.63,
+      0.55
+    ],
     "name": "Larch",
+    "pickable": false,
+    "prop_roots": 0,
     "slender": 50,
     "snow": 0.5,
     "sprig_length": 0.4,
     "sprigs": 0,
     "stiffness": 10.1,
+    "swell": 0,
     "tip_up": 0.5,
     "twig_angle": 45,
     "twig_curve": -0.6,

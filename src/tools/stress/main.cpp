@@ -193,7 +193,12 @@ std::string compare(const json &now, const json &before, const std::string &name
   }
   a = phase_of(now, "events");
   b = phase_of(before, "events");
-  if (a && b && !(*a)["data"]["results"].empty() && !(*b)["data"]["results"].empty()) {
+  // A pipeline without events records no results; compare only when both runs have some.
+  auto results = [](const json *ph) {
+    return ph && (*ph)["data"].is_object() && (*ph)["data"].contains("results") && (*ph)["data"]["results"].is_array() &&
+           !(*ph)["data"]["results"].empty();
+  };
+  if (results(a) && results(b)) {
     const auto &ra = (*a)["data"]["results"][0], &rb = (*b)["data"]["results"][0];
     if (ra["count"] == rb["count"]) parts.push_back("events spike " + pct(ra["spike_max_ms"], rb["spike_max_ms"]));
   }

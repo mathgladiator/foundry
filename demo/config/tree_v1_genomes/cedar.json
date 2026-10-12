@@ -62,13 +62,21 @@
       0.35,
       0.2
     ],
+    "fruit_seasons": [
+      0,
+      0,
+      0,
+      0
+    ],
     "fruit_size": 0.06,
     "fruit_unripe": [
       0.4,
       0.5,
       0.3
     ],
+    "hanging_moss": 0,
     "height": 15,
+    "knees": 0,
     "latin": "Cedrus libani",
     "leaf_fall": [
       0.2,
@@ -97,12 +105,20 @@
     ],
     "leafiness": 1.0,
     "lean": 0.05,
+    "moss_color": [
+      0.6,
+      0.63,
+      0.55
+    ],
     "name": "Cedar of Lebanon",
+    "pickable": false,
+    "prop_roots": 0,
     "slender": 30,
     "snow": 0.9,
     "sprig_length": 0.4,
     "sprigs": 0,
     "stiffness": 7.0,
+    "swell": 0,
     "tip_up": 0.1,
     "twig_angle": 60,
     "twig_curve": 0.1,

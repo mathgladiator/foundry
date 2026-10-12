@@ -63,13 +63,21 @@
       0.55,
       0.3
     ],
-    "fruit_size": 0.05,
+    "fruit_seasons": [
+      0.8,
+      0,
+      0.4,
+      1
+    ],
+    "fruit_size": 0.09,
     "fruit_unripe": [
       0.6,
       0.6,
       0.35
     ],
+    "hanging_moss": 0,
     "height": 8,
+    "knees": 0,
     "latin": "Vachellia tortilis",
     "leaf_fall": [
       0.6,
@@ -98,12 +106,20 @@
     ],
     "leafiness": 1.8,
     "lean": 0.08,
+    "moss_color": [
+      0.6,
+      0.63,
+      0.55
+    ],
     "name": "Acacia",
+    "pickable": true,
+    "prop_roots": 0,
     "slender": 22,
     "snow": 0,
     "sprig_length": 0.6,
     "sprigs": 3,
     "stiffness": 11,
+    "swell": 0,
     "tip_up": 0.2,
     "twig_angle": 70,
     "twig_curve": 0.5,

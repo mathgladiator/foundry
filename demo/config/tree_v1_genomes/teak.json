@@ -62,13 +62,21 @@
       0.38,
       0.2
     ],
+    "fruit_seasons": [
+      0,
+      0,
+      0,
+      0
+    ],
     "fruit_size": 0.05,
     "fruit_unripe": [
       0.45,
       0.5,
       0.25
     ],
+    "hanging_moss": 0,
     "height": 14,
+    "knees": 0,
     "latin": "Tectona grandis",
     "leaf_fall": [
       0.56,
@@ -97,12 +105,20 @@
     ],
     "leafiness": 0.9,
     "lean": 0.04,
+    "moss_color": [
+      0.6,
+      0.63,
+      0.55
+    ],
     "name": "Teak",
+    "pickable": false,
+    "prop_roots": 0,
     "slender": 40,
     "snow": 0,
     "sprig_length": 0.35,
     "sprigs": 2,
     "stiffness": 10.7,
+    "swell": 0,
     "tip_up": 0.1,
     "twig_angle": 50,
     "twig_curve": 0.2,

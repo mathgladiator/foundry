@@ -1,0 +1,88 @@
+{
+  "created_at": "2026-10-12T09:00:00Z",
+  "doc": "Woods and meadows of western Europe in early spring: strap leaves and nodding heads of six pale yellow tepals around a deep yellow trumpet.",
+  "notes": [],
+  "reference": [
+    "reference/flowers/daffodil/01.jpg",
+    "reference/flowers/daffodil/02.jpg"
+  ],
+  "state": "draft",
+  "value": {
+    "bloom": [
+      0.1,
+      1,
+      0,
+      0
+    ],
+    "bud": [
+      0.5,
+      0.62,
+      0.3
+    ],
+    "center": [
+      0.98,
+      0.72,
+      0.1
+    ],
+    "center_height": 1.6,
+    "center_size": 0.35,
+    "clump_radius": 0.1,
+    "dormant": true,
+    "evergreen": false,
+    "flex": 0.9,
+    "florets": 0,
+    "head": "trumpet",
+    "head_size": 0.065,
+    "height": 0.45,
+    "latin": "Narcissus pseudonarcissus",
+    "leaf": "strap",
+    "leaf_color": [
+      0.32,
+      0.52,
+      0.32
+    ],
+    "leaf_droop": 0.4,
+    "leaf_fall": [
+      0.6,
+      0.58,
+      0.32
+    ],
+    "leaf_length": 0.35,
+    "leaf_width": 0.07,
+    "leaves": 10,
+    "name": "Wild daffodil",
+    "nod": 1.2,
+    "one_sided": false,
+    "petal": [
+      0.97,
+      0.88,
+      0.3
+    ],
+    "petal_cup": 5,
+    "petal_curl": 0,
+    "petal_layers": 1,
+    "petal_tip": [
+      0.98,
+      0.92,
+      0.45
+    ],
+    "petal_width": 0.55,
+    "petals": 6,
+    "raceme": 0.2,
+    "seed_head": [
+      0.45,
+      0.5,
+      0.3
+    ],
+    "stem_color": [
+      0.35,
+      0.55,
+      0.3
+    ],
+    "stem_curve": 0.05,
+    "stem_lean": 0.1,
+    "stem_leaves": 0,
+    "stem_radius": 0.005,
+    "stems": 7
+  }
+}

@@ -1,0 +1,105 @@
+{
+  "created_at": "2026-10-12T10:00:00Z",
+  "doc": "Acid heaths, bogs, and boreal clearings: an upright shrub of red twigs, white bells in spring, blue berries in summer, and scarlet leaves in fall.",
+  "notes": [],
+  "reference": [
+    "reference/bushes/blueberry/01.jpg",
+    "reference/bushes/blueberry/02.jpg"
+  ],
+  "state": "draft",
+  "value": {
+    "age_height": [
+      0.4,
+      1.0,
+      1.15
+    ],
+    "bark_dark": [
+      0.35,
+      0.18,
+      0.15
+    ],
+    "bark_light": [
+      0.6,
+      0.3,
+      0.25
+    ],
+    "bloom": [
+      0,
+      0.6,
+      0,
+      0
+    ],
+    "blossom_color": [
+      0.96,
+      0.94,
+      0.9
+    ],
+    "blossom_size": 0.4,
+    "branch_angle": 40,
+    "branch_length": 0.4,
+    "branches": 4,
+    "clump": 0.08,
+    "deciduous": true,
+    "fall_drop": 0.3,
+    "flex": 1.0,
+    "foliage": "clumps",
+    "fruit": 1.0,
+    "fruit_cluster": 6,
+    "fruit_ripe": [
+      0.25,
+      0.3,
+      0.6
+    ],
+    "fruit_seasons": [
+      0,
+      0,
+      1,
+      0.3
+    ],
+    "fruit_size": 0.03,
+    "fruit_unripe": [
+      0.55,
+      0.65,
+      0.4
+    ],
+    "height": 1.5,
+    "latin": "Vaccinium corymbosum",
+    "leaf_fall": [
+      0.82,
+      0.22,
+      0.15
+    ],
+    "leaf_fall_alt": [
+      0.7,
+      0.3,
+      0.15
+    ],
+    "leaf_spring": [
+      0.5,
+      0.66,
+      0.35
+    ],
+    "leaf_summer": [
+      0.3,
+      0.46,
+      0.25
+    ],
+    "leaf_winter": [
+      0.45,
+      0.25,
+      0.2
+    ],
+    "leafiness": 1.2,
+    "name": "Blueberry",
+    "pickable": true,
+    "shape": "round",
+    "snow": 0.7,
+    "stem_curve": 0.15,
+    "stem_spread": 0.35,
+    "stems": 8,
+    "twigs": 3,
+    "width": 1.0,
+    "winter_keep": 0.0,
+    "wobble": 0.1
+  }
+}

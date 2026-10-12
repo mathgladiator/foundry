@@ -1,0 +1,44 @@
+{
+  "family": "flower",
+  "version": 1,
+  "feature": "motion",
+  "doc": "Everything the flower animator needs for one frame: the bones, the local wind, and the time.",
+  "fields": [
+    {
+      "name": "bones",
+      "type": "flower_v1_bone[]",
+      "doc": "Wind bones, from the model."
+    },
+    {
+      "name": "wind_speed",
+      "type": "f32",
+      "doc": "Wind speed at the clump, m/s.",
+      "min": 0,
+      "max": 30
+    },
+    {
+      "name": "wind_heading",
+      "type": "f32",
+      "doc": "Direction the wind blows toward, degrees from +Z toward +X.",
+      "min": 0,
+      "max": 360
+    },
+    {
+      "name": "gust_damping",
+      "type": "f32",
+      "doc": "0 = raw gusts, 1 = steady wind.",
+      "min": 0,
+      "max": 1
+    },
+    {
+      "name": "time",
+      "type": "f32",
+      "doc": "Seconds, from the instance's timeline."
+    },
+    {
+      "name": "seed",
+      "type": "u32",
+      "doc": "Stable randomness for this clump's sway phases."
+    }
+  ]
+}

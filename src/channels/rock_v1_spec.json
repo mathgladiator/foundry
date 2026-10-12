@@ -1,0 +1,60 @@
+{
+  "family": "rock",
+  "version": 1,
+  "feature": "spec",
+  "doc": "One rock to make: what the game asks for (\"a large mossy granite boulder in winter\"), plus the seed that makes it differ from its neighbours and the level of detail the runtime picked.",
+  "fields": [
+    {
+      "name": "material",
+      "type": "rock_v1_material",
+      "doc": "The material."
+    },
+    {
+      "name": "size",
+      "type": "u32",
+      "doc": "How big: small (knee high, about 0.6 m across), medium (about 1.2 m), large (about 2.2 m), or huge (a boulder, about 4 m).",
+      "enum": [
+        "small",
+        "medium",
+        "large",
+        "huge"
+      ]
+    },
+    {
+      "name": "moss",
+      "type": "u32",
+      "doc": "Moss and lichen on its upper faces.",
+      "enum": [
+        "none",
+        "light",
+        "heavy"
+      ]
+    },
+    {
+      "name": "season",
+      "type": "u32",
+      "doc": "The time of year (snow in winter).",
+      "enum": [
+        "winter",
+        "spring",
+        "summer",
+        "fall"
+      ]
+    },
+    {
+      "name": "seed",
+      "type": "u32",
+      "doc": "Stable randomness: the shape and the way it breaks."
+    },
+    {
+      "name": "detail",
+      "type": "u32",
+      "doc": "Level of detail, chosen by the runtime from distance and quality.",
+      "enum": [
+        "high",
+        "medium",
+        "low"
+      ]
+    }
+  ]
+}

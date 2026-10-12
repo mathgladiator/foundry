@@ -63,6 +63,14 @@ void backdrop(Canvas &c, float pitch_down) {
   }
 }
 
+// Whether parameter i applies in configuration c (its gate, if it has one, is on).
+bool applies(const stress_pipeline &pl, const Config &c, uint32_t i) {
+  const stress_param &p = pl.params[i];
+  if (p.when < 0) return true;
+  const uint32_t g = c[static_cast<uint32_t>(p.when)].u;
+  return g < pl.params[p.when].count && p.when_on[g];
+}
+
 std::string value_text(const stress_param &p, stress_value v) {
   if (p.kind == STRESS_ENUM) return p.values[std::min(v.u, p.count - 1)];
   if (p.kind == STRESS_U32) return std::to_string(v.u);
@@ -109,6 +117,11 @@ int run_video(Ctx &ctx, const VideoOptions &o) {
         if (kind == STRESS_U32 || kind == STRESS_F32) c[i] = ctx.random_value(i, rng);
       }
       for (size_t d = 0; d < discrete.size(); ++d) c[discrete[d]].u = choices[d][at[d]];
+      // A gated parameter that doesn't apply gets one clip, at its first choice, not one per value.
+      bool repeat = false;
+      for (size_t d = 0; d < discrete.size(); ++d)
+        if (!applies(pl, c, discrete[d]) && at[d] != 0) repeat = true;
+      if (repeat) break;
       variations.push_back(c);
     }
     done = true;
@@ -183,17 +196,22 @@ int run_video(Ctx &ctx, const VideoOptions &o) {
     // Frame the bounding sphere, orbiting a quarter turn over the clip.
     const float R = std::max(0.5f, info.radius), cy = info.height * 0.5f;
     const float dist = R / std::sin(kFov * 0.5f) * 1.08f;
-    std::string title;
-    for (uint32_t d : discrete) title += (title.empty() ? "" : "  |  ") + value_text(pl.params[d], cfg[d]);
+    // The title: each discrete parameter's value under its name; "disabled" where it doesn't apply.
+    std::vector<std::pair<std::string, std::string>> title;
+    for (uint32_t d : discrete)
+      title.push_back({pl.params[d].name, applies(pl, cfg, d) ? value_text(pl.params[d], cfg[d]) : "disabled"});
     std::vector<std::string> lines;
     for (uint32_t i = 0; i < pl.param_count; ++i) {
       const auto &p = pl.params[i];
       if (p.kind == STRESS_CLOCK || p.kind == STRESS_EVENT) continue;
-      lines.push_back(std::string(p.name) + ": " + value_text(p, cfg[i]));
+      lines.push_back(std::string(p.name) + ": " + (applies(pl, cfg, i) ? value_text(p, cfg[i]) : "disabled"));
     }
     lines.push_back(fmt("height: %.1f m   triangles: %u", info.height, info.triangles));
     if (info.failed) lines.push_back(std::string("FAILED: ") + info.error);
-    index.push_back({{"variation", v + 1}, {"start_seconds", o.title_seconds + v * o.seconds}, {"values", ctx.describe(cfg)}});
+    json described = ctx.describe(cfg);
+    for (uint32_t i = 0; i < pl.param_count; ++i)
+      if (!applies(pl, cfg, i) && described.contains(pl.params[i].name)) described[pl.params[i].name] = "disabled";
+    index.push_back({{"variation", v + 1}, {"start_seconds", o.title_seconds + v * o.seconds}, {"values", described}});
     for (int f = 0; f < clip_frames; ++f) {
       const float yaw = 0.6f + 1.4f * static_cast<float>(v) + 0.5f * static_cast<float>(f) / clip_frames;
       const float eye[3] = {dist * std::sin(yaw) * std::cos(pitch), cy + dist * std::sin(pitch), dist * std::cos(yaw) * std::cos(pitch)};
@@ -202,10 +220,17 @@ int run_video(Ctx &ctx, const VideoOptions &o) {
       ctx.frame();
       ctx.read_frame(c.px);
       backdrop(c, pitch);
-      const float big = H * 0.05f, small = H * 0.026f;
+      const float big = H * 0.05f, small = H * 0.026f, label = H * 0.026f;
       const int pad = static_cast<int>(H * 0.03f);
-      draw_text(c, pad, pad, big, title, {255, 255, 255, 255});
-      const int box_y = pad + static_cast<int>(big * 1.5f);
+      int x = pad;
+      for (const auto &[name, value] : title) {
+        const bool off = value == "disabled";
+        draw_text(c, x, pad, label, name, {205, 215, 235, 255});
+        draw_text(c, x, pad + static_cast<int>(label * 1.3f), big, value,
+                  off ? Rgba{150, 150, 150, 255} : Rgba{255, 255, 255, 255});
+        x += std::max(text_width(label, name), text_width(big, value)) + static_cast<int>(big * 0.9f);
+      }
+      const int box_y = pad + static_cast<int>(label * 1.3f + big * 1.5f);
       int box_w = 0;
       for (const auto &l : lines) box_w = std::max(box_w, text_width(small, l));
       c.fill_rect(pad - 8, box_y - 6, box_w + 16, static_cast<int>(lines.size() * small * 1.3f) + 12, {0, 0, 0, 110});

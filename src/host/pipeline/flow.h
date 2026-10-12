@@ -37,6 +37,8 @@ struct FlowParam {
   std::vector<std::string> reruns;  // stages that rerun when it changes
   std::string table;                // config parameters: the table they pick from (config/<table>/)
   size_t entries = 0;               // and how many entries it has
+  std::string when;                 // its gate (species.pickable), if any
+  size_t when_on = 0;               // and how many of the gate's entries turn it on
 };
 
 struct Flow {

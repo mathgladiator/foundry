@@ -98,6 +98,8 @@ void register_tools(mcp::Registry &registry, Runner &runner, Live &live, workspa
                     if (p.type == "u32" || p.type == "f32") j["range"] = {p.min, p.max};
                     if (!p.unit.empty()) j["unit"] = p.unit;
                     if (!p.doc.empty()) j["doc"] = p.doc;
+                    if (!p.when_param.empty())
+                      j["when"] = {{"param", p.when_param}, {"field", p.when_field}, {"applies_in", p.when_on}};
                     j["update_only"] = def.is_update_param(p.name);
                     params.push_back(j);
                   }

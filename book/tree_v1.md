@@ -5,7 +5,7 @@
 - **The pipeline:** `demo/pipelines/tree_v1.json` (draft)
 - **Systems:** `tree_rig_v1`, `tree_mesh_v1`, `tree_colorize_v1`, `tree_animate_v1` (drafts, in `src/systems/`)
 - **Channels:** the `tree_v1_*` family (drafts, in `src/channels/`)
-- **Genomes:** 28 species in the config table `demo/config/tree_v1_genomes/` (drafts; `design/flow.md`, "Config"), each linked to public-domain or CC0 photos in `demo/reference/trees/`
+- **Genomes:** 32 species in the config table `demo/config/tree_v1_genomes/` (drafts; `design/flow.md`, "Config"), each linked to public-domain or CC0 photos in `demo/reference/trees/`
 - **Design:** `design/systems.md`, "Trees"
 
 ## What the game asks for
@@ -14,9 +14,10 @@ The pipeline's parameters are its whole interface. The generated C API (`src/lib
 
 | Parameter | Type | Range | What it does | Rebuilds the tree? |
 |---|---|---|---|---|
-| `species` | config | 28 species | Everything that makes an oak an oak (see "Species") | yes |
+| `species` | config | 32 species | Everything that makes an oak an oak (see "Species") | yes |
 | `age` | enum | sapling, young, mature, ancient | Height and girth, branching, dead limbs and moss on ancient trees | yes |
 | `season` | enum | winter, spring, summer, fall | Leaves, blossom, fruit, fall colour, bare winters, snow | yes |
+| `fruit` | bool | | The tree still carries its fruit (in the seasons it fruits). Clear it when the player picks it; the tree rebuilds bare and shares that build with every other picked tree like it. It applies only to the 14 species whose fruit can be picked (`pickable`, see "Fruit"); for the rest it is disabled and ignored, and their cones or propagules stay on | yes, where it applies |
 | `seed` | u32 | 1 to 1000 | Which of the distinct trees of that species, age, and season | yes |
 | `detail` | enum | high, medium, low | Level of detail: ring sides, foliage density, sprigs | yes |
 | `wind_speed` | f32 | 0 to 25 m/s | The local wind; 0 lets a standing tree sleep | no: the pose only |
@@ -32,8 +33,11 @@ foundry_tree_v1_default_params(&p);
 p.species = FOUNDRY_TREE_V1_SPECIES_BIRCH;
 p.season = FOUNDRY_TREE_V1_SEASON_FALL;
 p.seed = 42;
+p.fruit = true;
 foundry_instance tree = foundry_tree_v1_spawn(rt, &p, transform);
 foundry_tree_v1_set_wind_speed(rt, tree, 9.0f);
+if (foundry_tree_v1_fruit_applies(p.species))  /* offer picking only where there is fruit */
+  foundry_tree_v1_set_fruit(rt, tree, false);  /* the player picked it */
 foundry_tree_v1_start_break(rt, tree);  /* a woodcutter finished */
 ```
 
@@ -42,7 +46,7 @@ foundry_tree_v1_start_break(rt, tree);  /* a woodcutter finished */
 Four systems, each one channel in and one out:
 
 ```
-species, age, season, seed, detail
+species, age, season, fruit, seed, detail
         |
    tree_v1_spec ──> [tree_rig] ──> tree_v1_rig ──> [tree_mesh] ──> tree_v1_body ──> [tree_colorize] ──> tree_v1_model   (drawn)
                           │
@@ -58,7 +62,7 @@ The rig grows the branch structure from the genome. It works in five steps:
    - **Excurrent species** (pine, spruce, birch, coconut) keep the stem running to the top.
    - **Decurrent species** (oak, apple) turn their upper limbs into leaders.
    - `cluster` pushes branches toward the tip. That is how umbrella crowns (acacia, dragonwood) and a palm's single crown of fronds come about.
-2. **Radii.** Branch radii follow the pipe model (Leonardo's rule, with exponent 2). They are scaled so the trunk matches the species' slenderness, then thickened 1.4 times for the cel look (`style.md` §3).
+2. **Radii.** Branch radii follow the pipe model (Leonardo's rule, with exponent 2). They are scaled so the trunk matches the species' slenderness, then thickened 1.4 times for the cel look (`style.md` §3). A swamp tree's `swell` widens the bottom quarter of the stem into a bottle-like base, tapering up.
 3. **Wind bones.** There is a rigid stump, three stem bones, two bones per limb, and one per twig, capped at 128. Each bone's natural frequency comes from a cantilever beam made of the species' wood. Bare trees catch less wind.
 4. **Break pieces.** The pieces are the stump, the log above the cut, and each limb.
 5. **Foliage anchors.** Anchors sit on the outer branches, sized from the genome, and are capped at 260 per tree.
@@ -78,12 +82,17 @@ The mesh system wraps the skeleton and dresses it for the season:
   - Deciduous trees are bare in winter, keeping `winter_keep` of their dead leaves (an oak's marcescence).
   - Spring brings blossom, and `blossom_leaf` says how much leaf is out beside it: cherries flower on bare wood.
   - Fall drops `fall_drop` of the leaves.
-  - Fruit hangs in summer and fall: unripe, then ripe. A palm hangs its fruit in a cluster under the crown.
+  - Fruit hangs in the seasons the genome's `fruit_seasons` gives, as ripe as it says (colorize mixes `fruit_unripe` to `fruit_ripe`, each fruit a little ahead or behind), on the outer lower side of the clumps, out from the trunk and past the clump's bumps so it shows. Where a deciduous clump has dropped, the fruit hangs on the bare twig (a baobab's pods in the dry season). Pickable fruit shows only while the request's `fruit` is set; cones and propagules always show. A palm hangs its fruit in a bunch against the trunk, below the leaflets of the frond bases.
+- **Roots and moss**, for swamp trees:
+  - **Knees** (`knees`): blunt woody cones rising from the roots around a bald cypress, more and taller with age.
+  - **Prop roots** (`prop_roots`): a mangrove's roots arching from the lower trunk out and down into the ground.
+  - **Spanish moss** (`hanging_moss`): grey strands hanging from the near-level limbs and twigs in every season, as two crossed ribbons riding the branch's bone, coloured by `moss_color`.
+  Knees and roots are rigid on the stump's bone, so they stay put when the tree breaks.
 - **Level of detail.** `detail` sets the ring sides (12, 9, or 7 on the trunk), the icosphere subdivision, the share of foliage clumps kept (all, two thirds, or half, grown to cover the gaps), and whether sprigs appear.
 
 ### `tree_colorize`: the paint
 
-Colorize maps each vertex's paint region (bark, wood, leaf, blossom, fruit, dead leaf, dead wood) and shade to the genome's colours for the season. Fall mixes two colours per clump for variety. Mature and ancient trees grow moss on surfaces that face up. In winter, snow settles on anything facing up more than the genome's `snow` allows, which is never for tropical trees.
+Colorize maps each vertex's paint region (bark, wood, leaf, blossom, fruit, dead leaf, dead wood, hanging moss) and shade to the genome's colours for the season. Fall mixes two colours per clump for variety. Mature and ancient trees grow moss on surfaces that face up. In winter, snow settles on anything facing up more than the genome's `snow` allows, which is never for tropical trees.
 
 ### `tree_animate`: the simulator
 
@@ -100,6 +109,7 @@ Each species is a genome (`tree_v1_genome`): about 55 fields of shape, seasons, 
 |---|---|---|---|---|---|---|---|
 | Acacia | *Vachellia tortilis* | 8 | evergreen | cylindrical (umbrella) | rosettes | furrowed | cream blossom, seed pods |
 | Apple | *Malus domestica* | 5.5 | deciduous | spherical | clumps | plated | blossom, apples |
+| Bald cypress | *Taxodium distichum* | 15 | deciduous (a conifer) | conical to tend flame | needles | shaggy | swollen buttressed base, knees, Spanish moss, rust-orange in fall |
 | Baobab | *Adansonia digitata* | 13 | deciduous (dry season) | cylindrical, short | clumps | smooth | bottle trunk, white flowers, hanging pods |
 | Birch | *Betula pendula* | 11 | deciduous | tend flame | clumps | papery | catkins, gold in fall |
 | Bristlecone pine | *Pinus longaeva* | 6 | evergreen | tapered, twisted | needles | fluted | half its limbs dead and bare when ancient, snow |
@@ -115,8 +125,10 @@ Each species is a genome (`tree_v1_genome`): about 55 fields of shape, seasons, 
 | Jacaranda | *Jacaranda mimosifolia* | 12 | deciduous (briefly) | hemispherical (umbrella) | clumps | furrowed | violet blossom on nearly bare wood |
 | Larch | *Larix decidua* | 14 | deciduous | conical | needles | plated | a conifer that turns gold and drops its needles |
 | Lignum vitae | *Guaiacum officinale* | 6 | evergreen | spherical | clumps | mottled | blue blossom |
+| Southern live oak | *Quercus virginiana* | 12 | evergreen | hemispherical, far wider than tall | clumps | furrowed | low sweeping limbs, heavy Spanish moss |
 | Mahogany | *Swietenia macrophylla* | 15 | evergreen | hemispherical | clumps | plated, buttressed | red spring flush, seed capsules |
 | Mango | *Mangifera indica* | 9 | evergreen | spherical | clumps | furrowed | bronze new leaves, blossom, mangoes |
+| Red mangrove | *Rhizophora mangle* | 6 | evergreen | hemispherical | clumps | mottled | arching prop roots, propagules |
 | Mesquite | *Prosopis glandulosa* | 6 | deciduous | hemispherical (sprawling) | clumps | shaggy | yellow catkins, bean pods |
 | Oak | *Quercus robur* | 10 | deciduous | hemispherical | clumps | furrowed | keeps dead leaves in winter |
 | Olive | *Olea europaea* | 6 | evergreen | spherical | clumps | fluted | blossom, gnarled when ancient |
@@ -125,9 +137,53 @@ Each species is a genome (`tree_v1_genome`): about 55 fields of shape, seasons, 
 | Sugar maple | *Acer saccharum* | 14 | deciduous | spherical (broad oval) | clumps | furrowed | red, orange, and gold in fall |
 | Spruce | *Picea abies* | 13 | evergreen | conical (tiered spire) | needles | plated | hanging cones, heavy snow |
 | Teak | *Tectona grandis* | 14 | deciduous (dry season) | spherical | clumps | furrowed | large leaves, white panicles |
+| Water tupelo | *Nyssa aquatica* | 14 | deciduous | tend flame, high | clumps | furrowed | swollen bottle base, red-purple fall, purple fruit |
 | Weeping willow | *Salix babylonica* | 11 | deciduous | hemispherical, weeping | fronds (drooping strands) | furrowed | bare hanging twigs in winter, catkins |
 
-Wood densities and stiffness come from the USDA *Wood Handbook* where the species is listed, so heavy woods sway slower and fall harder.
+Wood densities and stiffness come from the USDA *Wood Handbook* where the species is listed, so heavy woods sway slower and fall harder. Red mangrove isn't listed, so its values are estimates for a dense tropical hardwood.
+
+### Fruit
+
+Each genome says whether its fruit can be picked (`pickable`: food, nuts, spice, or fodder a player gathers by hand) and how ripe it is per season (`fruit_seasons`: winter, spring, summer, fall; 0 is none). A pickable species' fruit follows the game's `fruit` switch; a species that isn't pickable has the switch disabled, and whatever it bears (cones, propagules, capsules) stays on. The workspace disables the `fruit` checkbox for those species, and the QA video gives them one clip with `fruit` marked disabled.
+
+| Species | Bears | Pickable | Ripeness (W, Sp, Su, F) | Notes |
+|---|---|---|---|---|
+| Acacia | coiled seed pods | yes (fodder) | 0.8, 0, 0.4, 1 | pods ripen in the dry season and hang on |
+| Apple | apples | yes | 0, 0, 0.35, 1 | |
+| Bald cypress | round cones | no | 0, 0, 0.3, 1 | green, browning and shattering by winter; new |
+| Baobab | velvety pods | yes | 1, 0.8, 0.2, 0.6 | ripen in the dry season, hanging on the bare tree |
+| Birch | tiny catkins and nutlets | no | none | too small to draw |
+| Bristlecone pine | cones | no | 0.9, 0.6, 0.5, 1 | held for years |
+| Cedar of Lebanon | upright barrel cones | no | none | they stand on the limbs, which the mesh can't draw yet |
+| Cherry | few, bitter | no | none | *Prunus serrulata* is an ornamental that rarely fruits |
+| Coconut | coconuts | yes | 0.6 all year | fruits continuously |
+| Italian cypress | round cones | no | 0.8, 0.6, 0.6, 1 | held into a second year |
+| Dragonwood | berries | yes | 0.3, 0, 0.4, 1 | after the dragon's blood tree: green, then black, then ripe; new |
+| Ebony | small round fruit | yes | 0, 0.2, 0.6, 1 | edible (Sturtevant); I found no source for the ripe colour, so it uses the genus's yellow-brown; new |
+| American elm | samaras | no | none | papery, spring |
+| Hickory | nuts in husks | yes | 0, 0, 0.3, 1 | new |
+| Jacaranda | flat woody capsules | no | none | |
+| Larch | small cones | no | 1, 0.4, 0.6, 1 | they stay on the bare winter twigs |
+| Lignum vitae | orange capsules, red arils | no | 0, 0, 0.5, 1 | showy, not food; new |
+| Southern live oak | acorns | yes | 0, 0, 0.3, 1 | |
+| Mahogany | upright woody capsules | no | 1, 0.5, 0.3, 0.7 | split in the dry season |
+| Mango | mangoes | yes | 0, 0.3, 1, 0 | ripen in summer |
+| Red mangrove | propagules | no | 0.6 all year | seedlings, not food |
+| Sugar maple | samaras | no | none | |
+| Mesquite | bean pods | yes | 0, 0, 0.5, 1 | |
+| Oak | acorns | yes | 0, 0, 0.3, 1 | new |
+| Olive | olives | yes | 1, 0, 0.25, 0.6 | green in summer, black by winter; new |
+| Osage orange | hedge apples | yes | 0, 0, 0.4, 1 | big green balls in fall; new |
+| Pine | cones | no | 0.8, 0.6, 0.6, 1 | new |
+| Coast redwood | small cones | no | 0.8, 0.6, 0.6, 1 | |
+| Spruce | hanging cones | no | 0.8, 0.6, 0.7, 1 | |
+| Teak | small dry capsules | no | none | |
+| Water tupelo | dark purple drupes | yes | 0, 0, 0.4, 1 | ripen in autumn (USDA Forest Service) |
+| Weeping willow | catkins | no | none | |
+
+Sources for the less familiar ones: the dragon's blood tree's berries ripen green to black to orange over about five months after its early-spring flowers ([Wikipedia](https://en.wikipedia.org/wiki/Dracaena_cinnabari), [Llifle](https://llifle.com/Encyclopedia/TREES/Family/Dracaenaceae/32991/Draco_cinnabari)); lignum vitae's capsule ripens orange around seeds in a red aril ([Levy Preserve](https://levypreserve.org/plant-listings/guaiacum-officinale/)); water tupelo's fruit turns dark purple as it ripens in autumn ([USDA Forest Service](https://www.fs.usda.gov/nsl/Wpsm/Nyssa.pdf)); East Indian ebony bears an edible fruit ([Pl@ntUse, after Sturtevant](https://uses.plantnet-project.org/en/Diospyros_(Sturtevant,_1919))).
+
+Fruit is drawn larger than life (`style.md` §3 wants it chunky): at true size an acorn on a 10 m oak is one pixel at the sheet's scale. After the fix that moved fruit out of the clumps, every pickable species was checked up close at its ripest season with `fruit` on and off. Oak acorns, tupelo drupes, and live oak acorns were darkened to stand out from their fall leaves, and fruit grew 1.2 to 2 times (`fruit_size`; apple 0.065 to 0.08 m, oak 0.03 to 0.06 m, acacia 0.05 to 0.09 m). Before the fix, fruit sat at 0.92 of the clump radius, inside the clump's bumps: an apple tree's 14,560 triangles of apples changed 0.07% of the picture.
 
 ### Adding or tuning a species
 
@@ -156,6 +212,10 @@ The comparison also changed six existing species, which had drifted from their p
 
 Native output matches WebAssembly on every stage for all eleven, in all four seasons, young and ancient (88 configurations).
 
+Four swamp trees were added on 2026-10-12, to pair with the swamp shrubs (saw palmetto, buttonbush) and flowers (blue flag iris, cattail): bald cypress, water tupelo, red mangrove, and southern live oak. They needed four additions to the genome channel (its draft patched in place): `swell`, `knees`, `prop_roots`, and `hanging_moss` with `moss_color`, built by `tree_rig_v1` (the swell) and `tree_mesh_v1` (the rest), and painted by `tree_colorize_v1`. Every other species has them at 0. Compared with their photos, the cypress got finer needle pads and a lower flare, the tupelo a higher crown on a taller trunk, the mangrove more roots, and the live oak more moss.
+
+The same day `fruit` became a parameter (a `bool` on `tree_v1_spec`), so the game can pick a tree's fruit: the tree rebuilds without it. Then every species' fruit was researched and two fields were added to the genome (patched in place): `pickable` and `fruit_seasons` (see "Fruit").
+
 ### Reference photos
 
 Each species links to photos of the real tree in `demo/reference/trees/<species>/` through its entry's `reference` list (`config_set` with `reference`), 1 to 3 photos each. Every photo is public domain or CC0, from Wikimedia Commons, so no attribution is required. Its JSON sidecar still records the source page, original file, license, author, and retrieval date. Each photo is an 800-pixel copy. Tick **Reference** in the viewport (or `workspace_select` with `reference: true`) to show the photo in the corner beside the live tree; clicking it steps through the photos. They are also workspace items under **Reference**.
@@ -170,31 +230,34 @@ The viewport's **Flow** tab draws this graph: `species` feeds a purple lookup bo
 
 | Stage | Cache key | Distinct outputs |
 |---|---|---|
-| `rig` | species, age, season, seed, detail | 28 × 4 × 4 × 1000 × 3 = 1,344,000 |
-| `mesh` | the same (its input is the whole rig) | 1,344,000 |
-| `colorize` | the same | 1,344,000 |
+| `rig` | species, age, season, fruit, seed, detail | (14 × 2 + 18) × 4 × 4 × 1000 × 3 = 2,208,000: `fruit` counts only where it applies |
+| `mesh` | the same (its input is the whole rig) | 2,208,000 |
+| `colorize` | the same | 2,208,000 |
 | `animate` | every parameter | every frame, per instance |
 
-Wind and time never rebuild a tree: they rerun only `animate`, which reads two fields of the rig (`bones`, `pieces`), not the mesh. In the native runtime, every tree with the same five build parameters shares one mesh, so a forest of 10 kinds of tree costs 10 meshes, however many instances it has.
+Wind and time never rebuild a tree: they rerun only `animate`, which reads two fields of the rig (`bones`, `pieces`), not the mesh. In the native runtime, every tree with the same six build parameters shares one mesh, so a forest of 10 kinds of tree costs 10 meshes, however many instances it has.
 
 The probe (`pipeline_flow` with `probe`, or the Flow tab's button) varies each parameter and compares every stage's output. It found one place a cache could be shared:
 - **`detail` reaches `animate`** through the rig's bones, but never changes its output. The skeleton is the same at every level of detail, so poses could be shared across them.
+- **`fruit` reaches `rig`**, whose output carries the request through to the mesh, but it never changes the skeleton, and `animate` never changes with it. Probed on an oak in fall, it changes the rig's output (the request it carries), the mesh, and the colour; probed on a willow, it changes nothing, because the foundry reads it as off where it doesn't apply. The rig could be cached without it, and picking fruit would then rebuild only the mesh and colour.
 - **Conditional dependencies are invisible to it.** `break_heading` shows no change when probed on a standing tree, because it only matters once the tree breaks.
 
 ## Performance
 
-Native runtime, on an AMD Ryzen AI Max+ 395 with a Radeon 8060S (Vulkan), from `demo/perf/report-tree_v1-*.json`:
+Native runtime, on an AMD Ryzen AI Max+ 395 with a Radeon 8060S (Vulkan), from the standard stress plan (`demo/perf/report-tree_v1-20261012T153338Z.json`, 32 species, after the fruit research):
 
 | | Native | WebAssembly (foundry) |
 |---|---|---|
-| Growing a tree (rig + mesh + colorize) | about 0.6 ms; 2.4 ms from spawn to drawable (p50) | about 70 ms |
-| Posing a tree (`animate`) | about 7 µs | about 15 ms, almost all instance setup |
-| Triangles | 3,600 (p50) to 23,500 (max) at high detail | |
+| Growing a tree (rig + mesh + colorize) | about 0.6 ms mean (0.12 + 0.41 + 0.05); 1.9 ms from spawn to drawable (p50), 6.3 ms p99 (a mature apple in summer, in fruit) | about 70 ms (measured with 18 species) |
+| Posing a tree (`animate`) | about 13 µs | about 15 ms, almost all instance setup |
+| Triangles | 4,905 (p50) to 37,833 (max) at high detail | |
 
-- **Forest.** 3200 trees run at 4.1 ms p95, sharing 10 meshes with a 99.7% cache hit rate. About 16,000 trees fit a 60 fps frame by CPU frame time, but the GPU frame measured on its own exceeds 16.7 ms above about 12,800.
-- **Bulk breaks.** Felling 100 trees in one frame raises the frame time from 0.4 to 0.6 ms. They settle in 3 s, and memory comes back to within 0.1 MB.
-- **Soak.** The runtime's memory returns to the same level after every drain.
-- **Matches what was approved.** Every stress run checks 100 sampled trees and their poses byte for byte against WebAssembly.
+Growing measured faster than the run before the fruit work (2.6 ms p50 to spawn); I haven't isolated why.
+
+- **Forest.** About 17,600 trees fit a 60 fps frame (15.6 ms p95), sharing 10 meshes with a 99.96% cache hit rate; 25,600 take 23 ms.
+- **Bulk breaks.** Felling 100 trees in one frame raises the frame time from 0.4 to 1.0 ms. They settle in 3.1 s, and memory comes back exactly. 1,600 felled at once still fit the frame budget.
+- **Soak.** Five drains all came back within 2.0 MB.
+- **Matches what was approved.** Every stress run through the foundry checks 100 sampled trees and their poses byte for byte against WebAssembly (100/100 after the fruit work; running the binary directly skips it). `pipeline_set` with `verify_native` also matched every stage for all 32 species in winter and fall, fruit on and off (96 configurations).
 
 Run `perf_stress` with plan `quick` after a change and `standard` before asking for approval (`design/quality.perf.md`). To fly through a forest yourself, run:
 
@@ -205,12 +268,12 @@ build/linux-release/stress/stress_tree_v1 --plan explore --window
 ## QA
 
 - **Contact sheets.** `pipeline_sheet`: species × season, species × age, age × seed.
-- **The QA video.** The viewport's **Video** tab, or `pipeline_video`, exports every combination of species, age, season, and detail at about a second each, behind a 5-second title slide. Each clip orbits the tree with its parameters called out, and an index of start times sits beside the video in `qa/videos/`. The last full run, with 18 species, was 864 variations: 14.5 minutes of video, exported by the native runtime in about 2. With 22 species it was 1,056 variations, exported in 145 s; with 28 it is 1,344.
+- **The QA video.** The viewport's **Video** tab, or `pipeline_video`, exports every combination of species, age, season, and detail at about a second each, behind a 5-second title slide. Each clip orbits the tree with its parameters called out, and an index of start times sits beside the video in `qa/videos/`. The last full run, with 18 species, was 864 variations: 14.5 minutes of video, exported by the native runtime in about 2. With 22 species it was 1,056 variations, exported in 145 s. With 32 species and `fruit` it is 2,208, because species whose fruit isn't pickable get one clip with `fruit` marked disabled instead of two; pin `fruit` (or `detail`) to keep a run short. Every discrete parameter's value is shown under its name at the top of each clip.
 - **The live instance.** In the foundry, select `pipeline:tree_v1` or a species under Config. The **View** tab plays the wind and the break.
 
 ## Known limits
 
+- **Fruit is chunky and placed by rule.** It hangs on the clumps' outer lower side, larger than life. A coconut bunch shows from below and the side but hides under the frond skirt from above. Cedar's cones stand upright on real trees, which the mesh can't draw, so cedar has none.
 - **Level of detail and distinct trees.** The runtime doesn't yet pick `detail` from distance, or cap how many distinct seeds it builds at each quality setting (`design/systems.md`, "Stable randomness"). The game sets both directly.
-- **Coconuts.** They hang inside the crown, where the drooping fronds hide them from the side, as on a real palm. They show from above and below.
 - **Break debris.** Limbs that fly off can end partly in the ground, and falling leaves aren't particles yet.
 - **Multi-stemmed trees.** Mesquite approximates its multiple stems with limbs that leave the trunk near the ground. The rig grows one stem.

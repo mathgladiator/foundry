@@ -1,0 +1,105 @@
+{
+  "created_at": "2026-10-12T10:00:00Z",
+  "doc": "Cold steppe and high desert of the Great Basin: a crooked silver-grey evergreen of shaggy trunks and aromatic three-toothed leaves, with tiny yellow flowers in fall.",
+  "notes": [],
+  "reference": [
+    "reference/bushes/sagebrush/01.jpg",
+    "reference/bushes/sagebrush/02.jpg"
+  ],
+  "state": "draft",
+  "value": {
+    "age_height": [
+      0.4,
+      1.0,
+      1.15
+    ],
+    "bark_dark": [
+      0.3,
+      0.28,
+      0.24
+    ],
+    "bark_light": [
+      0.5,
+      0.46,
+      0.4
+    ],
+    "bloom": [
+      0,
+      0,
+      0.1,
+      0.35
+    ],
+    "blossom_color": [
+      0.85,
+      0.8,
+      0.45
+    ],
+    "blossom_size": 0.3,
+    "branch_angle": 40,
+    "branch_length": 0.45,
+    "branches": 4,
+    "clump": 0.09,
+    "deciduous": false,
+    "fall_drop": 0.3,
+    "flex": 0.8,
+    "foliage": "clumps",
+    "fruit": 0,
+    "fruit_cluster": 4,
+    "fruit_ripe": [
+      0.5,
+      0.1,
+      0.15
+    ],
+    "fruit_seasons": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "fruit_size": 0.018,
+    "fruit_unripe": [
+      0.45,
+      0.55,
+      0.3
+    ],
+    "height": 1.2,
+    "latin": "Artemisia tridentata",
+    "leaf_fall": [
+      0.6,
+      0.63,
+      0.55
+    ],
+    "leaf_fall_alt": [
+      0.62,
+      0.64,
+      0.55
+    ],
+    "leaf_spring": [
+      0.64,
+      0.68,
+      0.58
+    ],
+    "leaf_summer": [
+      0.62,
+      0.66,
+      0.58
+    ],
+    "leaf_winter": [
+      0.58,
+      0.6,
+      0.52
+    ],
+    "leafiness": 1.8,
+    "name": "Big sagebrush",
+    "pickable": false,
+    "shape": "round",
+    "snow": 0.5,
+    "stem_curve": 0.2,
+    "stem_spread": 0.5,
+    "stems": 8,
+    "twigs": 2,
+    "width": 1.1,
+    "winter_keep": 0.0,
+    "wobble": 0.25
+  }
+}

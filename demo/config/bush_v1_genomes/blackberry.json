@@ -1,0 +1,105 @@
+{
+  "created_at": "2026-10-12T10:00:00Z",
+  "doc": "Hedgerows, clearings, and wasteland: a sprawling bramble of thorny arching canes that root where they touch, white-pink flowers in summer, and berries ripening red to black into fall; leaves hang on, purpled, through mild winters.",
+  "notes": [],
+  "reference": [
+    "reference/bushes/blackberry/01.jpg",
+    "reference/bushes/blackberry/02.jpg"
+  ],
+  "state": "draft",
+  "value": {
+    "age_height": [
+      0.4,
+      1.0,
+      1.15
+    ],
+    "bark_dark": [
+      0.3,
+      0.15,
+      0.18
+    ],
+    "bark_light": [
+      0.5,
+      0.25,
+      0.3
+    ],
+    "bloom": [
+      0,
+      0.1,
+      0.35,
+      0
+    ],
+    "blossom_color": [
+      0.95,
+      0.88,
+      0.9
+    ],
+    "blossom_size": 0.4,
+    "branch_angle": 45,
+    "branch_length": 0.35,
+    "branches": 3,
+    "clump": 0.08,
+    "deciduous": true,
+    "fall_drop": 0.3,
+    "flex": 1.0,
+    "foliage": "clumps",
+    "fruit": 1.5,
+    "fruit_cluster": 5,
+    "fruit_ripe": [
+      0.12,
+      0.08,
+      0.12
+    ],
+    "fruit_seasons": [
+      0,
+      0,
+      0.6,
+      1
+    ],
+    "fruit_size": 0.035,
+    "fruit_unripe": [
+      0.75,
+      0.15,
+      0.15
+    ],
+    "height": 1.6,
+    "latin": "Rubus fruticosus",
+    "leaf_fall": [
+      0.42,
+      0.45,
+      0.2
+    ],
+    "leaf_fall_alt": [
+      0.55,
+      0.3,
+      0.25
+    ],
+    "leaf_spring": [
+      0.45,
+      0.62,
+      0.3
+    ],
+    "leaf_summer": [
+      0.24,
+      0.42,
+      0.18
+    ],
+    "leaf_winter": [
+      0.38,
+      0.22,
+      0.25
+    ],
+    "leafiness": 1.1,
+    "name": "Blackberry",
+    "pickable": true,
+    "shape": "spreading",
+    "snow": 0.6,
+    "stem_curve": 0.9,
+    "stem_spread": 0.75,
+    "stems": 10,
+    "twigs": 1,
+    "width": 1.8,
+    "winter_keep": 0.2,
+    "wobble": 0.15
+  }
+}

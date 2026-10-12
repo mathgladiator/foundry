@@ -104,9 +104,11 @@ void draw_circle(Target &t, const Projector &pr, vec3 centre, float r, Rgb c, fl
   }
 }
 
-// A capsule standing on the ground at `base`: rings, four sides, and the caps' arcs.
+// A capsule standing on the ground at `base`: rings, four sides, and the caps' arcs. When it is wider
+// than it is tall (a rock, a shrub), the caps are squashed so it stays between the ground and h.
 void draw_capsule(Target &t, const Projector &pr, vec3 base, float r, float h, Rgb c, float alpha, float hidden) {
-  float lo = std::min(r, h * 0.5f), hi = std::max(h - r, h * 0.5f);
+  const float rv = std::min(r, h * 0.5f);  // the caps' height
+  float lo = rv, hi = h - rv;
   draw_circle(t, pr, base + vec3{0, lo, 0}, r, c, alpha, hidden);
   draw_circle(t, pr, base + vec3{0, hi, 0}, r, c, alpha, hidden);
   for (int k = 0; k < 4; ++k) {
@@ -117,10 +119,10 @@ void draw_capsule(Target &t, const Projector &pr, vec3 base, float r, float h, R
     for (int i = 0; i < n; ++i) {
       float b0 = 0.5f * kPi * i / n, b1 = 0.5f * kPi * (i + 1) / n;
       // Top and bottom quarter arcs.
-      draw_line(t, pr, base + vec3{0, hi, 0} + d * (r * std::cos(b0)) + vec3{0, r * std::sin(b0), 0},
-                base + vec3{0, hi, 0} + d * (r * std::cos(b1)) + vec3{0, r * std::sin(b1), 0}, c, alpha, hidden);
-      draw_line(t, pr, base + vec3{0, lo, 0} + d * (r * std::cos(b0)) - vec3{0, r * std::sin(b0), 0},
-                base + vec3{0, lo, 0} + d * (r * std::cos(b1)) - vec3{0, r * std::sin(b1), 0}, c, alpha, hidden);
+      draw_line(t, pr, base + vec3{0, hi, 0} + d * (r * std::cos(b0)) + vec3{0, rv * std::sin(b0), 0},
+                base + vec3{0, hi, 0} + d * (r * std::cos(b1)) + vec3{0, rv * std::sin(b1), 0}, c, alpha, hidden);
+      draw_line(t, pr, base + vec3{0, lo, 0} + d * (r * std::cos(b0)) - vec3{0, rv * std::sin(b0), 0},
+                base + vec3{0, lo, 0} + d * (r * std::cos(b1)) - vec3{0, rv * std::sin(b1), 0}, c, alpha, hidden);
     }
   }
 }

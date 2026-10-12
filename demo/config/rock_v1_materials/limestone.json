@@ -1,0 +1,59 @@
+{
+  "created_at": "2026-10-12T08:00:00Z",
+  "doc": "Sedimentary: old sea floor of shells, pale grey-cream, pitted where rain dissolves it, and quick to grow moss. Breaks finely where it is struck, coarsely behind.",
+  "notes": [],
+  "reference": [
+    "reference/rocks/limestone/01.jpg",
+    "reference/rocks/limestone/02.jpg",
+    "reference/rocks/limestone/03.jpg"
+  ],
+  "state": "draft",
+  "value": {
+    "accent": [
+      0.86,
+      0.85,
+      0.8
+    ],
+    "color_dark": [
+      0.56,
+      0.55,
+      0.52
+    ],
+    "color_light": [
+      0.78,
+      0.77,
+      0.73
+    ],
+    "density": 2.5,
+    "elongation": 1.3,
+    "facets": 16,
+    "flatness": 0.8,
+    "fracture": "impact",
+    "fresh": [
+      0.86,
+      0.85,
+      0.8
+    ],
+    "grain": [
+      0,
+      1,
+      0
+    ],
+    "grain_strength": 0.3,
+    "kind": "sedimentary, shells",
+    "lichen": 1.3,
+    "moss_color": [
+      0.36,
+      0.47,
+      0.22
+    ],
+    "name": "Limestone",
+    "pattern": "pitted",
+    "pattern_scale": 0.06,
+    "pieces": 10,
+    "relief_scale": 0.22,
+    "roughness": 0.07,
+    "roundness": 0.3,
+    "snow": 0.8
+  }
+}

@@ -1,0 +1,88 @@
+{
+  "created_at": "2026-10-12T09:00:00Z",
+  "doc": "Meadows and roadsides of temperate Europe and beyond: a clump of wiry stems, each with one white-rayed head and a yellow disc, lance leaves at the foot. Blooms in early summer.",
+  "notes": [],
+  "reference": [
+    "reference/flowers/daisy/01.jpg",
+    "reference/flowers/daisy/02.jpg"
+  ],
+  "state": "draft",
+  "value": {
+    "bloom": [
+      0,
+      0.3,
+      1,
+      0.2
+    ],
+    "bud": [
+      0.55,
+      0.65,
+      0.3
+    ],
+    "center": [
+      0.95,
+      0.75,
+      0.12
+    ],
+    "center_height": 0.3,
+    "center_size": 0.35,
+    "clump_radius": 0.18,
+    "dormant": true,
+    "evergreen": false,
+    "flex": 1.4,
+    "florets": 0,
+    "head": "ray",
+    "head_size": 0.07,
+    "height": 0.6,
+    "latin": "Leucanthemum vulgare",
+    "leaf": "lance",
+    "leaf_color": [
+      0.3,
+      0.48,
+      0.2
+    ],
+    "leaf_droop": 0.5,
+    "leaf_fall": [
+      0.52,
+      0.48,
+      0.25
+    ],
+    "leaf_length": 0.12,
+    "leaf_width": 0.25,
+    "leaves": 12,
+    "name": "Oxeye daisy",
+    "nod": 0.1,
+    "one_sided": false,
+    "petal": [
+      0.96,
+      0.96,
+      0.92
+    ],
+    "petal_cup": 5,
+    "petal_curl": -0.1,
+    "petal_layers": 1,
+    "petal_tip": [
+      0.97,
+      0.97,
+      0.94
+    ],
+    "petal_width": 0.22,
+    "petals": 20,
+    "raceme": 0.2,
+    "seed_head": [
+      0.45,
+      0.38,
+      0.22
+    ],
+    "stem_color": [
+      0.36,
+      0.52,
+      0.24
+    ],
+    "stem_curve": 0.15,
+    "stem_lean": 0.25,
+    "stem_leaves": 3,
+    "stem_radius": 0.004,
+    "stems": 14
+  }
+}

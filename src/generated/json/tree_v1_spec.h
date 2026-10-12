@@ -20,6 +20,7 @@ inline nlohmann::json to_json(const channels::tree_v1_spec &c) {
   j["season"] = enum_name(c.season, kTreeV1SpecSeason);
   j["seed"] = c.seed;
   j["detail"] = enum_name(c.detail, kTreeV1SpecDetail);
+  j["fruit"] = c.fruit;
   return j;
 }
 
@@ -39,6 +40,9 @@ inline void from_json(const nlohmann::json &j, channels::tree_v1_spec &c) {
   }
   if (j.contains("detail")) {
     c.detail = enum_value(j.at("detail"), kTreeV1SpecDetail);
+  }
+  if (j.contains("fruit")) {
+    c.fruit = j.at("fruit").get<bool>();
   }
 }
 

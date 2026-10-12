@@ -1,0 +1,18 @@
+{
+  "kind": "reference",
+  "file": "01.jpg",
+  "subject": "poppy",
+  "title": "Papaver rhoeas 134541490.jpg",
+  "description": "common poppy (Papaver rhoeas)",
+  "provenance": {
+    "service": "Wikimedia Commons",
+    "page": "https://commons.wikimedia.org/wiki/File:Papaver_rhoeas_134541490.jpg",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/b/b7/Papaver_rhoeas_134541490.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+    "license": "CC0",
+    "license_url": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
+    "author": "Quentin Groom",
+    "attribution_required": false,
+    "retrieved": "2026-10-12",
+    "size": "800 px copy of 2048x2048"
+  }
+}

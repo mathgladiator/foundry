@@ -100,16 +100,30 @@ struct tree_v1_genome {
   float blossom = 0.0f;
   // Share of leaves already out while it blossoms (cherries flower on bare wood).
   float blossom_leaf = 0.0f;
-  // Fruit per foliage clump in summer and fall (0 = none).
+  // Fruit (or cones) per foliage clump in the seasons it bears (0 = none).
   float fruit = 0.0f;
   // Fruit radius, metres (style.md section 3 wants it chunky).
   float fruit_size = 0.0f;
+  // How ripe the fruit is per season (winter, spring, summer, fall; 4 values): 0 none, then unripe (just above 0) to ripe (1). Cones and pods that stay on the tree are fruit here too.
+  std::vector<float> fruit_seasons;
+  // Its fruit can be picked: the pipeline's fruit parameter applies, and the game can offer picking. Otherwise the parameter is disabled and whatever it bears (cones, propagules, seed pods) stays on.
+  bool pickable = false;
   // Bark relief and pattern: ringed is a palm's leaf-scar rings; papery is a birch's pale bark with dark lenticel dashes and patches.
   uint32_t bark = 0;
   // Share of first-order limbs that are dead and bare on an ancient tree.
   float dead_limbs = 0.0f;
   // How much snow settles on it in winter (0 for tropical trees).
   float snow = 0.0f;
+  // Swollen lower trunk, as on water tupelo and bald cypress: how much wider the bottom quarter of the stem grows, tapering up (0 = none).
+  float swell = 0.0f;
+  // Cypress knees: woody cones rising from the roots around the trunk of a mature tree (0 = none).
+  uint32_t knees = 0;
+  // Prop roots: arching roots from the lower trunk down into the ground, as on a red mangrove (0 = none).
+  uint32_t prop_roots = 0;
+  // Spanish moss (an epiphyte) hanging in strands from the limbs, in every season (0 = none).
+  float hanging_moss = 0.0f;
+  // Colour of the hanging moss, sRGB 0..1.
+  foundry::vec3 moss_color;
   // Height of a sapling, young, mature, and ancient tree, as fractions of the mature height (4 values).
   std::vector<float> age_height;
   // Trunk thickness multiplier for each age (4 values), on top of slenderness.

@@ -50,9 +50,17 @@ inline nlohmann::json to_json(const channels::tree_v1_genome &c) {
   j["blossom_leaf"] = c.blossom_leaf;
   j["fruit"] = c.fruit;
   j["fruit_size"] = c.fruit_size;
+  j["fruit_seasons"] = nlohmann::json::array();
+  for (const auto &x : c.fruit_seasons) j["fruit_seasons"].push_back(x);
+  j["pickable"] = c.pickable;
   j["bark"] = enum_name(c.bark, kTreeV1GenomeBark);
   j["dead_limbs"] = c.dead_limbs;
   j["snow"] = c.snow;
+  j["swell"] = c.swell;
+  j["knees"] = c.knees;
+  j["prop_roots"] = c.prop_roots;
+  j["hanging_moss"] = c.hanging_moss;
+  j["moss_color"] = nlohmann::json::array({c.moss_color.x, c.moss_color.y, c.moss_color.z});
   j["age_height"] = nlohmann::json::array();
   for (const auto &x : c.age_height) j["age_height"].push_back(x);
   j["age_girth"] = nlohmann::json::array();
@@ -184,6 +192,13 @@ inline void from_json(const nlohmann::json &j, channels::tree_v1_genome &c) {
   if (j.contains("fruit_size")) {
     c.fruit_size = j.at("fruit_size").get<float>();
   }
+  if (j.contains("fruit_seasons")) {
+    c.fruit_seasons.clear();
+    for (const auto &x : j.at("fruit_seasons")) c.fruit_seasons.push_back(x.get<float>());
+  }
+  if (j.contains("pickable")) {
+    c.pickable = j.at("pickable").get<bool>();
+  }
   if (j.contains("bark")) {
     c.bark = enum_value(j.at("bark"), kTreeV1GenomeBark);
   }
@@ -192,6 +207,21 @@ inline void from_json(const nlohmann::json &j, channels::tree_v1_genome &c) {
   }
   if (j.contains("snow")) {
     c.snow = j.at("snow").get<float>();
+  }
+  if (j.contains("swell")) {
+    c.swell = j.at("swell").get<float>();
+  }
+  if (j.contains("knees")) {
+    c.knees = j.at("knees").get<uint32_t>();
+  }
+  if (j.contains("prop_roots")) {
+    c.prop_roots = j.at("prop_roots").get<uint32_t>();
+  }
+  if (j.contains("hanging_moss")) {
+    c.hanging_moss = j.at("hanging_moss").get<float>();
+  }
+  if (j.contains("moss_color")) {
+    c.moss_color = foundry::vec3{j.at("moss_color").at(0).get<float>(), j.at("moss_color").at(1).get<float>(), j.at("moss_color").at(2).get<float>()};
   }
   if (j.contains("age_height")) {
     c.age_height.clear();

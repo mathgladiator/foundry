@@ -67,7 +67,7 @@
     {
       "name": "region",
       "type": "u32[]",
-      "doc": "Paint region per vertex: 0 bark, 1 wood (cut faces), 2 leaf, 3 blossom, 4 fruit, 5 dead leaf, 6 dead wood."
+      "doc": "Paint region per vertex: 0 bark, 1 wood (cut faces), 2 leaf, 3 blossom, 4 fruit, 5 dead leaf, 6 dead wood, 7 hanging moss."
     },
     {
       "name": "shade",

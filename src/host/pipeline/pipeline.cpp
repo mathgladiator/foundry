@@ -169,6 +169,59 @@ bool Definition::is_update_param(const std::string &n) const {
   return true;
 }
 
+bool Definition::applies(const Param &p, const nlohmann::json &values) const {
+  if (p.when_param.empty()) return true;
+  const Param *gate = param(p.when_param);
+  std::string v = values.is_object() && values.contains(p.when_param) && values[p.when_param].is_string()
+                      ? values[p.when_param].get<std::string>()
+                      : "";
+  if (gate && std::find(gate->values.begin(), gate->values.end(), v) == gate->values.end())
+    v = gate->fallback.is_string() ? gate->fallback.get<std::string>() : "";
+  return std::find(p.when_on.begin(), p.when_on.end(), v) != p.when_on.end();
+}
+
+double Definition::combinations(const std::map<std::string, std::vector<std::string>> &choices) const {
+  auto chosen = [&](const std::string &n) -> const std::vector<std::string> * {
+    auto it = choices.find(n);
+    return it == choices.end() ? nullptr : &it->second;
+  };
+  double n = 1;
+  for (const auto &p : params) {
+    const auto *c = chosen(p.name);
+    if (!c) continue;
+    bool gated = false;
+    if (!p.when_param.empty() && chosen(p.when_param)) gated = true;
+    bool gate = false;
+    for (const auto &q : params)
+      if (q.when_param == p.name && chosen(q.name)) gate = true;
+    if (gated) continue;  // counted with its gate
+    if (!gate) {
+      n *= static_cast<double>(c->size());
+      continue;
+    }
+    // A gate: per chosen entry, the gated parameters' choices where they apply, else one.
+    double sum = 0;
+    for (const auto &e : *c) {
+      double per = 1;
+      for (const auto &q : params) {
+        if (q.when_param != p.name || !chosen(q.name)) continue;
+        const bool on = std::find(q.when_on.begin(), q.when_on.end(), e) != q.when_on.end();
+        per *= on ? static_cast<double>(chosen(q.name)->size()) : 1.0;
+      }
+      sum += per;
+    }
+    n *= sum;
+  }
+  return n;
+}
+
+nlohmann::json off_value(const Param &p) {
+  if (p.type == "bool") return false;
+  if (!p.values.empty()) return p.values.front();
+  if (p.type == "u32") return static_cast<uint32_t>(p.min);
+  return p.min;
+}
+
 bool load(const forge::Paths &paths, const std::string &name, Definition &def, std::string &error) {
   nlohmann::json j = core::read_json(paths.workspace + "/pipelines/" + name + ".json");
   if (!j.is_object()) {
@@ -188,12 +241,13 @@ bool load(const forge::Paths &paths, const std::string &name, Definition &def, s
       param.unit = p.value("unit", "");
       param.doc = p.value("doc", "");
       param.fallback = p.value("default", nlohmann::json());
-      static const char *const kTypes[] = {"enum", "config", "u32", "f32", "time", "event"};
+      static const char *const kTypes[] = {"enum", "config", "bool", "u32", "f32", "time", "event"};
       if (std::find(std::begin(kTypes), std::end(kTypes), param.type) == std::end(kTypes)) {
         error = "parameter " + param.name + " has unknown type " + param.type;
         return false;
       }
       if (param.type == "enum") param.values = p.at("values").get<std::vector<std::string>>();
+      if (param.type == "bool") param.values = {"false", "true"};  // enumerated like an enum by sheets and videos
       if (param.type == "config") {
         param.table = p.at("table").get<std::string>();
         if (config::table(paths, param.table).is_null()) {
@@ -206,7 +260,31 @@ bool load(const forge::Paths &paths, const std::string &name, Definition &def, s
           return false;
         }
       }
+      if (p.contains("when")) {
+        param.when_param = p["when"].at("param").get<std::string>();
+        param.when_field = p["when"].at("field").get<std::string>();
+      }
       def.params.push_back(param);
+    }
+    // Gates: the entries of a config parameter whose bool field is set.
+    for (auto &param : def.params) {
+      if (param.when_param.empty()) continue;
+      const Param *gate = def.param(param.when_param);
+      if (!gate || gate->type != "config") {
+        error = "parameter " + param.name + ": when names " + param.when_param + ", which is not a config parameter";
+        return false;
+      }
+      bool is_bool = false;
+      for (const auto &f : config::fields(config::table(paths, gate->table)))
+        if (f.value("name", "") == param.when_field && f.value("type", "") == "bool") is_bool = true;
+      if (!is_bool) {
+        error = "parameter " + param.name + ": config/" + gate->table + " has no bool field " + param.when_field;
+        return false;
+      }
+      for (const auto &e : gate->values) {
+        const nlohmann::json v = config::entry(paths, gate->table, e).value("value", nlohmann::json::object());
+        if (v.value(param.when_field, false)) param.when_on.push_back(e);
+      }
     }
     for (const auto &s : j.at("stages")) {
       Stage st;
@@ -252,6 +330,10 @@ nlohmann::json Runner::complete(const Definition &def, const nlohmann::json &val
                 ? p.fallback.get<std::string>()
                 : p.values.front();
       v = s;
+    } else if (p.type == "bool") {
+      if (v.is_string()) v = v.get<std::string>() == "true";
+      else if (v.is_number()) v = v.get<double>() != 0;
+      else if (!v.is_boolean()) v = p.fallback.is_boolean() && p.fallback.get<bool>();
     } else if (p.type == "u32") {
       double d = v.is_number() ? v.get<double>() : 0;
       v = static_cast<uint32_t>(std::clamp(d, p.min, p.max));
@@ -380,7 +462,10 @@ bool Runner::resolve(const Definition &def, const nlohmann::json &values, const 
 Runner::Result Runner::run(const Definition &def, const nlohmann::json &input_values, bool verify_native, bool log,
                            bool hash_outputs) {
   Result res;
-  const nlohmann::json values = complete(def, input_values);
+  nlohmann::json values = complete(def, input_values);
+  // A parameter that doesn't apply reads as off, so it shares the build either way.
+  for (const auto &p : def.params)
+    if (!def.applies(p, values)) values[p.name] = off_value(p);
   std::map<std::string, std::string> keys;
   for (const auto &st : def.stages) {
     StageRun sr;

@@ -1,0 +1,105 @@
+{
+  "created_at": "2026-10-12T10:00:00Z",
+  "doc": "Southern swamps, pine flatwoods, and coastal scrub: a low clump of stiff fan leaves on toothed stalks springing straight from the ground.",
+  "notes": [],
+  "reference": [
+    "reference/bushes/palmetto/01.jpg",
+    "reference/bushes/palmetto/02.jpg"
+  ],
+  "state": "draft",
+  "value": {
+    "age_height": [
+      0.4,
+      1.0,
+      1.15
+    ],
+    "bark_dark": [
+      0.3,
+      0.32,
+      0.2
+    ],
+    "bark_light": [
+      0.45,
+      0.48,
+      0.3
+    ],
+    "bloom": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "blossom_color": [
+      0.95,
+      0.95,
+      0.9
+    ],
+    "blossom_size": 0.5,
+    "branch_angle": 45,
+    "branch_length": 0.45,
+    "branches": 0,
+    "clump": 0.24,
+    "deciduous": false,
+    "fall_drop": 0.3,
+    "flex": 0.7,
+    "foliage": "clumps",
+    "fruit": 0.8,
+    "fruit_cluster": 6,
+    "fruit_ripe": [
+      0.12,
+      0.1,
+      0.14
+    ],
+    "fruit_seasons": [
+      0,
+      0,
+      0.4,
+      1
+    ],
+    "fruit_size": 0.04,
+    "fruit_unripe": [
+      0.8,
+      0.7,
+      0.3
+    ],
+    "height": 1.5,
+    "latin": "Serenoa repens",
+    "leaf_fall": [
+      0.38,
+      0.5,
+      0.32
+    ],
+    "leaf_fall_alt": [
+      0.45,
+      0.5,
+      0.3
+    ],
+    "leaf_spring": [
+      0.4,
+      0.55,
+      0.34
+    ],
+    "leaf_summer": [
+      0.35,
+      0.5,
+      0.32
+    ],
+    "leaf_winter": [
+      0.36,
+      0.48,
+      0.3
+    ],
+    "leafiness": 1.0,
+    "name": "Saw palmetto",
+    "pickable": true,
+    "shape": "fan",
+    "snow": 0.1,
+    "stem_curve": 0.1,
+    "stem_spread": 0.55,
+    "stems": 14,
+    "twigs": 0,
+    "width": 1.4,
+    "winter_keep": 0.0,
+    "wobble": 0.1
+  }
+}

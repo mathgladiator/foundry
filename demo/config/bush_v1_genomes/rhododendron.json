@@ -1,0 +1,105 @@
+{
+  "created_at": "2026-10-12T10:00:00Z",
+  "doc": "Damp acid woods and mountain slopes: a broad dome of leathery evergreen leaves smothered in late spring with trusses of purple-pink flowers.",
+  "notes": [],
+  "reference": [
+    "reference/bushes/rhododendron/01.jpg",
+    "reference/bushes/rhododendron/02.jpg"
+  ],
+  "state": "draft",
+  "value": {
+    "age_height": [
+      0.4,
+      1.0,
+      1.15
+    ],
+    "bark_dark": [
+      0.3,
+      0.24,
+      0.2
+    ],
+    "bark_light": [
+      0.5,
+      0.42,
+      0.36
+    ],
+    "bloom": [
+      0,
+      0.8,
+      0.2,
+      0
+    ],
+    "blossom_color": [
+      0.78,
+      0.45,
+      0.72
+    ],
+    "blossom_size": 1.0,
+    "branch_angle": 45,
+    "branch_length": 0.45,
+    "branches": 4,
+    "clump": 0.12,
+    "deciduous": false,
+    "fall_drop": 0.3,
+    "flex": 0.8,
+    "foliage": "clumps",
+    "fruit": 0,
+    "fruit_cluster": 4,
+    "fruit_ripe": [
+      0.5,
+      0.1,
+      0.15
+    ],
+    "fruit_seasons": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "fruit_size": 0.018,
+    "fruit_unripe": [
+      0.45,
+      0.55,
+      0.3
+    ],
+    "height": 2.5,
+    "latin": "Rhododendron ponticum",
+    "leaf_fall": [
+      0.16,
+      0.32,
+      0.16
+    ],
+    "leaf_fall_alt": [
+      0.18,
+      0.33,
+      0.17
+    ],
+    "leaf_spring": [
+      0.24,
+      0.4,
+      0.2
+    ],
+    "leaf_summer": [
+      0.16,
+      0.32,
+      0.16
+    ],
+    "leaf_winter": [
+      0.15,
+      0.3,
+      0.15
+    ],
+    "leafiness": 1.3,
+    "name": "Rhododendron",
+    "pickable": false,
+    "shape": "round",
+    "snow": 0.6,
+    "stem_curve": 0.3,
+    "stem_spread": 0.6,
+    "stems": 7,
+    "twigs": 2,
+    "width": 1.3,
+    "winter_keep": 0.0,
+    "wobble": 0.1
+  }
+}

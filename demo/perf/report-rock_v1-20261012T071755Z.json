@@ -1,0 +1,2866 @@
+{
+ "build": {
+  "commit": "69dcc99+dirty",
+  "dt": 0.016666666666666666,
+  "gpu": "rendered off screen",
+  "resolution": [
+   1920,
+   1080
+  ]
+ },
+ "compared_with": null,
+ "failures": [],
+ "finished": "2026-10-12T07:23:03Z",
+ "machine": {
+  "cores": 32,
+  "cpu": "AMD RYZEN AI MAX+ 395 w/ Radeon 8060S",
+  "fingerprint": "deb7535b5a90a4bb",
+  "gpu": "Radeon 8060S Graphics (RADV GFX1151)",
+  "gpu_driver": "vulkan",
+  "memory_gb": 125.0,
+  "os": "Linux 6.18.44+rex+5-amd64"
+ },
+ "pass": true,
+ "phases": [
+  {
+   "data": {
+    "configs": 100,
+    "deterministic": {
+     "of": 20,
+     "same": 20
+    },
+    "failed": 0,
+    "frames": {
+     "draw_ms": {
+      "max": 0.194,
+      "mean": 0.029,
+      "n": 3601,
+      "p50": 0.028,
+      "p95": 0.036,
+      "p99": 0.043
+     },
+     "gpu_wait_ms": {
+      "max": 0.232,
+      "mean": 0.008,
+      "n": 3601,
+      "p50": 0.003,
+      "p95": 0.024,
+      "p99": 0.072
+     },
+     "prepare_ms": {
+      "max": 1.707,
+      "mean": 0.035,
+      "n": 3601,
+      "p50": 0.035,
+      "p95": 0.042,
+      "p99": 0.075
+     },
+     "total_ms": {
+      "max": 1.815,
+      "mean": 0.089,
+      "n": 3601,
+      "p50": 0.084,
+      "p95": 0.127,
+      "p99": 0.202
+     },
+     "update_ms": {
+      "max": 0.133,
+      "mean": 0.002,
+      "n": 3601,
+      "p50": 0.001,
+      "p95": 0.004,
+      "p99": 0.042
+     }
+    },
+    "generation_ms": {
+     "max": 8.194,
+     "mean": 1.898,
+     "n": 100,
+     "p50": 1.59,
+     "p95": 4.729,
+     "p99": 6.814
+    },
+    "generation_worst": {
+     "break_heading": 218.19662475585938,
+     "detail": "high",
+     "material": "sandstone",
+     "moss": "none",
+     "season": "summer",
+     "seed": 494,
+     "size": "huge"
+    },
+    "reference": {
+     "matched": 100,
+     "of": 100
+    },
+    "seconds": 60.0,
+    "stages": [
+     {
+      "calls": 4850,
+      "max_ms": 0.006812,
+      "mean_ms": 0.0009435855670103056,
+      "stage": "rock_v1.animate",
+      "update": true
+     },
+     {
+      "calls": 120,
+      "max_ms": 5.362688,
+      "mean_ms": 0.9225118416666664,
+      "stage": "rock_v1.body",
+      "update": false
+     }
+    ],
+    "threads": {
+     "of": 10,
+     "same": 10
+    },
+    "triangles": {
+     "max": 6896.0,
+     "mean": 1408.22,
+     "n": 100,
+     "p50": 728.0,
+     "p95": 5664.0,
+     "p99": 6592.0
+    },
+    "unsettled": 0,
+    "wall_seconds": 0.3621179280281067
+   },
+   "kind": "diversity",
+   "pass": true,
+   "summary": "100 configs  60 s  PASS  native = wasm 100/100  gen p50 1.6 ms p99 6.8 ms (high sandstone none summer huge)  frame p95 0.13 ms"
+  },
+  {
+   "data": {
+    "budget_ms": 16.666666666666668,
+    "camera": "overview",
+    "capacity": 25600,
+    "capacity_is_lower_bound": true,
+    "capacity_p95_ms": 7.067511081695557,
+    "expected_generations": 10,
+    "generations": 10,
+    "hit_rate": 0.999609375,
+    "kb_per_instance": 5.023623529411765,
+    "ms_per_instance": 0.00023890879255598625,
+    "samples": [
+     {
+      "cache_entries": 10,
+      "cache_gpu_mb": 1.234588623046875,
+      "count": 100,
+      "culled": 0,
+      "drawn": 100,
+      "draws": 10,
+      "frames": {
+       "draw_ms": {
+        "max": 0.036,
+        "mean": 0.004,
+        "n": 433,
+        "p50": 0.003,
+        "p95": 0.005,
+        "p99": 0.007
+       },
+       "gpu_frame_ms": {
+        "max": 0.178,
+        "mean": 0.074,
+        "n": 48,
+        "p50": 0.068,
+        "p95": 0.1,
+        "p99": 0.178
+       },
+       "gpu_wait_ms": {
+        "max": 0.128,
+        "mean": 0.008,
+        "n": 433,
+        "p50": 0.001,
+        "p95": 0.036,
+        "p99": 0.106
+       },
+       "prepare_ms": {
+        "max": 0.083,
+        "mean": 0.029,
+        "n": 433,
+        "p50": 0.03,
+        "p95": 0.036,
+        "p99": 0.042
+       },
+       "total_ms": {
+        "max": 0.321,
+        "mean": 0.054,
+        "n": 433,
+        "p50": 0.048,
+        "p95": 0.086,
+        "p99": 0.155
+       },
+       "update_ms": {
+        "max": 0.003,
+        "mean": 0.0,
+        "n": 433,
+        "p50": 0.0,
+        "p95": 0.0,
+        "p99": 0.001
+       }
+      },
+      "generations": 10,
+      "memory": {
+       "heap_mb": 2.93,
+       "hwm_mb": 77.85,
+       "private_dirty_mb": 24.5,
+       "rss_anon_mb": 22.45,
+       "rss_mb": 75.31
+      },
+      "p95_ms": 0.08644318580627441,
+      "triangles": 107880
+     },
+     {
+      "cache_entries": 10,
+      "cache_gpu_mb": 1.234588623046875,
+      "count": 200,
+      "culled": 1,
+      "drawn": 199,
+      "draws": 10,
+      "frames": {
+       "draw_ms": {
+        "max": 0.016,
+        "mean": 0.004,
+        "n": 433,
+        "p50": 0.004,
+        "p95": 0.005,
+        "p99": 0.006
+       },
+       "gpu_frame_ms": {
+        "max": 0.375,
+        "mean": 0.104,
+        "n": 48,
+        "p50": 0.099,
+        "p95": 0.107,
+        "p99": 0.375
+       },
+       "gpu_wait_ms": {
+        "max": 2.125,
+        "mean": 0.017,
+        "n": 433,
+        "p50": 0.007,
+        "p95": 0.049,
+        "p99": 0.143
+       },
+       "prepare_ms": {
+        "max": 0.166,
+        "mean": 0.04,
+        "n": 433,
+        "p50": 0.04,
+        "p95": 0.048,
+        "p99": 0.06
+       },
+       "total_ms": {
+        "max": 2.21,
+        "mean": 0.075,
+        "n": 433,
+        "p50": 0.064,
+        "p95": 0.118,
+        "p99": 0.198
+       },
+       "update_ms": {
+        "max": 0.002,
+        "mean": 0.001,
+        "n": 433,
+        "p50": 0.0,
+        "p95": 0.001,
+        "p99": 0.001
+       }
+      },
+      "generations": 10,
+      "memory": {
+       "heap_mb": 3.38,
+       "hwm_mb": 77.85,
+       "private_dirty_mb": 24.56,
+       "rss_anon_mb": 22.51,
+       "rss_mb": 75.37
+      },
+      "p95_ms": 0.11782288551330566,
+      "triangles": 213696
+     },
+     {
+      "cache_entries": 10,
+      "cache_gpu_mb": 1.234588623046875,
+      "count": 400,
+      "culled": 2,
+      "drawn": 398,
+      "draws": 10,
+      "frames": {
+       "draw_ms": {
+        "max": 0.02,
+        "mean": 0.004,
+        "n": 433,
+        "p50": 0.004,
+        "p95": 0.005,
+        "p99": 0.01
+       },
+       "gpu_frame_ms": {
+        "max": 0.191,
+        "mean": 0.173,
+        "n": 48,
+        "p50": 0.175,
+        "p95": 0.185,
+        "p99": 0.191
+       },
+       "gpu_wait_ms": {
+        "max": 0.253,
+        "mean": 0.036,
+        "n": 433,
+        "p50": 0.036,
+        "p95": 0.108,
+        "p99": 0.121
+       },
+       "prepare_ms": {
+        "max": 0.079,
+        "mean": 0.064,
+        "n": 433,
+        "p50": 0.064,
+        "p95": 0.071,
+        "p99": 0.074
+       },
+       "total_ms": {
+        "max": 0.338,
+        "mean": 0.116,
+        "n": 433,
+        "p50": 0.115,
+        "p95": 0.186,
+        "p99": 0.204
+       },
+       "update_ms": {
+        "max": 0.004,
+        "mean": 0.001,
+        "n": 433,
+        "p50": 0.001,
+        "p95": 0.001,
+        "p99": 0.002
+       }
+      },
+      "generations": 10,
+      "memory": {
+       "heap_mb": 4.35,
+       "hwm_mb": 77.85,
+       "private_dirty_mb": 25.16,
+       "rss_anon_mb": 23.11,
+       "rss_mb": 75.97
+      },
+      "p95_ms": 0.1864321231842041,
+      "triangles": 427104
+     },
+     {
+      "cache_entries": 10,
+      "cache_gpu_mb": 1.234588623046875,
+      "count": 800,
+      "culled": 6,
+      "drawn": 794,
+      "draws": 10,
+      "frames": {
+       "draw_ms": {
+        "max": 0.012,
+        "mean": 0.005,
+        "n": 433,
+        "p50": 0.004,
+        "p95": 0.007,
+        "p99": 0.012
+       },
+       "gpu_frame_ms": {
+        "max": 0.35,
+        "mean": 0.335,
+        "n": 48,
+        "p50": 0.338,
+        "p95": 0.349,
+        "p99": 0.35
+       },
+       "gpu_wait_ms": {
+        "max": 0.395,
+        "mean": 0.094,
+        "n": 433,
+        "p50": 0.105,
+        "p95": 0.191,
+        "p99": 0.351
+       },
+       "prepare_ms": {
+        "max": 0.266,
+        "mean": 0.093,
+        "n": 433,
+        "p50": 0.092,
+        "p95": 0.103,
+        "p99": 0.121
+       },
+       "total_ms": {
+        "max": 0.508,
+        "mean": 0.206,
+        "n": 433,
+        "p50": 0.214,
+        "p95": 0.303,
+        "p99": 0.474
+       },
+       "update_ms": {
+        "max": 0.006,
+        "mean": 0.001,
+        "n": 433,
+        "p50": 0.001,
+        "p95": 0.002,
+        "p99": 0.002
+       }
+      },
+      "generations": 10,
+      "memory": {
+       "heap_mb": 6.32,
+       "hwm_mb": 78.02,
+       "private_dirty_mb": 27.2,
+       "rss_anon_mb": 25.16,
+       "rss_mb": 78.02
+      },
+      "p95_ms": 0.3025798797607422,
+      "triangles": 856784
+     },
+     {
+      "cache_entries": 10,
+      "cache_gpu_mb": 1.234588623046875,
+      "count": 1600,
+      "culled": 26,
+      "drawn": 1574,
+      "draws": 10,
+      "frames": {
+       "draw_ms": {
+        "max": 0.084,
+        "mean": 0.005,
+        "n": 433,
+        "p50": 0.005,
+        "p95": 0.007,
+        "p99": 0.012
+       },
+       "gpu_frame_ms": {
+        "max": 0.715,
+        "mean": 0.687,
+        "n": 48,
+        "p50": 0.69,
+        "p95": 0.706,
+        "p99": 0.715
+       },
+       "gpu_wait_ms": {
+        "max": 0.485,
+        "mean": 0.206,
+        "n": 433,
+        "p50": 0.251,
+        "p95": 0.342,
+        "p99": 0.376
+       },
+       "prepare_ms": {
+        "max": 0.192,
+        "mean": 0.139,
+        "n": 433,
+        "p50": 0.138,
+        "p95": 0.156,
+        "p99": 0.177
+       },
+       "total_ms": {
+        "max": 0.648,
+        "mean": 0.367,
+        "n": 433,
+        "p50": 0.409,
+        "p95": 0.504,
+        "p99": 0.587
+       },
+       "update_ms": {
+        "max": 0.007,
+        "mean": 0.003,
+        "n": 433,
+        "p50": 0.003,
+        "p95": 0.004,
+        "p99": 0.005
+       }
+      },
+      "generations": 10,
+      "memory": {
+       "heap_mb": 10.26,
+       "hwm_mb": 82.16,
+       "private_dirty_mb": 31.36,
+       "rss_anon_mb": 29.3,
+       "rss_mb": 82.16
+      },
+      "p95_ms": 0.5040409564971924,
+      "triangles": 1697200
+     },
+     {
+      "cache_entries": 10,
+      "cache_gpu_mb": 1.234588623046875,
+      "count": 3200,
+      "culled": 51,
+      "drawn": 3149,
+      "draws": 10,
+      "frames": {
+       "draw_ms": {
+        "max": 0.037,
+        "mean": 0.005,
+        "n": 433,
+        "p50": 0.005,
+        "p95": 0.011,
+        "p99": 0.013
+       },
+       "gpu_frame_ms": {
+        "max": 1.479,
+        "mean": 1.406,
+        "n": 48,
+        "p50": 1.406,
+        "p95": 1.455,
+        "p99": 1.479
+       },
+       "gpu_wait_ms": {
+        "max": 0.77,
+        "mean": 0.444,
+        "n": 433,
+        "p50": 0.556,
+        "p95": 0.661,
+        "p99": 0.691
+       },
+       "prepare_ms": {
+        "max": 0.303,
+        "mean": 0.21,
+        "n": 433,
+        "p50": 0.209,
+        "p95": 0.237,
+        "p99": 0.263
+       },
+       "total_ms": {
+        "max": 1.013,
+        "mean": 0.684,
+        "n": 433,
+        "p50": 0.792,
+        "p95": 0.906,
+        "p99": 0.934
+       },
+       "update_ms": {
+        "max": 0.025,
+        "mean": 0.008,
+        "n": 433,
+        "p50": 0.007,
+        "p95": 0.01,
+        "p99": 0.013
+       }
+      },
+      "generations": 10,
+      "memory": {
+       "heap_mb": 18.12,
+       "hwm_mb": 90.48,
+       "private_dirty_mb": 39.67,
+       "rss_anon_mb": 37.63,
+       "rss_mb": 90.48
+      },
+      "p95_ms": 0.9061501026153564,
+      "triangles": 3395444
+     },
+     {
+      "cache_entries": 10,
+      "cache_gpu_mb": 1.234588623046875,
+      "count": 6400,
+      "culled": 110,
+      "drawn": 6290,
+      "draws": 10,
+      "frames": {
+       "draw_ms": {
+        "max": 0.02,
+        "mean": 0.006,
+        "n": 433,
+        "p50": 0.005,
+        "p95": 0.012,
+        "p99": 0.016
+       },
+       "gpu_frame_ms": {
+        "max": 2.881,
+        "mean": 2.702,
+        "n": 48,
+        "p50": 2.697,
+        "p95": 2.771,
+        "p99": 2.881
+       },
+       "gpu_wait_ms": {
+        "max": 1.292,
+        "mean": 0.86,
+        "n": 433,
+        "p50": 1.095,
+        "p95": 1.171,
+        "p99": 1.234
+       },
+       "prepare_ms": {
+        "max": 0.686,
+        "mean": 0.396,
+        "n": 433,
+        "p50": 0.388,
+        "p95": 0.462,
+        "p99": 0.51
+       },
+       "total_ms": {
+        "max": 1.698,
+        "mean": 1.298,
+        "n": 433,
+        "p50": 1.523,
+        "p95": 1.599,
+        "p99": 1.651
+       },
+       "update_ms": {
+        "max": 0.048,
+        "mean": 0.017,
+        "n": 433,
+        "p50": 0.016,
+        "p95": 0.021,
+        "p99": 0.045
+       }
+      },
+      "generations": 10,
+      "memory": {
+       "heap_mb": 33.84,
+       "hwm_mb": 105.39,
+       "private_dirty_mb": 54.58,
+       "rss_anon_mb": 52.54,
+       "rss_mb": 105.39
+      },
+      "p95_ms": 1.5991871356964111,
+      "triangles": 6785560
+     },
+     {
+      "cache_entries": 10,
+      "cache_gpu_mb": 1.234588623046875,
+      "count": 12800,
+      "culled": 260,
+      "drawn": 12540,
+      "draws": 10,
+      "frames": {
+       "draw_ms": {
+        "max": 0.049,
+        "mean": 0.019,
+        "n": 432,
+        "p50": 0.018,
+        "p95": 0.033,
+        "p99": 0.039
+       },
+       "gpu_frame_ms": {
+        "max": 5.964,
+        "mean": 5.195,
+        "n": 48,
+        "p50": 5.186,
+        "p95": 5.921,
+        "p99": 5.964
+       },
+       "gpu_wait_ms": {
+        "max": 3.211,
+        "mean": 1.607,
+        "n": 432,
+        "p50": 1.956,
+        "p95": 2.687,
+        "p99": 3.058
+       },
+       "prepare_ms": {
+        "max": 2.859,
+        "mean": 0.865,
+        "n": 432,
+        "p50": 0.802,
+        "p95": 1.183,
+        "p99": 1.445
+       },
+       "total_ms": {
+        "max": 4.988,
+        "mean": 2.606,
+        "n": 432,
+        "p50": 2.871,
+        "p95": 3.784,
+        "p99": 4.278
+       },
+       "update_ms": {
+        "max": 0.148,
+        "mean": 0.054,
+        "n": 432,
+        "p50": 0.043,
+        "p95": 0.097,
+        "p99": 0.113
+       }
+      },
+      "generations": 10,
+      "memory": {
+       "heap_mb": 65.27,
+       "hwm_mb": 137.25,
+       "private_dirty_mb": 86.43,
+       "rss_anon_mb": 84.39,
+       "rss_mb": 137.25
+      },
+      "p95_ms": 3.7835371494293213,
+      "triangles": 13528124
+     },
+     {
+      "cache_entries": 10,
+      "cache_gpu_mb": 1.234588623046875,
+      "count": 25600,
+      "culled": 538,
+      "drawn": 25062,
+      "draws": 10,
+      "frames": {
+       "draw_ms": {
+        "max": 0.19,
+        "mean": 0.035,
+        "n": 432,
+        "p50": 0.032,
+        "p95": 0.056,
+        "p99": 0.062
+       },
+       "gpu_frame_ms": {
+        "max": 11.761,
+        "mean": 9.962,
+        "n": 48,
+        "p50": 9.999,
+        "p95": 10.948,
+        "p99": 11.761
+       },
+       "gpu_wait_ms": {
+        "max": 4.956,
+        "mean": 2.7,
+        "n": 432,
+        "p50": 3.202,
+        "p95": 4.533,
+        "p99": 4.859
+       },
+       "prepare_ms": {
+        "max": 3.931,
+        "mean": 2.551,
+        "n": 432,
+        "p50": 2.598,
+        "p95": 3.199,
+        "p99": 3.528
+       },
+       "total_ms": {
+        "max": 7.944,
+        "mean": 5.595,
+        "n": 432,
+        "p50": 6.214,
+        "p95": 7.068,
+        "p99": 7.54
+       },
+       "update_ms": {
+        "max": 0.359,
+        "mean": 0.184,
+        "n": 432,
+        "p50": 0.188,
+        "p95": 0.25,
+        "p99": 0.301
+       }
+      },
+      "generations": 10,
+      "memory": {
+       "heap_mb": 128.09,
+       "hwm_mb": 202.58,
+       "private_dirty_mb": 149.6,
+       "rss_anon_mb": 147.55,
+       "rss_mb": 200.41
+      },
+      "p95_ms": 7.067511081695557,
+      "triangles": 27030184
+     }
+    ],
+    "sets": 10,
+    "superlinear": false,
+    "wall_seconds": 6.9534290630817415
+   },
+   "kind": "forest",
+   "pass": true,
+   "summary": "10 sets  100..25600  PASS  budget 16.7 ms holds to at least 25600 (p95 7.1 ms)  generations 10/10  hits 100.0%"
+  },
+  {
+   "data": {
+    "budget_ms": 16.666666666666668,
+    "capacity_in_budget": 1600,
+    "results": [
+     {
+      "count": 100,
+      "during": {
+       "draw_ms": {
+        "max": 0.006,
+        "mean": 0.004,
+        "n": 97,
+        "p50": 0.004,
+        "p95": 0.005,
+        "p99": 0.006
+       },
+       "gpu_frame_ms": {
+        "max": 0.158,
+        "mean": 0.121,
+        "n": 10,
+        "p50": 0.112,
+        "p95": 0.158,
+        "p99": 0.158
+       },
+       "gpu_wait_ms": {
+        "max": 0.221,
+        "mean": 0.005,
+        "n": 97,
+        "p50": 0.002,
+        "p95": 0.002,
+        "p99": 0.052
+       },
+       "prepare_ms": {
+        "max": 0.066,
+        "mean": 0.052,
+        "n": 97,
+        "p50": 0.05,
+        "p95": 0.062,
+        "p99": 0.064
+       },
+       "total_ms": {
+        "max": 0.413,
+        "mean": 0.189,
+        "n": 97,
+        "p50": 0.192,
+        "p95": 0.229,
+        "p99": 0.253
+       },
+       "update_ms": {
+        "max": 0.168,
+        "mean": 0.115,
+        "n": 97,
+        "p50": 0.12,
+        "p95": 0.14,
+        "p99": 0.159
+       }
+      },
+      "event": "break_time",
+      "heap_remainder_mb": 0.0335235595703125,
+      "memory_after": {
+       "heap_mb": 24.34,
+       "hwm_mb": 202.58,
+       "private_dirty_mb": 62.15,
+       "rss_anon_mb": 60.1,
+       "rss_mb": 112.96
+      },
+      "memory_before": {
+       "heap_mb": 24.3,
+       "hwm_mb": 202.58,
+       "private_dirty_mb": 58.13,
+       "rss_anon_mb": 56.08,
+       "rss_mb": 108.94
+      },
+      "peak_rss_over_mb": 5.7734375,
+      "same_as_alone": {
+       "of": 3,
+       "same": 3
+      },
+      "settle_seconds": 1.7833333333347525,
+      "spike_first_ms": 0.2121598720550537,
+      "spike_max_ms": 0.41299891471862793,
+      "stagger_seconds": 0.0,
+      "steady": {
+       "draw_ms": {
+        "max": 0.004,
+        "mean": 0.004,
+        "n": 60,
+        "p50": 0.004,
+        "p95": 0.004,
+        "p99": 0.004
+       },
+       "gpu_wait_ms": {
+        "max": 0.057,
+        "mean": 0.004,
+        "n": 60,
+        "p50": 0.002,
+        "p95": 0.027,
+        "p99": 0.035
+       },
+       "prepare_ms": {
+        "max": 0.058,
+        "mean": 0.048,
+        "n": 60,
+        "p50": 0.047,
+        "p95": 0.056,
+        "p99": 0.058
+       },
+       "total_ms": {
+        "max": 0.142,
+        "mean": 0.096,
+        "n": 60,
+        "p50": 0.094,
+        "p95": 0.117,
+        "p99": 0.134
+       },
+       "update_ms": {
+        "max": 0.034,
+        "mean": 0.027,
+        "n": 60,
+        "p50": 0.026,
+        "p95": 0.032,
+        "p99": 0.034
+       }
+      },
+      "unsettled": 0,
+      "update_us_per_instance_active": 1.140783925233645,
+      "update_us_per_instance_idle": 0.27052683333333327
+     },
+     {
+      "count": 400,
+      "during": {
+       "draw_ms": {
+        "max": 0.04,
+        "mean": 0.007,
+        "n": 98,
+        "p50": 0.007,
+        "p95": 0.012,
+        "p99": 0.019
+       },
+       "gpu_frame_ms": {
+        "max": 0.422,
+        "mean": 0.298,
+        "n": 10,
+        "p50": 0.289,
+        "p95": 0.422,
+        "p99": 0.422
+       },
+       "gpu_wait_ms": {
+        "max": 0.412,
+        "mean": 0.01,
+        "n": 98,
+        "p50": 0.002,
+        "p95": 0.004,
+        "p99": 0.364
+       },
+       "prepare_ms": {
+        "max": 1.536,
+        "mean": 0.113,
+        "n": 98,
+        "p50": 0.098,
+        "p95": 0.114,
+        "p99": 0.149
+       },
+       "total_ms": {
+        "max": 1.754,
+        "mean": 0.32,
+        "n": 98,
+        "p50": 0.296,
+        "p95": 0.351,
+        "p99": 0.705
+       },
+       "update_ms": {
+        "max": 0.238,
+        "mean": 0.167,
+        "n": 98,
+        "p50": 0.166,
+        "p95": 0.201,
+        "p99": 0.215
+       }
+      },
+      "event": "break_time",
+      "heap_remainder_mb": 0.0601806640625,
+      "memory_after": {
+       "heap_mb": 24.39,
+       "hwm_mb": 202.58,
+       "private_dirty_mb": 66.43,
+       "rss_anon_mb": 64.38,
+       "rss_mb": 117.24
+      },
+      "memory_before": {
+       "heap_mb": 24.33,
+       "hwm_mb": 202.58,
+       "private_dirty_mb": 62.14,
+       "rss_anon_mb": 60.09,
+       "rss_mb": 112.95
+      },
+      "peak_rss_over_mb": 6.9375,
+      "same_as_alone": {
+       "of": 3,
+       "same": 3
+      },
+      "settle_seconds": 1.8000000000014325,
+      "spike_first_ms": 0.3344111442565918,
+      "spike_max_ms": 1.7536978721618652,
+      "stagger_seconds": 0.0,
+      "steady": {
+       "draw_ms": {
+        "max": 0.005,
+        "mean": 0.004,
+        "n": 60,
+        "p50": 0.004,
+        "p95": 0.005,
+        "p99": 0.005
+       },
+       "gpu_wait_ms": {
+        "max": 0.07,
+        "mean": 0.054,
+        "n": 60,
+        "p50": 0.055,
+        "p95": 0.068,
+        "p99": 0.069
+       },
+       "prepare_ms": {
+        "max": 0.099,
+        "mean": 0.086,
+        "n": 60,
+        "p50": 0.087,
+        "p95": 0.097,
+        "p99": 0.098
+       },
+       "total_ms": {
+        "max": 0.21,
+        "mean": 0.191,
+        "n": 60,
+        "p50": 0.191,
+        "p95": 0.202,
+        "p99": 0.204
+       },
+       "update_ms": {
+        "max": 0.043,
+        "mean": 0.031,
+        "n": 60,
+        "p50": 0.032,
+        "p95": 0.036,
+        "p99": 0.039
+       }
+      },
+      "unsettled": 0,
+      "update_us_per_instance_active": 0.41718615740740733,
+      "update_us_per_instance_idle": 0.07817933333333332
+     },
+     {
+      "count": 1600,
+      "during": {
+       "draw_ms": {
+        "max": 0.031,
+        "mean": 0.009,
+        "n": 98,
+        "p50": 0.008,
+        "p95": 0.021,
+        "p99": 0.029
+       },
+       "gpu_frame_ms": {
+        "max": 1.29,
+        "mean": 0.976,
+        "n": 10,
+        "p50": 0.924,
+        "p95": 1.29,
+        "p99": 1.29
+       },
+       "gpu_wait_ms": {
+        "max": 0.675,
+        "mean": 0.035,
+        "n": 98,
+        "p50": 0.004,
+        "p95": 0.126,
+        "p99": 0.632
+       },
+       "prepare_ms": {
+        "max": 0.356,
+        "mean": 0.236,
+        "n": 98,
+        "p50": 0.232,
+        "p95": 0.324,
+        "p99": 0.333
+       },
+       "total_ms": {
+        "max": 1.289,
+        "mean": 0.748,
+        "n": 98,
+        "p50": 0.722,
+        "p95": 0.885,
+        "p99": 1.284
+       },
+       "update_ms": {
+        "max": 0.583,
+        "mean": 0.439,
+        "n": 98,
+        "p50": 0.453,
+        "p95": 0.559,
+        "p99": 0.574
+       }
+      },
+      "event": "break_time",
+      "heap_remainder_mb": 0.1947479248046875,
+      "memory_after": {
+       "heap_mb": 24.55,
+       "hwm_mb": 202.58,
+       "private_dirty_mb": 68.19,
+       "rss_anon_mb": 66.14,
+       "rss_mb": 119.0
+      },
+      "memory_before": {
+       "heap_mb": 24.35,
+       "hwm_mb": 202.58,
+       "private_dirty_mb": 66.4,
+       "rss_anon_mb": 64.36,
+       "rss_mb": 117.21
+      },
+      "peak_rss_over_mb": 9.27734375,
+      "same_as_alone": {
+       "of": 3,
+       "same": 3
+      },
+      "settle_seconds": 1.8000000000014325,
+      "spike_first_ms": 0.6799421310424805,
+      "spike_max_ms": 1.2892920970916748,
+      "stagger_seconds": 0.0,
+      "steady": {
+       "draw_ms": {
+        "max": 0.035,
+        "mean": 0.009,
+        "n": 60,
+        "p50": 0.007,
+        "p95": 0.014,
+        "p99": 0.015
+       },
+       "gpu_wait_ms": {
+        "max": 0.521,
+        "mean": 0.412,
+        "n": 60,
+        "p50": 0.43,
+        "p95": 0.515,
+        "p99": 0.52
+       },
+       "prepare_ms": {
+        "max": 0.305,
+        "mean": 0.199,
+        "n": 60,
+        "p50": 0.19,
+        "p95": 0.284,
+        "p99": 0.304
+       },
+       "total_ms": {
+        "max": 0.803,
+        "mean": 0.703,
+        "n": 60,
+        "p50": 0.705,
+        "p95": 0.757,
+        "p99": 0.775
+       },
+       "update_ms": {
+        "max": 0.121,
+        "mean": 0.056,
+        "n": 60,
+        "p50": 0.053,
+        "p95": 0.091,
+        "p99": 0.092
+       }
+      },
+      "unsettled": 0,
+      "update_us_per_instance_active": 0.2759385763888889,
+      "update_us_per_instance_idle": 0.035309395833333326
+     }
+    ],
+    "wall_seconds": 0.3470472378730774
+   },
+   "kind": "events",
+   "pass": true,
+   "summary": "break_time  100  spike 0.4 ms over 0.1 ms  all settled in 1.8 s  memory back within 0.0 MB  PASS  in budget up to 1600"
+  },
+  {
+   "data": {
+    "drains": [
+     {
+      "cache_entries": 0,
+      "gpu_buffers_live": 2,
+      "gpu_mb": 22.777130126953125,
+      "instances": 0,
+      "memory": {
+       "heap_mb": 25.15,
+       "hwm_mb": 202.58,
+       "private_dirty_mb": 77.81,
+       "rss_anon_mb": 77.81,
+       "rss_mb": 130.67
+      },
+      "wall_minutes": 1.0004782116850217
+     },
+     {
+      "cache_entries": 0,
+      "gpu_buffers_live": 2,
+      "gpu_mb": 22.777130126953125,
+      "instances": 0,
+      "memory": {
+       "heap_mb": 25.21,
+       "hwm_mb": 202.58,
+       "private_dirty_mb": 78.54,
+       "rss_anon_mb": 78.54,
+       "rss_mb": 131.4
+      },
+      "wall_minutes": 2.0007462316830953
+     },
+     {
+      "cache_entries": 0,
+      "gpu_buffers_live": 2,
+      "gpu_mb": 22.777130126953125,
+      "instances": 0,
+      "memory": {
+       "heap_mb": 25.25,
+       "hwm_mb": 202.58,
+       "private_dirty_mb": 78.48,
+       "rss_anon_mb": 78.48,
+       "rss_mb": 131.34
+      },
+      "wall_minutes": 3.001021286702156
+     },
+     {
+      "cache_entries": 0,
+      "gpu_buffers_live": 2,
+      "gpu_mb": 22.777130126953125,
+      "instances": 0,
+      "memory": {
+       "heap_mb": 25.28,
+       "hwm_mb": 202.58,
+       "private_dirty_mb": 79.6,
+       "rss_anon_mb": 79.6,
+       "rss_mb": 132.46
+      },
+      "wall_minutes": 4.001337242102623
+     },
+     {
+      "cache_entries": 0,
+      "gpu_buffers_live": 2,
+      "gpu_mb": 22.777130126953125,
+      "instances": 0,
+      "memory": {
+       "heap_mb": 25.31,
+       "hwm_mb": 202.58,
+       "private_dirty_mb": 80.07,
+       "rss_anon_mb": 80.07,
+       "rss_mb": 132.93
+      },
+      "wall_minutes": 5.000237748118241
+     }
+    ],
+    "drains_within": 5,
+    "minutes": 5.000454837067922,
+    "plateau_judged": false,
+    "population": 300,
+    "rss_slope_mb_per_hour": 28.229973004625986,
+    "samples": [
+     {
+      "awake": 260,
+      "cache_entries": 40,
+      "cache_mb": 0.0017852783203125,
+      "evictions": 160,
+      "frame_ms": {
+       "max": 0.205,
+       "mean": 0.205,
+       "n": 1,
+       "p50": 0.205,
+       "p95": 0.205,
+       "p99": 0.205
+      },
+      "generations": 165,
+      "gpu_mb": 22.777130126953125,
+      "instances": 300,
+      "memory": {
+       "heap_mb": 29.66,
+       "hwm_mb": 202.58,
+       "private_dirty_mb": 69.07,
+       "rss_anon_mb": 67.01,
+       "rss_mb": 119.87
+      },
+      "sim_minutes": 0.00027777777777799885,
+      "wall_minutes": 3.439648946126302e-06
+     },
+     {
+      "awake": 6,
+      "cache_entries": 72,
+      "cache_mb": 0.0467376708984375,
+      "evictions": 1112,
+      "frame_ms": {
+       "max": 4.257,
+       "mean": 0.124,
+       "n": 38018,
+       "p50": 0.112,
+       "p95": 0.192,
+       "p99": 0.268
+      },
+      "generations": 1183,
+      "gpu_mb": 34.005615234375,
+      "instances": 300,
+      "memory": {
+       "heap_mb": 26.99,
+       "hwm_mb": 202.58,
+       "private_dirty_mb": 80.25,
+       "rss_anon_mb": 80.25,
+       "rss_mb": 133.11
+      },
+      "sim_minutes": 10.560833333326634,
+      "wall_minutes": 0.0833368237177531
+     },
+     {
+      "awake": 7,
+      "cache_entries": 66,
+      "cache_mb": 0.0471954345703125,
+      "evictions": 2067,
+      "frame_ms": {
+       "max": 3.751,
+       "mean": 0.125,
+       "n": 37589,
+       "p50": 0.114,
+       "p95": 0.188,
+       "p99": 0.25
+      },
+      "generations": 2133,
+      "gpu_mb": 34.733001708984375,
+      "instances": 300,
+      "memory": {
+       "heap_mb": 26.86,
+       "hwm_mb": 202.58,
+       "private_dirty_mb": 80.77,
+       "rss_anon_mb": 80.77,
+       "rss_mb": 133.63
+      },
+      "sim_minutes": 21.002222222206026,
+      "wall_minutes": 0.16667292961676916
+     },
+     {
+      "awake": 8,
+      "cache_entries": 63,
+      "cache_mb": 0.0432586669921875,
+      "evictions": 2996,
+      "frame_ms": {
+       "max": 4.113,
+       "mean": 0.126,
+       "n": 37475,
+       "p50": 0.114,
+       "p95": 0.181,
+       "p99": 0.238
+      },
+      "generations": 3059,
+      "gpu_mb": 33.91120147705078,
+      "instances": 300,
+      "memory": {
+       "heap_mb": 26.9,
+       "hwm_mb": 202.58,
+       "private_dirty_mb": 81.0,
+       "rss_anon_mb": 81.0,
+       "rss_mb": 133.86
+      },
+      "sim_minutes": 31.411944444418783,
+      "wall_minutes": 0.25000810101826987
+     },
+     {
+      "awake": 5,
+      "cache_entries": 61,
+      "cache_mb": 0.037445068359375,
+      "evictions": 3912,
+      "frame_ms": {
+       "max": 4.022,
+       "mean": 0.127,
+       "n": 37086,
+       "p50": 0.115,
+       "p95": 0.188,
+       "p99": 0.245
+      },
+      "generations": 3973,
+      "gpu_mb": 31.742431640625,
+      "instances": 300,
+      "memory": {
+       "heap_mb": 26.71,
+       "hwm_mb": 202.58,
+       "private_dirty_mb": 81.16,
+       "rss_anon_mb": 81.16,
+       "rss_mb": 134.02
+      },
+      "sim_minutes": 41.713611111214455,
+      "wall_minutes": 0.33334241679906845
+     },
+     {
+      "awake": 8,
+      "cache_entries": 67,
+      "cache_mb": 0.045867919921875,
+      "evictions": 4855,
+      "frame_ms": {
+       "max": 4.117,
+       "mean": 0.128,
+       "n": 36374,
+       "p50": 0.115,
+       "p95": 0.192,
+       "p99": 0.254
+      },
+      "generations": 4921,
+      "gpu_mb": 34.156219482421875,
+      "instances": 300,
+      "memory": {
+       "heap_mb": 26.97,
+       "hwm_mb": 202.58,
+       "private_dirty_mb": 81.24,
+       "rss_anon_mb": 81.24,
+       "rss_mb": 134.1
+      },
+      "sim_minutes": 51.817500000231995,
+      "wall_minutes": 0.41667699611584347
+     },
+     {
+      "awake": 6,
+      "cache_entries": 64,
+      "cache_mb": 0.0406494140625,
+      "evictions": 5816,
+      "frame_ms": {
+       "max": 4.177,
+       "mean": 0.128,
+       "n": 36709,
+       "p50": 0.115,
+       "p95": 0.194,
+       "p99": 0.266
+      },
+      "generations": 5880,
+      "gpu_mb": 33.081390380859375,
+      "instances": 300,
+      "memory": {
+       "heap_mb": 26.81,
+       "hwm_mb": 202.58,
+       "private_dirty_mb": 81.27,
+       "rss_anon_mb": 81.27,
+       "rss_mb": 134.13
+      },
+      "sim_minutes": 62.01444444480627,
+      "wall_minutes": 0.5000126830657323
+     },
+     {
+      "awake": 7,
+      "cache_entries": 67,
+      "cache_mb": 0.0438995361328125,
+      "evictions": 6769,
+      "frame_ms": {
+       "max": 3.455,
+       "mean": 0.125,
+       "n": 37732,
+       "p50": 0.114,
+       "p95": 0.185,
+       "p99": 0.244
+      },
+      "generations": 6835,
+      "gpu_mb": 32.275726318359375,
+      "instances": 300,
+      "memory": {
+       "heap_mb": 27.57,
+       "hwm_mb": 202.58,
+       "private_dirty_mb": 81.29,
+       "rss_anon_mb": 81.29,
+       "rss_mb": 134.15
+      },
+      "sim_minutes": 72.49555555586554,
+      "wall_minutes": 0.5833467593193055
+     },
+     {
+      "awake": 7,
+      "cache_entries": 61,
+      "cache_mb": 0.0408782958984375,
+      "evictions": 7724,
+      "frame_ms": {
+       "max": 4.107,
+       "mean": 0.126,
+       "n": 37396,
+       "p50": 0.114,
+       "p95": 0.185,
+       "p99": 0.247
+      },
+      "generations": 7785,
+      "gpu_mb": 32.9234619140625,
+      "instances": 300,
+      "memory": {
+       "heap_mb": 26.85,
+       "hwm_mb": 202.58,
+       "private_dirty_mb": 81.31,
+       "rss_anon_mb": 81.31,
+       "rss_mb": 134.17
+      },
+      "sim_minutes": 82.88333333349215,
+      "wall_minutes": 0.6666813468496005
+     },
+     {
+      "awake": 6,
+      "cache_entries": 61,
+      "cache_mb": 0.043304443359375,
+      "evictions": 8660,
+      "frame_ms": {
+       "max": 4.006,
+       "mean": 0.126,
+       "n": 37479,
+       "p50": 0.114,
+       "p95": 0.18,
+       "p99": 0.234
+      },
+      "generations": 8720,
+      "gpu_mb": 34.78839111328125,
+      "instances": 300,
+      "memory": {
+       "heap_mb": 27.3,
+       "hwm_mb": 202.58,
+       "private_dirty_mb": 81.34,
+       "rss_anon_mb": 81.34,
+       "rss_mb": 134.2
+      },
+      "sim_minutes": 93.29416666667399,
+      "wall_minutes": 0.7500159975330035
+     },
+     {
+      "awake": 7,
+      "cache_entries": 63,
+      "cache_mb": 0.0456390380859375,
+      "evictions": 9610,
+      "frame_ms": {
+       "max": 4.118,
+       "mean": 0.127,
+       "n": 37126,
+       "p50": 0.114,
+       "p95": 0.192,
+       "p99": 0.264
+      },
+      "generations": 9673,
+      "gpu_mb": 34.705535888671875,
+      "instances": 300,
+      "memory": {
+       "heap_mb": 26.95,
+       "hwm_mb": 202.58,
+       "private_dirty_mb": 81.37,
+       "rss_anon_mb": 81.37,
+       "rss_mb": 134.23
+      },
+      "sim_minutes": 103.60694444430169,
+      "wall_minutes": 0.8333506217519442
+     },
+     {
+      "awake": 7,
+      "cache_entries": 65,
+      "cache_mb": 0.041656494140625,
+      "evictions": 10563,
+      "frame_ms": {
+       "max": 1.868,
+       "mean": 0.129,
+       "n": 36393,
+       "p50": 0.115,
+       "p95": 0.201,
+       "p99": 0.281
+      },
+      "generations": 10628,
+      "gpu_mb": 33.19720458984375,
+      "instances": 300,
+      "memory": {
+       "heap_mb": 28.31,
+       "hwm_mb": 202.58,
+       "private_dirty_mb": 81.39,
+       "rss_anon_mb": 81.39,
+       "rss_mb": 134.25
+      },
+      "sim_minutes": 113.71611111082125,
+      "wall_minutes": 0.9166849336663881
+     },
+     {
+      "awake": 236,
+      "cache_entries": 40,
+      "cache_mb": 0.0040740966796875,
+      "evictions": 11594,
+      "frame_ms": {
+       "max": 3.73,
+       "mean": 0.128,
+       "n": 36742,
+       "p50": 0.114,
+       "p95": 0.198,
+       "p99": 0.278
+      },
+      "generations": 11602,
+      "gpu_mb": 23.315460205078125,
+      "instances": 300,
+      "memory": {
+       "heap_mb": 34.99,
+       "hwm_mb": 202.58,
+       "private_dirty_mb": 78.53,
+       "rss_anon_mb": 78.52,
+       "rss_mb": 131.38
+      },
+      "sim_minutes": 123.96666666622764,
+      "wall_minutes": 1.0005325381676355
+     },
+     {
+      "awake": 7,
+      "cache_entries": 56,
+      "cache_mb": 0.0391387939453125,
+      "evictions": 12547,
+      "frame_ms": {
+       "max": 3.455,
+       "mean": 0.126,
+       "n": 37253,
+       "p50": 0.114,
+       "p95": 0.19,
+       "p99": 0.258
+      },
+      "generations": 12603,
+      "gpu_mb": 32.046844482421875,
+      "instances": 300,
+      "memory": {
+       "heap_mb": 26.89,
+       "hwm_mb": 202.58,
+       "private_dirty_mb": 81.64,
+       "rss_anon_mb": 81.64,
+       "rss_mb": 134.5
+      },
+      "sim_minutes": 134.31472222163262,
+      "wall_minutes": 1.0838674589514732
+     },
+     {
+      "awake": 8,
+      "cache_entries": 63,
+      "cache_mb": 0.0399169921875,
+      "evictions": 13502,
+      "frame_ms": {
+       "max": 4.098,
+       "mean": 0.125,
+       "n": 37651,
+       "p50": 0.114,
+       "p95": 0.18,
+       "p99": 0.234
+      },
+      "generations": 13565,
+      "gpu_mb": 32.29266357421875,
+      "instances": 300,
+      "memory": {
+       "heap_mb": 26.97,
+       "hwm_mb": 202.58,
+       "private_dirty_mb": 81.66,
+       "rss_anon_mb": 81.66,
+       "rss_mb": 134.52
+      },
+      "sim_minutes": 144.77333333259153,
+      "wall_minutes": 1.1672037648677827
+     },
+     {
+      "awake": 7,
+      "cache_entries": 69,
+      "cache_mb": 0.0456390380859375,
+      "evictions": 14452,
+      "frame_ms": {
+       "max": 2.763,
+       "mean": 0.127,
+       "n": 36984,
+       "p50": 0.114,
+       "p95": 0.2,
+       "p99": 0.285
+      },
+      "generations": 14520,
+      "gpu_mb": 33.65496826171875,
+      "instances": 300,
+      "memory": {
+       "heap_mb": 27.15,
+       "hwm_mb": 202.58,
+       "private_dirty_mb": 81.68,
+       "rss_anon_mb": 81.68,
+       "rss_mb": 134.54
+      },
+      "sim_minutes": 155.04666666577538,
+      "wall_minutes": 1.250537660519282
+     },
+     {
+      "awake": 8,
+      "cache_entries": 64,
+      "cache_mb": 0.03863525390625,
+      "evictions": 15403,
+      "frame_ms": {
+       "max": 2.106,
+       "mean": 0.129,
+       "n": 36599,
+       "p50": 0.115,
+       "p95": 0.196,
+       "p99": 0.27
+      },
+      "generations": 15467,
+      "gpu_mb": 32.597991943359375,
+      "instances": 300,
+      "memory": {
+       "heap_mb": 26.9,
+       "hwm_mb": 202.58,
+       "private_dirty_mb": 81.7,
+       "rss_anon_mb": 81.7,
+       "rss_mb": 134.55
+      },
+      "sim_minutes": 165.21305555451633,
+      "wall_minutes": 1.3338719638665517
+     },
+     {
+      "awake": 8,
+      "cache_entries": 61,
+      "cache_mb": 0.0367584228515625,
+      "evictions": 16336,
+      "frame_ms": {
+       "max": 2.004,
+       "mean": 0.127,
+       "n": 36908,
+       "p50": 0.115,
+       "p95": 0.187,
+       "p99": 0.249
+      },
+      "generations": 16397,
+      "gpu_mb": 32.618133544921875,
+      "instances": 300,
+      "memory": {
+       "heap_mb": 26.92,
+       "hwm_mb": 202.58,
+       "private_dirty_mb": 81.7,
+       "rss_anon_mb": 81.7,
+       "rss_mb": 134.56
+      },
+      "sim_minutes": 175.46527777658937,
+      "wall_minutes": 1.4172070913990338
+     },
+     {
+      "awake": 7,
+      "cache_entries": 67,
+      "cache_mb": 0.0464630126953125,
+      "evictions": 17294,
+      "frame_ms": {
+       "max": 3.389,
+       "mean": 0.125,
+       "n": 37485,
+       "p50": 0.114,
+       "p95": 0.188,
+       "p99": 0.25
+      },
+      "generations": 17361,
+      "gpu_mb": 33.87469482421875,
+      "instances": 300,
+      "memory": {
+       "heap_mb": 27.04,
+       "hwm_mb": 202.58,
+       "private_dirty_mb": 81.72,
+       "rss_anon_mb": 81.72,
+       "rss_mb": 134.58
+      },
+      "sim_minutes": 185.87777777643785,
+      "wall_minutes": 1.5005406631509464
+     },
+     {
+      "awake": 6,
+      "cache_entries": 64,
+      "cache_mb": 0.038726806640625,
+      "evictions": 18254,
+      "frame_ms": {
+       "max": 2.743,
+       "mean": 0.127,
+       "n": 37185,
+       "p50": 0.114,
+       "p95": 0.186,
+       "p99": 0.248
+      },
+      "generations": 18318,
+      "gpu_mb": 32.672149658203125,
+      "instances": 300,
+      "memory": {
+       "heap_mb": 27.04,
+       "hwm_mb": 202.58,
+       "private_dirty_mb": 81.75,
+       "rss_anon_mb": 81.75,
+       "rss_mb": 134.61
+      },
+      "sim_minutes": 196.2069444429542,
+      "wall_minutes": 1.5838749103665353
+     },
+     {
+      "awake": 6,
+      "cache_entries": 64,
+      "cache_mb": 0.042755126953125,
+      "evictions": 19205,
+      "frame_ms": {
+       "max": 3.237,
+       "mean": 0.126,
+       "n": 37262,
+       "p50": 0.115,
+       "p95": 0.182,
+       "p99": 0.235
+      },
+      "generations": 19269,
+      "gpu_mb": 33.613311767578125,
+      "instances": 300,
+      "memory": {
+       "heap_mb": 27.04,
+       "hwm_mb": 202.58,
+       "private_dirty_mb": 81.76,
+       "rss_anon_mb": 81.76,
+       "rss_mb": 134.62
+      },
+      "sim_minutes": 206.55749999835913,
+      "wall_minutes": 1.667209648501873
+     },
+     {
+      "awake": 7,
+      "cache_entries": 67,
+      "cache_mb": 0.042388916015625,
+      "evictions": 20174,
+      "frame_ms": {
+       "max": 3.996,
+       "mean": 0.124,
+       "n": 37784,
+       "p50": 0.113,
+       "p95": 0.192,
+       "p99": 0.264
+      },
+      "generations": 20240,
+      "gpu_mb": 34.03033447265625,
+      "instances": 300,
+      "memory": {
+       "heap_mb": 27.72,
+       "hwm_mb": 202.58,
+       "private_dirty_mb": 81.77,
+       "rss_anon_mb": 81.77,
+       "rss_mb": 134.63
+      },
+      "sim_minutes": 217.05305555376196,
+      "wall_minutes": 1.7505434430837632
+     },
+     {
+      "awake": 7,
+      "cache_entries": 57,
+      "cache_mb": 0.0394134521484375,
+      "evictions": 21138,
+      "frame_ms": {
+       "max": 2.599,
+       "mean": 0.126,
+       "n": 37261,
+       "p50": 0.114,
+       "p95": 0.191,
+       "p99": 0.258
+      },
+      "generations": 21195,
+      "gpu_mb": 31.79461669921875,
+      "instances": 300,
+      "memory": {
+       "heap_mb": 26.99,
+       "hwm_mb": 202.58,
+       "private_dirty_mb": 81.81,
+       "rss_anon_mb": 81.81,
+       "rss_mb": 134.67
+      },
+      "sim_minutes": 227.40333333138912,
+      "wall_minutes": 1.833878683801492
+     },
+     {
+      "awake": 6,
+      "cache_entries": 63,
+      "cache_mb": 0.0417938232421875,
+      "evictions": 22100,
+      "frame_ms": {
+       "max": 1.571,
+       "mean": 0.125,
+       "n": 37517,
+       "p50": 0.113,
+       "p95": 0.191,
+       "p99": 0.262
+      },
+      "generations": 22163,
+      "gpu_mb": 34.76458740234375,
+      "instances": 300,
+      "memory": {
+       "heap_mb": 26.99,
+       "hwm_mb": 202.58,
+       "private_dirty_mb": 81.82,
+       "rss_anon_mb": 81.82,
+       "rss_mb": 134.68
+      },
+      "sim_minutes": 237.82472222012635,
+      "wall_minutes": 1.9172129237016042
+     },
+     {
+      "awake": 261,
+      "cache_entries": 40,
+      "cache_mb": 0.0014190673828125,
+      "evictions": 23119,
+      "frame_ms": {
+       "max": 1.886,
+       "mean": 0.126,
+       "n": 37260,
+       "p50": 0.115,
+       "p95": 0.189,
+       "p99": 0.256
+      },
+      "generations": 23123,
+      "gpu_mb": 22.777130126953125,
+      "instances": 300,
+      "memory": {
+       "heap_mb": 32.54,
+       "hwm_mb": 202.58,
+       "private_dirty_mb": 79.03,
+       "rss_anon_mb": 79.03,
+       "rss_mb": 131.89
+      },
+      "sim_minutes": 248.21916666441953,
+      "wall_minutes": 2.000775674700737
+     },
+     {
+      "awake": 6,
+      "cache_entries": 67,
+      "cache_mb": 0.042022705078125,
+      "evictions": 24027,
+      "frame_ms": {
+       "max": 6.007,
+       "mean": 0.127,
+       "n": 36972,
+       "p50": 0.114,
+       "p95": 0.193,
+       "p99": 0.257
+      },
+      "generations": 24093,
+      "gpu_mb": 33.28326416015625,
+      "instances": 300,
+      "memory": {
+       "heap_mb": 27.32,
+       "hwm_mb": 202.58,
+       "private_dirty_mb": 81.82,
+       "rss_anon_mb": 81.82,
+       "rss_mb": 134.68
+      },
+      "sim_minutes": 258.4891666642701,
+      "wall_minutes": 2.0841107448180516
+     },
+     {
+      "awake": 6,
+      "cache_entries": 70,
+      "cache_mb": 0.045684814453125,
+      "evictions": 24972,
+      "frame_ms": {
+       "max": 4.095,
+       "mean": 0.126,
+       "n": 37323,
+       "p50": 0.114,
+       "p95": 0.188,
+       "p99": 0.247
+      },
+      "generations": 25042,
+      "gpu_mb": 34.363128662109375,
+      "instances": 300,
+      "memory": {
+       "heap_mb": 27.11,
+       "hwm_mb": 202.58,
+       "private_dirty_mb": 81.85,
+       "rss_anon_mb": 81.85,
+       "rss_mb": 134.71
+      },
+      "sim_minutes": 268.85666666411925,
+      "wall_minutes": 2.167446951166789
+     },
+     {
+      "awake": 5,
+      "cache_entries": 65,
+      "cache_mb": 0.040374755859375,
+      "evictions": 25940,
+      "frame_ms": {
+       "max": 3.895,
+       "mean": 0.126,
+       "n": 37261,
+       "p50": 0.114,
+       "p95": 0.188,
+       "p99": 0.249
+      },
+      "generations": 26004,
+      "gpu_mb": 33.42425537109375,
+      "instances": 300,
+      "memory": {
+       "heap_mb": 27.16,
+       "hwm_mb": 202.58,
+       "private_dirty_mb": 81.86,
+       "rss_anon_mb": 81.86,
+       "rss_mb": 134.72
+      },
+      "sim_minutes": 279.20694444174643,
+      "wall_minutes": 2.250781241718928
+     },
+     {
+      "awake": 7,
+      "cache_entries": 58,
+      "cache_mb": 0.04266357421875,
+      "evictions": 26901,
+      "frame_ms": {
+       "max": 2.776,
+       "mean": 0.126,
+       "n": 37152,
+       "p50": 0.114,
+       "p95": 0.192,
+       "p99": 0.263
+      },
+      "generations": 26958,
+      "gpu_mb": 33.346893310546875,
+      "instances": 300,
+      "memory": {
+       "heap_mb": 27.7,
+       "hwm_mb": 202.58,
+       "private_dirty_mb": 81.87,
+       "rss_anon_mb": 81.87,
+       "rss_mb": 134.73
+      },
+      "sim_minutes": 289.52694444159624,
+      "wall_minutes": 2.3341148816506068
+     },
+     {
+      "awake": 7,
+      "cache_entries": 68,
+      "cache_mb": 0.0434417724609375,
+      "evictions": 27826,
+      "frame_ms": {
+       "max": 1.781,
+       "mean": 0.128,
+       "n": 36683,
+       "p50": 0.115,
+       "p95": 0.192,
+       "p99": 0.255
+      },
+      "generations": 27894,
+      "gpu_mb": 33.6632080078125,
+      "instances": 300,
+      "memory": {
+       "heap_mb": 27.14,
+       "hwm_mb": 202.58,
+       "private_dirty_mb": 81.88,
+       "rss_anon_mb": 81.88,
+       "rss_mb": 134.74
+      },
+      "sim_minutes": 299.7166666636702,
+      "wall_minutes": 2.417450390402476
+     },
+     {
+      "awake": 5,
+      "cache_entries": 66,
+      "cache_mb": 0.0406036376953125,
+      "evictions": 28759,
+      "frame_ms": {
+       "max": 3.495,
+       "mean": 0.128,
+       "n": 36735,
+       "p50": 0.115,
+       "p95": 0.191,
+       "p99": 0.251
+      },
+      "generations": 28825,
+      "gpu_mb": 32.881805419921875,
+      "instances": 300,
+      "memory": {
+       "heap_mb": 26.94,
+       "hwm_mb": 202.58,
+       "private_dirty_mb": 81.89,
+       "rss_anon_mb": 81.89,
+       "rss_mb": 134.75
+      },
+      "sim_minutes": 309.9208333301884,
+      "wall_minutes": 2.500784862983227
+     },
+     {
+      "awake": 8,
+      "cache_entries": 64,
+      "cache_mb": 0.0412445068359375,
+      "evictions": 29699,
+      "frame_ms": {
+       "max": 4.178,
+       "mean": 0.128,
+       "n": 36577,
+       "p50": 0.116,
+       "p95": 0.193,
+       "p99": 0.258
+      },
+      "generations": 29763,
+      "gpu_mb": 33.6339111328125,
+      "instances": 300,
+      "memory": {
+       "heap_mb": 27.04,
+       "hwm_mb": 202.58,
+       "private_dirty_mb": 81.89,
+       "rss_anon_mb": 81.89,
+       "rss_mb": 134.75
+      },
+      "sim_minutes": 320.0811111078183,
+      "wall_minutes": 2.584118385251363
+     },
+     {
+      "awake": 6,
+      "cache_entries": 61,
+      "cache_mb": 0.0406036376953125,
+      "evictions": 30609,
+      "frame_ms": {
+       "max": 3.987,
+       "mean": 0.13,
+       "n": 36220,
+       "p50": 0.117,
+       "p95": 0.191,
+       "p99": 0.253
+      },
+      "generations": 30670,
+      "gpu_mb": 33.276397705078125,
+      "instances": 300,
+      "memory": {
+       "heap_mb": 27.01,
+       "hwm_mb": 202.58,
+       "private_dirty_mb": 81.9,
+       "rss_anon_mb": 81.9,
+       "rss_mb": 134.76
+      },
+      "sim_minutes": 330.142222218783,
+      "wall_minutes": 2.667453915933768
+     },
+     {
+      "awake": 6,
+      "cache_entries": 64,
+      "cache_mb": 0.038360595703125,
+      "evictions": 31533,
+      "frame_ms": {
+       "max": 4.114,
+       "mean": 0.13,
+       "n": 36302,
+       "p50": 0.117,
+       "p95": 0.189,
+       "p99": 0.247
+      },
+      "generations": 31596,
+      "gpu_mb": 32.432281494140625,
+      "instances": 300,
+      "memory": {
+       "heap_mb": 27.66,
+       "hwm_mb": 202.58,
+       "private_dirty_mb": 81.9,
+       "rss_anon_mb": 81.9,
+       "rss_mb": 134.76
+      },
+      "sim_minutes": 340.2261111075251,
+      "wall_minutes": 2.750787962949276
+     },
+     {
+      "awake": 6,
+      "cache_entries": 63,
+      "cache_mb": 0.0395965576171875,
+      "evictions": 32428,
+      "frame_ms": {
+       "max": 0.867,
+       "mean": 0.132,
+       "n": 35755,
+       "p50": 0.12,
+       "p95": 0.192,
+       "p99": 0.252
+      },
+      "generations": 32490,
+      "gpu_mb": 33.91497802734375,
+      "instances": 300,
+      "memory": {
+       "heap_mb": 28.36,
+       "hwm_mb": 202.58,
+       "private_dirty_mb": 81.9,
+       "rss_anon_mb": 81.9,
+       "rss_mb": 134.76
+      },
+      "sim_minutes": 350.15805555182504,
+      "wall_minutes": 2.834122755666574
+     },
+     {
+      "awake": 7,
+      "cache_entries": 66,
+      "cache_mb": 0.0428466796875,
+      "evictions": 33325,
+      "frame_ms": {
+       "max": 3.882,
+       "mean": 0.136,
+       "n": 34436,
+       "p50": 0.121,
+       "p95": 0.208,
+       "p99": 0.286
+      },
+      "generations": 33391,
+      "gpu_mb": 32.199737548828125,
+      "instances": 300,
+      "memory": {
+       "heap_mb": 27.17,
+       "hwm_mb": 202.58,
+       "private_dirty_mb": 81.91,
+       "rss_anon_mb": 81.91,
+       "rss_mb": 134.77
+      },
+      "sim_minutes": 359.7236111072414,
+      "wall_minutes": 2.9174577510356903
+     },
+     {
+      "awake": 218,
+      "cache_entries": 40,
+      "cache_mb": 0.00421142578125,
+      "evictions": 34279,
+      "frame_ms": {
+       "max": 1.693,
+       "mean": 0.134,
+       "n": 34632,
+       "p50": 0.12,
+       "p95": 0.203,
+       "p99": 0.278
+      },
+      "generations": 34288,
+      "gpu_mb": 22.777130126953125,
+      "instances": 300,
+      "memory": {
+       "heap_mb": 36.12,
+       "hwm_mb": 202.58,
+       "private_dirty_mb": 79.26,
+       "rss_anon_mb": 79.26,
+       "rss_mb": 132.12
+      },
+      "sim_minutes": 369.3880555515452,
+      "wall_minutes": 3.0010546964327496
+     },
+     {
+      "awake": 7,
+      "cache_entries": 61,
+      "cache_mb": 0.0388641357421875,
+      "evictions": 35166,
+      "frame_ms": {
+       "max": 4.123,
+       "mean": 0.135,
+       "n": 34973,
+       "p50": 0.121,
+       "p95": 0.2,
+       "p99": 0.268
+      },
+      "generations": 35226,
+      "gpu_mb": 31.6197509765625,
+      "instances": 300,
+      "memory": {
+       "heap_mb": 27.25,
+       "hwm_mb": 202.58,
+       "private_dirty_mb": 82.5,
+       "rss_anon_mb": 82.5,
+       "rss_mb": 135.36
+      },
+      "sim_minutes": 379.1027777736261,
+      "wall_minutes": 3.0843894556999207
+     },
+     {
+      "awake": 8,
+      "cache_entries": 64,
+      "cache_mb": 0.0406494140625,
+      "evictions": 36061,
+      "frame_ms": {
+       "max": 4.308,
+       "mean": 0.133,
+       "n": 35250,
+       "p50": 0.12,
+       "p95": 0.198,
+       "p99": 0.261
+      },
+      "generations": 36125,
+      "gpu_mb": 32.913848876953125,
+      "instances": 300,
+      "memory": {
+       "heap_mb": 27.06,
+       "hwm_mb": 202.58,
+       "private_dirty_mb": 82.55,
+       "rss_anon_mb": 82.55,
+       "rss_mb": 135.41
+      },
+      "sim_minutes": 388.89444444015027,
+      "wall_minutes": 3.167726460599899
+     },
+     {
+      "awake": 7,
+      "cache_entries": 62,
+      "cache_mb": 0.0376739501953125,
+      "evictions": 36959,
+      "frame_ms": {
+       "max": 4.153,
+       "mean": 0.135,
+       "n": 34697,
+       "p50": 0.122,
+       "p95": 0.203,
+       "p99": 0.267
+      },
+      "generations": 37021,
+      "gpu_mb": 32.42266845703125,
+      "instances": 300,
+      "memory": {
+       "heap_mb": 27.05,
+       "hwm_mb": 202.58,
+       "private_dirty_mb": 82.56,
+       "rss_anon_mb": 82.56,
+       "rss_mb": 135.42
+      },
+      "sim_minutes": 398.53249999556556,
+      "wall_minutes": 3.2510603755990664
+     },
+     {
+      "awake": 6,
+      "cache_entries": 63,
+      "cache_mb": 0.0443572998046875,
+      "evictions": 37863,
+      "frame_ms": {
+       "max": 4.209,
+       "mean": 0.135,
+       "n": 34942,
+       "p50": 0.122,
+       "p95": 0.197,
+       "p99": 0.263
+      },
+      "generations": 37926,
+      "gpu_mb": 34.109527587890625,
+      "instances": 300,
+      "memory": {
+       "heap_mb": 27.03,
+       "hwm_mb": 202.58,
+       "private_dirty_mb": 82.56,
+       "rss_anon_mb": 82.56,
+       "rss_mb": 135.42
+      },
+      "sim_minutes": 408.2386111065354,
+      "wall_minutes": 3.3343952459692954
+     },
+     {
+      "awake": 7,
+      "cache_entries": 65,
+      "cache_mb": 0.042022705078125,
+      "evictions": 38750,
+      "frame_ms": {
+       "max": 2.406,
+       "mean": 0.134,
+       "n": 35067,
+       "p50": 0.12,
+       "p95": 0.204,
+       "p99": 0.284
+      },
+      "generations": 38815,
+      "gpu_mb": 33.33087158203125,
+      "instances": 300,
+      "memory": {
+       "heap_mb": 27.11,
+       "hwm_mb": 202.58,
+       "private_dirty_mb": 82.57,
+       "rss_anon_mb": 82.57,
+       "rss_mb": 135.43
+      },
+      "sim_minutes": 417.979444439727,
+      "wall_minutes": 3.4177295745333036
+     },
+     {
+      "awake": 7,
+      "cache_entries": 67,
+      "cache_mb": 0.0423431396484375,
+      "evictions": 39655,
+      "frame_ms": {
+       "max": 3.8,
+       "mean": 0.131,
+       "n": 35806,
+       "p50": 0.119,
+       "p95": 0.2,
+       "p99": 0.281
+      },
+      "generations": 39722,
+      "gpu_mb": 33.90765380859375,
+      "instances": 300,
+      "memory": {
+       "heap_mb": 27.14,
+       "hwm_mb": 202.58,
+       "private_dirty_mb": 82.58,
+       "rss_anon_mb": 82.58,
+       "rss_mb": 135.44
+      },
+      "sim_minutes": 427.9255555506934,
+      "wall_minutes": 3.5010649594664573
+     },
+     {
+      "awake": 8,
+      "cache_entries": 62,
+      "cache_mb": 0.0432586669921875,
+      "evictions": 40544,
+      "frame_ms": {
+       "max": 1.499,
+       "mean": 0.135,
+       "n": 34930,
+       "p50": 0.121,
+       "p95": 0.2,
+       "p99": 0.266
+      },
+      "generations": 40606,
+      "gpu_mb": 34.28118896484375,
+      "instances": 300,
+      "memory": {
+       "heap_mb": 27.12,
+       "hwm_mb": 202.58,
+       "private_dirty_mb": 82.58,
+       "rss_anon_mb": 82.58,
+       "rss_mb": 135.44
+      },
+      "sim_minutes": 437.62833332833,
+      "wall_minutes": 3.5843985041181248
+     },
+     {
+      "awake": 6,
+      "cache_entries": 63,
+      "cache_mb": 0.04156494140625,
+      "evictions": 41431,
+      "frame_ms": {
+       "max": 4.278,
+       "mean": 0.136,
+       "n": 34670,
+       "p50": 0.121,
+       "p95": 0.204,
+       "p99": 0.28
+      },
+      "generations": 41493,
+      "gpu_mb": 32.817718505859375,
+      "instances": 300,
+      "memory": {
+       "heap_mb": 27.29,
+       "hwm_mb": 202.58,
+       "private_dirty_mb": 82.59,
+       "rss_anon_mb": 82.59,
+       "rss_mb": 135.45
+      },
+      "sim_minutes": 447.2588888837454,
+      "wall_minutes": 3.667734249552091
+     },
+     {
+      "awake": 8,
+      "cache_entries": 61,
+      "cache_mb": 0.038360595703125,
+      "evictions": 42339,
+      "frame_ms": {
+       "max": 3.374,
+       "mean": 0.134,
+       "n": 35205,
+       "p50": 0.12,
+       "p95": 0.204,
+       "p99": 0.278
+      },
+      "generations": 42400,
+      "gpu_mb": 32.0482177734375,
+      "instances": 300,
+      "memory": {
+       "heap_mb": 27.0,
+       "hwm_mb": 202.58,
+       "private_dirty_mb": 82.59,
+       "rss_anon_mb": 82.59,
+       "rss_mb": 135.45
+      },
+      "sim_minutes": 457.03805555026975,
+      "wall_minutes": 3.7510676148494086
+     },
+     {
+      "awake": 8,
+      "cache_entries": 69,
+      "cache_mb": 0.0465087890625,
+      "evictions": 43232,
+      "frame_ms": {
+       "max": 2.648,
+       "mean": 0.137,
+       "n": 34468,
+       "p50": 0.123,
+       "p95": 0.205,
+       "p99": 0.269
+      },
+      "generations": 43301,
+      "gpu_mb": 34.39837646484375,
+      "instances": 300,
+      "memory": {
+       "heap_mb": 27.12,
+       "hwm_mb": 202.58,
+       "private_dirty_mb": 82.6,
+       "rss_anon_mb": 82.6,
+       "rss_mb": 135.46
+      },
+      "sim_minutes": 466.6124999945749,
+      "wall_minutes": 3.834402243800958
+     },
+     {
+      "awake": 7,
+      "cache_entries": 67,
+      "cache_mb": 0.041656494140625,
+      "evictions": 44132,
+      "frame_ms": {
+       "max": 3.709,
+       "mean": 0.137,
+       "n": 34272,
+       "p50": 0.123,
+       "p95": 0.207,
+       "p99": 0.281
+      },
+      "generations": 44199,
+      "gpu_mb": 32.565032958984375,
+      "instances": 300,
+      "memory": {
+       "heap_mb": 27.01,
+       "hwm_mb": 202.58,
+       "private_dirty_mb": 82.61,
+       "rss_anon_mb": 82.61,
+       "rss_mb": 135.46
+      },
+      "sim_minutes": 476.13249999443633,
+      "wall_minutes": 3.917735682952404
+     },
+     {
+      "awake": 195,
+      "cache_entries": 40,
+      "cache_mb": 0.0056304931640625,
+      "evictions": 45095,
+      "frame_ms": {
+       "max": 2.289,
+       "mean": 0.136,
+       "n": 34643,
+       "p50": 0.122,
+       "p95": 0.204,
+       "p99": 0.28
+      },
+      "generations": 45107,
+      "gpu_mb": 23.716461181640625,
+      "instances": 300,
+      "memory": {
+       "heap_mb": 35.08,
+       "hwm_mb": 202.58,
+       "private_dirty_mb": 80.43,
+       "rss_anon_mb": 80.43,
+       "rss_mb": 133.29
+      },
+      "sim_minutes": 485.79999999429566,
+      "wall_minutes": 4.0014053072690965
+     },
+     {
+      "awake": 7,
+      "cache_entries": 65,
+      "cache_mb": 0.0439910888671875,
+      "evictions": 45988,
+      "frame_ms": {
+       "max": 2.435,
+       "mean": 0.132,
+       "n": 35683,
+       "p50": 0.121,
+       "p95": 0.196,
+       "p99": 0.259
+      },
+      "generations": 46052,
+      "gpu_mb": 32.643768310546875,
+      "instances": 300,
+      "memory": {
+       "heap_mb": 27.58,
+       "hwm_mb": 202.58,
+       "private_dirty_mb": 82.97,
+       "rss_anon_mb": 82.97,
+       "rss_mb": 135.83
+      },
+      "sim_minutes": 495.7119444385959,
+      "wall_minutes": 4.08473895469904
+     },
+     {
+      "awake": 6,
+      "cache_entries": 66,
+      "cache_mb": 0.0417022705078125,
+      "evictions": 46880,
+      "frame_ms": {
+       "max": 3.644,
+       "mean": 0.136,
+       "n": 34624,
+       "p50": 0.122,
+       "p95": 0.203,
+       "p99": 0.279
+      },
+      "generations": 46945,
+      "gpu_mb": 33.29241943359375,
+      "instances": 300,
+      "memory": {
+       "heap_mb": 27.71,
+       "hwm_mb": 202.58,
+       "private_dirty_mb": 82.97,
+       "rss_anon_mb": 82.97,
+       "rss_mb": 135.83
+      },
+      "sim_minutes": 505.3297222162337,
+      "wall_minutes": 4.168073523235321
+     },
+     {
+      "awake": 8,
+      "cache_entries": 66,
+      "cache_mb": 0.0406494140625,
+      "evictions": 47801,
+      "frame_ms": {
+       "max": 4.16,
+       "mean": 0.136,
+       "n": 34763,
+       "p50": 0.122,
+       "p95": 0.2,
+       "p99": 0.272
+      },
+      "generations": 47867,
+      "gpu_mb": 32.830078125,
+      "instances": 300,
+      "memory": {
+       "heap_mb": 27.09,
+       "hwm_mb": 202.58,
+       "private_dirty_mb": 82.97,
+       "rss_anon_mb": 82.97,
+       "rss_mb": 135.83
+      },
+      "sim_minutes": 514.986111104982,
+      "wall_minutes": 4.251409502883752
+     },
+     {
+      "awake": 7,
+      "cache_entries": 70,
+      "cache_mb": 0.0441741943359375,
+      "evictions": 48710,
+      "frame_ms": {
+       "max": 4.279,
+       "mean": 0.136,
+       "n": 34730,
+       "p50": 0.121,
+       "p95": 0.204,
+       "p99": 0.276
+      },
+      "generations": 48780,
+      "gpu_mb": 34.258758544921875,
+      "instances": 300,
+      "memory": {
+       "heap_mb": 27.06,
+       "hwm_mb": 202.58,
+       "private_dirty_mb": 82.98,
+       "rss_anon_mb": 82.98,
+       "rss_mb": 135.84
+      },
+      "sim_minutes": 524.6333333270638,
+      "wall_minutes": 4.334744974549611
+     },
+     {
+      "awake": 5,
+      "cache_entries": 68,
+      "cache_mb": 0.046783447265625,
+      "evictions": 49617,
+      "frame_ms": {
+       "max": 3.208,
+       "mean": 0.135,
+       "n": 34922,
+       "p50": 0.122,
+       "p95": 0.199,
+       "p99": 0.261
+      },
+      "generations": 49685,
+      "gpu_mb": 32.9564208984375,
+      "instances": 300,
+      "memory": {
+       "heap_mb": 27.05,
+       "hwm_mb": 202.58,
+       "private_dirty_mb": 82.98,
+       "rss_anon_mb": 82.98,
+       "rss_mb": 135.84
+      },
+      "sim_minutes": 534.3338888824783,
+      "wall_minutes": 4.418080466000239
+     },
+     {
+      "awake": 8,
+      "cache_entries": 71,
+      "cache_mb": 0.0462799072265625,
+      "evictions": 50491,
+      "frame_ms": {
+       "max": 4.235,
+       "mean": 0.132,
+       "n": 35474,
+       "p50": 0.12,
+       "p95": 0.199,
+       "p99": 0.272
+      },
+      "generations": 50562,
+      "gpu_mb": 34.672576904296875,
+      "instances": 300,
+      "memory": {
+       "heap_mb": 27.2,
+       "hwm_mb": 202.58,
+       "private_dirty_mb": 82.99,
+       "rss_anon_mb": 82.99,
+       "rss_mb": 135.85
+      },
+      "sim_minutes": 544.1877777713584,
+      "wall_minutes": 4.501416903467973
+     },
+     {
+      "awake": 6,
+      "cache_entries": 57,
+      "cache_mb": 0.0375823974609375,
+      "evictions": 51383,
+      "frame_ms": {
+       "max": 3.824,
+       "mean": 0.136,
+       "n": 34643,
+       "p50": 0.122,
+       "p95": 0.207,
+       "p99": 0.285
+      },
+      "generations": 51440,
+      "gpu_mb": 31.789581298828125,
+      "instances": 300,
+      "memory": {
+       "heap_mb": 27.1,
+       "hwm_mb": 202.58,
+       "private_dirty_mb": 82.99,
+       "rss_anon_mb": 82.99,
+       "rss_mb": 135.85
+      },
+      "sim_minutes": 553.8108333288744,
+      "wall_minutes": 4.584751557950179
+     },
+     {
+      "awake": 8,
+      "cache_entries": 65,
+      "cache_mb": 0.044677734375,
+      "evictions": 52243,
+      "frame_ms": {
+       "max": 1.98,
+       "mean": 0.136,
+       "n": 34531,
+       "p50": 0.123,
+       "p95": 0.208,
+       "p99": 0.282
+      },
+      "generations": 52308,
+      "gpu_mb": 34.311859130859375,
+      "instances": 300,
+      "memory": {
+       "heap_mb": 27.17,
+       "hwm_mb": 202.58,
+       "private_dirty_mb": 83.0,
+       "rss_anon_mb": 83.0,
+       "rss_mb": 135.86
+      },
+      "sim_minutes": 563.402777775273,
+      "wall_minutes": 4.668086395251751
+     },
+     {
+      "awake": 6,
+      "cache_entries": 61,
+      "cache_mb": 0.0435333251953125,
+      "evictions": 53175,
+      "frame_ms": {
+       "max": 4.122,
+       "mean": 0.13,
+       "n": 36084,
+       "p50": 0.119,
+       "p95": 0.196,
+       "p99": 0.266
+      },
+      "generations": 53236,
+      "gpu_mb": 32.460205078125,
+      "instances": 300,
+      "memory": {
+       "heap_mb": 27.79,
+       "hwm_mb": 202.58,
+       "private_dirty_mb": 83.02,
+       "rss_anon_mb": 83.02,
+       "rss_mb": 135.88
+      },
+      "sim_minutes": 573.4261111106483,
+      "wall_minutes": 4.75142203403314
+     },
+     {
+      "awake": 9,
+      "cache_entries": 66,
+      "cache_mb": 0.0443115234375,
+      "evictions": 54030,
+      "frame_ms": {
+       "max": 4.226,
+       "mean": 0.135,
+       "n": 34843,
+       "p50": 0.123,
+       "p95": 0.202,
+       "p99": 0.275
+      },
+      "generations": 54095,
+      "gpu_mb": 33.454010009765625,
+      "instances": 300,
+      "memory": {
+       "heap_mb": 27.82,
+       "hwm_mb": 202.58,
+       "private_dirty_mb": 83.02,
+       "rss_anon_mb": 83.02,
+       "rss_mb": 135.88
+      },
+      "sim_minutes": 583.1047222237313,
+      "wall_minutes": 4.834755544233322
+     },
+     {
+      "awake": 7,
+      "cache_entries": 67,
+      "cache_mb": 0.0413818359375,
+      "evictions": 54915,
+      "frame_ms": {
+       "max": 4.091,
+       "mean": 0.133,
+       "n": 35425,
+       "p50": 0.12,
+       "p95": 0.208,
+       "p99": 0.29
+      },
+      "generations": 54982,
+      "gpu_mb": 33.496124267578125,
+      "instances": 300,
+      "memory": {
+       "heap_mb": 27.02,
+       "hwm_mb": 202.58,
+       "private_dirty_mb": 83.02,
+       "rss_anon_mb": 83.02,
+       "rss_mb": 135.88
+      },
+      "sim_minutes": 592.9450000035138,
+      "wall_minutes": 4.918090849169095
+     }
+    ],
+    "sim_minutes": 602.4750000054553,
+    "speed": 120.484039879605,
+    "stale_handles_rejected": 72267,
+    "wall_seconds": 300.02947933888436
+   },
+   "kind": "soak",
+   "pass": true,
+   "summary": "5 min  x120.5  PASS  RSS 120 -> 136 MB  slope +28.2 MB/h (not judged under 20 min)  drains 5/5 within 2.3 MB"
+  }
+ ],
+ "pipeline": "rock_v1",
+ "plan": {
+  "doc": "About ten minutes: before asking for approval (design/quality.perf.md).",
+  "name": "standard",
+  "phases": [
+   {
+    "configs": 100,
+    "kind": "diversity",
+    "seconds": 60
+   },
+   {
+    "counts": [
+     100,
+     200,
+     400,
+     800,
+     1600,
+     3200,
+     6400,
+     12800,
+     25600
+    ],
+    "kind": "forest",
+    "seconds": 8,
+    "sets": 10
+   },
+   {
+    "counts": [
+     100,
+     400,
+     1600
+    ],
+    "kind": "events",
+    "seconds": 15,
+    "sets": 10
+   },
+   {
+    "churn_per_second": 20,
+    "drain_minutes": 1,
+    "kind": "soak",
+    "minutes": 5,
+    "population": 300,
+    "sample_seconds": 5
+   }
+  ],
+  "seed": 7,
+  "thresholds": {
+   "drain_tolerance_mb": 8,
+   "soak_rss_slope_mb_per_hour": 4
+  }
+ },
+ "plan_name": "standard",
+ "run_dir": "perf/runs/rock_v1-20261012T071755Z",
+ "seed": 7,
+ "started": "2026-10-12T07:17:55Z",
+ "state": "draft",
+ "summary": [
+  "stress_rock_v1 (draft)  plan standard  seed 7  Linux 6.18.44+rex+5-amd64  AMD RYZEN AI MAX+ 395 w/ Radeon 8060S  Radeon 8060S Graphics (RADV GFX1151) (vulkan)  build 69dcc99+dirty",
+  "diversity  100 configs  60 s  PASS  native = wasm 100/100  gen p50 1.6 ms p99 6.8 ms (high sandstone none summer huge)  frame p95 0.13 ms",
+  "forest     10 sets  100..25600  PASS  budget 16.7 ms holds to at least 25600 (p95 7.1 ms)  generations 10/10  hits 100.0%",
+  "events     break_time  100  spike 0.4 ms over 0.1 ms  all settled in 1.8 s  memory back within 0.0 MB  PASS  in budget up to 1600",
+  "soak       5 min  x120.5  PASS  RSS 120 -> 136 MB  slope +28.2 MB/h (not judged under 20 min)  drains 5/5 within 2.3 MB",
+  "first report for this pipeline and plan on this machine"
+ ],
+ "systems": [
+  "rock_body_v1",
+  "rock_animate_v1"
+ ]
+}

@@ -62,13 +62,21 @@
       0.62,
       0.16
     ],
-    "fruit_size": 0.09,
+    "fruit_seasons": [
+      0,
+      0.3,
+      1,
+      0
+    ],
+    "fruit_size": 0.11,
     "fruit_unripe": [
       0.36,
       0.55,
       0.2
     ],
+    "hanging_moss": 0,
     "height": 9,
+    "knees": 0,
     "latin": "Mangifera indica",
     "leaf_fall": [
       0.15,
@@ -97,12 +105,20 @@
     ],
     "leafiness": 1.5,
     "lean": 0.06,
+    "moss_color": [
+      0.6,
+      0.63,
+      0.55
+    ],
     "name": "Mango",
+    "pickable": true,
+    "prop_roots": 0,
     "slender": 18,
     "snow": 0,
     "sprig_length": 0.4,
     "sprigs": 3,
     "stiffness": 9.5,
+    "swell": 0,
     "tip_up": 0.05,
     "twig_angle": 50,
     "twig_curve": -0.2,

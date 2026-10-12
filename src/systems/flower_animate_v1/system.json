@@ -1,0 +1,11 @@
+{
+  "name": "flower_animate",
+  "version": 1,
+  "kind": "system",
+  "doc": "One frame of a flower clump's pose: each stem's two bones bend toward the wind as damped oscillators driven by the same gusts as trees, in closed form.",
+  "input": "flower_v1_motion",
+  "output": "flower_v1_pose",
+  "state": "draft",
+  "notes": [],
+  "created_at": "2026-10-12T09:00:00Z"
+}

@@ -10,7 +10,7 @@
 
 namespace channels {
 
-// One tree to grow: what the game asks for ("a young pine in fall"), plus the seed that makes this tree differ from its neighbours and the level of detail the runtime picked.
+// One tree to grow: what the game asks for ("a young pine in fall"), whether its fruit is still on it, plus the seed that makes this tree differ from its neighbours and the level of detail the runtime picked.
 struct tree_v1_spec {
   static constexpr const char *kName = "tree_v1_spec";
   static constexpr uint32_t kAgeSapling = 0;
@@ -34,6 +34,8 @@ struct tree_v1_spec {
   uint32_t seed = 0;
   // Level of detail, chosen by the runtime from distance and quality.
   uint32_t detail = 0;
+  // The tree carries its fruit, in the seasons its species fruits. The game clears it when the fruit is picked, which rebuilds the tree bare (sharing the build with every other picked tree like it).
+  bool fruit = false;
 };
 
 }  // namespace channels

@@ -63,13 +63,21 @@
       0.14,
       0.12
     ],
-    "fruit_size": 0.065,
+    "fruit_seasons": [
+      0,
+      0,
+      0.35,
+      1
+    ],
+    "fruit_size": 0.08,
     "fruit_unripe": [
       0.55,
       0.7,
       0.25
     ],
+    "hanging_moss": 0,
     "height": 5.5,
+    "knees": 0,
     "latin": "Malus domestica",
     "leaf_fall": [
       0.6,
@@ -98,12 +106,20 @@
     ],
     "leafiness": 1.1,
     "lean": 0.12,
+    "moss_color": [
+      0.6,
+      0.63,
+      0.55
+    ],
     "name": "Apple",
+    "pickable": true,
+    "prop_roots": 0,
     "slender": 22,
     "snow": 0.5,
     "sprig_length": 0.4,
     "sprigs": 3,
     "stiffness": 8.8,
+    "swell": 0,
     "tip_up": 0.15,
     "twig_angle": 48,
     "twig_curve": -0.2,

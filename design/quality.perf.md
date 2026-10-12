@@ -40,6 +40,8 @@ static const char *const age_values[] = {"sapling", "young", "mature", "ancient"
 static const stress_param params[] = {
     {"species",      STRESS_ENUM,  STRESS_BUILD,  .values = species_values, .count = 10, .fallback = 2},
     {"age",          STRESS_ENUM,  STRESS_BUILD,  .values = age_values, .count = 4, .fallback = 2},
+    {"fruit",        STRESS_ENUM,  STRESS_BUILD,  .values = fruit_values, .count = 2, .fallback = 1,
+     .when = 0, .when_on = fruit_when},  /* gated: applies where fruit_when[species] is 1 */
     {"seed",         STRESS_U32,   STRESS_BUILD,  .min = 1, .max = 50, .fallback = 1},
     {"wind_speed",   STRESS_F32,   STRESS_UPDATE, .min = 0, .max = 25, .fallback = 6},
     {"time",         STRESS_CLOCK, STRESS_UPDATE},
@@ -140,11 +142,11 @@ The window's title shows the instance count, how many are awake, the update and 
 
 ## The QA video
 
-`--video OUT.mp4` turns the stress binary into a QA camera: a bulk way to look at a pipeline's whole space. The foundry's Video tab and `pipeline_video` drive it.
+`--video OUT.mp4` turns the stress binary into a QA camera: a bulk way to look at a pipeline's whole space. The foundry's Video tab and `pipeline_video` drive it. One video exports at a time, since exports share the GPU and ffmpeg. Each pipeline's Video tab shows its own latest export (progress, then the file or the error), and the others show that they are blocked on the running one, with its progress; `pipeline_video` refuses with the same reason. Pins are kept per pipeline.
 
 - **A title slide.** "Foundry QA", with the subtitle "Pipeline '$pipeline' Demo", for 5 seconds (`--title-seconds`). It also lists the number of variations, the pipeline's state, the date, and its systems.
-- **One clip per variation.** About a second each (`--seconds-per`). Every combination of the discrete parameters (enums and genomes) is enumerated, in parameter order. Each combination gets `--floats` random samples of the continuous parameters (numbers and seeds), drawn from the plan's seed. `--fixed` pins parameters and `--ranges` narrows enums, to keep a video short.
-- **What each clip shows.** The camera frames the instance's bounding sphere and orbits a quarter turn while its clocks run (a tree sways). The title names the discrete values, a panel lists every parameter with the instance's height and triangles, and a counter shows its place. The clear colour is replaced with a sky and a ground at the camera's horizon, so things stand on something.
+- **One clip per variation.** About a second each (`--seconds-per`). Every combination of the discrete parameters (enums and genomes) is enumerated, in parameter order. Each combination gets `--floats` random samples of the continuous parameters (numbers and seeds), drawn from the plan's seed. `--fixed` pins parameters and `--ranges` narrows enums, to keep a video short. A gated parameter (`flow.md`, `when`) gets one clip, not one per value, wherever its gate is off, and shows as disabled.
+- **What each clip shows.** The camera frames the instance's bounding sphere and orbits a quarter turn while its clocks run (a tree sways). The title shows each discrete value under its parameter's name (so `true` reads as `fruit: true`, and a gated-off value as a grey `disabled`), a panel lists every parameter with the instance's height and triangles, and a counter shows its place. The clear colour is replaced with a sky and a ground at the camera's horizon, so things stand on something.
 - **An index.** `OUT.mp4.json` lists every variation's start time and values, with the codec and settings, so any moment in the video can be traced back to its parameters.
 
 **The codec is H.264 in MP4** (libx264, CRF 20, yuv420p, `+faststart`), encoded by piping raw frames to the system's `ffmpeg`:

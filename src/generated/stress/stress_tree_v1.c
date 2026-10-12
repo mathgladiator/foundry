@@ -4,23 +4,26 @@
 #include "runtime.h"
 #include "stress.h"
 
-static const char *const species_values[] = {"acacia", "apple", "baobab", "birch", "bristlecone", "cedar", "cherry", "coconut", "cypress", "dragonwood", "ebony", "elm", "hickory", "jacaranda", "larch", "lignumvitae", "mahogany", "mango", "maple", "mesquite", "oak", "olive", "osage", "pine", "redwood", "spruce", "teak", "willow"};
+static const char *const species_values[] = {"acacia", "apple", "baldcypress", "baobab", "birch", "bristlecone", "cedar", "cherry", "coconut", "cypress", "dragonwood", "ebony", "elm", "hickory", "jacaranda", "larch", "lignumvitae", "liveoak", "mahogany", "mango", "mangrove", "maple", "mesquite", "oak", "olive", "osage", "pine", "redwood", "spruce", "teak", "tupelo", "willow"};
 static const char *const age_values[] = {"sapling", "young", "mature", "ancient"};
 static const char *const season_values[] = {"winter", "spring", "summer", "fall"};
+static const char *const fruit_values[] = {"false", "true"};
 static const char *const detail_values[] = {"high", "medium", "low"};
+static const unsigned char fruit_when[] = {1, 1, 0, 1, 0, 0, 0, 0, 1, 0, 1, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 1, 0}; /* per species: applies */
 
 static const stress_param params[] = {
-    {"species", STRESS_ENUM, STRESS_BUILD, species_values, 28, 0.0, 0.0, {.u = 20u}},
-    {"age", STRESS_ENUM, STRESS_BUILD, age_values, 4, 0.0, 0.0, {.u = 2u}},
-    {"season", STRESS_ENUM, STRESS_BUILD, season_values, 4, 0.0, 0.0, {.u = 2u}},
-    {"seed", STRESS_U32, STRESS_BUILD, 0, 0, 1.0, 1000.0, {.u = 1u}},
-    {"detail", STRESS_ENUM, STRESS_BUILD, detail_values, 3, 0.0, 0.0, {.u = 0u}},
-    {"wind_speed", STRESS_F32, STRESS_UPDATE, 0, 0, 0.0, 25.0, {.f = 0x1.8000000000000p+2f}},
-    {"wind_heading", STRESS_F32, STRESS_UPDATE, 0, 0, 0.0, 360.0, {.f = 0x1.6800000000000p+6f}},
-    {"gust_damping", STRESS_F32, STRESS_UPDATE, 0, 0, 0.0, 1.0, {.f = 0x1.3333340000000p-2f}},
-    {"time", STRESS_CLOCK, STRESS_UPDATE, 0, 0, 0.0, 0.0, {.f = 0.0f}},
-    {"break_time", STRESS_EVENT, STRESS_UPDATE, 0, 0, 0.0, 0.0, {.f = 0.0f}},
-    {"break_heading", STRESS_F32, STRESS_UPDATE, 0, 0, 0.0, 360.0, {.f = 0x1.6800000000000p+6f}},
+    {"species", STRESS_ENUM, STRESS_BUILD, species_values, 32, 0.0, 0.0, {.u = 23u}, -1, 0},
+    {"age", STRESS_ENUM, STRESS_BUILD, age_values, 4, 0.0, 0.0, {.u = 2u}, -1, 0},
+    {"season", STRESS_ENUM, STRESS_BUILD, season_values, 4, 0.0, 0.0, {.u = 2u}, -1, 0},
+    {"fruit", STRESS_ENUM, STRESS_BUILD, fruit_values, 2, 0.0, 0.0, {.u = 1u}, 0, fruit_when},
+    {"seed", STRESS_U32, STRESS_BUILD, 0, 0, 1.0, 1000.0, {.u = 1u}, -1, 0},
+    {"detail", STRESS_ENUM, STRESS_BUILD, detail_values, 3, 0.0, 0.0, {.u = 0u}, -1, 0},
+    {"wind_speed", STRESS_F32, STRESS_UPDATE, 0, 0, 0.0, 25.0, {.f = 0x1.8000000000000p+2f}, -1, 0},
+    {"wind_heading", STRESS_F32, STRESS_UPDATE, 0, 0, 0.0, 360.0, {.f = 0x1.6800000000000p+6f}, -1, 0},
+    {"gust_damping", STRESS_F32, STRESS_UPDATE, 0, 0, 0.0, 1.0, {.f = 0x1.3333340000000p-2f}, -1, 0},
+    {"time", STRESS_CLOCK, STRESS_UPDATE, 0, 0, 0.0, 0.0, {.f = 0.0f}, -1, 0},
+    {"break_time", STRESS_EVENT, STRESS_UPDATE, 0, 0, 0.0, 0.0, {.f = 0.0f}, -1, 0},
+    {"break_heading", STRESS_F32, STRESS_UPDATE, 0, 0, 0.0, 360.0, {.f = 0x1.6800000000000p+6f}, -1, 0},
 };
 
 static foundry_instance spawn(foundry_runtime *rt, const stress_value *v, const float transform[16]) {
@@ -29,12 +32,13 @@ static foundry_instance spawn(foundry_runtime *rt, const stress_value *v, const 
   p.species = (foundry_tree_v1_species)v[0].u;
   p.age = (foundry_tree_v1_age)v[1].u;
   p.season = (foundry_tree_v1_season)v[2].u;
-  p.seed = v[3].u;
-  p.detail = (foundry_tree_v1_detail)v[4].u;
-  p.wind_speed = v[5].f;
-  p.wind_heading = v[6].f;
-  p.gust_damping = v[7].f;
-  p.break_heading = v[10].f;
+  p.fruit = v[3].u != 0;
+  p.seed = v[4].u;
+  p.detail = (foundry_tree_v1_detail)v[5].u;
+  p.wind_speed = v[6].f;
+  p.wind_heading = v[7].f;
+  p.gust_damping = v[8].f;
+  p.break_heading = v[11].f;
   return foundry_tree_v1_spawn(rt, &p, transform);
 }
 
@@ -43,26 +47,27 @@ static foundry_status set(foundry_runtime *rt, foundry_instance i, uint32_t para
     case 0: return foundry_tree_v1_set_species(rt, i, (foundry_tree_v1_species)v.u);
     case 1: return foundry_tree_v1_set_age(rt, i, (foundry_tree_v1_age)v.u);
     case 2: return foundry_tree_v1_set_season(rt, i, (foundry_tree_v1_season)v.u);
-    case 3: return foundry_tree_v1_set_seed(rt, i, v.u);
-    case 4: return foundry_tree_v1_set_detail(rt, i, (foundry_tree_v1_detail)v.u);
-    case 5: return foundry_tree_v1_set_wind_speed(rt, i, v.f);
-    case 6: return foundry_tree_v1_set_wind_heading(rt, i, v.f);
-    case 7: return foundry_tree_v1_set_gust_damping(rt, i, v.f);
-    case 10: return foundry_tree_v1_set_break_heading(rt, i, v.f);
+    case 3: return foundry_tree_v1_set_fruit(rt, i, v.u != 0);
+    case 4: return foundry_tree_v1_set_seed(rt, i, v.u);
+    case 5: return foundry_tree_v1_set_detail(rt, i, (foundry_tree_v1_detail)v.u);
+    case 6: return foundry_tree_v1_set_wind_speed(rt, i, v.f);
+    case 7: return foundry_tree_v1_set_wind_heading(rt, i, v.f);
+    case 8: return foundry_tree_v1_set_gust_damping(rt, i, v.f);
+    case 11: return foundry_tree_v1_set_break_heading(rt, i, v.f);
   }
   return FOUNDRY_STATUS_BAD_PARAMETER;
 }
 
 static foundry_status trigger(foundry_runtime *rt, foundry_instance i, uint32_t param) {
   switch (param) {
-    case 9: return foundry_tree_v1_start_break(rt, i);
+    case 10: return foundry_tree_v1_start_break(rt, i);
   }
   return FOUNDRY_STATUS_BAD_PARAMETER;
 }
 
 static const char *const systems[] = {"tree_rig_v1", "tree_mesh_v1", "tree_colorize_v1", "tree_animate_v1"};
 
-static const stress_pipeline pipeline = {"tree_v1", "draft", params, 11, systems, 4, spawn, set, trigger};
+static const stress_pipeline pipeline = {"tree_v1", "draft", params, 12, systems, 4, spawn, set, trigger};
 
 int main(int argc, char **argv) {
   const stress_pipeline *pipelines[] = {&pipeline};

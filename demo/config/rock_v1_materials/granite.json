@@ -1,0 +1,59 @@
+{
+  "created_at": "2026-10-12T08:00:00Z",
+  "doc": "Igneous, coarse-grained: a hard, grey to pink crystalline stone of mountains and old shields, weathering into blocky rounded boulders. Breaks into chunky irregular pieces.",
+  "notes": [],
+  "reference": [
+    "reference/rocks/granite/01.jpg",
+    "reference/rocks/granite/02.jpg",
+    "reference/rocks/granite/03.jpg"
+  ],
+  "state": "draft",
+  "value": {
+    "accent": [
+      0.84,
+      0.8,
+      0.78
+    ],
+    "color_dark": [
+      0.48,
+      0.47,
+      0.46
+    ],
+    "color_light": [
+      0.7,
+      0.69,
+      0.66
+    ],
+    "density": 2.65,
+    "elongation": 1.3,
+    "facets": 14,
+    "flatness": 0.75,
+    "fracture": "voronoi",
+    "fresh": [
+      0.78,
+      0.77,
+      0.75
+    ],
+    "grain": [
+      0,
+      1,
+      0
+    ],
+    "grain_strength": 0.1,
+    "kind": "igneous, coarse-grained",
+    "lichen": 0.8,
+    "moss_color": [
+      0.36,
+      0.47,
+      0.22
+    ],
+    "name": "Granite",
+    "pattern": "speckled",
+    "pattern_scale": 0.05,
+    "pieces": 9,
+    "relief_scale": 0.35,
+    "roughness": 0.05,
+    "roundness": 0.25,
+    "snow": 0.8
+  }
+}

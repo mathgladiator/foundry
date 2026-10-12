@@ -1,0 +1,23 @@
+{
+  "kind": "pipeline",
+  "name": "rock_v1",
+  "state": "draft",
+  "doc": "A rock (design/systems.md, Rocks): the game asks for a material, a size, moss, and a season; the body makes the rock and the pieces its material breaks into, and the animator throws the pieces when the game breaks it.",
+  "notes": [],
+  "created_at": "2026-10-12T08:00:00Z",
+  "params": [
+    {"name": "material", "type": "config", "table": "rock_v1_materials", "default": "granite", "doc": "A material: one entry from config/rock_v1_materials/."},
+    {"name": "size", "type": "enum", "values": ["small", "medium", "large", "huge"], "default": "medium"},
+    {"name": "moss", "type": "enum", "values": ["none", "light", "heavy"], "default": "none"},
+    {"name": "season", "type": "enum", "values": ["winter", "spring", "summer", "fall"], "default": "summer"},
+    {"name": "seed", "type": "u32", "min": 1, "max": 1000, "default": 1, "doc": "Which of the distinct rocks per material and size (the runtime caps how many by quality)."},
+    {"name": "detail", "type": "enum", "values": ["high", "medium", "low"], "default": "high", "doc": "Level of detail; the runtime picks it from distance and quality."},
+    {"name": "break_time", "type": "event", "default": -1, "unit": "s", "doc": "Seconds since the rock broke; negative while it is whole. The game starts it (foundry_rock_v1_start_break)."},
+    {"name": "break_heading", "type": "f32", "min": 0, "max": 360, "default": 90, "unit": "deg", "doc": "Where the blow sends the pieces, from +Z toward +X."}
+  ],
+  "stages": [
+    {"id": "body", "system": "rock_body_v1", "input": {"material": "$material", "size": "$size", "moss": "$moss", "season": "$season", "seed": "$seed", "detail": "$detail"}},
+    {"id": "animate", "system": "rock_animate_v1", "phase": "update", "input": {"pieces": "@body.pieces", "break_time": "$break_time", "break_heading": "$break_heading", "seed": "$seed"}}
+  ],
+  "draw": {"model": "body", "pose": "animate", "conformance": {"radius": "radius", "height": "height"}}
+}

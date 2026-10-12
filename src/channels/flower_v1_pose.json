@@ -1,0 +1,18 @@
+{
+  "family": "flower",
+  "version": 1,
+  "feature": "pose",
+  "doc": "One frame of a flower clump's pose.",
+  "fields": [
+    {
+      "name": "matrices",
+      "type": "f32[]",
+      "doc": "Per bone, a column-major 4x4 matrix from the rest pose to this frame (16 floats each)."
+    },
+    {
+      "name": "settled",
+      "type": "bool",
+      "doc": "Nothing moves (no wind): the instance can sleep (design/submit.md)."
+    }
+  ]
+}

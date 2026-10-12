@@ -1,0 +1,8 @@
+{
+  "kind": "channel",
+  "name": "rock_v1_material",
+  "state": "draft",
+  "reason": "The rock pipeline's material genome, the rock equivalent of tree_v1_genome: shape, surface, colour, and how it breaks, so a material induces its own breakage (the milestone's rocks that break uniquely). Read only by rock_body_v1; compiled into the runtime from config/rock_v1_materials/.",
+  "notes": [],
+  "created_at": "2026-10-12T08:00:00Z"
+}

@@ -1,0 +1,137 @@
+{
+  "created_at": "2026-10-12T06:49:20Z",
+  "doc": "A swamp tree of flooded river bottoms: a straight trunk on a swollen bottle-like base, a narrow open crown, leaves that go deep red to purple in fall, and dark purple fruit. Wood: water tupelo (Wood Handbook, green).",
+  "notes": [],
+  "reference": [
+    "reference/trees/tupelo/01.jpg",
+    "reference/trees/tupelo/02.jpg"
+  ],
+  "state": "draft",
+  "value": {
+    "age_girth": [
+      0.7,
+      0.85,
+      1,
+      1.7
+    ],
+    "age_height": [
+      0.15,
+      0.45,
+      1,
+      1.1
+    ],
+    "bark": "furrowed",
+    "bark_dark": [
+      0.27,
+      0.26,
+      0.24
+    ],
+    "bark_light": [
+      0.52,
+      0.5,
+      0.47
+    ],
+    "blossom": 0,
+    "blossom_color": [
+      0.8,
+      0.8,
+      0.5
+    ],
+    "blossom_leaf": 1,
+    "branch_angle": 55,
+    "branch_angle_var": 12,
+    "branch_curve": 0.0,
+    "branch_length": 0.4,
+    "branches": 22,
+    "clump": 0.05,
+    "cluster": 0,
+    "crown_ratio": 0.42,
+    "crown_shape": "tend_flame",
+    "dead_limbs": 0.25,
+    "deciduous": true,
+    "density": 0.46,
+    "divergence": 137.5,
+    "excurrent": true,
+    "fall_drop": 0.2,
+    "flare": 0.5,
+    "flex": 0.75,
+    "foliage": "clumps",
+    "fruit": 0.7,
+    "fruit_ripe": [
+      0.16,
+      0.1,
+      0.3
+    ],
+    "fruit_seasons": [
+      0,
+      0,
+      0.4,
+      1
+    ],
+    "fruit_size": 0.07,
+    "fruit_unripe": [
+      0.42,
+      0.52,
+      0.25
+    ],
+    "hanging_moss": 0.15,
+    "height": 14,
+    "knees": 0,
+    "latin": "Nyssa aquatica",
+    "leaf_fall": [
+      0.62,
+      0.14,
+      0.2
+    ],
+    "leaf_fall_alt": [
+      0.42,
+      0.12,
+      0.28
+    ],
+    "leaf_spring": [
+      0.48,
+      0.66,
+      0.3
+    ],
+    "leaf_summer": [
+      0.26,
+      0.46,
+      0.2
+    ],
+    "leaf_winter": [
+      0.4,
+      0.26,
+      0.2
+    ],
+    "leafiness": 1.0,
+    "lean": 0.03,
+    "moss_color": [
+      0.58,
+      0.62,
+      0.55
+    ],
+    "name": "Water tupelo",
+    "pickable": true,
+    "prop_roots": 0,
+    "slender": 40,
+    "snow": 0.3,
+    "sprig_length": 0.35,
+    "sprigs": 3,
+    "stiffness": 7.3,
+    "swell": 1.4,
+    "tip_up": 0.1,
+    "twig_angle": 40,
+    "twig_curve": 0,
+    "twig_length": 0.55,
+    "twigs": 5,
+    "twist": 0.05,
+    "whorl": 0,
+    "winter_keep": 0,
+    "wobble": 0.08,
+    "wood": [
+      0.84,
+      0.76,
+      0.62
+    ]
+  }
+}

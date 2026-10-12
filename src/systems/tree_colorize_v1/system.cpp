@@ -20,7 +20,7 @@ using channels::tree_v1_spec;
 
 namespace {
 
-enum Region : uint32_t { kBark = 0, kWood = 1, kLeaf = 2, kBlossom = 3, kFruit = 4, kDeadLeaf = 5, kDeadWood = 6 };
+enum Region : uint32_t { kBark = 0, kWood = 1, kLeaf = 2, kBlossom = 3, kFruit = 4, kDeadLeaf = 5, kDeadWood = 6, kHangingMoss = 7 };
 
 const vec3 kMoss = {0.34f, 0.43f, 0.20f};
 const vec3 kSnow = {0.90f, 0.93f, 0.97f};
@@ -95,14 +95,19 @@ bool run(const channels::tree_v1_body &in, channels::tree_v1_model &out, std::st
         c = mixv(g.blossom_color, v3(1, 1, 1), 0.12f * shade) * (0.94f + 0.08f * shade);
         break;
       case kFruit: {
-        vec3 ripe = g.fruit_ripe, unripe = g.fruit_unripe;
-        if (spec.season == tree_v1_spec::kSeasonFall) c = shade < 0.2f ? mixv(unripe, ripe, 0.5f) : ripe;
-        else c = shade < 0.85f ? unripe : mixv(unripe, ripe, 0.4f);
+        // Ripening by the season's ripeness, each fruit a little ahead or behind (its shade).
+        const float ripeness = g.fruit_seasons.size() == 4 ? g.fruit_seasons[spec.season] : 1.0f;
+        const float r = clampf(ripeness + 0.4f * (shade - 0.5f), 0, 1);
+        c = mixv(g.fruit_unripe, g.fruit_ripe, r * r * (3 - 2 * r));
         can_snow = false;
         break;
       }
       case kDeadLeaf:
         c = g.leaf_winter * (0.9f + 0.2f * shade);
+        break;
+      case kHangingMoss:  // hanging Spanish moss: no snow sticks to the strands
+        c = g.moss_color * (0.86f + 0.24f * shade);
+        can_snow = false;
         break;
       case kDeadWood:
         c = mixv(mixv(g.bark_dark, g.bark_light, 0.2f + 0.6f * shade), v3(0.62f, 0.60f, 0.56f), 0.5f);

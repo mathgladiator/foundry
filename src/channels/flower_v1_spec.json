@@ -1,0 +1,39 @@
+{
+  "family": "flower",
+  "version": 1,
+  "feature": "spec",
+  "doc": "One clump of flowers to grow: what the game asks for (\"oxeye daisies in summer\"), plus the seed that makes this clump differ from its neighbours and the level of detail the runtime picked.",
+  "fields": [
+    {
+      "name": "genome",
+      "type": "flower_v1_genome",
+      "doc": "The species."
+    },
+    {
+      "name": "season",
+      "type": "u32",
+      "doc": "The time of year.",
+      "enum": [
+        "winter",
+        "spring",
+        "summer",
+        "fall"
+      ]
+    },
+    {
+      "name": "seed",
+      "type": "u32",
+      "doc": "Stable randomness: the clump's layout and which stems are in flower."
+    },
+    {
+      "name": "detail",
+      "type": "u32",
+      "doc": "Level of detail, chosen by the runtime from distance and quality.",
+      "enum": [
+        "high",
+        "medium",
+        "low"
+      ]
+    }
+  ]
+}

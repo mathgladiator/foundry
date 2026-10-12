@@ -1,0 +1,88 @@
+{
+  "created_at": "2026-10-12T09:00:00Z",
+  "doc": "Prairies and open woods of eastern North America: purple-pink rays swept back from a spiny orange-brown cone that stands into winter. Blooms all summer.",
+  "notes": [],
+  "reference": [
+    "reference/flowers/coneflower/01.jpg",
+    "reference/flowers/coneflower/02.jpg"
+  ],
+  "state": "draft",
+  "value": {
+    "bloom": [
+      0,
+      0,
+      1,
+      0.4
+    ],
+    "bud": [
+      0.5,
+      0.6,
+      0.3
+    ],
+    "center": [
+      0.72,
+      0.38,
+      0.12
+    ],
+    "center_height": 0.9,
+    "center_size": 0.38,
+    "clump_radius": 0.18,
+    "dormant": true,
+    "evergreen": false,
+    "flex": 1.0,
+    "florets": 0,
+    "head": "ray",
+    "head_size": 0.11,
+    "height": 0.9,
+    "latin": "Echinacea purpurea",
+    "leaf": "lance",
+    "leaf_color": [
+      0.27,
+      0.42,
+      0.2
+    ],
+    "leaf_droop": 0.5,
+    "leaf_fall": [
+      0.45,
+      0.4,
+      0.25
+    ],
+    "leaf_length": 0.15,
+    "leaf_width": 0.3,
+    "leaves": 6,
+    "name": "Purple coneflower",
+    "nod": 0.05,
+    "one_sided": false,
+    "petal": [
+      0.88,
+      0.45,
+      0.62
+    ],
+    "petal_cup": -40,
+    "petal_curl": -0.4,
+    "petal_layers": 1,
+    "petal_tip": [
+      0.9,
+      0.55,
+      0.7
+    ],
+    "petal_width": 0.3,
+    "petals": 16,
+    "raceme": 0.2,
+    "seed_head": [
+      0.25,
+      0.18,
+      0.12
+    ],
+    "stem_color": [
+      0.34,
+      0.46,
+      0.24
+    ],
+    "stem_curve": 0.1,
+    "stem_lean": 0.2,
+    "stem_leaves": 4,
+    "stem_radius": 0.005,
+    "stems": 7
+  }
+}

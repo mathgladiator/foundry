@@ -1,0 +1,88 @@
+{
+  "channel": "flower_v1_genome",
+  "doc": "Flower species for flower_v1: each entry is one genome, everything that makes a daisy a daisy. The pipeline's species parameter picks one by name; the native runtime compiles every entry in (tools/gen_pipelines.py), so the game sees only the names.",
+  "label": "species",
+  "editor": {
+    "groups": [
+      {
+        "label": "Identity",
+        "fields": [
+          "name",
+          "latin"
+        ]
+      },
+      {
+        "label": "Clump and stems",
+        "fields": [
+          "height",
+          "stems",
+          "clump_radius",
+          "stem_lean",
+          "stem_curve",
+          "stem_radius",
+          "flex"
+        ]
+      },
+      {
+        "label": "Head",
+        "fields": [
+          "head",
+          "head_size",
+          "petals",
+          "petal_width",
+          "petal_cup",
+          "petal_curl",
+          "petal_layers",
+          "center_size",
+          "center_height",
+          "nod",
+          "florets",
+          "raceme",
+          "one_sided"
+        ]
+      },
+      {
+        "label": "Leaves",
+        "fields": [
+          "leaf",
+          "leaves",
+          "stem_leaves",
+          "leaf_length",
+          "leaf_width",
+          "leaf_droop"
+        ]
+      },
+      {
+        "label": "Seasons",
+        "fields": [
+          "bloom",
+          "dormant",
+          "evergreen"
+        ]
+      },
+      {
+        "label": "Colour",
+        "fields": [
+          "petal",
+          "petal_tip",
+          "center",
+          "bud",
+          "seed_head",
+          "stem_color",
+          "leaf_color",
+          "leaf_fall"
+        ]
+      }
+    ],
+    "colors": [
+      "petal",
+      "petal_tip",
+      "center",
+      "bud",
+      "seed_head",
+      "stem_color",
+      "leaf_color",
+      "leaf_fall"
+    ]
+  }
+}

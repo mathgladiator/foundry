@@ -1,0 +1,54 @@
+{
+  "family": "bush",
+  "version": 1,
+  "feature": "spec",
+  "doc": "One shrub to grow: what the game asks for (\"an old holly in winter, berries on\"), plus the seed that makes it differ from its neighbours and the level of detail the runtime picked.",
+  "fields": [
+    {
+      "name": "genome",
+      "type": "bush_v1_genome",
+      "doc": "The species."
+    },
+    {
+      "name": "age",
+      "type": "u32",
+      "doc": "How old the shrub is.",
+      "enum": [
+        "young",
+        "mature",
+        "old"
+      ]
+    },
+    {
+      "name": "season",
+      "type": "u32",
+      "doc": "The time of year.",
+      "enum": [
+        "winter",
+        "spring",
+        "summer",
+        "fall"
+      ]
+    },
+    {
+      "name": "fruit",
+      "type": "bool",
+      "doc": "The shrub carries its berries, in the seasons its species fruits. The game clears it when they are picked, which rebuilds it bare (sharing the build with every other picked shrub like it)."
+    },
+    {
+      "name": "seed",
+      "type": "u32",
+      "doc": "Stable randomness: the runtime maps each shrub's ID onto a capped set of seeds per quality level."
+    },
+    {
+      "name": "detail",
+      "type": "u32",
+      "doc": "Level of detail, chosen by the runtime from distance and quality.",
+      "enum": [
+        "high",
+        "medium",
+        "low"
+      ]
+    }
+  ]
+}

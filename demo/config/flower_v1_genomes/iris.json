@@ -1,0 +1,88 @@
+{
+  "created_at": "2026-10-12T09:00:00Z",
+  "doc": "Marshes, swamps, and wet meadows of North America: stiff sword leaves and violet-blue flowers of three drooping falls, each with a yellow signal at its base, and three upright standards. Blooms in late spring.",
+  "notes": [],
+  "reference": [
+    "reference/flowers/iris/01.jpg",
+    "reference/flowers/iris/02.jpg"
+  ],
+  "state": "draft",
+  "value": {
+    "bloom": [
+      0,
+      0.6,
+      0.7,
+      0
+    ],
+    "bud": [
+      0.38,
+      0.35,
+      0.6
+    ],
+    "center": [
+      0.95,
+      0.85,
+      0.4
+    ],
+    "center_height": 0.3,
+    "center_size": 0.3,
+    "clump_radius": 0.18,
+    "dormant": true,
+    "evergreen": false,
+    "flex": 0.6,
+    "florets": 0,
+    "head": "iris",
+    "head_size": 0.11,
+    "height": 0.8,
+    "latin": "Iris versicolor",
+    "leaf": "sword",
+    "leaf_color": [
+      0.32,
+      0.52,
+      0.36
+    ],
+    "leaf_droop": 0.2,
+    "leaf_fall": [
+      0.6,
+      0.55,
+      0.3
+    ],
+    "leaf_length": 0.7,
+    "leaf_width": 0.06,
+    "leaves": 16,
+    "name": "Blue flag iris",
+    "nod": 0.0,
+    "one_sided": false,
+    "petal": [
+      0.45,
+      0.38,
+      0.78
+    ],
+    "petal_cup": 10,
+    "petal_curl": 0,
+    "petal_layers": 1,
+    "petal_tip": [
+      0.5,
+      0.42,
+      0.82
+    ],
+    "petal_width": 0.5,
+    "petals": 3,
+    "raceme": 0.2,
+    "seed_head": [
+      0.42,
+      0.48,
+      0.3
+    ],
+    "stem_color": [
+      0.32,
+      0.5,
+      0.32
+    ],
+    "stem_curve": 0.0,
+    "stem_lean": 0.06,
+    "stem_leaves": 0,
+    "stem_radius": 0.006,
+    "stems": 5
+  }
+}

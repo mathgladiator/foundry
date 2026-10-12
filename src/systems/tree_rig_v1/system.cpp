@@ -12,6 +12,7 @@
 //    and reduced when the tree is bare.
 // 4. Break pieces: the stump, the log above the cut, and each limb.
 // 5. Foliage anchors at the outer branches, sized from the genome.
+// A swollen base (swell) widens the bottom quarter of the stem.
 #include <vector>
 
 #include "boundary.h"
@@ -325,6 +326,14 @@ bool run(const tree_v1_spec &in, channels::tree_v1_rig &out, std::string &error)
       }
     }
     br[0].r[0] = br[0].r[1] * 1.12f;  // the base of the stump, before the flare
+    // A swollen base (water tupelo, bald cypress): the bottom quarter of the stem bulges, tapering up.
+    if (g.swell > 0) {
+      const float reach = 0.25f * H;
+      for (size_t k = 0; k < br[0].p.size(); ++k) {
+        const float u = 1 - clampf(br[0].p[k].y / reach, 0, 1);
+        br[0].r[k] *= 1 + g.swell * u * u * (0.4f + 0.6f * m);
+      }
+    }
   }
 
   // ---- bones ---------------------------------------------------------------------

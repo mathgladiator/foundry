@@ -1,0 +1,105 @@
+{
+  "created_at": "2026-10-12T10:00:00Z",
+  "doc": "Temperate woodland understory and hedgerows: a many-stemmed upright shrub of straight grey-brown canes, round soft leaves turning butter-yellow, lamb's-tail catkins at winter's end, and hazelnuts in fall.",
+  "notes": [],
+  "reference": [
+    "reference/bushes/hazel/01.jpg",
+    "reference/bushes/hazel/02.jpg"
+  ],
+  "state": "draft",
+  "value": {
+    "age_height": [
+      0.4,
+      1.0,
+      1.15
+    ],
+    "bark_dark": [
+      0.32,
+      0.24,
+      0.2
+    ],
+    "bark_light": [
+      0.55,
+      0.42,
+      0.35
+    ],
+    "bloom": [
+      0.3,
+      0.2,
+      0,
+      0
+    ],
+    "blossom_color": [
+      0.86,
+      0.8,
+      0.4
+    ],
+    "blossom_size": 0.4,
+    "branch_angle": 40,
+    "branch_length": 0.32,
+    "branches": 4,
+    "clump": 0.09,
+    "deciduous": true,
+    "fall_drop": 0.3,
+    "flex": 1.0,
+    "foliage": "clumps",
+    "fruit": 1.0,
+    "fruit_cluster": 3,
+    "fruit_ripe": [
+      0.5,
+      0.32,
+      0.15
+    ],
+    "fruit_seasons": [
+      0,
+      0,
+      0.3,
+      1
+    ],
+    "fruit_size": 0.05,
+    "fruit_unripe": [
+      0.62,
+      0.72,
+      0.32
+    ],
+    "height": 4,
+    "latin": "Corylus avellana",
+    "leaf_fall": [
+      0.82,
+      0.72,
+      0.3
+    ],
+    "leaf_fall_alt": [
+      0.7,
+      0.6,
+      0.25
+    ],
+    "leaf_spring": [
+      0.5,
+      0.68,
+      0.3
+    ],
+    "leaf_summer": [
+      0.3,
+      0.48,
+      0.2
+    ],
+    "leaf_winter": [
+      0.5,
+      0.4,
+      0.25
+    ],
+    "leafiness": 1.2,
+    "name": "Hazel",
+    "pickable": true,
+    "shape": "upright",
+    "snow": 0.6,
+    "stem_curve": 0.15,
+    "stem_spread": 0.3,
+    "stems": 10,
+    "twigs": 2,
+    "width": 0.9,
+    "winter_keep": 0.0,
+    "wobble": 0.1
+  }
+}

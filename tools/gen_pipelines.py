@@ -33,7 +33,7 @@ SYSTEMS = os.path.join(ROOT, "src", "systems")
 LIBRARY = os.path.join(ROOT, "src", "library")
 STRESS = os.path.join(ROOT, "src", "generated", "stress")
 
-KINDS = ("enum", "config", "u32", "f32", "time", "event")
+KINDS = ("enum", "config", "bool", "u32", "f32", "time", "event")
 
 
 def banner(src, c=False):
@@ -98,7 +98,23 @@ class Pipeline:
                         with open(os.path.join(tdir, fn)) as f:
                             self.configs[p["name"]][fn[:-5]] = json.load(f)["value"]
                 p["values"] = sorted(self.configs[p["name"]])
+            if p["type"] == "bool":
+                p["values"] = ["false", "true"]  # the stress tool enumerates it like an enum
             self.params.append(p)
+        # Gates ("when"): a parameter that applies only where a config parameter's entry sets a bool field.
+        by_name = {p["name"]: p for p in self.params}
+        for p in self.params:
+            w = p.get("when")
+            if not w:
+                continue
+            g = by_name.get(w["param"])
+            if not g or g["type"] != "config":
+                sys.exit(f"{self.src}: parameter {p['name']}: when names {w['param']}, which is not a config parameter")
+            with open(os.path.join(workspace, "config", g["table"], "table.json")) as f:
+                tchan = json.load(f)["channel"]
+            if field(channels, tchan, w["field"])["type"] != "bool":
+                sys.exit(f"{self.src}: parameter {p['name']}: {tchan}.{w['field']} is not a bool")
+            p["when_on"] = [bool(self.configs[g["name"]][e].get(w["field"], False)) for e in g["values"]]
         self.stages = []
         for st in self.j["stages"]:
             st = dict(st)
@@ -140,7 +156,26 @@ class Pipeline:
     def ctype(self, p):
         if p["type"] in ("enum", "config"):
             return f"{self.C}_{p['name']}"
-        return {"u32": "uint32_t", "f32": "float"}[p["type"]]
+        return {"bool": "bool", "u32": "uint32_t", "f32": "float"}[p["type"]]
+
+    def gate(self, p):
+        return next(q for q in self.params if q["name"] == p["when"]["param"])
+
+    def off_cpp(self, p):
+        """The value stages read for a gated parameter where it doesn't apply."""
+        if p["type"] == "bool":
+            return "false"
+        if p["type"] in ("enum", "config"):
+            return f"static_cast<{self.ctype(p)}>(0)"
+        if p["type"] == "u32":
+            return f"{int(p.get('min', 0))}u"
+        return f32(p.get("min", 0))
+
+    def read_cpp(self, p):
+        """How stages read parameter p from Params `p`: as off where its gate doesn't apply."""
+        if p.get("when"):
+            return f"(applies_{p['name']}(p) ? p.{p['name']} : {self.off_cpp(p)})"
+        return f"p.{p['name']}"
 
     def event_name(self, p):
         n = p["name"]
@@ -152,6 +187,8 @@ class Pipeline:
             return p["values"].index(d) if d in p["values"] else 0
         if p["type"] == "u32":
             return int(d if d is not None else p.get("min", 0))
+        if p["type"] == "bool":
+            return bool(d)
         return float(d if d is not None else p.get("min", 0))
 
     # --- runtime.h fragment -------------------------------------------------
@@ -181,6 +218,12 @@ class Pipeline:
         for p in self.values:
             o.append(f"foundry_status {self.C}_set_{p['name']}(foundry_runtime *rt, foundry_instance instance, "
                      f"{self.ctype(p)} value);\n")
+        for p in self.values:
+            if p.get("when"):
+                g = self.gate(p)
+                o.append(f"/* Whether {p['name']} applies to this {g['name']} (its {p['when']['field']} is set). Where it\n"
+                         f" * doesn't, the instance ignores {p['name']} and shares its build either way. */\n")
+                o.append(f"bool {self.C}_{p['name']}_applies({self.ctype(g)} {g['name']});\n")
         for p in self.events:
             o.append(f"/* {p.get('doc', '')} */\n" if p.get("doc") else "")
             o.append(f"foundry_status {self.C}_start_{self.event_name(p)}(foundry_runtime *rt, foundry_instance instance);\n")
@@ -188,8 +231,8 @@ class Pipeline:
         return "".join(o)
 
     # --- the native executor ------------------------------------------------
-    def value_cpp(self, typ, v, target, out, indent):
-        """Assignments that set `target` (of channel field type `typ`) to JSON value v."""
+    def value_cpp(self, typ, v, target, out, indent, fdef=None):
+        """Assignments that set `target` (of channel field type `typ`, declared by `fdef`) to JSON value v."""
         ch = self.channels
         if typ.endswith("[]"):
             base = typ[:-2]
@@ -204,9 +247,9 @@ class Pipeline:
         if typ in ch:
             for f in ch[typ]["fields"]:
                 if f["name"] in v:
-                    self.value_cpp(f["type"], v[f["name"]], f"{target}.{f['name']}", out, indent)
+                    self.value_cpp(f["type"], v[f["name"]], f"{target}.{f['name']}", out, indent, f)
             return
-        out.append(f"{indent}{target} = {self.scalar_cpp(typ, v, None, target)};\n")
+        out.append(f"{indent}{target} = {self.scalar_cpp(typ, v, fdef, target)};\n")
 
     def scalar_cpp(self, typ, v, f=None, target=None):
         if typ == "f32":
@@ -219,6 +262,8 @@ class Pipeline:
             return f"std::string({c_string(v)})"
         if typ in ("u32", "i32"):
             if isinstance(v, str):
+                if f is not None and "enum" in f:  # the field's own enum
+                    return str(f["enum"].index(v))
                 return str(self.enum_index(target, v))
             return f"{int(v)}{'u' if typ == 'u32' else ''}"
         sys.exit(f"{self.src}: can't write {typ}")
@@ -248,9 +293,9 @@ class Pipeline:
             elif p["type"] == "config":
                 out.append(f"{indent}config_{p['name']}(static_cast<uint32_t>(p.{p['name']}), {target});\n")
             elif p["type"] == "enum":
-                out.append(f"{indent}{target} = static_cast<uint32_t>(p.{p['name']});\n")
+                out.append(f"{indent}{target} = static_cast<uint32_t>({self.read_cpp(p)});\n")
             else:
-                out.append(f"{indent}{target} = p.{p['name']};\n")
+                out.append(f"{indent}{target} = {self.read_cpp(p)};\n")
             return
         if isinstance(binding, str) and binding.startswith("@"):
             sid, _, rest = binding[1:].partition(".")
@@ -323,6 +368,16 @@ class Pipeline:
             for i, n in enumerate(cp["values"]):
                 o.append(f"    case {i}: config_{cp['name']}_{n}(g); return;\n")
             o.append("  }\n}\n\n")
+        # Gates, compiled in from the config entries.
+        for p in self.values:
+            if p.get("when"):
+                g = self.gate(p)
+                on = ", ".join("true" if x else "false" for x in p["when_on"])
+                o.append(f"// {p['name']} applies where config/{g['table']}'s {p['when']['field']} is set.\n")
+                o.append(f"const bool kApplies_{p['name']}[{len(p['when_on'])}] = {{{on}}};\n")
+                o.append(f"bool applies_{p['name']}(const Params &p) {{\n"
+                         f"  return static_cast<uint32_t>(p.{g['name']}) < {len(p['when_on'])}u && "
+                         f"kApplies_{p['name']}[static_cast<uint32_t>(p.{g['name']})];\n}}\n\n")
         # The build, and what it keeps.
         o.append("struct Built final : runtime::Build {\n")
         for sid, f in self.kept:
@@ -345,7 +400,10 @@ class Pipeline:
         o.append("    const Params &p = *static_cast<const Params *>(params);\n")
         o.append(f"    uint64_t h = runtime::fnv64(\"{self.name}\", {len(self.name)});\n")
         for p in self.values:
-            if p["build"]:
+            if p["build"] and p.get("when"):
+                o.append(f"    {{\n      const {self.ctype(p)} v = {self.read_cpp(p)};  // shared where it doesn't apply\n"
+                         f"      key_add(h, v);\n    }}\n")
+            elif p["build"]:
                 o.append(f"    key_add(h, p.{p['name']});\n")
         o.append("    return h ? h : 1;\n  }\n\n")
         # build()
@@ -471,6 +529,8 @@ class Pipeline:
             n = p["name"]
             if p["type"] in ("enum", "config"):
                 o.append(f"  if (static_cast<uint32_t>(p.{n}) >= {len(p['values'])}u) return false;\n")
+            elif p["type"] == "bool":
+                continue
             elif p["type"] == "u32":
                 o.append(f"  if (p.{n} < {int(p.get('min', 0))}u || p.{n} > {int(p.get('max', 4294967295))}u) return false;\n")
             else:
@@ -489,6 +549,8 @@ class Pipeline:
                 o.append(f"  p.{p['name']} = static_cast<{self.ctype(p)}>({d});\n")
             elif p["type"] == "u32":
                 o.append(f"  p.{p['name']} = {d}u;\n")
+            elif p["type"] == "bool":
+                o.append(f"  p.{p['name']} = {'true' if d else 'false'};\n")
             else:
                 o.append(f"  p.{p['name']} = {f32(d)};\n")
         o.append("  *params = p;\n}\n\n")
@@ -503,6 +565,12 @@ class Pipeline:
             o.append("  if (!valid(check)) return FOUNDRY_STATUS_BAD_PARAMETER;\n")
             o.append(f"  return foundry_status_of(rt->world.set_param(instance, &kType, offsetof(Params, {n}), &value, sizeof value, "
                      f"{'true' if p['build'] else 'false'}));\n}}\n\n")
+        for p in self.values:
+            if p.get("when"):
+                g = self.gate(p)
+                o.append(f"bool {self.C}_{p['name']}_applies({self.ctype(g)} {g['name']}) {{\n"
+                         f"  Params p;\n  {self.C}_default_params(&p);\n  p.{g['name']} = {g['name']};\n"
+                         f"  return applies_{p['name']}(p);\n}}\n\n")
         for i, p in enumerate(self.events):
             o.append(f"foundry_status {self.C}_start_{self.event_name(p)}(foundry_runtime *rt, foundry_instance instance) {{\n"
                      f"  return foundry_status_of(rt->world.trigger(instance, &kType, {i}));\n}}\n\n")
@@ -520,26 +588,32 @@ class Pipeline:
                  " * thunks from generic values onto the pipeline's typed API. No logic lives here. */\n")
         o.append("#include \"runtime.h\"\n#include \"stress.h\"\n\n")
         for p in self.params:
-            if p["type"] in ("enum", "config"):
+            if p["type"] in ("enum", "config", "bool"):
                 vals = ", ".join(c_string(v) for v in p["values"])
                 o.append(f"static const char *const {p['name']}_values[] = {{{vals}}};\n")
+        idx0 = {p["name"]: i for i, p in enumerate(self.params)}
+        for p in self.params:
+            if p.get("when"):
+                on = ", ".join("1" if x else "0" for x in p["when_on"])
+                o.append(f"static const unsigned char {p['name']}_when[] = {{{on}}}; /* per {p['when']['param']}: applies */\n")
         o.append("\nstatic const stress_param params[] = {\n")
-        kind = {"enum": "STRESS_ENUM", "config": "STRESS_ENUM", "u32": "STRESS_U32", "f32": "STRESS_F32",
+        kind = {"enum": "STRESS_ENUM", "config": "STRESS_ENUM", "bool": "STRESS_ENUM", "u32": "STRESS_U32", "f32": "STRESS_F32",
                 "time": "STRESS_CLOCK", "event": "STRESS_EVENT"}
         for p in self.params:
             phase = "STRESS_BUILD" if p["build"] and p["type"] not in ("time", "event") else "STRESS_UPDATE"
-            vals = f"{p['name']}_values, {len(p['values'])}" if p["type"] in ("enum", "config") else "0, 0"
+            vals = f"{p['name']}_values, {len(p['values'])}" if p["type"] in ("enum", "config", "bool") else "0, 0"
             lo = p.get("min", 0)
             hi = p.get("max", 0)
-            if p["type"] in ("enum", "config"):
-                fb = f"{{.u = {self.default(p)}u}}"
+            if p["type"] in ("enum", "config", "bool"):
+                fb = f"{{.u = {int(self.default(p))}u}}"
             elif p["type"] == "u32":
                 fb = f"{{.u = {self.default(p)}u}}"
             elif p["type"] == "f32":
                 fb = f"{{.f = {f32(self.default(p))}}}"
             else:
                 fb = "{.f = 0.0f}"
-            o.append(f"    {{{c_string(p['name'])}, {kind[p['type']]}, {phase}, {vals}, {float(lo)}, {float(hi)}, {fb}}},\n")
+            when = f"{idx0[p['when']['param']]}, {p['name']}_when" if p.get("when") else "-1, 0"
+            o.append(f"    {{{c_string(p['name'])}, {kind[p['type']]}, {phase}, {vals}, {float(lo)}, {float(hi)}, {fb}, {when}}},\n")
         o.append("};\n\n")
         idx = {p["name"]: i for i, p in enumerate(self.params)}
         o.append(f"static foundry_instance spawn(foundry_runtime *rt, const stress_value *v, const float transform[16]) {{\n"
@@ -550,13 +624,16 @@ class Pipeline:
                 o.append(f"  p.{p['name']} = ({self.ctype(p)})v[{i}].u;\n")
             elif p["type"] == "u32":
                 o.append(f"  p.{p['name']} = v[{i}].u;\n")
+            elif p["type"] == "bool":
+                o.append(f"  p.{p['name']} = v[{i}].u != 0;\n")
             else:
                 o.append(f"  p.{p['name']} = v[{i}].f;\n")
         o.append(f"  return {self.C}_spawn(rt, &p, transform);\n}}\n\n")
         o.append("static foundry_status set(foundry_runtime *rt, foundry_instance i, uint32_t param, stress_value v) {\n  switch (param) {\n")
         for p in self.values:
             i = idx[p["name"]]
-            arg = f"({self.ctype(p)})v.u" if p["type"] in ("enum", "config") else ("v.u" if p["type"] == "u32" else "v.f")
+            arg = (f"({self.ctype(p)})v.u" if p["type"] in ("enum", "config") else "v.u != 0" if p["type"] == "bool"
+                   else "v.u" if p["type"] == "u32" else "v.f")
             o.append(f"    case {i}: return {self.C}_set_{p['name']}(rt, i, {arg});\n")
         o.append("  }\n  return FOUNDRY_STATUS_BAD_PARAMETER;\n}\n\n")
         o.append("static foundry_status trigger(foundry_runtime *rt, foundry_instance i, uint32_t param) {\n  switch (param) {\n")

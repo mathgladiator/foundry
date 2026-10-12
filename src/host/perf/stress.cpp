@@ -43,6 +43,7 @@ struct Run {
   std::mutex mutex;
   std::vector<std::string> lines;
   bool done = false;
+  bool is_video = false;  // a QA video export, not a stress run
   int exit = -1;
   std::string report, error, video;
 };
@@ -275,11 +276,41 @@ void execute_video(forge::Paths paths, VideoRequest q, std::shared_ptr<Run> r) {
 
 }  // namespace
 
-int start_video(const forge::Paths &paths, const VideoRequest &request) {
+namespace {
+// The running video export (0 if none); call with g_runs_mutex held.
+int running_video_locked() {
+  for (const auto &[id, r] : g_runs) {
+    if (!r->is_video) continue;
+    std::lock_guard<std::mutex> lock(r->mutex);
+    if (!r->done) return id;
+  }
+  return 0;
+}
+}  // namespace
+
+int running_video() {
+  std::lock_guard<std::mutex> lock(g_runs_mutex);
+  return running_video_locked();
+}
+
+int latest_video(const std::string &pipeline) {
+  std::lock_guard<std::mutex> lock(g_runs_mutex);
+  int latest = 0;
+  for (const auto &[id, r] : g_runs)
+    if (r->is_video && r->pipeline == pipeline) latest = id;  // ids grow, and the map is ordered
+  return latest;
+}
+
+int start_video(const forge::Paths &paths, const VideoRequest &request, int *blocked_by) {
   auto r = std::make_shared<Run>();
   r->pipeline = request.pipeline;
+  r->is_video = true;
   {
     std::lock_guard<std::mutex> lock(g_runs_mutex);
+    if (const int busy = running_video_locked()) {
+      if (blocked_by) *blocked_by = busy;
+      return 0;
+    }
     r->id = g_next_run++;
     g_runs[r->id] = r;
   }
@@ -361,7 +392,15 @@ void register_stress_tools(mcp::Registry &registry, const forge::Paths &paths, p
                   q.size = args.value("size", std::string("1280x720"));
                   q.fixed = args.value("fixed", json::object());
                   q.ranges = args.value("ranges", json::object());
-                  return mcp::Result::json({{"job", start_video(paths, q)}, {"status", "exporting; poll perf_stress_status"}});
+                  int busy = 0;
+                  const int job = start_video(paths, q, &busy);
+                  if (!job) {
+                    const json b = job_status(busy);
+                    return mcp::Result::error("blocked: a QA video of " + b.value("pipeline", std::string("another pipeline")) +
+                                              " is exporting (job " + std::to_string(busy) +
+                                              "); one video exports at a time, so start this one when it finishes");
+                  }
+                  return mcp::Result::json({{"job", job}, {"status", "exporting; poll perf_stress_status"}});
                 }});
 
   registry.add({"perf_stress_status", "The output so far of a perf_stress job, and its result once done.",

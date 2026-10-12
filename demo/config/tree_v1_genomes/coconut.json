@@ -63,13 +63,21 @@
       0.38,
       0.18
     ],
+    "fruit_seasons": [
+      0.6,
+      0.6,
+      0.6,
+      0.6
+    ],
     "fruit_size": 0.19,
     "fruit_unripe": [
       0.35,
       0.55,
       0.15
     ],
+    "hanging_moss": 0,
     "height": 12,
+    "knees": 0,
     "latin": "Cocos nucifera",
     "leaf_fall": [
       0.38,
@@ -98,12 +106,20 @@
     ],
     "leafiness": 1,
     "lean": 0.3,
+    "moss_color": [
+      0.6,
+      0.63,
+      0.55
+    ],
     "name": "Coconut",
+    "pickable": true,
+    "prop_roots": 0,
     "slender": 45,
     "snow": 0,
     "sprig_length": 0.4,
     "sprigs": 0,
     "stiffness": 9,
+    "swell": 0,
     "tip_up": -0.2,
     "twig_angle": 50,
     "twig_curve": 0.1,

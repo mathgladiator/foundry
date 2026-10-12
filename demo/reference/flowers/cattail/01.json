@@ -1,0 +1,18 @@
+{
+  "kind": "reference",
+  "file": "01.jpg",
+  "subject": "cattail",
+  "title": "Typha latifolia norway.jpg",
+  "description": "Photographed by Kjetil Lenes. Oslo, Norway",
+  "provenance": {
+    "service": "Wikimedia Commons",
+    "page": "https://commons.wikimedia.org/wiki/File:Typha_latifolia_norway.jpg",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/5/53/Typha_latifolia_norway.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+    "license": "Public domain",
+    "license_url": "",
+    "author": "No machine-readable author provided. Ekko assumed (based on copyright claims).",
+    "attribution_required": false,
+    "retrieved": "2026-10-12",
+    "size": "800 px copy of 2000x3008"
+  }
+}

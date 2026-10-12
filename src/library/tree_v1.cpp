@@ -78,10 +78,17 @@ void config_species_acacia(channels::tree_v1_genome &g) {
   g.blossom = 0x1.0000000000000p-1f;
   g.blossom_leaf = 0x1.0000000000000p+0f;
   g.fruit = 0x1.3333340000000p-1f;
-  g.fruit_size = 0x1.99999a0000000p-5f;
+  g.fruit_size = 0x1.70a3d80000000p-4f;
+  g.fruit_seasons = {0x1.99999a0000000p-1f, 0.0f, 0x1.99999a0000000p-2f, 0x1.0000000000000p+0f};
+  g.pickable = true;
   g.bark = 1;
   g.dead_limbs = 0x1.99999a0000000p-3f;
   g.snow = 0.0f;
+  g.swell = 0.0f;
+  g.knees = 0u;
+  g.prop_roots = 0u;
+  g.hanging_moss = 0.0f;
+  g.moss_color = foundry::vec3{0x1.3333340000000p-1f, 0x1.428f5c0000000p-1f, 0x1.19999a0000000p-1f};
   g.age_height = {0x1.99999a0000000p-3f, 0x1.0000000000000p-1f, 0x1.0000000000000p+0f, 0x1.19999a0000000p+0f};
   g.age_girth = {0x1.99999a0000000p-1f, 0x1.cccccc0000000p-1f, 0x1.0000000000000p+0f, 0x1.6666660000000p+0f};
   g.flex = 0x1.6666660000000p-1f;
@@ -136,10 +143,17 @@ void config_species_apple(channels::tree_v1_genome &g) {
   g.blossom = 0x1.19999a0000000p-1f;
   g.blossom_leaf = 0x1.3333340000000p-1f;
   g.fruit = 0x1.99999a0000000p+0f;
-  g.fruit_size = 0x1.0a3d700000000p-4f;
+  g.fruit_size = 0x1.47ae140000000p-4f;
+  g.fruit_seasons = {0.0f, 0.0f, 0x1.6666660000000p-2f, 0x1.0000000000000p+0f};
+  g.pickable = true;
   g.bark = 2;
   g.dead_limbs = 0x1.3333340000000p-2f;
   g.snow = 0x1.0000000000000p-1f;
+  g.swell = 0.0f;
+  g.knees = 0u;
+  g.prop_roots = 0u;
+  g.hanging_moss = 0.0f;
+  g.moss_color = foundry::vec3{0x1.3333340000000p-1f, 0x1.428f5c0000000p-1f, 0x1.19999a0000000p-1f};
   g.age_height = {0x1.0000000000000p-2f, 0x1.19999a0000000p-1f, 0x1.0000000000000p+0f, 0x1.0ccccc0000000p+0f};
   g.age_girth = {0x1.8000000000000p-1f, 0x1.cccccc0000000p-1f, 0x1.0000000000000p+0f, 0x1.99999a0000000p+0f};
   g.flex = 0x1.cccccc0000000p-1f;
@@ -156,6 +170,71 @@ void config_species_apple(channels::tree_v1_genome &g) {
   g.blossom_color = foundry::vec3{0x1.f5c2900000000p-1f, 0x1.cccccc0000000p-1f, 0x1.d70a3e0000000p-1f};
   g.fruit_unripe = foundry::vec3{0x1.19999a0000000p-1f, 0x1.6666660000000p-1f, 0x1.0000000000000p-2f};
   g.fruit_ripe = foundry::vec3{0x1.99999a0000000p-1f, 0x1.1eb8520000000p-3f, 0x1.eb851e0000000p-4f};
+}
+
+void config_species_baldcypress(channels::tree_v1_genome &g) {
+  g.name = std::string("Bald cypress");
+  g.latin = std::string("Taxodium distichum");
+  g.excurrent = true;
+  g.deciduous = true;
+  g.height = 0x1.e000000000000p+3f;
+  g.slender = 0x1.c000000000000p+4f;
+  g.crown_ratio = 0x1.3333340000000p-1f;
+  g.crown_shape = 7;
+  g.lean = 0x1.47ae140000000p-6f;
+  g.twist = 0x1.eb851e0000000p-6f;
+  g.flare = 0x1.3333340000000p-1f;
+  g.branches = 30u;
+  g.branch_angle = 0x1.4000000000000p+6f;
+  g.branch_angle_var = 0x1.4000000000000p+3f;
+  g.branch_length = 0x1.ae147a0000000p-2f;
+  g.whorl = 0u;
+  g.divergence = 0x1.1300000000000p+7f;
+  g.branch_curve = -0x1.99999a0000000p-3f;
+  g.tip_up = 0x1.99999a0000000p-3f;
+  g.twigs = 4u;
+  g.twig_angle = 0x1.b800000000000p+5f;
+  g.twig_length = 0x1.cccccc0000000p-2f;
+  g.twig_curve = -0x1.3333340000000p-2f;
+  g.sprigs = 0u;
+  g.sprig_length = 0x1.99999a0000000p-2f;
+  g.cluster = 0.0f;
+  g.wobble = 0x1.47ae140000000p-5f;
+  g.foliage = 1;
+  g.clump = 0x1.0624de0000000p-5f;
+  g.leafiness = 0x1.99999a0000000p+0f;
+  g.fall_drop = 0x1.99999a0000000p-3f;
+  g.winter_keep = 0.0f;
+  g.blossom = 0.0f;
+  g.blossom_leaf = 0x1.0000000000000p+0f;
+  g.fruit = 0x1.3333340000000p-2f;
+  g.fruit_size = 0x1.1eb8520000000p-5f;
+  g.fruit_seasons = {0.0f, 0.0f, 0x1.3333340000000p-2f, 0x1.0000000000000p+0f};
+  g.pickable = false;
+  g.bark = 3;
+  g.dead_limbs = 0x1.0000000000000p-2f;
+  g.snow = 0x1.3333340000000p-2f;
+  g.swell = 0x1.0000000000000p+0f;
+  g.knees = 16u;
+  g.prop_roots = 0u;
+  g.hanging_moss = 0x1.cccccc0000000p-2f;
+  g.moss_color = foundry::vec3{0x1.28f5c20000000p-1f, 0x1.3d70a40000000p-1f, 0x1.19999a0000000p-1f};
+  g.age_height = {0x1.eb851e0000000p-4f, 0x1.99999a0000000p-2f, 0x1.0000000000000p+0f, 0x1.4ccccc0000000p+0f};
+  g.age_girth = {0x1.6666660000000p-1f, 0x1.cccccc0000000p-1f, 0x1.0000000000000p+0f, 0x1.8000000000000p+0f};
+  g.flex = 0x1.3333340000000p-1f;
+  g.density = 0x1.ae147a0000000p-2f;
+  g.stiffness = 0x1.0333340000000p+3f;
+  g.bark_light = foundry::vec3{0x1.3d70a40000000p-1f, 0x1.0000000000000p-1f, 0x1.ae147a0000000p-2f};
+  g.bark_dark = foundry::vec3{0x1.70a3d80000000p-2f, 0x1.1eb8520000000p-2f, 0x1.eb851e0000000p-3f};
+  g.wood = foundry::vec3{0x1.b851ec0000000p-1f, 0x1.70a3d80000000p-1f, 0x1.19999a0000000p-1f};
+  g.leaf_spring = foundry::vec3{0x1.19999a0000000p-1f, 0x1.70a3d80000000p-1f, 0x1.70a3d80000000p-2f};
+  g.leaf_summer = foundry::vec3{0x1.51eb860000000p-2f, 0x1.0000000000000p-1f, 0x1.0000000000000p-2f};
+  g.leaf_fall = foundry::vec3{0x1.70a3d80000000p-1f, 0x1.851eb80000000p-2f, 0x1.47ae140000000p-3f};
+  g.leaf_fall_alt = foundry::vec3{0x1.99999a0000000p-1f, 0x1.0000000000000p-1f, 0x1.99999a0000000p-3f};
+  g.leaf_winter = foundry::vec3{0x1.0000000000000p-1f, 0x1.47ae140000000p-2f, 0x1.99999a0000000p-3f};
+  g.blossom_color = foundry::vec3{0x1.0000000000000p+0f, 0x1.0000000000000p+0f, 0x1.0000000000000p+0f};
+  g.fruit_unripe = foundry::vec3{0x1.99999a0000000p-2f, 0x1.cccccc0000000p-2f, 0x1.3333340000000p-2f};
+  g.fruit_ripe = foundry::vec3{0x1.eb851e0000000p-2f, 0x1.47ae140000000p-2f, 0x1.99999a0000000p-3f};
 }
 
 void config_species_baobab(channels::tree_v1_genome &g) {
@@ -194,10 +273,17 @@ void config_species_baobab(channels::tree_v1_genome &g) {
   g.blossom = 0x1.3333340000000p-2f;
   g.blossom_leaf = 0x1.99999a0000000p-2f;
   g.fruit = 0x1.6666660000000p-1f;
-  g.fruit_size = 0x1.5c28f60000000p-3f;
+  g.fruit_size = 0x1.99999a0000000p-3f;
+  g.fruit_seasons = {0x1.0000000000000p+0f, 0x1.99999a0000000p-1f, 0x1.99999a0000000p-3f, 0x1.3333340000000p-1f};
+  g.pickable = true;
   g.bark = 0;
   g.dead_limbs = 0x1.99999a0000000p-4f;
   g.snow = 0.0f;
+  g.swell = 0.0f;
+  g.knees = 0u;
+  g.prop_roots = 0u;
+  g.hanging_moss = 0.0f;
+  g.moss_color = foundry::vec3{0x1.3333340000000p-1f, 0x1.428f5c0000000p-1f, 0x1.19999a0000000p-1f};
   g.age_height = {0x1.eb851e0000000p-4f, 0x1.99999a0000000p-2f, 0x1.0000000000000p+0f, 0x1.2666660000000p+0f};
   g.age_girth = {0x1.99999a0000000p-1f, 0x1.2666660000000p+0f, 0x1.8000000000000p+0f, 0x1.0000000000000p+1f};
   g.flex = 0x1.99999a0000000p-2f;
@@ -253,9 +339,16 @@ void config_species_birch(channels::tree_v1_genome &g) {
   g.blossom_leaf = 0x1.0000000000000p-1f;
   g.fruit = 0.0f;
   g.fruit_size = 0x1.99999a0000000p-5f;
+  g.fruit_seasons = {0.0f, 0.0f, 0.0f, 0.0f};
+  g.pickable = false;
   g.bark = 7;
   g.dead_limbs = 0x1.99999a0000000p-3f;
   g.snow = 0x1.3333340000000p-1f;
+  g.swell = 0.0f;
+  g.knees = 0u;
+  g.prop_roots = 0u;
+  g.hanging_moss = 0.0f;
+  g.moss_color = foundry::vec3{0x1.3333340000000p-1f, 0x1.428f5c0000000p-1f, 0x1.19999a0000000p-1f};
   g.age_height = {0x1.3333340000000p-3f, 0x1.cccccc0000000p-2f, 0x1.0000000000000p+0f, 0x1.19999a0000000p+0f};
   g.age_girth = {0x1.6666660000000p-1f, 0x1.b333340000000p-1f, 0x1.0000000000000p+0f, 0x1.6666660000000p+0f};
   g.flex = 0x1.4ccccc0000000p+0f;
@@ -311,9 +404,16 @@ void config_species_bristlecone(channels::tree_v1_genome &g) {
   g.blossom_leaf = 0x1.0000000000000p+0f;
   g.fruit = 0x1.3333340000000p-2f;
   g.fruit_size = 0x1.eb851e0000000p-5f;
+  g.fruit_seasons = {0x1.cccccc0000000p-1f, 0x1.3333340000000p-1f, 0x1.0000000000000p-1f, 0x1.0000000000000p+0f};
+  g.pickable = false;
   g.bark = 5;
   g.dead_limbs = 0x1.cccccc0000000p-2f;
   g.snow = 0x1.0000000000000p+0f;
+  g.swell = 0.0f;
+  g.knees = 0u;
+  g.prop_roots = 0u;
+  g.hanging_moss = 0.0f;
+  g.moss_color = foundry::vec3{0x1.3333340000000p-1f, 0x1.428f5c0000000p-1f, 0x1.19999a0000000p-1f};
   g.age_height = {0x1.3333340000000p-3f, 0x1.cccccc0000000p-2f, 0x1.0000000000000p+0f, 0x1.19999a0000000p+0f};
   g.age_girth = {0x1.6666660000000p-1f, 0x1.e666660000000p-1f, 0x1.3333340000000p+0f, 0x1.b333340000000p+0f};
   g.flex = 0x1.0000000000000p-1f;
@@ -369,9 +469,16 @@ void config_species_cedar(channels::tree_v1_genome &g) {
   g.blossom_leaf = 0x1.0000000000000p+0f;
   g.fruit = 0.0f;
   g.fruit_size = 0x1.eb851e0000000p-5f;
+  g.fruit_seasons = {0.0f, 0.0f, 0.0f, 0.0f};
+  g.pickable = false;
   g.bark = 1;
   g.dead_limbs = 0x1.99999a0000000p-3f;
   g.snow = 0x1.cccccc0000000p-1f;
+  g.swell = 0.0f;
+  g.knees = 0u;
+  g.prop_roots = 0u;
+  g.hanging_moss = 0.0f;
+  g.moss_color = foundry::vec3{0x1.3333340000000p-1f, 0x1.428f5c0000000p-1f, 0x1.19999a0000000p-1f};
   g.age_height = {0x1.3333340000000p-3f, 0x1.cccccc0000000p-2f, 0x1.0000000000000p+0f, 0x1.4000000000000p+0f};
   g.age_girth = {0x1.6666660000000p-1f, 0x1.b333340000000p-1f, 0x1.0000000000000p+0f, 0x1.59999a0000000p+0f};
   g.flex = 0x1.cccccc0000000p-1f;
@@ -427,9 +534,16 @@ void config_species_cherry(channels::tree_v1_genome &g) {
   g.blossom_leaf = 0x1.3333340000000p-3f;
   g.fruit = 0.0f;
   g.fruit_size = 0x1.99999a0000000p-5f;
+  g.fruit_seasons = {0.0f, 0.0f, 0.0f, 0.0f};
+  g.pickable = false;
   g.bark = 4;
   g.dead_limbs = 0x1.3333340000000p-3f;
   g.snow = 0x1.0000000000000p-1f;
+  g.swell = 0.0f;
+  g.knees = 0u;
+  g.prop_roots = 0u;
+  g.hanging_moss = 0.0f;
+  g.moss_color = foundry::vec3{0x1.3333340000000p-1f, 0x1.428f5c0000000p-1f, 0x1.19999a0000000p-1f};
   g.age_height = {0x1.70a3d80000000p-3f, 0x1.0000000000000p-1f, 0x1.0000000000000p+0f, 0x1.19999a0000000p+0f};
   g.age_girth = {0x1.6666660000000p-1f, 0x1.b333340000000p-1f, 0x1.0000000000000p+0f, 0x1.8000000000000p+0f};
   g.flex = 0x1.0000000000000p+0f;
@@ -485,9 +599,16 @@ void config_species_coconut(channels::tree_v1_genome &g) {
   g.blossom_leaf = 0x1.0000000000000p+0f;
   g.fruit = 0x1.4000000000000p+1f;
   g.fruit_size = 0x1.851eb80000000p-3f;
+  g.fruit_seasons = {0x1.3333340000000p-1f, 0x1.3333340000000p-1f, 0x1.3333340000000p-1f, 0x1.3333340000000p-1f};
+  g.pickable = true;
   g.bark = 6;
   g.dead_limbs = 0x1.3333340000000p-3f;
   g.snow = 0.0f;
+  g.swell = 0.0f;
+  g.knees = 0u;
+  g.prop_roots = 0u;
+  g.hanging_moss = 0.0f;
+  g.moss_color = foundry::vec3{0x1.3333340000000p-1f, 0x1.428f5c0000000p-1f, 0x1.19999a0000000p-1f};
   g.age_height = {0x1.3333340000000p-3f, 0x1.cccccc0000000p-2f, 0x1.0000000000000p+0f, 0x1.3333340000000p+0f};
   g.age_girth = {0x1.cccccc0000000p-1f, 0x1.e666660000000p-1f, 0x1.0000000000000p+0f, 0x1.0ccccc0000000p+0f};
   g.flex = 0x1.99999a0000000p+0f;
@@ -543,9 +664,16 @@ void config_species_cypress(channels::tree_v1_genome &g) {
   g.blossom_leaf = 0x1.0000000000000p+0f;
   g.fruit = 0x1.99999a0000000p-2f;
   g.fruit_size = 0x1.1eb8520000000p-4f;
+  g.fruit_seasons = {0x1.99999a0000000p-1f, 0x1.3333340000000p-1f, 0x1.3333340000000p-1f, 0x1.0000000000000p+0f};
+  g.pickable = false;
   g.bark = 3;
   g.dead_limbs = 0x1.99999a0000000p-5f;
   g.snow = 0x1.3333340000000p-2f;
+  g.swell = 0.0f;
+  g.knees = 0u;
+  g.prop_roots = 0u;
+  g.hanging_moss = 0.0f;
+  g.moss_color = foundry::vec3{0x1.3333340000000p-1f, 0x1.428f5c0000000p-1f, 0x1.19999a0000000p-1f};
   g.age_height = {0x1.3333340000000p-3f, 0x1.cccccc0000000p-2f, 0x1.0000000000000p+0f, 0x1.3333340000000p+0f};
   g.age_girth = {0x1.6666660000000p-1f, 0x1.b333340000000p-1f, 0x1.0000000000000p+0f, 0x1.4ccccc0000000p+0f};
   g.flex = 0x1.99999a0000000p-1f;
@@ -599,11 +727,18 @@ void config_species_dragonwood(channels::tree_v1_genome &g) {
   g.winter_keep = 0.0f;
   g.blossom = 0x1.3333340000000p-2f;
   g.blossom_leaf = 0x1.0000000000000p+0f;
-  g.fruit = 0.0f;
-  g.fruit_size = 0x1.99999a0000000p-5f;
+  g.fruit = 0x1.3333340000000p-1f;
+  g.fruit_size = 0x1.1eb8520000000p-4f;
+  g.fruit_seasons = {0x1.3333340000000p-2f, 0.0f, 0x1.99999a0000000p-2f, 0x1.0000000000000p+0f};
+  g.pickable = true;
   g.bark = 4;
   g.dead_limbs = 0x1.99999a0000000p-3f;
   g.snow = 0x1.3333340000000p-3f;
+  g.swell = 0.0f;
+  g.knees = 0u;
+  g.prop_roots = 0u;
+  g.hanging_moss = 0.0f;
+  g.moss_color = foundry::vec3{0x1.3333340000000p-1f, 0x1.428f5c0000000p-1f, 0x1.19999a0000000p-1f};
   g.age_height = {0x1.99999a0000000p-3f, 0x1.0000000000000p-1f, 0x1.0000000000000p+0f, 0x1.19999a0000000p+0f};
   g.age_girth = {0x1.99999a0000000p-1f, 0x1.cccccc0000000p-1f, 0x1.0000000000000p+0f, 0x1.6666660000000p+0f};
   g.flex = 0x1.0000000000000p-1f;
@@ -618,7 +753,7 @@ void config_species_dragonwood(channels::tree_v1_genome &g) {
   g.leaf_fall_alt = foundry::vec3{0x1.6666660000000p-1f, 0x1.1eb8520000000p-2f, 0x1.eb851e0000000p-4f};
   g.leaf_winter = foundry::vec3{0x1.3333340000000p-2f, 0x1.70a3d80000000p-2f, 0x1.3333340000000p-2f};
   g.blossom_color = foundry::vec3{0x1.e666660000000p-1f, 0x1.cccccc0000000p-2f, 0x1.99999a0000000p-3f};
-  g.fruit_unripe = foundry::vec3{0x1.3333340000000p-1f, 0x1.99999a0000000p-3f, 0x1.3333340000000p-3f};
+  g.fruit_unripe = foundry::vec3{0x1.99999a0000000p-3f, 0x1.47ae140000000p-3f, 0x1.3333340000000p-3f};
   g.fruit_ripe = foundry::vec3{0x1.8000000000000p-1f, 0x1.3333340000000p-3f, 0x1.99999a0000000p-4f};
 }
 
@@ -657,11 +792,18 @@ void config_species_ebony(channels::tree_v1_genome &g) {
   g.winter_keep = 0.0f;
   g.blossom = 0.0f;
   g.blossom_leaf = 0x1.0000000000000p+0f;
-  g.fruit = 0.0f;
-  g.fruit_size = 0x1.99999a0000000p-5f;
+  g.fruit = 0x1.99999a0000000p-2f;
+  g.fruit_size = 0x1.eb851e0000000p-5f;
+  g.fruit_seasons = {0.0f, 0x1.99999a0000000p-3f, 0x1.3333340000000p-1f, 0x1.0000000000000p+0f};
+  g.pickable = true;
   g.bark = 2;
   g.dead_limbs = 0x1.3333340000000p-3f;
   g.snow = 0.0f;
+  g.swell = 0.0f;
+  g.knees = 0u;
+  g.prop_roots = 0u;
+  g.hanging_moss = 0.0f;
+  g.moss_color = foundry::vec3{0x1.3333340000000p-1f, 0x1.428f5c0000000p-1f, 0x1.19999a0000000p-1f};
   g.age_height = {0x1.eb851e0000000p-4f, 0x1.99999a0000000p-2f, 0x1.0000000000000p+0f, 0x1.3333340000000p+0f};
   g.age_girth = {0x1.6666660000000p-1f, 0x1.b333340000000p-1f, 0x1.0000000000000p+0f, 0x1.6666660000000p+0f};
   g.flex = 0x1.3333340000000p-1f;
@@ -677,7 +819,7 @@ void config_species_ebony(channels::tree_v1_genome &g) {
   g.leaf_winter = foundry::vec3{0x1.1eb8520000000p-3f, 0x1.1eb8520000000p-2f, 0x1.47ae140000000p-3f};
   g.blossom_color = foundry::vec3{0x1.cccccc0000000p-1f, 0x1.cccccc0000000p-1f, 0x1.99999a0000000p-1f};
   g.fruit_unripe = foundry::vec3{0x1.0000000000000p-1f, 0x1.19999a0000000p-1f, 0x1.3333340000000p-2f};
-  g.fruit_ripe = foundry::vec3{0x1.3333340000000p-2f, 0x1.99999a0000000p-3f, 0x1.3333340000000p-3f};
+  g.fruit_ripe = foundry::vec3{0x1.70a3d80000000p-1f, 0x1.3333340000000p-1f, 0x1.3333340000000p-2f};
 }
 
 void config_species_elm(channels::tree_v1_genome &g) {
@@ -717,9 +859,16 @@ void config_species_elm(channels::tree_v1_genome &g) {
   g.blossom_leaf = 0x1.0000000000000p+0f;
   g.fruit = 0.0f;
   g.fruit_size = 0x1.99999a0000000p-5f;
+  g.fruit_seasons = {0.0f, 0.0f, 0.0f, 0.0f};
+  g.pickable = false;
   g.bark = 1;
   g.dead_limbs = 0x1.0000000000000p-2f;
   g.snow = 0x1.3333340000000p-1f;
+  g.swell = 0.0f;
+  g.knees = 0u;
+  g.prop_roots = 0u;
+  g.hanging_moss = 0.0f;
+  g.moss_color = foundry::vec3{0x1.3333340000000p-1f, 0x1.428f5c0000000p-1f, 0x1.19999a0000000p-1f};
   g.age_height = {0x1.3333340000000p-3f, 0x1.cccccc0000000p-2f, 0x1.0000000000000p+0f, 0x1.19999a0000000p+0f};
   g.age_girth = {0x1.6666660000000p-1f, 0x1.b333340000000p-1f, 0x1.0000000000000p+0f, 0x1.b333340000000p+0f};
   g.flex = 0x1.8000000000000p-1f;
@@ -773,11 +922,18 @@ void config_species_hickory(channels::tree_v1_genome &g) {
   g.winter_keep = 0.0f;
   g.blossom = 0.0f;
   g.blossom_leaf = 0x1.0000000000000p+0f;
-  g.fruit = 0.0f;
-  g.fruit_size = 0x1.99999a0000000p-5f;
+  g.fruit = 0x1.0000000000000p-1f;
+  g.fruit_size = 0x1.1eb8520000000p-4f;
+  g.fruit_seasons = {0.0f, 0.0f, 0x1.3333340000000p-2f, 0x1.0000000000000p+0f};
+  g.pickable = true;
   g.bark = 3;
   g.dead_limbs = 0x1.99999a0000000p-3f;
   g.snow = 0x1.0000000000000p-1f;
+  g.swell = 0.0f;
+  g.knees = 0u;
+  g.prop_roots = 0u;
+  g.hanging_moss = 0.0f;
+  g.moss_color = foundry::vec3{0x1.3333340000000p-1f, 0x1.428f5c0000000p-1f, 0x1.19999a0000000p-1f};
   g.age_height = {0x1.3333340000000p-3f, 0x1.cccccc0000000p-2f, 0x1.0000000000000p+0f, 0x1.2666660000000p+0f};
   g.age_girth = {0x1.6666660000000p-1f, 0x1.b333340000000p-1f, 0x1.0000000000000p+0f, 0x1.6666660000000p+0f};
   g.flex = 0x1.6666660000000p-1f;
@@ -833,9 +989,16 @@ void config_species_jacaranda(channels::tree_v1_genome &g) {
   g.blossom_leaf = 0x1.3333340000000p-3f;
   g.fruit = 0.0f;
   g.fruit_size = 0x1.99999a0000000p-5f;
+  g.fruit_seasons = {0.0f, 0.0f, 0.0f, 0.0f};
+  g.pickable = false;
   g.bark = 1;
   g.dead_limbs = 0x1.3333340000000p-3f;
   g.snow = 0.0f;
+  g.swell = 0.0f;
+  g.knees = 0u;
+  g.prop_roots = 0u;
+  g.hanging_moss = 0.0f;
+  g.moss_color = foundry::vec3{0x1.3333340000000p-1f, 0x1.428f5c0000000p-1f, 0x1.19999a0000000p-1f};
   g.age_height = {0x1.70a3d80000000p-3f, 0x1.0000000000000p-1f, 0x1.0000000000000p+0f, 0x1.19999a0000000p+0f};
   g.age_girth = {0x1.6666660000000p-1f, 0x1.b333340000000p-1f, 0x1.0000000000000p+0f, 0x1.8000000000000p+0f};
   g.flex = 0x1.0000000000000p+0f;
@@ -891,9 +1054,16 @@ void config_species_larch(channels::tree_v1_genome &g) {
   g.blossom_leaf = 0x1.0000000000000p+0f;
   g.fruit = 0x1.99999a0000000p-2f;
   g.fruit_size = 0x1.1eb8520000000p-4f;
+  g.fruit_seasons = {0x1.0000000000000p+0f, 0x1.99999a0000000p-2f, 0x1.3333340000000p-1f, 0x1.0000000000000p+0f};
+  g.pickable = false;
   g.bark = 2;
   g.dead_limbs = 0x1.3333340000000p-3f;
   g.snow = 0x1.0000000000000p-1f;
+  g.swell = 0.0f;
+  g.knees = 0u;
+  g.prop_roots = 0u;
+  g.hanging_moss = 0.0f;
+  g.moss_color = foundry::vec3{0x1.3333340000000p-1f, 0x1.428f5c0000000p-1f, 0x1.19999a0000000p-1f};
   g.age_height = {0x1.3333340000000p-3f, 0x1.cccccc0000000p-2f, 0x1.0000000000000p+0f, 0x1.3333340000000p+0f};
   g.age_girth = {0x1.6666660000000p-1f, 0x1.b333340000000p-1f, 0x1.0000000000000p+0f, 0x1.4ccccc0000000p+0f};
   g.flex = 0x1.99999a0000000p-1f;
@@ -947,11 +1117,18 @@ void config_species_lignumvitae(channels::tree_v1_genome &g) {
   g.winter_keep = 0.0f;
   g.blossom = 0x1.cccccc0000000p-2f;
   g.blossom_leaf = 0x1.0000000000000p+0f;
-  g.fruit = 0.0f;
-  g.fruit_size = 0x1.99999a0000000p-5f;
+  g.fruit = 0x1.3333340000000p-1f;
+  g.fruit_size = 0x1.eb851e0000000p-6f;
+  g.fruit_seasons = {0.0f, 0.0f, 0x1.0000000000000p-1f, 0x1.0000000000000p+0f};
+  g.pickable = false;
   g.bark = 4;
   g.dead_limbs = 0x1.99999a0000000p-3f;
   g.snow = 0.0f;
+  g.swell = 0.0f;
+  g.knees = 0u;
+  g.prop_roots = 0u;
+  g.hanging_moss = 0.0f;
+  g.moss_color = foundry::vec3{0x1.3333340000000p-1f, 0x1.428f5c0000000p-1f, 0x1.19999a0000000p-1f};
   g.age_height = {0x1.99999a0000000p-3f, 0x1.cccccc0000000p-2f, 0x1.0000000000000p+0f, 0x1.0ccccc0000000p+0f};
   g.age_girth = {0x1.6666660000000p-1f, 0x1.b333340000000p-1f, 0x1.0000000000000p+0f, 0x1.99999a0000000p+0f};
   g.flex = 0x1.0000000000000p-1f;
@@ -968,6 +1145,71 @@ void config_species_lignumvitae(channels::tree_v1_genome &g) {
   g.blossom_color = foundry::vec3{0x1.cccccc0000000p-2f, 0x1.0a3d700000000p-1f, 0x1.c28f5c0000000p-1f};
   g.fruit_unripe = foundry::vec3{0x1.8000000000000p-1f, 0x1.3333340000000p-1f, 0x1.99999a0000000p-3f};
   g.fruit_ripe = foundry::vec3{0x1.b333340000000p-1f, 0x1.cccccc0000000p-2f, 0x1.3333340000000p-3f};
+}
+
+void config_species_liveoak(channels::tree_v1_genome &g) {
+  g.name = std::string("Southern live oak");
+  g.latin = std::string("Quercus virginiana");
+  g.excurrent = false;
+  g.deciduous = false;
+  g.height = 0x1.8000000000000p+3f;
+  g.slender = 0x1.0000000000000p+4f;
+  g.crown_ratio = 0x1.a3d70a0000000p-1f;
+  g.crown_shape = 2;
+  g.lean = 0x1.eb851e0000000p-4f;
+  g.twist = 0x1.3333340000000p-3f;
+  g.flare = 0x1.3333340000000p-1f;
+  g.branches = 14u;
+  g.branch_angle = 0x1.2000000000000p+6f;
+  g.branch_angle_var = 0x1.8000000000000p+3f;
+  g.branch_length = 0x1.2666660000000p+0f;
+  g.whorl = 0u;
+  g.divergence = 0x1.1300000000000p+7f;
+  g.branch_curve = -0x1.6666660000000p-2f;
+  g.tip_up = 0x1.99999a0000000p-2f;
+  g.twigs = 6u;
+  g.twig_angle = 0x1.9000000000000p+5f;
+  g.twig_length = 0x1.cccccc0000000p-2f;
+  g.twig_curve = 0x1.99999a0000000p-3f;
+  g.sprigs = 3u;
+  g.sprig_length = 0x1.6666660000000p-2f;
+  g.cluster = 0.0f;
+  g.wobble = 0x1.99999a0000000p-3f;
+  g.foliage = 0;
+  g.clump = 0x1.eb851e0000000p-5f;
+  g.leafiness = 0x1.3333340000000p+0f;
+  g.fall_drop = 0.0f;
+  g.winter_keep = 0.0f;
+  g.blossom = 0.0f;
+  g.blossom_leaf = 0x1.0000000000000p+0f;
+  g.fruit = 0x1.6666660000000p-1f;
+  g.fruit_size = 0x1.c28f5c0000000p-5f;
+  g.fruit_seasons = {0.0f, 0.0f, 0x1.3333340000000p-2f, 0x1.0000000000000p+0f};
+  g.pickable = true;
+  g.bark = 1;
+  g.dead_limbs = 0x1.0000000000000p-2f;
+  g.snow = 0x1.99999a0000000p-3f;
+  g.swell = 0x1.99999a0000000p-3f;
+  g.knees = 0u;
+  g.prop_roots = 0u;
+  g.hanging_moss = 0x1.0000000000000p+0f;
+  g.moss_color = foundry::vec3{0x1.28f5c20000000p-1f, 0x1.3d70a40000000p-1f, 0x1.19999a0000000p-1f};
+  g.age_height = {0x1.3333340000000p-3f, 0x1.cccccc0000000p-2f, 0x1.0000000000000p+0f, 0x1.19999a0000000p+0f};
+  g.age_girth = {0x1.6666660000000p-1f, 0x1.b333340000000p-1f, 0x1.0000000000000p+0f, 0x1.b333340000000p+0f};
+  g.flex = 0x1.8000000000000p-1f;
+  g.density = 0x1.99999a0000000p-1f;
+  g.stiffness = 0x1.5ccccc0000000p+3f;
+  g.bark_light = foundry::vec3{0x1.cccccc0000000p-2f, 0x1.ae147a0000000p-2f, 0x1.851eb80000000p-2f};
+  g.bark_dark = foundry::vec3{0x1.99999a0000000p-3f, 0x1.851eb80000000p-3f, 0x1.70a3d80000000p-3f};
+  g.wood = foundry::vec3{0x1.8f5c280000000p-1f, 0x1.3d70a40000000p-1f, 0x1.cccccc0000000p-2f};
+  g.leaf_spring = foundry::vec3{0x1.47ae140000000p-2f, 0x1.d70a3e0000000p-2f, 0x1.c28f5c0000000p-3f};
+  g.leaf_summer = foundry::vec3{0x1.c28f5c0000000p-3f, 0x1.6666660000000p-2f, 0x1.5c28f60000000p-3f};
+  g.leaf_fall = foundry::vec3{0x1.eb851e0000000p-3f, 0x1.70a3d80000000p-2f, 0x1.70a3d80000000p-3f};
+  g.leaf_fall_alt = foundry::vec3{0x1.3333340000000p-2f, 0x1.851eb80000000p-2f, 0x1.99999a0000000p-3f};
+  g.leaf_winter = foundry::vec3{0x1.eb851e0000000p-3f, 0x1.6666660000000p-2f, 0x1.70a3d80000000p-3f};
+  g.blossom_color = foundry::vec3{0x1.99999a0000000p-1f, 0x1.99999a0000000p-1f, 0x1.0000000000000p-1f};
+  g.fruit_unripe = foundry::vec3{0x1.99999a0000000p-2f, 0x1.cccccc0000000p-2f, 0x1.c28f5c0000000p-3f};
+  g.fruit_ripe = foundry::vec3{0x1.eb851e0000000p-3f, 0x1.47ae140000000p-3f, 0x1.70a3d80000000p-4f};
 }
 
 void config_species_mahogany(channels::tree_v1_genome &g) {
@@ -1007,9 +1249,16 @@ void config_species_mahogany(channels::tree_v1_genome &g) {
   g.blossom_leaf = 0x1.0000000000000p+0f;
   g.fruit = 0x1.99999a0000000p-2f;
   g.fruit_size = 0x1.70a3d80000000p-4f;
+  g.fruit_seasons = {0x1.0000000000000p+0f, 0x1.0000000000000p-1f, 0x1.3333340000000p-2f, 0x1.6666660000000p-1f};
+  g.pickable = false;
   g.bark = 2;
   g.dead_limbs = 0x1.99999a0000000p-3f;
   g.snow = 0.0f;
+  g.swell = 0.0f;
+  g.knees = 0u;
+  g.prop_roots = 0u;
+  g.hanging_moss = 0.0f;
+  g.moss_color = foundry::vec3{0x1.3333340000000p-1f, 0x1.428f5c0000000p-1f, 0x1.19999a0000000p-1f};
   g.age_height = {0x1.3333340000000p-3f, 0x1.cccccc0000000p-2f, 0x1.0000000000000p+0f, 0x1.2666660000000p+0f};
   g.age_girth = {0x1.6666660000000p-1f, 0x1.b333340000000p-1f, 0x1.0000000000000p+0f, 0x1.99999a0000000p+0f};
   g.flex = 0x1.19999a0000000p-1f;
@@ -1064,10 +1313,17 @@ void config_species_mango(channels::tree_v1_genome &g) {
   g.blossom = 0x1.6666660000000p-2f;
   g.blossom_leaf = 0x1.0000000000000p+0f;
   g.fruit = 0x1.3333340000000p+0f;
-  g.fruit_size = 0x1.70a3d80000000p-4f;
+  g.fruit_size = 0x1.c28f5c0000000p-4f;
+  g.fruit_seasons = {0.0f, 0x1.3333340000000p-2f, 0x1.0000000000000p+0f, 0.0f};
+  g.pickable = true;
   g.bark = 1;
   g.dead_limbs = 0x1.3333340000000p-3f;
   g.snow = 0.0f;
+  g.swell = 0.0f;
+  g.knees = 0u;
+  g.prop_roots = 0u;
+  g.hanging_moss = 0.0f;
+  g.moss_color = foundry::vec3{0x1.3333340000000p-1f, 0x1.428f5c0000000p-1f, 0x1.19999a0000000p-1f};
   g.age_height = {0x1.99999a0000000p-3f, 0x1.0000000000000p-1f, 0x1.0000000000000p+0f, 0x1.19999a0000000p+0f};
   g.age_girth = {0x1.8000000000000p-1f, 0x1.c28f5c0000000p-1f, 0x1.0000000000000p+0f, 0x1.8000000000000p+0f};
   g.flex = 0x1.3333340000000p-1f;
@@ -1084,6 +1340,71 @@ void config_species_mango(channels::tree_v1_genome &g) {
   g.blossom_color = foundry::vec3{0x1.e666660000000p-1f, 0x1.b851ec0000000p-1f, 0x1.6666660000000p-1f};
   g.fruit_unripe = foundry::vec3{0x1.70a3d80000000p-2f, 0x1.19999a0000000p-1f, 0x1.99999a0000000p-3f};
   g.fruit_ripe = foundry::vec3{0x1.eb851e0000000p-1f, 0x1.3d70a40000000p-1f, 0x1.47ae140000000p-3f};
+}
+
+void config_species_mangrove(channels::tree_v1_genome &g) {
+  g.name = std::string("Red mangrove");
+  g.latin = std::string("Rhizophora mangle");
+  g.excurrent = false;
+  g.deciduous = false;
+  g.height = 0x1.8000000000000p+2f;
+  g.slender = 0x1.6000000000000p+4f;
+  g.crown_ratio = 0x1.3333340000000p-1f;
+  g.crown_shape = 2;
+  g.lean = 0x1.eb851e0000000p-5f;
+  g.twist = 0x1.3333340000000p-3f;
+  g.flare = 0x1.99999a0000000p-3f;
+  g.branches = 16u;
+  g.branch_angle = 0x1.b800000000000p+5f;
+  g.branch_angle_var = 0x1.c000000000000p+3f;
+  g.branch_length = 0x1.8000000000000p-1f;
+  g.whorl = 0u;
+  g.divergence = 0x1.1300000000000p+7f;
+  g.branch_curve = -0x1.99999a0000000p-4f;
+  g.tip_up = 0x1.99999a0000000p-5f;
+  g.twigs = 6u;
+  g.twig_angle = 0x1.9000000000000p+5f;
+  g.twig_length = 0x1.0000000000000p-1f;
+  g.twig_curve = -0x1.99999a0000000p-3f;
+  g.sprigs = 3u;
+  g.sprig_length = 0x1.99999a0000000p-2f;
+  g.cluster = 0x1.99999a0000000p-4f;
+  g.wobble = 0x1.1eb8520000000p-3f;
+  g.foliage = 0;
+  g.clump = 0x1.1eb8520000000p-4f;
+  g.leafiness = 0x1.6666660000000p+0f;
+  g.fall_drop = 0x1.99999a0000000p-5f;
+  g.winter_keep = 0.0f;
+  g.blossom = 0x1.99999a0000000p-3f;
+  g.blossom_leaf = 0x1.0000000000000p+0f;
+  g.fruit = 0x1.3333340000000p-1f;
+  g.fruit_size = 0x1.47ae140000000p-5f;
+  g.fruit_seasons = {0x1.3333340000000p-1f, 0x1.3333340000000p-1f, 0x1.3333340000000p-1f, 0x1.3333340000000p-1f};
+  g.pickable = false;
+  g.bark = 4;
+  g.dead_limbs = 0x1.3333340000000p-3f;
+  g.snow = 0.0f;
+  g.swell = 0.0f;
+  g.knees = 0u;
+  g.prop_roots = 24u;
+  g.hanging_moss = 0.0f;
+  g.moss_color = foundry::vec3{0x1.28f5c20000000p-1f, 0x1.3d70a40000000p-1f, 0x1.19999a0000000p-1f};
+  g.age_height = {0x1.99999a0000000p-3f, 0x1.0000000000000p-1f, 0x1.0000000000000p+0f, 0x1.19999a0000000p+0f};
+  g.age_girth = {0x1.8000000000000p-1f, 0x1.c28f5c0000000p-1f, 0x1.0000000000000p+0f, 0x1.8000000000000p+0f};
+  g.flex = 0x1.3333340000000p-1f;
+  g.density = 0x1.cccccc0000000p-1f;
+  g.stiffness = 0x1.e000000000000p+3f;
+  g.bark_light = foundry::vec3{0x1.1eb8520000000p-1f, 0x1.eb851e0000000p-2f, 0x1.ae147a0000000p-2f};
+  g.bark_dark = foundry::vec3{0x1.47ae140000000p-2f, 0x1.0a3d700000000p-2f, 0x1.eb851e0000000p-3f};
+  g.wood = foundry::vec3{0x1.70a3d80000000p-1f, 0x1.99999a0000000p-2f, 0x1.3333340000000p-2f};
+  g.leaf_spring = foundry::vec3{0x1.3333340000000p-2f, 0x1.0000000000000p-1f, 0x1.c28f5c0000000p-3f};
+  g.leaf_summer = foundry::vec3{0x1.70a3d80000000p-3f, 0x1.851eb80000000p-2f, 0x1.47ae140000000p-3f};
+  g.leaf_fall = foundry::vec3{0x1.99999a0000000p-3f, 0x1.851eb80000000p-2f, 0x1.5c28f60000000p-3f};
+  g.leaf_fall_alt = foundry::vec3{0x1.19999a0000000p-1f, 0x1.19999a0000000p-1f, 0x1.99999a0000000p-3f};
+  g.leaf_winter = foundry::vec3{0x1.99999a0000000p-3f, 0x1.70a3d80000000p-2f, 0x1.5c28f60000000p-3f};
+  g.blossom_color = foundry::vec3{0x1.cccccc0000000p-1f, 0x1.c28f5c0000000p-1f, 0x1.3333340000000p-1f};
+  g.fruit_unripe = foundry::vec3{0x1.99999a0000000p-2f, 0x1.19999a0000000p-1f, 0x1.0000000000000p-2f};
+  g.fruit_ripe = foundry::vec3{0x1.cccccc0000000p-2f, 0x1.eb851e0000000p-2f, 0x1.99999a0000000p-3f};
 }
 
 void config_species_maple(channels::tree_v1_genome &g) {
@@ -1123,9 +1444,16 @@ void config_species_maple(channels::tree_v1_genome &g) {
   g.blossom_leaf = 0x1.0000000000000p+0f;
   g.fruit = 0.0f;
   g.fruit_size = 0x1.99999a0000000p-5f;
+  g.fruit_seasons = {0.0f, 0.0f, 0.0f, 0.0f};
+  g.pickable = false;
   g.bark = 1;
   g.dead_limbs = 0x1.0000000000000p-2f;
   g.snow = 0x1.3333340000000p-1f;
+  g.swell = 0.0f;
+  g.knees = 0u;
+  g.prop_roots = 0u;
+  g.hanging_moss = 0.0f;
+  g.moss_color = foundry::vec3{0x1.3333340000000p-1f, 0x1.428f5c0000000p-1f, 0x1.19999a0000000p-1f};
   g.age_height = {0x1.3333340000000p-3f, 0x1.cccccc0000000p-2f, 0x1.0000000000000p+0f, 0x1.19999a0000000p+0f};
   g.age_girth = {0x1.6666660000000p-1f, 0x1.b333340000000p-1f, 0x1.0000000000000p+0f, 0x1.b333340000000p+0f};
   g.flex = 0x1.8000000000000p-1f;
@@ -1180,10 +1508,17 @@ void config_species_mesquite(channels::tree_v1_genome &g) {
   g.blossom = 0x1.99999a0000000p-2f;
   g.blossom_leaf = 0x1.3333340000000p-1f;
   g.fruit = 0x1.99999a0000000p-1f;
-  g.fruit_size = 0x1.99999a0000000p-5f;
+  g.fruit_size = 0x1.47ae140000000p-4f;
+  g.fruit_seasons = {0.0f, 0.0f, 0x1.0000000000000p-1f, 0x1.0000000000000p+0f};
+  g.pickable = true;
   g.bark = 3;
   g.dead_limbs = 0x1.0000000000000p-2f;
   g.snow = 0x1.0000000000000p-2f;
+  g.swell = 0.0f;
+  g.knees = 0u;
+  g.prop_roots = 0u;
+  g.hanging_moss = 0.0f;
+  g.moss_color = foundry::vec3{0x1.3333340000000p-1f, 0x1.428f5c0000000p-1f, 0x1.19999a0000000p-1f};
   g.age_height = {0x1.99999a0000000p-3f, 0x1.0000000000000p-1f, 0x1.0000000000000p+0f, 0x1.19999a0000000p+0f};
   g.age_girth = {0x1.8000000000000p-1f, 0x1.cccccc0000000p-1f, 0x1.0000000000000p+0f, 0x1.99999a0000000p+0f};
   g.flex = 0x1.99999a0000000p-1f;
@@ -1237,11 +1572,18 @@ void config_species_oak(channels::tree_v1_genome &g) {
   g.winter_keep = 0x1.3333340000000p-2f;
   g.blossom = 0.0f;
   g.blossom_leaf = 0x1.0000000000000p+0f;
-  g.fruit = 0.0f;
-  g.fruit_size = 0x1.99999a0000000p-5f;
+  g.fruit = 0x1.99999a0000000p-1f;
+  g.fruit_size = 0x1.eb851e0000000p-5f;
+  g.fruit_seasons = {0.0f, 0.0f, 0x1.3333340000000p-2f, 0x1.0000000000000p+0f};
+  g.pickable = true;
   g.bark = 1;
   g.dead_limbs = 0x1.0000000000000p-2f;
   g.snow = 0x1.0000000000000p-1f;
+  g.swell = 0.0f;
+  g.knees = 0u;
+  g.prop_roots = 0u;
+  g.hanging_moss = 0.0f;
+  g.moss_color = foundry::vec3{0x1.3333340000000p-1f, 0x1.428f5c0000000p-1f, 0x1.19999a0000000p-1f};
   g.age_height = {0x1.3333340000000p-3f, 0x1.cccccc0000000p-2f, 0x1.0000000000000p+0f, 0x1.19999a0000000p+0f};
   g.age_girth = {0x1.6666660000000p-1f, 0x1.b333340000000p-1f, 0x1.0000000000000p+0f, 0x1.b333340000000p+0f};
   g.flex = 0x1.8000000000000p-1f;
@@ -1257,7 +1599,7 @@ void config_species_oak(channels::tree_v1_genome &g) {
   g.leaf_winter = foundry::vec3{0x1.0000000000000p-1f, 0x1.70a3d80000000p-2f, 0x1.99999a0000000p-3f};
   g.blossom_color = foundry::vec3{0x1.99999a0000000p-1f, 0x1.99999a0000000p-1f, 0x1.0000000000000p-1f};
   g.fruit_unripe = foundry::vec3{0x1.cccccc0000000p-2f, 0x1.0000000000000p-1f, 0x1.0000000000000p-2f};
-  g.fruit_ripe = foundry::vec3{0x1.19999a0000000p-1f, 0x1.851eb80000000p-2f, 0x1.99999a0000000p-3f};
+  g.fruit_ripe = foundry::vec3{0x1.70a3d80000000p-2f, 0x1.eb851e0000000p-3f, 0x1.eb851e0000000p-4f};
 }
 
 void config_species_olive(channels::tree_v1_genome &g) {
@@ -1295,11 +1637,18 @@ void config_species_olive(channels::tree_v1_genome &g) {
   g.winter_keep = 0.0f;
   g.blossom = 0x1.0000000000000p-2f;
   g.blossom_leaf = 0x1.0000000000000p+0f;
-  g.fruit = 0.0f;
-  g.fruit_size = 0x1.99999a0000000p-5f;
+  g.fruit = 0x1.0000000000000p+0f;
+  g.fruit_size = 0x1.70a3d80000000p-5f;
+  g.fruit_seasons = {0x1.0000000000000p+0f, 0.0f, 0x1.0000000000000p-2f, 0x1.3333340000000p-1f};
+  g.pickable = true;
   g.bark = 5;
   g.dead_limbs = 0x1.6666660000000p-2f;
   g.snow = 0x1.99999a0000000p-4f;
+  g.swell = 0.0f;
+  g.knees = 0u;
+  g.prop_roots = 0u;
+  g.hanging_moss = 0.0f;
+  g.moss_color = foundry::vec3{0x1.3333340000000p-1f, 0x1.428f5c0000000p-1f, 0x1.19999a0000000p-1f};
   g.age_height = {0x1.0000000000000p-2f, 0x1.0000000000000p-1f, 0x1.0000000000000p+0f, 0x1.0000000000000p+0f};
   g.age_girth = {0x1.6666660000000p-1f, 0x1.cccccc0000000p-1f, 0x1.0000000000000p+0f, 0x1.19999a0000000p+1f};
   g.flex = 0x1.99999a0000000p-1f;
@@ -1353,11 +1702,18 @@ void config_species_osage(channels::tree_v1_genome &g) {
   g.winter_keep = 0.0f;
   g.blossom = 0.0f;
   g.blossom_leaf = 0x1.0000000000000p+0f;
-  g.fruit = 0.0f;
-  g.fruit_size = 0x1.47ae140000000p-4f;
+  g.fruit = 0x1.6666660000000p-2f;
+  g.fruit_size = 0x1.eb851e0000000p-4f;
+  g.fruit_seasons = {0.0f, 0.0f, 0x1.99999a0000000p-2f, 0x1.0000000000000p+0f};
+  g.pickable = true;
   g.bark = 1;
   g.dead_limbs = 0x1.3333340000000p-2f;
   g.snow = 0x1.99999a0000000p-2f;
+  g.swell = 0.0f;
+  g.knees = 0u;
+  g.prop_roots = 0u;
+  g.hanging_moss = 0.0f;
+  g.moss_color = foundry::vec3{0x1.3333340000000p-1f, 0x1.428f5c0000000p-1f, 0x1.19999a0000000p-1f};
   g.age_height = {0x1.99999a0000000p-3f, 0x1.0000000000000p-1f, 0x1.0000000000000p+0f, 0x1.0ccccc0000000p+0f};
   g.age_girth = {0x1.8000000000000p-1f, 0x1.cccccc0000000p-1f, 0x1.0000000000000p+0f, 0x1.99999a0000000p+0f};
   g.flex = 0x1.3333340000000p-1f;
@@ -1411,11 +1767,18 @@ void config_species_pine(channels::tree_v1_genome &g) {
   g.winter_keep = 0.0f;
   g.blossom = 0.0f;
   g.blossom_leaf = 0x1.0000000000000p+0f;
-  g.fruit = 0.0f;
-  g.fruit_size = 0x1.eb851e0000000p-5f;
+  g.fruit = 0x1.0000000000000p-2f;
+  g.fruit_size = 0x1.47ae140000000p-5f;
+  g.fruit_seasons = {0x1.99999a0000000p-1f, 0x1.3333340000000p-1f, 0x1.3333340000000p-1f, 0x1.0000000000000p+0f};
+  g.pickable = false;
   g.bark = 2;
   g.dead_limbs = 0x1.3333340000000p-2f;
   g.snow = 0x1.99999a0000000p-1f;
+  g.swell = 0.0f;
+  g.knees = 0u;
+  g.prop_roots = 0u;
+  g.hanging_moss = 0.0f;
+  g.moss_color = foundry::vec3{0x1.3333340000000p-1f, 0x1.428f5c0000000p-1f, 0x1.19999a0000000p-1f};
   g.age_height = {0x1.3333340000000p-3f, 0x1.cccccc0000000p-2f, 0x1.0000000000000p+0f, 0x1.4000000000000p+0f};
   g.age_girth = {0x1.6666660000000p-1f, 0x1.b333340000000p-1f, 0x1.0000000000000p+0f, 0x1.59999a0000000p+0f};
   g.flex = 0x1.cccccc0000000p-1f;
@@ -1471,9 +1834,16 @@ void config_species_redwood(channels::tree_v1_genome &g) {
   g.blossom_leaf = 0x1.0000000000000p+0f;
   g.fruit = 0x1.99999a0000000p-3f;
   g.fruit_size = 0x1.47ae140000000p-5f;
+  g.fruit_seasons = {0x1.99999a0000000p-1f, 0x1.3333340000000p-1f, 0x1.3333340000000p-1f, 0x1.0000000000000p+0f};
+  g.pickable = false;
   g.bark = 5;
   g.dead_limbs = 0x1.99999a0000000p-3f;
   g.snow = 0x1.3333340000000p-2f;
+  g.swell = 0.0f;
+  g.knees = 0u;
+  g.prop_roots = 0u;
+  g.hanging_moss = 0.0f;
+  g.moss_color = foundry::vec3{0x1.3333340000000p-1f, 0x1.428f5c0000000p-1f, 0x1.19999a0000000p-1f};
   g.age_height = {0x1.eb851e0000000p-4f, 0x1.99999a0000000p-2f, 0x1.0000000000000p+0f, 0x1.4ccccc0000000p+0f};
   g.age_girth = {0x1.6666660000000p-1f, 0x1.cccccc0000000p-1f, 0x1.0000000000000p+0f, 0x1.8000000000000p+0f};
   g.flex = 0x1.3333340000000p-1f;
@@ -1529,9 +1899,16 @@ void config_species_spruce(channels::tree_v1_genome &g) {
   g.blossom_leaf = 0x1.0000000000000p+0f;
   g.fruit = 0x1.99999a0000000p-2f;
   g.fruit_size = 0x1.1eb8520000000p-4f;
+  g.fruit_seasons = {0x1.99999a0000000p-1f, 0x1.3333340000000p-1f, 0x1.6666660000000p-1f, 0x1.0000000000000p+0f};
+  g.pickable = false;
   g.bark = 2;
   g.dead_limbs = 0x1.47ae140000000p-4f;
   g.snow = 0x1.0000000000000p+0f;
+  g.swell = 0.0f;
+  g.knees = 0u;
+  g.prop_roots = 0u;
+  g.hanging_moss = 0.0f;
+  g.moss_color = foundry::vec3{0x1.3333340000000p-1f, 0x1.428f5c0000000p-1f, 0x1.19999a0000000p-1f};
   g.age_height = {0x1.3333340000000p-3f, 0x1.cccccc0000000p-2f, 0x1.0000000000000p+0f, 0x1.3333340000000p+0f};
   g.age_girth = {0x1.6666660000000p-1f, 0x1.b333340000000p-1f, 0x1.0000000000000p+0f, 0x1.4ccccc0000000p+0f};
   g.flex = 0x1.99999a0000000p-1f;
@@ -1587,9 +1964,16 @@ void config_species_teak(channels::tree_v1_genome &g) {
   g.blossom_leaf = 0x1.0000000000000p+0f;
   g.fruit = 0.0f;
   g.fruit_size = 0x1.99999a0000000p-5f;
+  g.fruit_seasons = {0.0f, 0.0f, 0.0f, 0.0f};
+  g.pickable = false;
   g.bark = 1;
   g.dead_limbs = 0x1.3333340000000p-3f;
   g.snow = 0.0f;
+  g.swell = 0.0f;
+  g.knees = 0u;
+  g.prop_roots = 0u;
+  g.hanging_moss = 0.0f;
+  g.moss_color = foundry::vec3{0x1.3333340000000p-1f, 0x1.428f5c0000000p-1f, 0x1.19999a0000000p-1f};
   g.age_height = {0x1.3333340000000p-3f, 0x1.cccccc0000000p-2f, 0x1.0000000000000p+0f, 0x1.2666660000000p+0f};
   g.age_girth = {0x1.6666660000000p-1f, 0x1.b333340000000p-1f, 0x1.0000000000000p+0f, 0x1.8000000000000p+0f};
   g.flex = 0x1.3333340000000p-1f;
@@ -1606,6 +1990,71 @@ void config_species_teak(channels::tree_v1_genome &g) {
   g.blossom_color = foundry::vec3{0x1.eb851e0000000p-1f, 0x1.e147ae0000000p-1f, 0x1.b851ec0000000p-1f};
   g.fruit_unripe = foundry::vec3{0x1.cccccc0000000p-2f, 0x1.0000000000000p-1f, 0x1.0000000000000p-2f};
   g.fruit_ripe = foundry::vec3{0x1.19999a0000000p-1f, 0x1.851eb80000000p-2f, 0x1.99999a0000000p-3f};
+}
+
+void config_species_tupelo(channels::tree_v1_genome &g) {
+  g.name = std::string("Water tupelo");
+  g.latin = std::string("Nyssa aquatica");
+  g.excurrent = true;
+  g.deciduous = true;
+  g.height = 0x1.c000000000000p+3f;
+  g.slender = 0x1.4000000000000p+5f;
+  g.crown_ratio = 0x1.ae147a0000000p-2f;
+  g.crown_shape = 7;
+  g.lean = 0x1.eb851e0000000p-6f;
+  g.twist = 0x1.99999a0000000p-5f;
+  g.flare = 0x1.0000000000000p-1f;
+  g.branches = 22u;
+  g.branch_angle = 0x1.b800000000000p+5f;
+  g.branch_angle_var = 0x1.8000000000000p+3f;
+  g.branch_length = 0x1.99999a0000000p-2f;
+  g.whorl = 0u;
+  g.divergence = 0x1.1300000000000p+7f;
+  g.branch_curve = 0.0f;
+  g.tip_up = 0x1.99999a0000000p-4f;
+  g.twigs = 5u;
+  g.twig_angle = 0x1.4000000000000p+5f;
+  g.twig_length = 0x1.19999a0000000p-1f;
+  g.twig_curve = 0.0f;
+  g.sprigs = 3u;
+  g.sprig_length = 0x1.6666660000000p-2f;
+  g.cluster = 0.0f;
+  g.wobble = 0x1.47ae140000000p-4f;
+  g.foliage = 0;
+  g.clump = 0x1.99999a0000000p-5f;
+  g.leafiness = 0x1.0000000000000p+0f;
+  g.fall_drop = 0x1.99999a0000000p-3f;
+  g.winter_keep = 0.0f;
+  g.blossom = 0.0f;
+  g.blossom_leaf = 0x1.0000000000000p+0f;
+  g.fruit = 0x1.6666660000000p-1f;
+  g.fruit_size = 0x1.1eb8520000000p-4f;
+  g.fruit_seasons = {0.0f, 0.0f, 0x1.99999a0000000p-2f, 0x1.0000000000000p+0f};
+  g.pickable = true;
+  g.bark = 1;
+  g.dead_limbs = 0x1.0000000000000p-2f;
+  g.snow = 0x1.3333340000000p-2f;
+  g.swell = 0x1.6666660000000p+0f;
+  g.knees = 0u;
+  g.prop_roots = 0u;
+  g.hanging_moss = 0x1.3333340000000p-3f;
+  g.moss_color = foundry::vec3{0x1.28f5c20000000p-1f, 0x1.3d70a40000000p-1f, 0x1.19999a0000000p-1f};
+  g.age_height = {0x1.3333340000000p-3f, 0x1.cccccc0000000p-2f, 0x1.0000000000000p+0f, 0x1.19999a0000000p+0f};
+  g.age_girth = {0x1.6666660000000p-1f, 0x1.b333340000000p-1f, 0x1.0000000000000p+0f, 0x1.b333340000000p+0f};
+  g.flex = 0x1.8000000000000p-1f;
+  g.density = 0x1.d70a3e0000000p-2f;
+  g.stiffness = 0x1.d333340000000p+2f;
+  g.bark_light = foundry::vec3{0x1.0a3d700000000p-1f, 0x1.0000000000000p-1f, 0x1.e147ae0000000p-2f};
+  g.bark_dark = foundry::vec3{0x1.147ae20000000p-2f, 0x1.0a3d700000000p-2f, 0x1.eb851e0000000p-3f};
+  g.wood = foundry::vec3{0x1.ae147a0000000p-1f, 0x1.851eb80000000p-1f, 0x1.3d70a40000000p-1f};
+  g.leaf_spring = foundry::vec3{0x1.eb851e0000000p-2f, 0x1.51eb860000000p-1f, 0x1.3333340000000p-2f};
+  g.leaf_summer = foundry::vec3{0x1.0a3d700000000p-2f, 0x1.d70a3e0000000p-2f, 0x1.99999a0000000p-3f};
+  g.leaf_fall = foundry::vec3{0x1.3d70a40000000p-1f, 0x1.1eb8520000000p-3f, 0x1.99999a0000000p-3f};
+  g.leaf_fall_alt = foundry::vec3{0x1.ae147a0000000p-2f, 0x1.eb851e0000000p-4f, 0x1.1eb8520000000p-2f};
+  g.leaf_winter = foundry::vec3{0x1.99999a0000000p-2f, 0x1.0a3d700000000p-2f, 0x1.99999a0000000p-3f};
+  g.blossom_color = foundry::vec3{0x1.99999a0000000p-1f, 0x1.99999a0000000p-1f, 0x1.0000000000000p-1f};
+  g.fruit_unripe = foundry::vec3{0x1.ae147a0000000p-2f, 0x1.0a3d700000000p-1f, 0x1.0000000000000p-2f};
+  g.fruit_ripe = foundry::vec3{0x1.47ae140000000p-3f, 0x1.99999a0000000p-4f, 0x1.3333340000000p-2f};
 }
 
 void config_species_willow(channels::tree_v1_genome &g) {
@@ -1645,9 +2094,16 @@ void config_species_willow(channels::tree_v1_genome &g) {
   g.blossom_leaf = 0x1.cccccc0000000p-1f;
   g.fruit = 0.0f;
   g.fruit_size = 0x1.99999a0000000p-5f;
+  g.fruit_seasons = {0.0f, 0.0f, 0.0f, 0.0f};
+  g.pickable = false;
   g.bark = 1;
   g.dead_limbs = 0x1.3333340000000p-3f;
   g.snow = 0x1.99999a0000000p-2f;
+  g.swell = 0.0f;
+  g.knees = 0u;
+  g.prop_roots = 0u;
+  g.hanging_moss = 0.0f;
+  g.moss_color = foundry::vec3{0x1.3333340000000p-1f, 0x1.428f5c0000000p-1f, 0x1.19999a0000000p-1f};
   g.age_height = {0x1.3333340000000p-3f, 0x1.cccccc0000000p-2f, 0x1.0000000000000p+0f, 0x1.19999a0000000p+0f};
   g.age_girth = {0x1.6666660000000p-1f, 0x1.b333340000000p-1f, 0x1.0000000000000p+0f, 0x1.b333340000000p+0f};
   g.flex = 0x1.19999a0000000p+1f;
@@ -1670,33 +2126,43 @@ void config_species(uint32_t i, channels::tree_v1_genome &g) {
   switch (i) {
     case 0: config_species_acacia(g); return;
     case 1: config_species_apple(g); return;
-    case 2: config_species_baobab(g); return;
-    case 3: config_species_birch(g); return;
-    case 4: config_species_bristlecone(g); return;
-    case 5: config_species_cedar(g); return;
-    case 6: config_species_cherry(g); return;
-    case 7: config_species_coconut(g); return;
-    case 8: config_species_cypress(g); return;
-    case 9: config_species_dragonwood(g); return;
-    case 10: config_species_ebony(g); return;
-    case 11: config_species_elm(g); return;
-    case 12: config_species_hickory(g); return;
-    case 13: config_species_jacaranda(g); return;
-    case 14: config_species_larch(g); return;
-    case 15: config_species_lignumvitae(g); return;
-    case 16: config_species_mahogany(g); return;
-    case 17: config_species_mango(g); return;
-    case 18: config_species_maple(g); return;
-    case 19: config_species_mesquite(g); return;
-    case 20: config_species_oak(g); return;
-    case 21: config_species_olive(g); return;
-    case 22: config_species_osage(g); return;
-    case 23: config_species_pine(g); return;
-    case 24: config_species_redwood(g); return;
-    case 25: config_species_spruce(g); return;
-    case 26: config_species_teak(g); return;
-    case 27: config_species_willow(g); return;
+    case 2: config_species_baldcypress(g); return;
+    case 3: config_species_baobab(g); return;
+    case 4: config_species_birch(g); return;
+    case 5: config_species_bristlecone(g); return;
+    case 6: config_species_cedar(g); return;
+    case 7: config_species_cherry(g); return;
+    case 8: config_species_coconut(g); return;
+    case 9: config_species_cypress(g); return;
+    case 10: config_species_dragonwood(g); return;
+    case 11: config_species_ebony(g); return;
+    case 12: config_species_elm(g); return;
+    case 13: config_species_hickory(g); return;
+    case 14: config_species_jacaranda(g); return;
+    case 15: config_species_larch(g); return;
+    case 16: config_species_lignumvitae(g); return;
+    case 17: config_species_liveoak(g); return;
+    case 18: config_species_mahogany(g); return;
+    case 19: config_species_mango(g); return;
+    case 20: config_species_mangrove(g); return;
+    case 21: config_species_maple(g); return;
+    case 22: config_species_mesquite(g); return;
+    case 23: config_species_oak(g); return;
+    case 24: config_species_olive(g); return;
+    case 25: config_species_osage(g); return;
+    case 26: config_species_pine(g); return;
+    case 27: config_species_redwood(g); return;
+    case 28: config_species_spruce(g); return;
+    case 29: config_species_teak(g); return;
+    case 30: config_species_tupelo(g); return;
+    case 31: config_species_willow(g); return;
   }
+}
+
+// fruit applies where config/tree_v1_genomes's pickable is set.
+const bool kApplies_fruit[32] = {true, true, false, true, false, false, false, false, true, false, true, true, false, true, false, false, false, true, false, true, false, false, true, true, true, true, false, false, false, false, true, false};
+bool applies_fruit(const Params &p) {
+  return static_cast<uint32_t>(p.species) < 32u && kApplies_fruit[static_cast<uint32_t>(p.species)];
 }
 
 struct Built final : runtime::Build {
@@ -1729,6 +2195,10 @@ class Type final : public runtime::PipelineType {
     key_add(h, p.species);
     key_add(h, p.age);
     key_add(h, p.season);
+    {
+      const bool v = (applies_fruit(p) ? p.fruit : false);  // shared where it doesn't apply
+      key_add(h, v);
+    }
     key_add(h, p.seed);
     key_add(h, p.detail);
     return h ? h : 1;
@@ -1744,6 +2214,7 @@ class Type final : public runtime::PipelineType {
     config_species(static_cast<uint32_t>(p.species), rig_in.genome);
     rig_in.age = static_cast<uint32_t>(p.age);
     rig_in.season = static_cast<uint32_t>(p.season);
+    rig_in.fruit = (applies_fruit(p) ? p.fruit : false);
     rig_in.seed = p.seed;
     rig_in.detail = static_cast<uint32_t>(p.detail);
     channels::tree_v1_rig rig_out;
@@ -1869,7 +2340,7 @@ class Type final : public runtime::PipelineType {
 const Type kType;
 
 bool valid(const Params &p) {
-  if (static_cast<uint32_t>(p.species) >= 28u) return false;
+  if (static_cast<uint32_t>(p.species) >= 32u) return false;
   if (static_cast<uint32_t>(p.age) >= 4u) return false;
   if (static_cast<uint32_t>(p.season) >= 4u) return false;
   if (p.seed < 1u || p.seed > 1000u) return false;
@@ -1888,9 +2359,10 @@ extern "C" {
 void foundry_tree_v1_default_params(Params *params) {
   Params p;
   std::memset(&p, 0, sizeof p);
-  p.species = static_cast<foundry_tree_v1_species>(20);
+  p.species = static_cast<foundry_tree_v1_species>(23);
   p.age = static_cast<foundry_tree_v1_age>(2);
   p.season = static_cast<foundry_tree_v1_season>(2);
+  p.fruit = true;
   p.seed = 1u;
   p.detail = static_cast<foundry_tree_v1_detail>(0);
   p.wind_speed = 0x1.8000000000000p+2f;
@@ -1927,6 +2399,14 @@ foundry_status foundry_tree_v1_set_season(foundry_runtime *rt, foundry_instance 
   check.season = value;
   if (!valid(check)) return FOUNDRY_STATUS_BAD_PARAMETER;
   return foundry_status_of(rt->world.set_param(instance, &kType, offsetof(Params, season), &value, sizeof value, true));
+}
+
+foundry_status foundry_tree_v1_set_fruit(foundry_runtime *rt, foundry_instance instance, bool value) {
+  Params check;
+  foundry_tree_v1_default_params(&check);
+  check.fruit = value;
+  if (!valid(check)) return FOUNDRY_STATUS_BAD_PARAMETER;
+  return foundry_status_of(rt->world.set_param(instance, &kType, offsetof(Params, fruit), &value, sizeof value, true));
 }
 
 foundry_status foundry_tree_v1_set_seed(foundry_runtime *rt, foundry_instance instance, uint32_t value) {
@@ -1975,6 +2455,13 @@ foundry_status foundry_tree_v1_set_break_heading(foundry_runtime *rt, foundry_in
   check.break_heading = value;
   if (!valid(check)) return FOUNDRY_STATUS_BAD_PARAMETER;
   return foundry_status_of(rt->world.set_param(instance, &kType, offsetof(Params, break_heading), &value, sizeof value, false));
+}
+
+bool foundry_tree_v1_fruit_applies(foundry_tree_v1_species species) {
+  Params p;
+  foundry_tree_v1_default_params(&p);
+  p.species = species;
+  return applies_fruit(p);
 }
 
 foundry_status foundry_tree_v1_start_break(foundry_runtime *rt, foundry_instance instance) {

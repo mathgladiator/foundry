@@ -63,13 +63,21 @@
       0.32,
       0.2
     ],
+    "fruit_seasons": [
+      0.8,
+      0.6,
+      0.6,
+      1
+    ],
     "fruit_size": 0.07,
     "fruit_unripe": [
       0.45,
       0.3,
       0.25
     ],
+    "hanging_moss": 0,
     "height": 14,
+    "knees": 0,
     "latin": "Cupressus sempervirens",
     "leaf_fall": [
       0.12,
@@ -98,12 +106,20 @@
     ],
     "leafiness": 2.2,
     "lean": 0.02,
+    "moss_color": [
+      0.6,
+      0.63,
+      0.55
+    ],
     "name": "Italian cypress",
+    "pickable": false,
+    "prop_roots": 0,
     "slender": 40,
     "snow": 0.3,
     "sprig_length": 0.4,
     "sprigs": 0,
     "stiffness": 8.0,
+    "swell": 0,
     "tip_up": 0.3,
     "twig_angle": 25,
     "twig_curve": -0.3,

@@ -57,19 +57,27 @@
     "flare": 0.5,
     "flex": 0.5,
     "foliage": "rosettes",
-    "fruit": 0,
+    "fruit": 0.6,
     "fruit_ripe": [
       0.75,
       0.15,
       0.1
     ],
-    "fruit_size": 0.05,
+    "fruit_seasons": [
+      0.3,
+      0,
+      0.4,
+      1
+    ],
+    "fruit_size": 0.07,
     "fruit_unripe": [
-      0.6,
       0.2,
+      0.16,
       0.15
     ],
+    "hanging_moss": 0,
     "height": 7,
+    "knees": 0,
     "latin": "Dracaena draconis (fantasy)",
     "leaf_fall": [
       0.55,
@@ -98,12 +106,20 @@
     ],
     "leafiness": 1.3,
     "lean": 0.04,
+    "moss_color": [
+      0.6,
+      0.63,
+      0.55
+    ],
     "name": "Dragonwood",
+    "pickable": true,
+    "prop_roots": 0,
     "slender": 12,
     "snow": 0.15,
     "sprig_length": 0.7,
     "sprigs": 2,
     "stiffness": 12,
+    "swell": 0,
     "tip_up": 0.0,
     "twig_angle": 35,
     "twig_curve": 0.1,

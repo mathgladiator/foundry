@@ -1,0 +1,33 @@
+{
+  "family": "rock",
+  "version": 1,
+  "feature": "piece",
+  "doc": "A break piece: one part of the rock once it has broken.",
+  "fields": [
+    {
+      "name": "bone",
+      "type": "u32",
+      "doc": "The piece's bone in the model (bone 0 is the whole rock)."
+    },
+    {
+      "name": "center",
+      "type": "vec3",
+      "doc": "Centre of mass in the rest pose, metres."
+    },
+    {
+      "name": "mass",
+      "type": "f32",
+      "doc": "Mass, kg."
+    },
+    {
+      "name": "radius",
+      "type": "f32",
+      "doc": "Largest distance from the centre to the piece's surface, metres."
+    },
+    {
+      "name": "support",
+      "type": "vec3[]",
+      "doc": "Extreme points of the piece's surface relative to its centre, in the rest pose: what touches the ground as it tumbles."
+    }
+  ]
+}

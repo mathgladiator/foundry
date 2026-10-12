@@ -63,13 +63,21 @@
       0.38,
       0.2
     ],
+    "fruit_seasons": [
+      0,
+      0,
+      0,
+      0
+    ],
     "fruit_size": 0.05,
     "fruit_unripe": [
       0.45,
       0.5,
       0.25
     ],
+    "hanging_moss": 0,
     "height": 11,
+    "knees": 0,
     "latin": "Betula pendula",
     "leaf_fall": [
       0.95,
@@ -98,12 +106,20 @@
     ],
     "leafiness": 0.5,
     "lean": 0.08,
+    "moss_color": [
+      0.6,
+      0.63,
+      0.55
+    ],
     "name": "Birch",
+    "pickable": false,
+    "prop_roots": 0,
     "slender": 50,
     "snow": 0.6,
     "sprig_length": 0.45,
     "sprigs": 2,
     "stiffness": 8.5,
+    "swell": 0,
     "tip_up": 0.0,
     "twig_angle": 40,
     "twig_curve": -1.9,

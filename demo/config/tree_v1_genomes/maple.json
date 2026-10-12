@@ -63,13 +63,21 @@
       0.38,
       0.2
     ],
+    "fruit_seasons": [
+      0,
+      0,
+      0,
+      0
+    ],
     "fruit_size": 0.05,
     "fruit_unripe": [
       0.45,
       0.5,
       0.25
     ],
+    "hanging_moss": 0,
     "height": 14,
+    "knees": 0,
     "latin": "Acer saccharum",
     "leaf_fall": [
       0.86,
@@ -98,12 +106,20 @@
     ],
     "leafiness": 1.4,
     "lean": 0.06,
+    "moss_color": [
+      0.6,
+      0.63,
+      0.55
+    ],
     "name": "Sugar maple",
+    "pickable": false,
+    "prop_roots": 0,
     "slender": 40,
     "snow": 0.6,
     "sprig_length": 0.35,
     "sprigs": 3,
     "stiffness": 10.7,
+    "swell": 0,
     "tip_up": 0.1,
     "twig_angle": 50,
     "twig_curve": 0.2,

@@ -62,13 +62,21 @@
       0.55,
       0.42
     ],
-    "fruit_size": 0.17,
+    "fruit_seasons": [
+      1,
+      0.8,
+      0.2,
+      0.6
+    ],
+    "fruit_size": 0.2,
     "fruit_unripe": [
       0.48,
       0.55,
       0.36
     ],
+    "hanging_moss": 0,
     "height": 13,
+    "knees": 0,
     "latin": "Adansonia digitata",
     "leaf_fall": [
       0.7,
@@ -97,12 +105,20 @@
     ],
     "leafiness": 0.6,
     "lean": 0.03,
+    "moss_color": [
+      0.6,
+      0.63,
+      0.55
+    ],
     "name": "Baobab",
+    "pickable": true,
+    "prop_roots": 0,
     "slender": 14,
     "snow": 0,
     "sprig_length": 0.3,
     "sprigs": 1,
     "stiffness": 3.5,
+    "swell": 0,
     "tip_up": 0.45,
     "twig_angle": 45,
     "twig_curve": 0.3,

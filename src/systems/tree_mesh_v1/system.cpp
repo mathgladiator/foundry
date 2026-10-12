@@ -8,7 +8,12 @@
 // - Foliage: noise-displaced icosphere clumps (broadleaf), stretched spiky
 //   tufts (needles), or flattened rosettes, chosen per clump by season:
 //   leaves, blossom, a deciduous tree's dead winter leaves, or bare.
-// - Fruit: small spheres hanging from leafy clumps in summer and fall.
+// - Fruit: small spheres hanging from the clumps (or bare twigs) in the seasons
+//   the species bears, unripe to ripe. Fruit that can be picked shows only
+//   while the request says the tree still carries it (the game picks it off);
+//   cones and propagules that can't be picked always show.
+// - Roots and moss: cypress knees around the trunk, a mangrove's arching prop
+//   roots, and Spanish moss hanging in strands from the limbs.
 // - Skinning: rigid per bone, blended halfway at bone starts within a piece.
 // - Detail: high, medium, or low tessellation and foliage density.
 #include <vector>
@@ -28,7 +33,7 @@ using channels::tree_v1_spec;
 
 namespace {
 
-enum Region : uint32_t { kBark = 0, kWood = 1, kLeaf = 2, kBlossom = 3, kFruit = 4, kDeadLeaf = 5, kDeadWood = 6 };
+enum Region : uint32_t { kBark = 0, kWood = 1, kLeaf = 2, kBlossom = 3, kFruit = 4, kDeadLeaf = 5, kDeadWood = 6, kHangingMoss = 7 };
 
 struct Builder {
   channels::tree_v1_body &out;
@@ -408,6 +413,14 @@ bool run(const channels::tree_v1_rig &in, channels::tree_v1_body &out, std::stri
   const size_t keep_num = detail == 0 ? 1 : (detail == 1 ? 2 : 1);
   const float lod_grow = detail == 0 ? 1.0f : (detail == 1 ? 1.12f : 1.3f);
   float fruit_scale = spec.age == tree_v1_spec::kAgeSapling ? 0.0f : (spec.age == tree_v1_spec::kAgeYoung ? 0.5f : 1.0f);
+  if (g.fruit_seasons.size() != 4) {
+    error = "genome needs 4 fruit_seasons values";
+    return false;
+  }
+  const float ripeness = g.fruit_seasons[season];
+  // Fruit hangs in the seasons it bears; pickable fruit only while the request says it's still on.
+  const bool fruiting = g.fruit > 0 && fruit_scale > 0 && ripeness > 0 && (!g.pickable || spec.fruit);
+  const float fruit_grow = 0.8f + 0.2f * ripeness;  // unripe fruit is a little smaller
   const bool fronds = g.foliage == tree_v1_genome::kFoliageFronds;
   if (fronds) {
     // Pinnate fronds: leaflet pairs along each first-order limb, drooping to both sides.
@@ -461,7 +474,7 @@ bool run(const channels::tree_v1_rig &in, channels::tree_v1_body &out, std::stri
       }
     }
     // Fruit: a cluster under the crown, where the fronds meet the trunk.
-    if (g.fruit > 0 && fruit_scale > 0 && (season == tree_v1_spec::kSeasonSummer || season == tree_v1_spec::kSeasonFall)) {
+    if (fruiting) {
       const auto &stem = in.branches[0];
       float lowest = stem.points.back().y;
       for (size_t bi = 1; bi < in.branches.size(); ++bi)
@@ -470,14 +483,25 @@ bool run(const channels::tree_v1_rig &in, channels::tree_v1_body &out, std::stri
       while (at > 1 && stem.points[at - 1].y > lowest) --at;
       const vec3 top = stem.points[at];
       const float trunk_r = stem.radii[at];
+      // The mean frond length: the cluster hangs below the frond bases by a share of it, under the crown.
+      float frond = 0;
+      int fronds_n = 0;
+      for (size_t bi = 1; bi < in.branches.size(); ++bi) {
+        const auto &br = in.branches[bi];
+        if (br.level != 1) continue;
+        for (size_t k = 1; k < br.points.size(); ++k) frond += length(br.points[k] - br.points[k - 1]);
+        ++fronds_n;
+      }
+      frond = fronds_n > 0 ? frond / static_cast<float>(fronds_n) : 1.0f;
       const int count = static_cast<int>(g.fruit * 4 * fruit_scale + 0.5f);
       Rng rng(name_seed, 11u);
       for (int j = 0; j < count; ++j) {
         const float az = 2 * kPi * (static_cast<float>(j) + 0.4f * rng.uniform()) / static_cast<float>(count > 0 ? count : 1);
-        const float drop = 0.9f + 0.9f * rng.uniform();
-        const float fr = g.fruit_size * (0.85f + 0.3f * rng.uniform()) * (season == tree_v1_spec::kSeasonSummer ? 0.85f : 1.0f);
-        const float out_r = trunk_r + fr * 1.4f;
-        const vec3 c = top + v3(foundry::det::cos(az) * out_r, -drop * fr * 2, foundry::det::sin(az) * out_r);
+        // Against the trunk, below the leaflets that hang from the frond bases, so it shows from the side.
+        const float drop = frond * (0.22f + 0.1f * rng.uniform());
+        const float fr = g.fruit_size * (0.85f + 0.3f * rng.uniform()) * fruit_grow;
+        const float out_r = trunk_r + fr * 1.1f;
+        const vec3 c = top + v3(foundry::det::cos(az) * out_r, -drop - fr, foundry::det::sin(az) * out_r);
         blob(bd, fruit_ico, c, fr, v3(0, 0, 1), v3(1, 1.1f, 1), 0.04f, 1.5f, name_seed + static_cast<uint32_t>(j), kFruit,
              rng.uniform(), stem.bones[at]);
       }
@@ -514,12 +538,14 @@ bool run(const channels::tree_v1_rig &in, channels::tree_v1_body &out, std::stri
     } else if (season == tree_v1_spec::kSeasonFall) {
       show = r1 >= g.fall_drop;
     }
-    if (!show) continue;
+    if (!show && !fruiting) continue;
     const float radius = f.radius * size * lod_grow;
     const uint32_t seed = name_seed ^ hash_u32(static_cast<uint32_t>(k) + 17u);
     // The colour variety per clump rides on shade.
     const float shade = r2;
-    switch (g.foliage) {
+    switch (show ? g.foliage : ~0u) {
+      case ~0u:  // bare: only fruit hangs here
+        break;
       case tree_v1_genome::kFoliageNeedles:
         blob(bd, ico, f.position, radius, f.normal, v3(1.0f, 0.62f, 1.35f), 0.32f, 3.6f, seed, region, shade, f.bone);
         break;
@@ -531,24 +557,157 @@ bool run(const channels::tree_v1_rig &in, channels::tree_v1_body &out, std::stri
         blob(bd, ico, f.position, radius, f.normal, v3(1, 0.9f, 1), 0.24f, 2.2f, seed, region, shade, f.bone);
         break;
     }
-    // Fruit on leafy clumps in summer and fall.
-    if (g.fruit > 0 && fruit_scale > 0 && region == kLeaf &&
-        (season == tree_v1_spec::kSeasonSummer || season == tree_v1_spec::kSeasonFall)) {
+    // Fruit on the clumps, or on the bare twig where the clump has dropped (a baobab's pods in the dry season).
+    if (fruiting && region != kBlossom) {
       float want = g.fruit * fruit_scale;
       int count = static_cast<int>(want);
       if (r2 < want - static_cast<float>(count)) count++;
       Rng rng(seed, 7u);
       for (int j = 0; j < count; ++j) {
-        // On the clump's outer lower half, so it hangs where it can be seen.
+        // On the clump's outer lower side (out from the trunk), so it hangs where it can be seen.
         // One draw per statement: argument order is unspecified, and GCC and Clang differ.
         float dx = rng.signed_unit();
-        float dy = -0.6f - 0.5f * rng.uniform();
+        float dy = -0.4f - 0.5f * rng.uniform();
         float dz = rng.signed_unit();
-        vec3 d = normalize(f.normal + v3(dx, dy, dz));
-        vec3 c = f.position + d * (radius * 0.92f);
-        float fr = g.fruit_size * (0.85f + 0.3f * rng.uniform()) * (season == tree_v1_spec::kSeasonSummer ? 0.8f : 1.0f);
+        vec3 out = v3(f.position.x, 0, f.position.z);
+        out = length(out) > 1e-3f ? normalize(out) : f.normal;
+        vec3 d = normalize(out * 1.2f + f.normal + v3(dx, dy, dz));
+        float fr = g.fruit_size * (0.85f + 0.3f * rng.uniform()) * fruit_grow;
+        // Past the clump's bumps (up to a quarter of its radius), so the fruit sits on its surface;
+        // a bare twig carries it close in.
+        vec3 c = f.position + d * (show ? radius * 1.1f + fr * 0.5f : radius * 0.3f);
         blob(bd, fruit_ico, c, fr, v3(0, 0, 1), v3(1, 0.95f, 1), 0.04f, 1.5f, seed + static_cast<uint32_t>(j), kFruit,
              rng.uniform(), f.bone);
+      }
+    }
+  }
+
+  // ---- roots and moss ----
+  static const float kGrown[4] = {0.0f, 0.35f, 1.0f, 1.35f};  // how far along knees and roots are, by age
+  const auto &stem = in.branches[0];
+  const float H = in.height;
+  const float trunk_r = stem.radii[1];
+  auto stem_at = [&](float y, float &r) {
+    // The stem's centre and radius at height y.
+    for (size_t k = 0; k + 1 < stem.points.size(); ++k) {
+      if (stem.points[k + 1].y >= y || k + 2 == stem.points.size()) {
+        const float span = stem.points[k + 1].y - stem.points[k].y;
+        const float u = span > 1e-5f ? clampf((y - stem.points[k].y) / span, 0, 1) : 0;
+        r = mixf(stem.radii[k], stem.radii[k + 1], u);
+        return lerp(stem.points[k], stem.points[k + 1], u);
+      }
+    }
+    r = stem.radii.back();
+    return stem.points.back();
+  };
+  // A tapered tube along a path, rigid on one bone, with a rounded tip.
+  auto tube = [&](const std::vector<vec3> &path, float r0, float r1, int sides, uint32_t bone) {
+    const std::vector<Frame> F = frames(path);
+    Ring prev;
+    float s = 0;
+    for (size_t k = 0; k < path.size(); ++k) {
+      if (k > 0) s += length(path[k] - path[k - 1]);
+      const float u = static_cast<float>(k) / static_cast<float>(path.size() - 1);
+      Ring ring;
+      for (int j = 0; j < sides; ++j) {
+        const float theta = 2 * kPi * static_cast<float>(j) / static_cast<float>(sides);
+        const vec3 dir = F[k].n * foundry::det::cos(theta) + F[k].b * foundry::det::sin(theta);
+        float relief, shade;
+        bark.at(theta, s, 1, relief, shade);
+        ring.v.push_back(bd.vertex(path[k] + dir * (mixf(r0, r1, u) * (1 + relief)), dir, kBark, shade, dir.y, bone));
+      }
+      if (k > 0) join(bd, prev, ring);
+      prev = ring;
+    }
+    const uint32_t tip = bd.vertex(path.back() + F.back().t * r1, F.back().t, kBark, 0.5f, F.back().t.y, bone);
+    for (size_t j = 0; j < prev.v.size(); ++j) bd.tri(prev.v[j], tip, prev.v[(j + 1) % prev.v.size()]);
+  };
+  const float grown = kGrown[spec.age > 3 ? 3 : spec.age];
+  const int root_sides = detail == 0 ? 6 : (detail == 1 ? 5 : 4);
+  // Cypress knees: blunt woody cones standing up from the roots around the trunk.
+  const int knees = static_cast<int>(static_cast<float>(g.knees) * grown + 0.5f);
+  if (knees > 0) {
+    Rng rng(name_seed, 23u);
+    const float inner = trunk_r * 1.8f, spread = 0.16f * H;
+    for (int j = 0; j < knees; ++j) {
+      const float az = 2 * kPi * (static_cast<float>(j) + 0.8f * rng.uniform()) / static_cast<float>(knees);
+      const float d = inner + spread * rng.uniform();
+      const float h = (0.3f + 0.5f * rng.uniform()) * clampf(H / 10, 0.5f, 1.4f) * (0.6f + 0.4f * grown);
+      const vec3 base = v3(foundry::det::cos(az) * d, -0.05f, foundry::det::sin(az) * d);
+      const float lean_x = rng.signed_unit() * 0.12f;
+      const float lean_z = rng.signed_unit() * 0.12f;
+      const vec3 top = base + v3(lean_x * h, h + 0.05f, lean_z * h);
+      tube({base, lerp(base, top, 0.55f), top}, h * 0.38f, h * 0.16f, root_sides, 0);
+    }
+  }
+  // Prop roots: arching from the lower trunk out and down into the ground.
+  const int roots = static_cast<int>(static_cast<float>(g.prop_roots) * minf(grown, 1.0f) + 0.5f);
+  if (roots > 0) {
+    Rng rng(name_seed, 29u);
+    const int segs = detail == 0 ? 8 : 6;
+    for (int j = 0; j < roots; ++j) {
+      const float az = 2 * kPi * (static_cast<float>(j) + 0.6f * rng.uniform()) / static_cast<float>(roots);
+      const float y0 = H * (0.06f + 0.2f * rng.uniform());
+      float r_at = trunk_r;
+      const vec3 c = stem_at(y0, r_at);
+      const vec3 out_dir = v3(foundry::det::cos(az), 0, foundry::det::sin(az));
+      const vec3 a = c + out_dir * (r_at * 0.6f);
+      const float reach = y0 * (1.1f + 0.8f * rng.uniform()) + r_at;
+      const vec3 b = c + out_dir * reach;
+      const vec3 end = v3(b.x, -0.08f, b.z);
+      const vec3 ctrl = a + out_dir * (reach * 0.55f) + v3(0, y0 * 0.25f, 0);
+      std::vector<vec3> path;
+      for (int k = 0; k <= segs; ++k) {
+        const float u = static_cast<float>(k) / static_cast<float>(segs);
+        path.push_back(a * ((1 - u) * (1 - u)) + ctrl * (2 * u * (1 - u)) + end * (u * u));
+      }
+      const float rr = maxf(r_at * 0.3f, 0.04f);  // chunky enough to read (style.md section 3)
+      tube(path, rr, rr * 0.7f, root_sides, 0);
+    }
+  }
+  // Spanish moss: grey strands hanging from the limbs and twigs, in every season.
+  if (g.hanging_moss > 0 && spec.age != tree_v1_spec::kAgeSapling) {
+    Rng rng(name_seed, 31u);
+    const float spacing = detail == 0 ? 0.45f : (detail == 1 ? 0.65f : 0.9f);
+    const float len_scale = clampf(H / 10, 0.5f, 1.3f) * (0.6f + 0.6f * g.hanging_moss);
+    for (size_t bi = 1; bi < in.branches.size(); ++bi) {
+      const auto &br = in.branches[bi];
+      if (br.level > 2) continue;
+      const std::vector<vec3> &P = br.points;
+      float carry = rng.uniform() * spacing;
+      for (size_t k = 0; k + 1 < P.size(); ++k) {
+        const vec3 d = P[k + 1] - P[k];
+        const float seg = length(d);
+        if (seg < 1e-4f) continue;
+        const vec3 t = d * (1.0f / seg);
+        float at = carry;
+        for (; at < seg; at += spacing) {
+          const float pick = rng.uniform();
+          const float lr = rng.uniform();
+          const float wr = rng.uniform();
+          if (pick >= g.hanging_moss || t.y > 0.75f) continue;  // hangs from the near-level wood
+          const vec3 top = P[k] + t * at - v3(0, br.radii[k] * 0.8f, 0);
+          const float L = (0.35f + 0.75f * lr) * len_scale;
+          const float w = L * (0.22f + 0.1f * wr);
+          const uint32_t bone = br.bones[k + 1];
+          const float shade = rng.uniform();
+          // Two crossed ribbons that narrow to a point, swaying a little sideways as they fall.
+          for (int side = 0; side < 2; ++side) {
+            const vec3 across = side == 0 ? v3(w * 0.5f, 0, 0) : v3(0, 0, w * 0.5f);
+            const vec3 nrm = side == 0 ? v3(0, 0, 1) : v3(1, 0, 0);
+            const vec3 mid = top + v3(across.z * 0.6f, -L * 0.55f, across.x * 0.6f);
+            const vec3 tip = top + v3(-across.z * 0.4f, -L, -across.x * 0.4f);
+            const uint32_t a = bd.vertex(top - across, nrm, kHangingMoss, shade, 0.2f, bone);
+            const uint32_t b = bd.vertex(top + across, nrm, kHangingMoss, shade, 0.2f, bone);
+            const uint32_t c = bd.vertex(mid + across * 0.7f, nrm, kHangingMoss, shade, 0.1f, bone);
+            const uint32_t e = bd.vertex(mid - across * 0.7f, nrm, kHangingMoss, shade, 0.1f, bone);
+            const uint32_t f = bd.vertex(tip, nrm, kHangingMoss, shade, 0.0f, bone);
+            bd.tri(a, b, c);
+            bd.tri(a, c, e);
+            bd.tri(e, c, f);
+          }
+        }
+        carry = at - seg;  // the distance still to go to the next strand, on the next segment
       }
     }
   }

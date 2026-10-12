@@ -1,0 +1,105 @@
+{
+  "created_at": "2026-10-12T10:00:00Z",
+  "doc": "Woodland on chalk and every formal garden: a dense rounded evergreen of tiny glossy leaves, bronzing a little in cold winters.",
+  "notes": [],
+  "reference": [
+    "reference/bushes/boxwood/01.jpg",
+    "reference/bushes/boxwood/02.jpg"
+  ],
+  "state": "draft",
+  "value": {
+    "age_height": [
+      0.4,
+      1.0,
+      1.15
+    ],
+    "bark_dark": [
+      0.38,
+      0.32,
+      0.24
+    ],
+    "bark_light": [
+      0.6,
+      0.52,
+      0.4
+    ],
+    "bloom": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "blossom_color": [
+      0.95,
+      0.95,
+      0.9
+    ],
+    "blossom_size": 0.5,
+    "branch_angle": 45,
+    "branch_length": 0.5,
+    "branches": 6,
+    "clump": 0.1,
+    "deciduous": false,
+    "fall_drop": 0.3,
+    "flex": 0.6,
+    "foliage": "clumps",
+    "fruit": 0,
+    "fruit_cluster": 4,
+    "fruit_ripe": [
+      0.5,
+      0.1,
+      0.15
+    ],
+    "fruit_seasons": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "fruit_size": 0.018,
+    "fruit_unripe": [
+      0.45,
+      0.55,
+      0.3
+    ],
+    "height": 1.4,
+    "latin": "Buxus sempervirens",
+    "leaf_fall": [
+      0.2,
+      0.36,
+      0.15
+    ],
+    "leaf_fall_alt": [
+      0.22,
+      0.37,
+      0.16
+    ],
+    "leaf_spring": [
+      0.3,
+      0.45,
+      0.2
+    ],
+    "leaf_summer": [
+      0.2,
+      0.36,
+      0.15
+    ],
+    "leaf_winter": [
+      0.3,
+      0.36,
+      0.18
+    ],
+    "leafiness": 2.5,
+    "name": "Boxwood",
+    "pickable": false,
+    "shape": "round",
+    "snow": 0.6,
+    "stem_curve": 0.2,
+    "stem_spread": 0.4,
+    "stems": 6,
+    "twigs": 3,
+    "width": 1.0,
+    "winter_keep": 0.0,
+    "wobble": 0.1
+  }
+}

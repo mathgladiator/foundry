@@ -38,6 +38,10 @@ typedef struct stress_param {
   uint32_t count;
   double min, max; /* STRESS_U32, STRESS_F32 */
   stress_value fallback;
+  /* A gate: the parameter applies only where parameter `when` (a config entry) has
+   * when_on[value] set; elsewhere it reads as off (value 0). -1 when ungated. */
+  int32_t when;
+  const unsigned char *when_on;
 } stress_param;
 
 typedef struct stress_pipeline {

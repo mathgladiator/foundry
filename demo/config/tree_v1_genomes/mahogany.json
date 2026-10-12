@@ -62,13 +62,21 @@
       0.27,
       0.16
     ],
+    "fruit_seasons": [
+      1,
+      0.5,
+      0.3,
+      0.7
+    ],
     "fruit_size": 0.09,
     "fruit_unripe": [
       0.47,
       0.42,
       0.26
     ],
+    "hanging_moss": 0,
     "height": 15,
+    "knees": 0,
     "latin": "Swietenia macrophylla",
     "leaf_fall": [
       0.21,
@@ -97,12 +105,20 @@
     ],
     "leafiness": 1.2,
     "lean": 0.04,
+    "moss_color": [
+      0.6,
+      0.63,
+      0.55
+    ],
     "name": "Mahogany",
+    "pickable": false,
+    "prop_roots": 0,
     "slender": 35,
     "snow": 0,
     "sprig_length": 0.35,
     "sprigs": 3,
     "stiffness": 10.3,
+    "swell": 0,
     "tip_up": 0.1,
     "twig_angle": 48,
     "twig_curve": 0.2,

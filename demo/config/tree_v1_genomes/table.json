@@ -76,10 +76,22 @@
           "blossom",
           "blossom_leaf",
           "blossom_color",
+          "pickable",
           "fruit",
+          "fruit_seasons",
           "fruit_size",
           "fruit_unripe",
           "fruit_ripe"
+        ]
+      },
+      {
+        "label": "Roots and moss",
+        "fields": [
+          "swell",
+          "knees",
+          "prop_roots",
+          "hanging_moss",
+          "moss_color"
         ]
       },
       {
@@ -111,7 +123,8 @@
       "leaf_winter",
       "blossom_color",
       "fruit_unripe",
-      "fruit_ripe"
+      "fruit_ripe",
+      "moss_color"
     ]
   }
 }

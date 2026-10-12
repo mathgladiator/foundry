@@ -55,19 +55,27 @@
     "flare": 0.6,
     "flex": 0.6,
     "foliage": "clumps",
-    "fruit": 0,
+    "fruit": 0.4,
     "fruit_ripe": [
-      0.3,
-      0.2,
-      0.15
+      0.72,
+      0.6,
+      0.3
     ],
-    "fruit_size": 0.05,
+    "fruit_seasons": [
+      0,
+      0.2,
+      0.6,
+      1
+    ],
+    "fruit_size": 0.06,
     "fruit_unripe": [
       0.5,
       0.55,
       0.3
     ],
+    "hanging_moss": 0,
     "height": 12,
+    "knees": 0,
     "latin": "Diospyros ebenum",
     "leaf_fall": [
       0.15,
@@ -96,12 +104,20 @@
     ],
     "leafiness": 1.4,
     "lean": 0.03,
+    "moss_color": [
+      0.6,
+      0.63,
+      0.55
+    ],
     "name": "Ebony",
+    "pickable": true,
+    "prop_roots": 0,
     "slender": 45,
     "snow": 0.0,
     "sprig_length": 0.4,
     "sprigs": 2,
     "stiffness": 16,
+    "swell": 0,
     "tip_up": 0.1,
     "twig_angle": 45,
     "twig_curve": 0.0,

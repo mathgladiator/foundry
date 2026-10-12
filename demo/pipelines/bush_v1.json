@@ -1,0 +1,25 @@
+{
+  "kind": "pipeline",
+  "name": "bush_v1",
+  "state": "draft",
+  "doc": "A shrub (design/systems.md, Shrubs and ground cover): the game asks for a species, age, and season, and whether its berries are still on, at a position with the local wind; grow makes the shrub, and the animator sways it in the same wind as the trees and flowers. No break interaction.",
+  "notes": [],
+  "created_at": "2026-10-12T10:00:00Z",
+  "params": [
+    {"name": "species", "type": "config", "table": "bush_v1_genomes", "default": "hazel", "doc": "A species: one genome from config/bush_v1_genomes/."},
+    {"name": "age", "type": "enum", "values": ["young", "mature", "old"], "default": "mature"},
+    {"name": "season", "type": "enum", "values": ["winter", "spring", "summer", "fall"], "default": "summer"},
+    {"name": "fruit", "type": "bool", "default": true, "when": {"param": "species", "field": "pickable"}, "doc": "The shrub still carries its berries; clear it when they are picked. Applies only to species whose fruit can be picked (pickable); elsewhere it is disabled."},
+    {"name": "seed", "type": "u32", "min": 1, "max": 1000, "default": 1, "doc": "Which of the distinct shrubs per species, age, and season (the runtime caps how many by quality)."},
+    {"name": "detail", "type": "enum", "values": ["high", "medium", "low"], "default": "high", "doc": "Level of detail; the runtime picks it from distance and quality."},
+    {"name": "wind_speed", "type": "f32", "min": 0, "max": 25, "default": 6, "unit": "m/s"},
+    {"name": "wind_heading", "type": "f32", "min": 0, "max": 360, "default": 90, "unit": "deg", "doc": "Toward which the wind blows, from +Z toward +X."},
+    {"name": "gust_damping", "type": "f32", "min": 0, "max": 1, "default": 0.3},
+    {"name": "time", "type": "time", "default": 0, "unit": "s"}
+  ],
+  "stages": [
+    {"id": "grow", "system": "bush_grow_v1", "input": {"genome": "$species", "age": "$age", "season": "$season", "fruit": "$fruit", "seed": "$seed", "detail": "$detail"}},
+    {"id": "animate", "system": "bush_animate_v1", "phase": "update", "input": {"bones": "@grow.bones", "wind_speed": "$wind_speed", "wind_heading": "$wind_heading", "gust_damping": "$gust_damping", "time": "$time", "seed": "$seed"}}
+  ],
+  "draw": {"model": "grow", "pose": "animate", "conformance": {"radius": "radius", "height": "height"}}
+}

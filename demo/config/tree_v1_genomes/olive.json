@@ -57,19 +57,27 @@
     "flare": 0.9,
     "flex": 0.8,
     "foliage": "clumps",
-    "fruit": 0,
+    "fruit": 1.0,
     "fruit_ripe": [
       0.25,
       0.2,
       0.25
     ],
-    "fruit_size": 0.05,
+    "fruit_seasons": [
+      1,
+      0,
+      0.25,
+      0.6
+    ],
+    "fruit_size": 0.045,
     "fruit_unripe": [
       0.45,
       0.55,
       0.2
     ],
+    "hanging_moss": 0,
     "height": 6,
+    "knees": 0,
     "latin": "Olea europaea",
     "leaf_fall": [
       0.45,
@@ -98,12 +106,20 @@
     ],
     "leafiness": 1.1,
     "lean": 0.15,
+    "moss_color": [
+      0.6,
+      0.63,
+      0.55
+    ],
     "name": "Olive",
+    "pickable": true,
+    "prop_roots": 0,
     "slender": 13,
     "snow": 0.1,
     "sprig_length": 0.4,
     "sprigs": 3,
     "stiffness": 9.0,
+    "swell": 0,
     "tip_up": 0.1,
     "twig_angle": 45,
     "twig_curve": 0.0,

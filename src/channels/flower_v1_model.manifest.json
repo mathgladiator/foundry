@@ -1,0 +1,8 @@
+{
+  "kind": "channel",
+  "name": "flower_v1_model",
+  "state": "draft",
+  "reason": "The flower's drawable output, following the draw convention (positions, indices, normals, colors, bone_a/b/w), so the host and runtime draw it without knowing flowers.",
+  "notes": [],
+  "created_at": "2026-10-12T09:00:00Z"
+}

@@ -1,0 +1,106 @@
+{
+  "created_at": "2026-10-12T10:00:00Z",
+  "doc": "Oak and beech woods of Atlantic Europe: an upright evergreen of dark glossy prickly leaves and smooth grey bark, with scarlet berries through fall and winter.",
+  "notes": [],
+  "reference": [
+    "reference/bushes/holly/01.jpg",
+    "reference/bushes/holly/02.jpg",
+    "reference/bushes/holly/03.jpg"
+  ],
+  "state": "draft",
+  "value": {
+    "age_height": [
+      0.4,
+      1.0,
+      1.15
+    ],
+    "bark_dark": [
+      0.4,
+      0.4,
+      0.36
+    ],
+    "bark_light": [
+      0.6,
+      0.6,
+      0.55
+    ],
+    "bloom": [
+      0,
+      0.15,
+      0,
+      0
+    ],
+    "blossom_color": [
+      0.96,
+      0.95,
+      0.92
+    ],
+    "blossom_size": 0.3,
+    "branch_angle": 55,
+    "branch_length": 0.5,
+    "branches": 8,
+    "clump": 0.08,
+    "deciduous": false,
+    "fall_drop": 0.3,
+    "flex": 0.7,
+    "foliage": "clumps",
+    "fruit": 1.5,
+    "fruit_cluster": 5,
+    "fruit_ripe": [
+      0.85,
+      0.08,
+      0.08
+    ],
+    "fruit_seasons": [
+      1,
+      0.8,
+      0.1,
+      0.8
+    ],
+    "fruit_size": 0.026,
+    "fruit_unripe": [
+      0.4,
+      0.55,
+      0.25
+    ],
+    "height": 3,
+    "latin": "Ilex aquifolium",
+    "leaf_fall": [
+      0.12,
+      0.3,
+      0.15
+    ],
+    "leaf_fall_alt": [
+      0.14,
+      0.32,
+      0.16
+    ],
+    "leaf_spring": [
+      0.25,
+      0.42,
+      0.2
+    ],
+    "leaf_summer": [
+      0.12,
+      0.3,
+      0.15
+    ],
+    "leaf_winter": [
+      0.12,
+      0.28,
+      0.14
+    ],
+    "leafiness": 1.6,
+    "name": "Holly",
+    "pickable": true,
+    "shape": "upright",
+    "snow": 0.8,
+    "stem_curve": 0,
+    "stem_spread": 0.2,
+    "stems": 4,
+    "twigs": 2,
+    "width": 0.7,
+    "winter_keep": 0.0,
+    "wobble": 0.1
+  }
+}

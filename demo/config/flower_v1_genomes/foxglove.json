@@ -1,0 +1,88 @@
+{
+  "created_at": "2026-10-12T09:00:00Z",
+  "doc": "Woodland clearings and edges: a rosette of broad soft leaves, then a tall spire hung on one side with pink-purple bells. Evergreen rosette; blooms in early summer.",
+  "notes": [],
+  "reference": [
+    "reference/flowers/foxglove/01.jpg",
+    "reference/flowers/foxglove/02.jpg"
+  ],
+  "state": "draft",
+  "value": {
+    "bloom": [
+      0,
+      0.3,
+      1,
+      0.1
+    ],
+    "bud": [
+      0.6,
+      0.5,
+      0.6
+    ],
+    "center": [
+      0.7,
+      0.4,
+      0.6
+    ],
+    "center_height": 0.3,
+    "center_size": 0.3,
+    "clump_radius": 0.2,
+    "dormant": false,
+    "evergreen": true,
+    "flex": 0.7,
+    "florets": 26,
+    "head": "bell",
+    "head_size": 0.05,
+    "height": 1.4,
+    "latin": "Digitalis purpurea",
+    "leaf": "broad",
+    "leaf_color": [
+      0.32,
+      0.45,
+      0.26
+    ],
+    "leaf_droop": 0.9,
+    "leaf_fall": [
+      0.45,
+      0.42,
+      0.26
+    ],
+    "leaf_length": 0.25,
+    "leaf_width": 0.4,
+    "leaves": 12,
+    "name": "Foxglove",
+    "nod": 0.6,
+    "one_sided": true,
+    "petal": [
+      0.78,
+      0.3,
+      0.6
+    ],
+    "petal_cup": 10,
+    "petal_curl": 0,
+    "petal_layers": 1,
+    "petal_tip": [
+      0.86,
+      0.5,
+      0.72
+    ],
+    "petal_width": 0.4,
+    "petals": 5,
+    "raceme": 0.55,
+    "seed_head": [
+      0.45,
+      0.42,
+      0.3
+    ],
+    "stem_color": [
+      0.38,
+      0.5,
+      0.3
+    ],
+    "stem_curve": 0.05,
+    "stem_lean": 0.08,
+    "stem_leaves": 4,
+    "stem_radius": 0.009,
+    "stems": 3
+  }
+}
