@@ -3,8 +3,11 @@
 // it, turned by sixths, scaled in height, tinted, and swayed by the wind here,
 // on the GPU, with no bones and no pose: a vertex moves by its sway (metres in a
 // 10 m/s wind) times the wind, in gusts that travel across the field. Lit with
-// the same cel bands as skinned.hlsl.
-// SDL GPU binding model for SPIR-V: vertex uniforms are set 1.
+// light.hlsli, as skinned.hlsl: grass takes the shadows of what stands on it.
+// SDL GPU binding model for SPIR-V: vertex uniforms are set 1, fragment samplers
+// set 2, fragment uniforms set 3.
+
+#include "light.hlsli"
 
 [[vk::binding(0, 1)]] cbuffer Frame : register(b0, space1) {
   float4x4 view_proj;  // column-major, as the C API passes it
@@ -28,6 +31,7 @@ struct VsOut {
   float4 position : SV_Position;
   [[vk::location(0)]] float3 normal : TEXCOORD0;
   [[vk::location(1)]] float4 color : TEXCOORD1;
+  [[vk::location(2)]] float3 world : TEXCOORD2;
 };
 
 VsOut vs_main(VsIn v) {
@@ -48,15 +52,11 @@ VsOut vs_main(VsIn v) {
   o.position = mul(view_proj, float4(world, 1.0));
   o.normal = n;
   o.color = float4(v.color.rgb * lerp(float3(1, 1, 1), v.tint.rgb * 2.0, v.color.a), 1.0);  // the tint is the grass's, not the ground's
+  o.world = world;
   return o;
 }
 
 float4 ps_main(VsOut i, bool front : SV_IsFrontFace) : SV_Target0 {
-  const float3 light_dir = normalize(float3(0.62, 0.68, 0.40));
-  const float3 light = float3(1.04, 0.98, 0.88);
-  const float3 shadow = float3(0.50, 0.52, 0.72);
-  float3 n = normalize(i.normal) * (front ? 1.0 : -1.0);
-  float ndl = dot(n, light_dir);
-  float3 c = ndl > 0.02 ? i.color.rgb * light * (ndl > 0.45 ? 1.0 : 0.84) : i.color.rgb * shadow * 1.05;
-  return float4(c, 1.0);
+  const float3 n = normalize(i.normal) * (front ? 1.0 : -1.0);
+  return float4(shade(i.color.rgb, n, i.world), 1.0);
 }

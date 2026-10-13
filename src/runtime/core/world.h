@@ -19,6 +19,8 @@
 #include "core/threads.h"
 #include "render/field_renderer.h"
 #include "render/skinned_renderer.h"
+#include "render/sky_renderer.h"
+#include "sky/sky.h"
 
 namespace runtime {
 
@@ -135,6 +137,14 @@ class World {
   Status force_level(uint64_t handle, int level);
   uint32_t cost() const { return cost_; }
 
+  // The sky (design/observatory.md): an observatory (null: none, the classic fixed light), the state
+  // a game sets on it, and where its shadow map looks (radius 0: ahead of the camera, 60 m).
+  void set_sky(std::shared_ptr<const sky::Observatory> observatory);
+  void set_sky_state(const sky::State &state);
+  void set_shadow_focus(const float centre[3], float radius);
+  // The sky's last frame (where the sun and moons are, the light); false without a sky.
+  bool sky_frame(sky::Frame &out) const;
+
   void update(float dt);
   void prepare(SDL_GPUCommandBuffer *cmd);
   void draw(SDL_GPUCommandBuffer *cmd, SDL_GPURenderPass *pass);
@@ -229,6 +239,7 @@ class World {
   Entry *field_tile(Slot &s, uint32_t variant, uint32_t level, bool request);
   void drop_field_builds(Slot &s);
   void prepare_fields(SDL_GPUCopyPass *copy);
+  void prepare_sky(SDL_GPUCommandBuffer *cmd);
   Slot *slot(uint64_t handle);
   const Slot *slot(uint64_t handle) const;
   void want(Slot &s);
@@ -268,6 +279,7 @@ class World {
   std::vector<Finished> finished_;
 
   float view_proj_[16] = {};
+  float view_[16] = {}, projection_[16] = {};
   float eye_[3] = {0, 0, 0};
   float p11_ = 1;            // the projection's vertical scale (1 / tan(fov / 2))
   bool ortho_ = false;
@@ -280,6 +292,14 @@ class World {
   std::vector<DrawRange> frame_ranges_;
   FieldRenderer field_renderer_;
   std::vector<FieldRange> field_ranges_;
+  SkyRenderer sky_;
+  std::shared_ptr<const sky::Observatory> observatory_;
+  sky::State sky_state_;
+  sky::Frame sky_frame_;
+  bool have_sky_frame_ = false;
+  float shadow_centre_[3] = {0, 0, 0}, shadow_radius_ = 0;  // radius 0: ahead of the camera
+  ShadowView shadow_;
+  bool shadow_drawn_ = false;  // this frame
   std::vector<uint32_t> field_slots_;  // the slots that are fields
   uint64_t field_triangles_ = 0;       // drawn by fields in the last frame
   std::vector<uint32_t> free_dense_;

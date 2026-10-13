@@ -42,6 +42,9 @@ void Workspace::scan() {
   each(root / "plotters", [&](const fs::path &p) {
     if (p.extension() == ".json") add("plotter", p.stem().string(), p, p);
   });
+  each(root / "observatories", [&](const fs::path &p) {
+    if (p.extension() == ".json") add("observatory", p.stem().string(), p, p);
+  });
   each(source / "src/systems", [&](const fs::path &p) {
     if (fs::exists(p / "system.json")) add("system", p.filename().string(), p, p / "system.json");
   });

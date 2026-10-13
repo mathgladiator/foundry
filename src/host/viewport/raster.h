@@ -9,7 +9,10 @@
 // foundry has a window; this CPU renderer remains for headless runs.
 #pragma once
 
+#include <memory>
+
 #include "render/mesh.h"
+#include "sky/sky.h"
 #include "viewport/image.h"
 
 namespace viewport {
@@ -26,6 +29,12 @@ struct Camera {
                        // game camera's 0.9 rad field of view (to see an asset as at a LOD switch)
   float frame = 0;     // > 0: frame a box this many metres tall and wide instead of the content, so
                        // several renders (a contact sheet) share one scale
+  float pan[3] = {0, 0, 0};  // metres the view's target moves from what it frames: along the ground (x, z), and up (y)
+  // Free look (an observatory's sky): stand at eye and look at an azimuth (radians from north, -Z,
+  // toward east, +X) and elevation, with a vertical field of view. Overrides the view above.
+  bool free = false;
+  float eye[3] = {0, 1.6f, 3.0f};
+  float azimuth = 0, elevation = 0.5f, fov = 1.1f;
 };
 
 struct Overlays {
@@ -42,8 +51,21 @@ struct Line {
   float r = 1, g = 1, bl = 1, alpha = 0.9f;
 };
 
+// An observatory's sky over the scene (design/observatory.md): the sky behind it, its light on it,
+// and on the GPU its shadows (with a ground to catch them).
+struct SkyScene {
+  std::shared_ptr<const runtime::sky::Observatory> observatory;
+  runtime::sky::State state;
+  double time = 0;     // seconds, for the clouds' drift, twinkling, and the aurora
+  bool ground = true;  // a disc of the observatory's ground under the scene
+};
+
+// The ground a sky puts under a scene: a disc around a centre, at y = 0.
+runtime::Mesh ground_disc(float cx, float cz, float radius, const float color[3]);
+
 struct Scene {
   const runtime::Mesh *mesh = nullptr;
+  const SkyScene *sky = nullptr;  // null: the workspace's backdrop and fixed light
   std::vector<Line> collision;  // drawn when overlays.collision is on
   std::vector<Line> lines;      // always drawn, and included in the framing (a region's hexes)
   bool has_conformance = false;

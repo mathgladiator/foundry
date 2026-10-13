@@ -3,6 +3,8 @@
 #include <SDL3/SDL.h>
 
 #include <csignal>
+#include <execinfo.h>
+#include <unistd.h>
 #include <cstdio>
 #include <cstring>
 #include <string>
@@ -20,6 +22,8 @@
 #include "meshy/tools.h"
 #include "perf/stress.h"
 #include "pipeline/tools.h"
+#include "sky/observatory.h"
+#include "sky/tools.h"
 #include "workspace/tools.h"
 
 namespace {
@@ -38,8 +42,21 @@ void usage() {
 
 }  // namespace
 
+// A crash writes its stack (addresses in the binary, for addr2line) to stderr, the foundry's log.
+void on_crash(int sig) {
+  void *frames[64];
+  const int n = backtrace(frames, 64);
+  const char head[] = "crash: signal; the stack follows\n";
+  (void)!write(2, head, sizeof head - 1);
+  backtrace_symbols_fd(frames, n, 2);
+  std::signal(sig, SIG_DFL);
+  std::raise(sig);
+}
+
 int main(int argc, char **argv) {
   std::signal(SIGPIPE, SIG_IGN);
+  std::signal(SIGSEGV, on_crash);
+  std::signal(SIGABRT, on_crash);
   bool headless = false;
   std::string root = FOUNDRY_SOURCE_DIR, build = FOUNDRY_BUILD_DIR, workspace_arg;
   int port = 0;
@@ -83,6 +100,8 @@ int main(int argc, char **argv) {
   pipeline::register_tools(registry, pipelines, live, ws);
   plot::View plot_view(s.paths, pipelines, runner);
   plot::register_tools(registry, plot_view);
+  sky::observatories().set_root(s.config.workspace);
+  sky::register_tools(registry);
   perf::register_stress_tools(registry, s.paths, pipelines);
   // Selecting a pipeline or a config entry shows the live instance, posed for now.
   assets::set_live_provider([&live, &plot_view](const workspace::Item &item, assets::ViewContent &v) {

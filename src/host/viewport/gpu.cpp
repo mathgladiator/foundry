@@ -13,6 +13,9 @@
 #include "viewport_line_vs_spirv.h"
 #include "viewport_mesh_ps_spirv.h"
 #include "viewport_mesh_vs_spirv.h"
+#include "viewport_shadow_ps_spirv.h"
+#include "viewport_sky_ps_spirv.h"
+#include "viewport_sky_vs_spirv.h"
 
 namespace viewport {
 
@@ -94,7 +97,7 @@ bool GpuRenderer::init(SDL_GPUDevice *device, std::string &error) {
   SDL_GPUShader *mesh_vs = shader(device, viewport_mesh_vs_spirv, viewport_mesh_vs_spirv_size, "mesh_vs",
                                   SDL_GPU_SHADERSTAGE_VERTEX, 0, 1);
   SDL_GPUShader *mesh_ps = shader(device, viewport_mesh_ps_spirv, viewport_mesh_ps_spirv_size, "mesh_ps",
-                                  SDL_GPU_SHADERSTAGE_FRAGMENT, 0, 1);
+                                  SDL_GPU_SHADERSTAGE_FRAGMENT, 2, 2);  // the light's shadow and cloud maps; Look and the light
   SDL_GPUShader *full_vs = shader(device, viewport_full_vs_spirv, viewport_full_vs_spirv_size, "full_vs",
                                   SDL_GPU_SHADERSTAGE_VERTEX, 0, 0);
   SDL_GPUShader *ink_ps = shader(device, viewport_ink_ps_spirv, viewport_ink_ps_spirv_size, "ink_ps",
@@ -105,11 +108,17 @@ bool GpuRenderer::init(SDL_GPUDevice *device, std::string &error) {
                                   SDL_GPU_SHADERSTAGE_VERTEX, 0, 1);
   SDL_GPUShader *line_ps = shader(device, viewport_line_ps_spirv, viewport_line_ps_spirv_size, "line_ps",
                                   SDL_GPU_SHADERSTAGE_FRAGMENT, 1, 0);
+  SDL_GPUShader *sky_vs = shader(device, viewport_sky_vs_spirv, viewport_sky_vs_spirv_size, "skyfull_vs",
+                                 SDL_GPU_SHADERSTAGE_VERTEX, 0, 0);
+  SDL_GPUShader *sky_ps = shader(device, viewport_sky_ps_spirv, viewport_sky_ps_spirv_size, "sky_ps",
+                                 SDL_GPU_SHADERSTAGE_FRAGMENT, 3, 3);  // stars, glow, clouds; the sky is the third slot
+  SDL_GPUShader *shadow_ps = shader(device, viewport_shadow_ps_spirv, viewport_shadow_ps_spirv_size, "shadow_ps",
+                                    SDL_GPU_SHADERSTAGE_FRAGMENT, 0, 0);
   auto release_shaders = [&] {
-    for (SDL_GPUShader *s : {mesh_vs, mesh_ps, full_vs, ink_ps, down_ps, line_vs, line_ps})
+    for (SDL_GPUShader *s : {mesh_vs, mesh_ps, full_vs, ink_ps, down_ps, line_vs, line_ps, sky_vs, sky_ps, shadow_ps})
       if (s) SDL_ReleaseGPUShader(device, s);
   };
-  if (!mesh_vs || !mesh_ps || !full_vs || !ink_ps || !down_ps || !line_vs || !line_ps) {
+  if (!mesh_vs || !mesh_ps || !full_vs || !ink_ps || !down_ps || !line_vs || !line_ps || !sky_vs || !sky_ps || !shadow_ps) {
     error = std::string("viewport shaders: ") + SDL_GetError();
     release_shaders();
     return false;
@@ -146,6 +155,27 @@ bool GpuRenderer::init(SDL_GPUDevice *device, std::string &error) {
     info.target_info.depth_stencil_format = SDL_GPU_TEXTUREFORMAT_D32_FLOAT;
     info.target_info.has_depth_stencil_target = true;
     mesh_ = SDL_CreateGPUGraphicsPipeline(device, &info);
+    // The shadow map: the same vertices from the key light, depth only, biased by slope.
+    info.fragment_shader = shadow_ps;
+    info.target_info.color_target_descriptions = nullptr;
+    info.target_info.num_color_targets = 0;
+    info.rasterizer_state.enable_depth_bias = true;
+    info.rasterizer_state.depth_bias_constant_factor = 1.0f;
+    info.rasterizer_state.depth_bias_slope_factor = 1.75f;
+    shadow_ = SDL_CreateGPUGraphicsPipeline(device, &info);
+    // The sky: after the mesh, at the far plane, into the same three targets.
+    SDL_GPUGraphicsPipelineCreateInfo sky = {};
+    sky.vertex_shader = sky_vs;
+    sky.fragment_shader = sky_ps;
+    sky.primitive_type = SDL_GPU_PRIMITIVETYPE_TRIANGLELIST;
+    sky.depth_stencil_state.enable_depth_test = true;
+    sky.depth_stencil_state.enable_depth_write = false;
+    sky.depth_stencil_state.compare_op = SDL_GPU_COMPAREOP_LESS_OR_EQUAL;
+    sky.target_info.color_target_descriptions = ct;
+    sky.target_info.num_color_targets = 3;
+    sky.target_info.depth_stencil_format = SDL_GPU_TEXTUREFORMAT_D32_FLOAT;
+    sky.target_info.has_depth_stencil_target = true;
+    sky_ = SDL_CreateGPUGraphicsPipeline(device, &sky);
   }
   auto full = [&](SDL_GPUShader *ps, bool blend) {
     SDL_GPUColorTargetDescription ct = {};
@@ -205,8 +235,12 @@ bool GpuRenderer::init(SDL_GPUDevice *device, std::string &error) {
   nearest_ = SDL_CreateGPUSampler(device, &si);
   si.min_filter = si.mag_filter = SDL_GPU_FILTER_LINEAR;
   linear_ = SDL_CreateGPUSampler(device, &si);
-  if (!mesh_ || !ink_ || !down_ || !lines_ || !nearest_ || !linear_) {
+  if (!mesh_ || !ink_ || !down_ || !lines_ || !sky_ || !shadow_ || !nearest_ || !linear_) {
     error = std::string("viewport pipelines: ") + SDL_GetError();
+    shutdown();
+    return false;
+  }
+  if (!sky_renderer_.init(device, SDL_GPU_TEXTUREFORMAT_INVALID, SDL_GPU_TEXTUREFORMAT_INVALID, error)) {
     shutdown();
     return false;
   }
@@ -219,9 +253,10 @@ void GpuRenderer::shutdown() {
   for (Mesh &m : meshes_) release(m);
   meshes_.clear();
   release_targets();
-  for (SDL_GPUGraphicsPipeline *p : {mesh_, ink_, down_, lines_})
+  for (SDL_GPUGraphicsPipeline *p : {mesh_, ink_, down_, lines_, sky_, shadow_})
     if (p) SDL_ReleaseGPUGraphicsPipeline(device_, p);
-  mesh_ = ink_ = down_ = lines_ = nullptr;
+  mesh_ = ink_ = down_ = lines_ = sky_ = shadow_ = nullptr;
+  sky_renderer_.shutdown();
   if (nearest_) SDL_ReleaseGPUSampler(device_, nearest_);
   if (linear_) SDL_ReleaseGPUSampler(device_, linear_);
   nearest_ = linear_ = nullptr;
@@ -357,7 +392,27 @@ bool GpuRenderer::render(const Scene &scene, int width, int height, Image &out) 
   // World to clip, from the framing: x and y as the CPU renderer projects them, depth over a range
   // that holds the whole mesh.
   const runtime::Mesh *mesh = scene.mesh && !scene.mesh->indices.empty() ? scene.mesh : nullptr;
+  // Under a sky: its frame, and a ground to catch the shadows.
+  const bool sky = scene.sky && scene.sky->observatory && !scene.silhouette;
+  runtime::sky::Frame sky_frame;
+  if (sky) {
+    sky_renderer_.set(scene.sky->observatory, scene.sky->state.constellations);
+    sky_frame = runtime::sky::compute(*scene.sky->observatory, scene.sky->state);
+  }
+  const runtime::Mesh *ground = nullptr;
+  float ground_radius = 0;
+  if (sky && scene.sky->ground) {
+    ground_radius = std::max(2000.0f, fr.radius * 40);  // out to where the fog meets the horizon
+    const float *gc = scene.sky->observatory->ground;
+    const float key[4] = {ground_radius, gc[0], gc[1], gc[2]};
+    if (ground_.positions.empty() || std::memcmp(key, ground_key_, sizeof key) != 0) {
+      ground_ = ground_disc(0, 0, ground_radius, gc);
+      std::memcpy(ground_key_, key, sizeof key);
+    }
+    ground = &ground_;
+  }
   float near_z = 1e30f, far_z = 0;
+  float mesh_lo[3] = {0, 0, 0}, mesh_hi[3] = {0, 0, 0};
   auto reach = [&](vec3 p) {
     const float z = dot3({p.x - fr.eye.x, p.y - fr.eye.y, p.z - fr.eye.z}, fr.forward);
     near_z = std::min(near_z, z);
@@ -376,7 +431,13 @@ bool GpuRenderer::render(const Scene &scene, int width, int height, Image &out) 
         hi = {std::max(hi.x, p.x), std::max(hi.y, p.y), std::max(hi.z, p.z)};
       }
       for (int k = 0; k < 8; ++k) reach({k & 1 ? hi.x : lo.x, k & 2 ? hi.y : lo.y, k & 4 ? hi.z : lo.z});
+      for (int k = 0; k < 3; ++k) {
+        mesh_lo[k] = k == 0 ? lo.x : k == 1 ? lo.y : lo.z;
+        mesh_hi[k] = k == 0 ? hi.x : k == 1 ? hi.y : hi.z;
+      }
     }
+    if (ground)
+      for (int k = 0; k < 4; ++k) reach({k & 1 ? ground_radius : -ground_radius, 0, k & 2 ? ground_radius : -ground_radius});
   }
   const float pad = 0.05f * (far_z - near_z) + 1.0f;
   far_z += pad;
@@ -410,10 +471,19 @@ bool GpuRenderer::render(const Scene &scene, int width, int height, Image &out) 
   cam.forward[0] = fr.forward.x;
   cam.forward[1] = fr.forward.y;
   cam.forward[2] = fr.forward.z;
-  const float look[4] = {scene.silhouette ? 1.0f : 0.0f, 0, 0, 0};
+  const float look[4] = {scene.silhouette ? 1.0f : 0.0f, sky ? 1.0f : 0.0f, 0, 0};
 
+  Mesh *gm = ground ? mesh_for(*ground) : nullptr;
   Mesh *g = mesh ? mesh_for(*mesh) : nullptr;
   if (g && (!g->position || !g->normal || !g->color || !g->index)) return false;
+  if (gm && (!gm->position || !gm->normal || !gm->color || !gm->index)) gm = nullptr;
+  auto draw_mesh = [&](SDL_GPURenderPass *pass, const Mesh *m) {
+    SDL_GPUBufferBinding vbs[3] = {{m->position, 0}, {m->normal, 0}, {m->color, 0}};
+    SDL_BindGPUVertexBuffers(pass, 0, vbs, 3);
+    SDL_GPUBufferBinding ib = {m->index, 0};
+    SDL_BindGPUIndexBuffer(pass, &ib, SDL_GPU_INDEXELEMENTSIZE_32BIT);
+    SDL_DrawGPUIndexedPrimitives(pass, static_cast<Uint32>(m->indices), 1, 0, 0, 0);
+  };
   // The overlay lines, uploaded each render (they're few).
   std::vector<LineVertex> lines;
   for (const OverlaySegment &s : overlay_segments(scene, fr))
@@ -423,6 +493,40 @@ bool GpuRenderer::render(const Scene &scene, int width, int height, Image &out) 
                                                    SDL_GPU_BUFFERUSAGE_VERTEX);
 
   SDL_GPUCommandBuffer *cmd = SDL_AcquireGPUCommandBuffer(device_);
+  {  // the sky's textures, baked when its observatory or constellations changed
+    SDL_GPUCopyPass *copy = SDL_BeginGPUCopyPass(cmd);
+    sky_renderer_.upload(copy);
+    SDL_EndGPUCopyPass(copy);
+  }
+  // The key light's shadow map, around the model and the ground its shadow falls on.
+  runtime::ShadowView shadow;
+  bool shadowed = false;
+  if (sky && g && scene.sky->state.shadows && sky_frame.key_dir[1] > 0.03f) {
+    if (SDL_GPUTexture *map = sky_renderer_.shadow_map()) {
+      const float centre[3] = {0.5f * (mesh_lo[0] + mesh_hi[0]), 0, 0.5f * (mesh_lo[2] + mesh_hi[2])};
+      const float size = std::max({mesh_hi[0] - mesh_lo[0], mesh_hi[1] - mesh_lo[1], mesh_hi[2] - mesh_lo[2]});
+      // Long shadows reach out to about three heights from the model.
+      const float reach_m = 0.5f * size + std::min(3.0f, 1.0f / std::max(sky_frame.key_dir[1], 0.2f)) * std::max(mesh_hi[1], 0.5f);
+      shadow = runtime::shadow_view(sky_frame.key_dir, centre, reach_m + 0.5f, runtime::SkyRenderer::kShadowSize);
+      CameraUniform light_cam = {};
+      std::memcpy(light_cam.clip, shadow.view_proj, sizeof light_cam.clip);
+      SDL_GPUDepthStencilTargetInfo dt = {};
+      dt.texture = map;
+      dt.clear_depth = 1;
+      dt.load_op = SDL_GPU_LOADOP_CLEAR;
+      dt.store_op = SDL_GPU_STOREOP_STORE;
+      SDL_GPURenderPass *pass = SDL_BeginGPURenderPass(cmd, nullptr, 0, &dt);
+      SDL_BindGPUGraphicsPipeline(pass, shadow_);
+      SDL_PushGPUVertexUniformData(cmd, 0, &light_cam, sizeof light_cam);
+      draw_mesh(pass, g);
+      SDL_EndGPURenderPass(pass);
+      shadowed = true;
+    }
+  }
+  const float eye3[3] = {fr.eye.x, fr.eye.y, fr.eye.z};
+  const runtime::LightBinding light =
+      sky ? sky_renderer_.light(sky_frame, scene.sky->state, eye3, scene.sky->time, shadowed ? &shadow : nullptr)
+          : sky_renderer_.classic_light();
   {  // the mesh
     SDL_GPUColorTargetInfo ct[3] = {};
     for (int i = 0; i < 3; ++i) {
@@ -439,15 +543,38 @@ bool GpuRenderer::render(const Scene &scene, int width, int height, Image &out) 
     dt.load_op = SDL_GPU_LOADOP_CLEAR;
     dt.store_op = SDL_GPU_STOREOP_DONT_CARE;
     SDL_GPURenderPass *pass = SDL_BeginGPURenderPass(cmd, ct, 3, &dt);
-    if (g) {
+    if (g || gm) {
       SDL_BindGPUGraphicsPipeline(pass, mesh_);
-      SDL_GPUBufferBinding vbs[3] = {{g->position, 0}, {g->normal, 0}, {g->color, 0}};
-      SDL_BindGPUVertexBuffers(pass, 0, vbs, 3);
-      SDL_GPUBufferBinding ib = {g->index, 0};
-      SDL_BindGPUIndexBuffer(pass, &ib, SDL_GPU_INDEXELEMENTSIZE_32BIT);
       SDL_PushGPUVertexUniformData(cmd, 0, &cam, sizeof cam);
       SDL_PushGPUFragmentUniformData(cmd, 0, look, sizeof look);
-      SDL_DrawGPUIndexedPrimitives(pass, static_cast<Uint32>(g->indices), 1, 0, 0, 0);
+      SDL_PushGPUFragmentUniformData(cmd, 1, &light.uniform, sizeof light.uniform);
+      SDL_BindGPUFragmentSamplers(pass, 0, light.samplers, 2);
+      if (gm) {  // the ground, as backdrop
+        const float backdrop[4] = {look[0], look[1], 1, 0};
+        SDL_PushGPUFragmentUniformData(cmd, 0, backdrop, sizeof backdrop);
+        draw_mesh(pass, gm);
+        SDL_PushGPUFragmentUniformData(cmd, 0, look, sizeof look);
+      }
+      if (g) draw_mesh(pass, g);
+    }
+    if (sky && sky_renderer_.ready()) {
+      runtime::SkyCamera sc;
+      const float axes[3][3] = {{fr.right.x, fr.right.y, fr.right.z}, {fr.up.x, fr.up.y, fr.up.z}, {fr.forward.x, fr.forward.y, fr.forward.z}};
+      std::memcpy(sc.eye, eye3, sizeof sc.eye);
+      std::memcpy(sc.right, axes[0], sizeof sc.right);
+      std::memcpy(sc.up, axes[1], sizeof sc.up);
+      std::memcpy(sc.forward, axes[2], sizeof sc.forward);
+      sc.tan_y = fr.ortho ? 0.45f : fr.cy / fr.scale;
+      sc.tan_x = fr.ortho ? 0.45f * fr.cx / fr.cy : fr.cx / fr.scale;
+      const runtime::SkyUniform su = sky_renderer_.sky_uniform(sky_frame, scene.sky->state, sc, scene.sky->time);
+      SDL_GPUTextureSamplerBinding ss[3];
+      sky_renderer_.sky_samplers(ss);
+      SDL_BindGPUGraphicsPipeline(pass, sky_);
+      SDL_BindGPUFragmentSamplers(pass, 0, ss, 3);
+      SDL_PushGPUFragmentUniformData(cmd, 0, look, sizeof look);
+      SDL_PushGPUFragmentUniformData(cmd, 1, &light.uniform, sizeof light.uniform);
+      SDL_PushGPUFragmentUniformData(cmd, 2, &su, sizeof su);
+      SDL_DrawGPUPrimitives(pass, 3, 1, 0, 0);
     }
     SDL_EndGPURenderPass(pass);
   }

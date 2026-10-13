@@ -98,6 +98,7 @@ void Live::stop() {
   rt_ = nullptr;
   region_ = FOUNDRY_NO_REGION;
   shared_.clear();
+  sky_.reset();
   instances_.clear();
   tree_.clear();
   if (device_) {
@@ -127,6 +128,7 @@ bool Live::start(SDL_GPUDevice *device, const std::string &plotter, const nlohma
   desc.color_format = SDL_GPU_TEXTUREFORMAT_R8G8B8A8_UNORM;
   desc.depth_format = SDL_GPU_TEXTUREFORMAT_D32_FLOAT;
   desc.quality = FOUNDRY_QUALITY_HIGH;
+  desc.physics = walker_->desc();  // the trees' trunks, for a play test to bump into
   rt_ = foundry_runtime_create(&desc);
   if (!rt_) {
     error = std::string("runtime: ") + foundry_last_error();
@@ -180,6 +182,97 @@ void Live::share(const nlohmann::json &shared) {
     const std::string value = it.value().is_string() ? it.value().get<std::string>() : it.value().dump();
     for (foundry_instance i : instances_) foundry_diag_set_param(rt_, i, it.key().c_str(), value.c_str());
   }
+}
+
+void Live::set_sky(const std::shared_ptr<const runtime::sky::Observatory> &o, const runtime::sky::State &state,
+                   const float centre[3], float radius) {
+  if (!rt_) return;
+  if (o != sky_) {
+    if (!o) {
+      foundry_sky_set_observatory(rt_, nullptr);
+    } else {
+      // The observatory as the game hands it in: plain structs over arrays that live for the call.
+      foundry_observatory_desc d;
+      foundry_observatory_default(&d);
+      auto copy3 = [](float *out, const float *in) { std::memcpy(out, in, 3 * sizeof(float)); };
+      d.axial_tilt_deg = o->axial_tilt_deg;
+      d.year_days = o->year_days;
+      d.equinox = o->equinox;
+      d.pole_ra_deg = o->pole_ra_deg;
+      d.pole_dec_deg = o->pole_dec_deg;
+      copy3(d.sun_color, o->sun_color);
+      d.sun_size_deg = o->sun_size_deg;
+      d.sun_intensity = o->sun_intensity;
+      d.planet_km = o->air.planet_km;
+      d.air_km = o->air.top_km;
+      copy3(d.rayleigh, o->air.rayleigh);
+      d.rayleigh_km = o->air.rayleigh_km;
+      copy3(d.mie, o->air.mie);
+      copy3(d.mie_absorb, o->air.mie_absorb);
+      d.mie_km = o->air.mie_km;
+      copy3(d.mie_g, o->air.mie_g);
+      copy3(d.ozone, o->air.ozone);
+      std::vector<foundry_sky_moon> moons;
+      for (const auto &m : o->moons) {
+        foundry_sky_moon x = {};
+        x.period_days = m.period_days;
+        x.inclination_deg = m.inclination_deg;
+        x.node_deg = m.node_deg;
+        x.phase = m.phase;
+        x.size_deg = m.size_deg;
+        x.distance_km = m.distance_km;
+        x.brightness = m.brightness;
+        copy3(x.color, m.color);
+        x.equatorial = m.equatorial;
+        moons.push_back(x);
+      }
+      std::vector<std::vector<foundry_sky_star>> stars(o->constellations.size());
+      std::vector<foundry_sky_constellation> chart;
+      for (size_t i = 0; i < o->constellations.size(); ++i) {
+        const auto &c = o->constellations[i];
+        for (const auto &st : c.stars) stars[i].push_back({st.ra_hours, st.dec_deg, st.magnitude, st.color_index});
+        chart.push_back({c.name.c_str(), stars[i].data(), static_cast<uint32_t>(stars[i].size()), c.lines.data(),
+                         static_cast<uint32_t>(c.lines.size() / 2)});
+      }
+      d.moons = moons.data();
+      d.moon_count = static_cast<uint32_t>(moons.size());
+      d.constellations = chart.data();
+      d.constellation_count = static_cast<uint32_t>(chart.size());
+      d.stars = o->stars;
+      d.star_seed = o->star_seed;
+      d.milky_way = o->milky_way;
+      d.cloud_height_m = o->cloud_height_m;
+      d.cloud_size_m = o->cloud_size_m;
+      d.cloud_seed = o->cloud_seed;
+      copy3(d.cloud_color, o->cloud_color);
+      d.aurora_latitude_deg = o->aurora_latitude_deg;
+      copy3(d.aurora_low, o->aurora_low);
+      copy3(d.aurora_high, o->aurora_high);
+      copy3(d.lit_color, o->lit_color);
+      copy3(d.night, o->night);
+      copy3(d.ground, o->ground);
+      foundry_sky_set_observatory(rt_, &d);
+    }
+    sky_ = o;
+  }
+  if (!o) return;
+  foundry_sky_state st;
+  foundry_sky_state_default(&st);
+  st.time_of_day = state.time_of_day;
+  st.year = state.year;
+  st.latitude_deg = state.latitude_deg;
+  st.clouds = state.clouds;
+  st.cloud_wind[0] = state.cloud_wind[0];
+  st.cloud_wind[1] = state.cloud_wind[1];
+  st.aurora = state.aurora;
+  st.star_density = state.star_density;
+  for (size_t i = 0; i < 2 && i < state.moon_distance_km.size(); ++i) st.moon_distance_km[i] = state.moon_distance_km[i];
+  st.constellations = state.constellations.data();
+  st.constellation_count = static_cast<uint32_t>(state.constellations.size());
+  st.shadows = state.shadows;
+  std::memcpy(st.shadow_centre, centre, sizeof st.shadow_centre);
+  st.shadow_radius = radius;
+  foundry_sky_set_state(rt_, &st);
 }
 
 SDL_GPUTexture *Live::frame(SDL_GPUCommandBuffer *cmd, int width, int height, const float eye[3], const float target[3],

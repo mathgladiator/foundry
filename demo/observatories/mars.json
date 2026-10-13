@@ -1,0 +1,84 @@
+{
+  "about": "Mars: a butterscotch day and a blue sunset in dusty air; Phobos rising in the west and crossing the sky in hours, Deimos a bright star; Earth's constellations around a pole near Deneb.",
+  "axial_tilt_deg": 25.19,
+  "year_days": 668.6,
+  "equinox": 0.0,
+  "pole": {
+    "ra_deg": 317.68,
+    "dec_deg": 52.89
+  },
+  "sun": {
+    "color": [1.0, 0.97, 0.92],
+    "size_deg": 0.35,
+    "intensity": 20
+  },
+  "air": {
+    "planet_km": 3390,
+    "top_km": 80,
+    "rayleigh": [7e-05, 0.00016, 0.0004],
+    "rayleigh_km": 11,
+    "mie": [0.0055, 0.0047, 0.0036],
+    "mie_absorb": [0.0005, 0.0017, 0.0042],
+    "mie_km": 11,
+    "mie_g": [0.62, 0.7, 0.86],
+    "ozone": [0, 0, 0]
+  },
+  "moons": [
+    {
+      "name": "phobos",
+      "period_days": 0.3104,
+      "inclination_deg": 1.08,
+      "node_deg": 0,
+      "phase": 0.1,
+      "size_deg": 0.2,
+      "distance_km": 6000,
+      "brightness": 0.3,
+      "color": [0.7, 0.64, 0.58],
+      "equatorial": true
+    },
+    {
+      "name": "deimos",
+      "period_days": 1.2307,
+      "inclination_deg": 1.79,
+      "node_deg": 40,
+      "phase": 0.55,
+      "size_deg": 0.04,
+      "distance_km": 20070,
+      "brightness": 0.12,
+      "color": [0.8, 0.74, 0.66],
+      "equatorial": true
+    }
+  ],
+  "stars": {
+    "count": 60000,
+    "seed": 7,
+    "milky_way": 1
+  },
+  "clouds": {
+    "height_m": 4000,
+    "size_m": 1200,
+    "seed": 11,
+    "color": [1.0, 0.94, 0.88]
+  },
+  "aurora": {
+    "latitude_deg": 70,
+    "low": [0.3, 0.9, 0.5],
+    "high": [0.55, 0.35, 0.7]
+  },
+  "lit_color": [0.55, 0.82, 1.0],
+  "night": [0.008, 0.007, 0.009],
+  "ground": [0.55, 0.33, 0.2],
+  "constellations_from": "earth",
+  "start": {
+    "time_of_day": 0.7,
+    "year": 0.3,
+    "latitude_deg": 18,
+    "clouds": 0.1,
+    "cloud_wind": [12, 2],
+    "aurora": 0,
+    "shadows": true,
+    "constellations": {
+      "cygnus": "connected"
+    }
+  }
+}

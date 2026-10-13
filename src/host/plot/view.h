@@ -40,14 +40,17 @@ struct Picture {
 
 // Terrain over a ground (heights and moisture, from noise over the cells): a style (flat, hills,
 // ridges, terraces, dunes, mesas, wild), its height, the size of its features, how rough it is,
-// and a random height per cell on top. Valleys come out wetter; a pond stays flat, below its shore.
+// and a random height per cell on top, then smoothed (no cliffs at 1). Valleys come out wetter; a pond
+// stays flat, below its shore.
 struct Terrain {
   std::string style = "flat";
   float height_m = 0;      // from the lowest cell to the highest
   float scale_cells = 12;  // the size of a hill
   float roughness = 0.5f;  // 0 smooth to 1 broken
   float jitter_m = 0;      // each cell's own height, up and down
+  float smooth = 0;        // 0 as made; 1 blurred, and no step between neighbours over kSmoothStep
 };
+constexpr float kSmoothStep = 0.25f;  // metres, between neighbouring cells at smooth 1
 
 class View {
  public:
@@ -64,7 +67,7 @@ class View {
   nlohmann::json regions() const;
   using Terrain = plot::Terrain;
   static const std::vector<std::string> &terrains();
-  static Terrain terrain_of(const nlohmann::json &j);  // {style, height_m, scale_cells, roughness, jitter_m}
+  static Terrain terrain_of(const nlohmann::json &j);  // {style, height_m, scale_cells, roughness, jitter_m, smooth}
   // A ready-made ground: hex, ring, strip, union, pond, path, slope, ragged, single, or glen, with a terrain.
   static nlohmann::json preset(const std::string &name, int radius, uint32_t seed, const Terrain &terrain = Terrain());
   static const std::vector<std::string> &presets();
@@ -84,6 +87,8 @@ class View {
 
   nlohmann::json state() const;  // the region, its occupants by layer and kind, the last grow
   nlohmann::json metrics() const;
+  // The ground as triangles (xyz per vertex, three per triangle): what a play test walks on.
+  std::vector<float> ground_triangles() const;
   // The latest composed picture; starts composing in the background when the state changed.
   Picture picture();
 

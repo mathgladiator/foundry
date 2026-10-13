@@ -13,6 +13,7 @@
 #include "core/util.h"
 #include "pipeline/config.h"
 #include "pipeline/flow.h"
+#include "sky/observatory.h"
 #include "json/registry.h"
 #include "viewport/image.h"
 
@@ -270,6 +271,9 @@ void register_tools(mcp::Registry &registry, Runner &runner, Live &live, workspa
                              {"distance", {{"type", "number"}}},
                              {"frame", {{"type", "number"}}},
                              {"silhouette", {{"type", "boolean"}}},
+                             {"observatory", {{"type", "string"},
+                                              {"description", "under this observatory's sky (design/observatory.md), or none; "
+                                                              "default: what the pipeline's viewer is under"}}},
                              {"size", {{"type", "integer"}}}},
                             {"pipeline"}),
                 [&runner, &live](const json &args) {
@@ -284,7 +288,11 @@ void register_tools(mcp::Registry &registry, Runner &runner, Live &live, workspa
                   viewport::Camera cam = camera_from(args);
                   cam.frame = args.value("frame", 0.0f);
                   int size = std::clamp(args.value("size", 512), 64, 1024);
-                  viewport::Image img = assets::render_view(content_of(r.frame, name), cam, {}, args.value("silhouette", false), size, size);
+                  viewport::SkyScene sky_scene;
+                  const std::string under = args.value("observatory", sky::observatories().view_of("pipeline:" + name));
+                  const bool has_sky = under != "none" && sky::observatories().scene(under, sky_scene);
+                  viewport::Image img = assets::render_view(content_of(r.frame, name), cam, {}, args.value("silhouette", false), size, size,
+                                                            0, has_sky ? &sky_scene : nullptr);
                   json v = runner.complete(def, values);
                   return image_result(img, name + " " + v.dump() + "\n" + frame_json(r.frame).dump());
                 }});

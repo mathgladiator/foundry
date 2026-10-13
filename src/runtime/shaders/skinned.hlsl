@@ -1,8 +1,12 @@
 // skinned.hlsl: the mega shader's skinned path (design/submit.md): instances
 // of one mesh, each with its own bone matrices, blended from two bones per
-// vertex, then lit with the style.md section 6 cel bands (as cel.hlsl).
+// vertex, then lit by light.hlsli (the style.md section 6 cel bands, and under a
+// sky its shadows, clouds, fog, and exposure). shadow_ps draws only depth, for
+// the sky's shadow map.
 // SDL GPU binding model for SPIR-V: vertex storage buffers are set 0,
-// vertex uniforms set 1.
+// vertex uniforms set 1, fragment samplers set 2, fragment uniforms set 3.
+
+#include "light.hlsli"
 
 [[vk::binding(0, 0)]] StructuredBuffer<float4> bones : register(t0, space0);  // 3 rows per bone
 
@@ -27,6 +31,7 @@ struct VsOut {
   float4 position : SV_Position;
   [[vk::location(0)]] float3 normal : TEXCOORD0;
   [[vk::location(1)]] float4 color : TEXCOORD1;
+  [[vk::location(2)]] float3 world : TEXCOORD2;
 };
 
 VsOut vs_main(VsIn v) {
@@ -44,15 +49,13 @@ VsOut vs_main(VsIn v) {
   o.position = mul(view_proj, float4(world, 1.0));
   o.normal = n;
   o.color = v.color;
+  o.world = world;
   return o;
 }
 
 float4 ps_main(VsOut i, bool front : SV_IsFrontFace) : SV_Target0 {
-  const float3 light_dir = normalize(float3(0.62, 0.68, 0.40));
-  const float3 light = float3(1.04, 0.98, 0.88);
-  const float3 shadow = float3(0.50, 0.52, 0.72);
-  float3 n = normalize(i.normal) * (front ? 1.0 : -1.0);
-  float ndl = dot(n, light_dir);
-  float3 c = ndl > 0.02 ? i.color.rgb * light * (ndl > 0.45 ? 1.0 : 0.84) : i.color.rgb * shadow * 1.05;
-  return float4(c, 1.0);
+  const float3 n = normalize(i.normal) * (front ? 1.0 : -1.0);
+  return float4(shade(i.color.rgb, n, i.world), 1.0);
 }
+
+void shadow_ps() {}

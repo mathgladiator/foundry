@@ -40,6 +40,18 @@ The control pad only shows parameters for the active interaction path. When a tr
 
 The mega shader's parameters (`style.md` §6) can be added to the control pad too, which makes play testing the place to explore and tune the shader (`submit.md`).
 
+## Moving around
+
+Every 3D view in the foundry (pipelines, config entries, fixed assets, plotters static and live, and observatories) moves the same way (`src/host/app/controls.h`):
+
+- **Orbit:** drag to orbit and use the wheel to zoom. Shift-drag or right-drag pans along the ground, and ctrl-drag (or the **height** field) raises or lowers what the camera orbits. **Centre** puts it back. The live plotter's right button still flies.
+- **A gamepad:** the right stick orbits, the left pans, the shoulders raise and lower, and the triggers zoom. Standing at an observatory, either stick looks around and the triggers zoom. While a 3D view shows, the sticks belong to it, and ImGui's gamepad navigation steps aside.
+- **Play:** the hero's capsule (1.8 m tall, 0.35 m in radius) walks the scene, moved by Jolt's character controller (`src/host/physics/walker.h`).
+  - Controls: WASD or the left stick walks (4 m/s), and Shift or the right trigger runs (8). Space or A jumps (about 1.1 m). Drag or the right stick looks. The wheel or Y moves the camera between behind the capsule and its eyes, and Escape or Back stops.
+  - It climbs steps up to 0.45 m and slopes up to 50 degrees. Solid bodies stop it, soft ones part, and queries and sensors don't touch it.
+  - What it walks on: in the live plotter, the region's ground, among every trunk the runtime keeps in the Jolt world the foundry hands it, as a game does. In other views, a floor plus the model's collision bodies (a pipeline's) or its mesh (a fixed asset, or an observatory's sundial).
+  - `tests/walker_test.cpp` checks the walk and run speeds, a solid trunk and a soft one, a step and a wall, and the jump.
+
 ## Levels of testing
 
 Play testing happens at five levels, from narrowest to widest:

@@ -106,7 +106,7 @@ std::shared_ptr<const runtime::Mesh> mesh_at(const ViewContent &content, uint32_
 
 viewport::Image render_view(const ViewContent &content, const viewport::Camera &camera,
                             const viewport::Overlays &overlays, bool silhouette, int width, int height,
-                            uint32_t triangles) {
+                            uint32_t triangles, const viewport::SkyScene *sky) {
   if (content.image) return *content.image;
   std::shared_ptr<const runtime::Mesh> mesh = mesh_at(content, triangles);
   viewport::Scene scene;
@@ -119,6 +119,7 @@ viewport::Image render_view(const ViewContent &content, const viewport::Camera &
   scene.camera = camera;
   scene.overlays = overlays;
   scene.silhouette = silhouette;
+  scene.sky = sky;
   return viewport::render(scene, width, height);
 }
 

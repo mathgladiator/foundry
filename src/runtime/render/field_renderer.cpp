@@ -36,6 +36,8 @@ bool FieldRenderer::init(SDL_GPUDevice *device, SDL_GPUTextureFormat color_forma
   ps.entrypoint = "ps_main";
   ps.format = SDL_GPU_SHADERFORMAT_SPIRV;
   ps.stage = SDL_GPU_SHADERSTAGE_FRAGMENT;
+  ps.num_samplers = 2;  // light.hlsli: the shadow map and the clouds
+  ps.num_uniform_buffers = 1;
   SDL_GPUShader *vsh = SDL_CreateGPUShader(device, &vs);
   SDL_GPUShader *psh = SDL_CreateGPUShader(device, &ps);
   if (!vsh || !psh) {
@@ -186,7 +188,7 @@ void FieldRenderer::end_frame(SDL_GPUCopyPass *copy) {
 }
 
 void FieldRenderer::draw(SDL_GPUCommandBuffer *cmd, SDL_GPURenderPass *pass, const std::vector<FieldRange> &ranges,
-                         const float view_proj[16], float time) {
+                         const float view_proj[16], float time, const LightBinding &light) {
   if (ranges.empty() || !instances_) return;
   struct {
     float view_proj[16];
@@ -196,6 +198,8 @@ void FieldRenderer::draw(SDL_GPUCommandBuffer *cmd, SDL_GPURenderPass *pass, con
   frame.clock[0] = time;
   SDL_BindGPUGraphicsPipeline(pass, pipeline_);
   SDL_PushGPUVertexUniformData(cmd, 0, &frame, sizeof frame);
+  SDL_BindGPUFragmentSamplers(pass, 0, light.samplers, 2);
+  SDL_PushGPUFragmentUniformData(cmd, 0, &light.uniform, sizeof light.uniform);
   for (const FieldRange &r : ranges) {
     if (!r.mesh->vertices || r.count == 0) continue;
     SDL_GPUBufferBinding vbs[2] = {{r.mesh->vertices, 0}, {instances_, 0}};

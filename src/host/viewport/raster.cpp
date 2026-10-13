@@ -130,7 +130,13 @@ void add_capsule(std::vector<OverlaySegment> &out, vec3 base, float r, float h, 
   }
 }
 
-void raster_mesh(Target &t, const Projector &pr, const runtime::Mesh &m, bool silhouette) {
+// The light a CPU render uses: the fixed one, or a sky's (its key and ambient times its exposure).
+struct CpuLight {
+  vec3 dir = kLightDir;
+  Rgb key = kLight, ambient = {kShadow.r * 1.05f, kShadow.g * 1.05f, kShadow.b * 1.05f};
+};
+
+void raster_mesh(Target &t, const Projector &pr, const runtime::Mesh &m, bool silhouette, const CpuLight &light = CpuLight()) {
   const size_t nv = m.positions.size();
   std::vector<vec3> sp(nv);
   for (size_t i = 0; i < nv; ++i) sp[i] = pr.project(m.positions[i]);
@@ -176,13 +182,13 @@ void raster_mesh(Target &t, const Projector &pr, const runtime::Mesh &m, bool si
         Rgb al = {w0 * ca.r + w1 * cb.r + w2 * cc.r, w0 * ca.g + w1 * cb.g + w2 * cc.g, w0 * ca.b + w1 * cb.b + w2 * cc.b};
         vec3 n = normalize(na * w0 + nb * w1 + nc * w2);
         if (dot(n, to_cam) < 0) n = n * -1.0f;  // two-sided: imported meshes may have flipped winding
-        float ndl = dot(n, kLightDir);
+        float ndl = dot(n, light.dir);
         Rgb out;
         if (ndl > 0.02f) {
           float k = ndl > 0.45f ? 1.0f : 0.84f;
-          out = {al.r * kLight.r * k, al.g * kLight.g * k, al.b * kLight.b * k};
+          out = {al.r * light.key.r * k, al.g * light.key.g * k, al.b * light.key.b * k};
         } else {
-          out = {al.r * kShadow.r * 1.05f, al.g * kShadow.g * 1.05f, al.b * kShadow.b * 1.05f};
+          out = {al.r * light.ambient.r, al.g * light.ambient.g, al.b * light.ambient.b};
         }
         if (dot(n, to_cam) < 0.28f) out = {out.r + 0.07f, out.g + 0.07f, out.b + 0.08f};  // rim band
         t.color[i] = out;
@@ -273,8 +279,9 @@ Framing frame(const Scene &scene, int W, int H) {
     bounds.add({-0.5f * f, 0, -0.5f * f});
     bounds.add({0.5f * f, f, 0.5f * f});
   }
-  vec3 centre = (bounds.lo + bounds.hi) * 0.5f;
   vec3 ext = bounds.hi - bounds.lo;
+  const vec3 pan{scene.camera.pan[0], scene.camera.pan[1], scene.camera.pan[2]};
+  vec3 centre = (bounds.lo + bounds.hi) * 0.5f + pan;
   float radius = 0.5f * std::sqrt(dot(ext, ext)) + 0.05f;
 
   Framing pr;
@@ -307,6 +314,18 @@ Framing frame(const Scene &scene, int W, int H) {
       up = {up.z, up.y, -up.x};
     }
   }
+  if (scene.camera.free) {
+    // Standing at the eye, looking at an azimuth (from north, -Z, toward east, +X) and elevation.
+    const Camera &c = scene.camera;
+    pr.ortho = false;
+    pr.eye = {c.eye[0], c.eye[1], c.eye[2]};
+    pr.forward = normalize({std::sin(c.azimuth) * std::cos(c.elevation), std::sin(c.elevation), -std::cos(c.azimuth) * std::cos(c.elevation)});
+    const vec3 world_up = std::fabs(pr.forward.y) > 0.999f ? vec3{std::sin(c.azimuth), 0, -std::cos(c.azimuth)} : vec3{0, 1, 0};
+    pr.right = normalize(cross(pr.forward, world_up));
+    pr.up = cross(pr.right, pr.forward);
+    pr.scale = 0.5f * std::min(W, H) / std::tan(std::clamp(c.fov, 0.05f, 2.8f) * 0.5f);
+    return pr;
+  }
   pr.forward = normalize(dir * -1.0f);
   pr.right = normalize(cross(pr.forward, up));
   pr.up = cross(pr.right, pr.forward);
@@ -318,7 +337,7 @@ Framing frame(const Scene &scene, int W, int H) {
     if (scene.mesh && !scene.mesh->positions.empty()) {
       Bounds mb;
       for (const auto &p : scene.mesh->positions) mb.add(p);
-      target = (mb.lo + mb.hi) * 0.5f;
+      target = (mb.lo + mb.hi) * 0.5f + pan;
     }
     pr.eye = target + normalize(dir) * scene.camera.distance;
     pr.forward = normalize(target - pr.eye);
@@ -338,7 +357,7 @@ Framing frame(const Scene &scene, int W, int H) {
     float half_w = 0, half_h = 0;
     for (int k = 0; k < 8; ++k) {
       vec3 c{k & 1 ? bounds.hi.x : bounds.lo.x, k & 2 ? bounds.hi.y : bounds.lo.y, k & 4 ? bounds.hi.z : bounds.lo.z};
-      vec3 d = c - centre;
+      vec3 d = c - (centre - pan);  // fit what it frames, wherever it was panned
       half_w = std::max(half_w, std::fabs(dot(d, pr.right)));
       half_h = std::max(half_h, std::fabs(dot(d, pr.up)));
     }
@@ -388,14 +407,26 @@ Image render_cpu(const Scene &scene, int width, int height) {
   pr.cx = fr.cx;
   pr.cy = fr.cy;
 
-  // Background: a soft vertical gradient.
+  // Background: a soft vertical gradient; under a sky, from its zenith to its horizon (no sun, moons,
+  // stars, clouds, ground, or shadows: the GPU draws those).
+  CpuLight light;
+  runtime::sky::Frame sky;
+  const bool has_sky = scene.sky && scene.sky->observatory;
+  if (has_sky) {
+    sky = runtime::sky::compute(*scene.sky->observatory, scene.sky->state);
+    light.dir = normalize({sky.key_dir[0], sky.key_dir[1], sky.key_dir[2]});
+    light.key = {sky.key[0] * sky.exposure, sky.key[1] * sky.exposure, sky.key[2] * sky.exposure};
+    light.ambient = {sky.ambient[0] * sky.exposure, sky.ambient[1] * sky.exposure, sky.ambient[2] * sky.exposure};
+  }
   for (int y = 0; y < H; ++y) {
     float s = static_cast<float>(y) / static_cast<float>(H);
     Rgb c = {0.20f + 0.06f * s, 0.22f + 0.05f * s, 0.27f + 0.02f * s};
+    if (has_sky) c = {sky.zenith[0] + (sky.horizon[0] - sky.zenith[0]) * s, sky.zenith[1] + (sky.horizon[1] - sky.zenith[1]) * s,
+                      sky.zenith[2] + (sky.horizon[2] - sky.zenith[2]) * s};
     for (int x = 0; x < W; ++x) t.color[static_cast<size_t>(y) * W + x] = c;
   }
 
-  if (scene.mesh) raster_mesh(t, pr, *scene.mesh, scene.silhouette);
+  if (scene.mesh) raster_mesh(t, pr, *scene.mesh, scene.silhouette, light);
   ink(t, scene.silhouette);
   for (const OverlaySegment &l : overlay_segments(scene, fr)) draw_line(t, pr, l.a, l.b, {l.r, l.g, l.bl}, l.alpha, l.hidden);
 
@@ -411,6 +442,27 @@ Image render_cpu(const Scene &scene, int width, int height) {
     img.rgba[i * 4 + 3] = 255;
   }
   return downsample(img, kSupersample);
+}
+
+runtime::Mesh ground_disc(float cx, float cz, float radius, const float color[3]) {
+  runtime::Mesh m;
+  const int n = 96;
+  const uint32_t c = static_cast<uint32_t>(std::lround(std::clamp(color[0], 0.0f, 1.0f) * 255)) |
+                     static_cast<uint32_t>(std::lround(std::clamp(color[1], 0.0f, 1.0f) * 255)) << 8 |
+                     static_cast<uint32_t>(std::lround(std::clamp(color[2], 0.0f, 1.0f) * 255)) << 16 | 0xff000000u;
+  m.positions.push_back({cx, 0, cz});
+  for (int i = 0; i < n; ++i) {
+    const float a = 2 * kPi * i / n;
+    m.positions.push_back({cx + radius * std::cos(a), 0, cz + radius * std::sin(a)});
+  }
+  m.normals.assign(m.positions.size(), vec3{0, 1, 0});
+  m.colors.assign(m.positions.size(), c);
+  for (int i = 0; i < n; ++i) {
+    m.indices.push_back(0);
+    m.indices.push_back(1 + (i + 1) % n);
+    m.indices.push_back(1 + i);
+  }
+  return m;
 }
 
 namespace {

@@ -20,6 +20,7 @@
 #include <vector>
 
 #include "app/capture.h"
+#include "app/controls.h"
 #include "app/services.h"
 #include "plot/live.h"
 #include "plot/tools.h"
@@ -37,6 +38,7 @@
 #include "pipeline/config.h"
 #include "pipeline/flow.h"
 #include "pipeline/live.h"
+#include "sky/observatory.h"
 #include "viewport/gpu.h"
 
 namespace app {
@@ -49,7 +51,7 @@ ImVec4 state_color(const std::string &state) {
   return {0.95f, 0.8f, 0.4f, 1};
 }
 
-const char *kKinds[][2] = {{"pipeline", "Pipelines"}, {"plotter", "Plotters"}, {"system", "Systems"}, {"channel", "Channels"},
+const char *kKinds[][2] = {{"pipeline", "Pipelines"}, {"plotter", "Plotters"}, {"observatory", "Observatories"}, {"system", "Systems"}, {"channel", "Channels"},
                            {"config", "Config"}, {"conformance", "Conformance"}, {"meshy", "Meshy"}, {"fixed", "Fixed assets"},
                            {"fracture", "Fractures"}, {"reference", "Reference"}};
 
@@ -256,11 +258,28 @@ struct UiState {
     // Per pipeline: parameter -> "" (all) or one value (pipelines share parameter names, such as species).
     std::map<std::string, std::map<std::string, std::string>> pins;
   } video;
+  // Skies (design/observatory.md): the observatory last picked for a viewer, and an observatory's own
+  // view (orbit its sundial, or stand beside it and look around).
+  std::string sky_pick = "earth";
+  std::string selected_sky_open;  // an observatory to select (its "open" button)
+  float sky_rate = 1.0f;          // hours of its day per second, when an observatory plays
+  bool sky_look = false;
+  float look_azimuth = 3.14159f, look_elevation = 0.45f, look_fov = 1.2f;
+  // Moving around (app/controls.h): the gamepad this frame, whether a 3D view takes it (ImGui's
+  // gamepad navigation steps aside), and the play test.
+  Pad pad;
+  bool pad_owned = false;
+  Play play;
+  bool play_request = false;
+  bool view_hovered = false;  // the static view's image, last frame
+  std::vector<runtime::CollisionBody> walk_bodies;  // a pipeline's collision, for the play test
+  const void *scale_of = nullptr;  // the mesh view_scale was measured on
+  float view_scale = 2;            // its size in metres, for how far the camera pans
   // The plotter inspector's controls (design/plotter.md, "In the foundry").
   struct PlotUi {
     int preset = 0, radius = 12, max = 40, seed = 1;
     int terrain = 1;  // hills
-    float terrain_height = 6, terrain_scale = 14, terrain_rough = 0.5f, terrain_jitter = 0.1f;
+    float terrain_height = 6, terrain_scale = 14, terrain_rough = 0.5f, terrain_jitter = 0.1f, terrain_smooth = 0;
     float clear_radius = 5, fell_fraction = 0.4f;
     bool verify = false, collision = false;
     std::string message;
@@ -279,8 +298,9 @@ struct UiState {
 
 std::string render_key(const UiState &s, int w, int h) {
   char buf[512];
-  std::snprintf(buf, sizeof buf, "%s|%u|%d|%d|%d|%.3f|%.3f|%.3f|%.3f|%d%d%d%d%d|%d|%dx%d", s.selected.c_str(), s.triangles,
-                s.ws_version, static_cast<int>(s.camera.view), s.camera.quarter, s.camera.distance, s.camera.yaw, s.camera.pitch, s.camera.zoom, s.overlays.conformance,
+  std::snprintf(buf, sizeof buf, "%s|%u|%d|%d|%d|%.3f|%.3f|%.3f|%.3f|%.3f,%.3f,%.3f|%d%d%d%d%d|%d|%dx%d", s.selected.c_str(), s.triangles,
+                s.ws_version, static_cast<int>(s.camera.view), s.camera.quarter, s.camera.distance, s.camera.yaw, s.camera.pitch, s.camera.zoom,
+                s.camera.pan[0], s.camera.pan[1], s.camera.pan[2], s.overlays.conformance,
                 s.overlays.collision, s.overlays.hero, s.overlays.hex, s.overlays.grid, s.silhouette, w, h);
   return buf + s.live_key + (s.plot_ui.collision ? "|pc" : "");
 }
@@ -652,6 +672,43 @@ void draw_lod_limits(Services &sv, UiState &st, const workspace::Item &item) {
 
 bool is_live(const std::string &id) { return id.rfind("pipeline:", 0) == 0 || id.rfind("config:", 0) == 0; }
 bool is_plot(const std::string &id) { return id.rfind("plotter:", 0) == 0; }
+bool is_obs(const std::string &id) { return id.rfind("observatory:", 0) == 0; }
+
+// A viewer's sky (design/observatory.md): a checkbox and which observatory, for pipelines, config
+// entries, and plotters.
+void draw_sky_controls(UiState &st) {
+  sky::Observatories &obs = sky::observatories();
+  std::string under = obs.view_of(st.selected);
+  bool on = !under.empty();
+  if (ImGui::Checkbox("Sky", &on)) obs.set_view(st.selected, on ? st.sky_pick : "");
+  ImGui::SetItemTooltip("Show it under an observatory's sky: its sun, moons, stars, clouds, and shadows.\n"
+                        "Set the time, season, and weather in the observatory's inspector.");
+  ImGui::SameLine();
+  ImGui::SetNextItemWidth(120);
+  const std::string shown = on ? under : st.sky_pick;
+  if (ImGui::BeginCombo("##observatory", shown.c_str())) {
+    for (const std::string &n : obs.names())
+      if (ImGui::Selectable(n.c_str(), n == shown)) {
+        st.sky_pick = n;
+        obs.set_view(st.selected, n);
+      }
+    ImGui::EndCombo();
+  }
+  if (on) {
+    std::shared_ptr<const sky::Observatory> o;
+    sky::State s;
+    std::string error;
+    if (obs.get(under, o, s, error)) {
+      ImGui::SameLine();
+      ImGui::TextDisabled("%s, %s", sky::clock_text(s.time_of_day).c_str(), sky::date_text(*o, s.year).c_str());
+      ImGui::SameLine();
+      if (ImGui::SmallButton("open")) st.selected_sky_open = under;
+    } else {
+      ImGui::SameLine();
+      ImGui::TextColored({0.95f, 0.45f, 0.4f, 1}, "%s", error.c_str());
+    }
+  }
+}
 
 double now_seconds() { return static_cast<double>(SDL_GetTicks()) / 1000.0; }
 
@@ -1174,6 +1231,154 @@ void load_reference(Services &sv, UiState &st) {
   st.reference_has_pending = viewport::load_image(sv.paths.workspace + "/" + path, st.reference_pending);
 }
 
+// An observatory (design/observatory.md): what its sky shows now, and its state: the time of day and
+// year (or play its day forward), the latitude, clouds, aurora, shadows, and its constellations.
+void draw_observatory(UiState &st, const workspace::Item &item) {
+  sky::Observatories &obs = sky::observatories();
+  std::shared_ptr<const sky::Observatory> o;
+  sky::State s;
+  std::string error;
+  if (!obs.get(item.name, o, s, error)) {
+    ImGui::TextColored({0.95f, 0.45f, 0.4f, 1}, "%s", error.c_str());
+    return;
+  }
+  if (item.data.contains("about")) ImGui::TextWrapped("%s", item.data["about"].get<std::string>().c_str());
+  const nlohmann::json now = sky::describe(*o, s);
+  ImGui::Text("%s, %s, at %.1f degrees %s", now["clock"].get<std::string>().c_str(), now["date"].get<std::string>().c_str(),
+              std::fabs(s.latitude_deg), s.latitude_deg >= 0 ? "north" : "south");
+  ImGui::Text("Sun %.1f degrees up, toward %.0f degrees", now["sun"]["altitude_deg"].get<float>(), now["sun"]["azimuth_deg"].get<float>());
+  for (const auto &m : now["moons"])
+    ImGui::Text("%s: %s (%.0f%% lit), %.1f degrees up, toward %.0f", m["name"].get<std::string>().c_str(),
+                m["phase"].get<std::string>().c_str(), m["lit"].get<float>() * 100, m["altitude_deg"].get<float>(),
+                m["azimuth_deg"].get<float>());
+  ImGui::TextDisabled("Light from the %s, exposure %.2f; stars %s%s", now["light"]["key"].get<std::string>().c_str(),
+                      now["light"]["exposure"].get<float>(), now["stars"].get<std::string>().c_str(),
+                      now["aurora"].get<float>() > 0 ? "; the aurora is out" : "");
+  ImGui::Separator();
+  sky::State n = s;
+  bool changed = false;
+  const float rate = obs.play(item.name);
+  bool playing = rate != 0;
+  if (ImGui::Checkbox("Play the day", &playing)) obs.set_play(item.name, playing ? st.sky_rate : 0);
+  ImGui::SameLine();
+  ImGui::SetNextItemWidth(160);
+  if (ImGui::SliderFloat("hours per second", &st.sky_rate, 0.02f, 48.0f, "%.2f", ImGuiSliderFlags_Logarithmic) && playing)
+    obs.set_play(item.name, st.sky_rate);
+  float hours = s.time_of_day * 24;
+  if (ImGui::SliderFloat("time of day", &hours, 0, 24, sky::clock_text(s.time_of_day).c_str())) {
+    n.time_of_day = std::clamp(hours / 24, 0.0f, 0.99999f);
+    changed = true;
+  }
+  float day = s.year * o->year_days;
+  if (ImGui::SliderFloat("day of the year", &day, 0, o->year_days, sky::date_text(*o, s.year).c_str())) {
+    n.year = std::clamp(day / o->year_days, 0.0f, 0.99999f);
+    changed = true;
+  }
+  changed |= ImGui::SliderFloat("latitude", &n.latitude_deg, -90, 90, "%.1f degrees");
+  changed |= ImGui::SliderFloat("clouds", &n.clouds, 0, 1, "%.2f");
+  float speed = std::hypot(s.cloud_wind[0], s.cloud_wind[1]);
+  float heading = std::atan2(s.cloud_wind[0], -s.cloud_wind[1]) * 57.29578f;
+  if (heading < 0) heading += 360;
+  ImGui::SetNextItemWidth(120);
+  bool wind = ImGui::SliderFloat("cloud wind (m/s)", &speed, 0, 40, "%.1f");
+  ImGui::SameLine();
+  ImGui::SetNextItemWidth(120);
+  wind |= ImGui::SliderFloat("toward (degrees)", &heading, 0, 360, "%.0f");
+  if (wind) {
+    n.cloud_wind[0] = speed * std::sin(heading / 57.29578f);
+    n.cloud_wind[1] = -speed * std::cos(heading / 57.29578f);
+    changed = true;
+  }
+  changed |= ImGui::SliderFloat("aurora", &n.aurora, 0, 1, "%.2f");
+  ImGui::SetItemTooltip("0 none to 1 a great storm. It shows on dark nights, poleward, and nearer the equator as it grows.");
+  changed |= ImGui::SliderFloat("star density", &n.star_density, 0, runtime::sky::kMaxStarDensity, "%.2f");
+  ImGui::SetItemTooltip("How many background stars show, brightest first: 0 only the constellations', 1 the %u\n"
+                        "the observatory names (to magnitude 7.6), %.0f four times as many (to 8.8).\n"
+                        "The Milky Way fades below 0.5.", o->stars, runtime::sky::kMaxStarDensity);
+  // Each moon's distance: nearer is bigger in the sky and lights the ground more (its orbit keeps its period).
+  n.moon_distance_km.resize(o->moons.size(), 0.0f);
+  for (size_t i = 0; i < o->moons.size(); ++i) {
+    const runtime::sky::Moon &m = o->moons[i];
+    if (m.distance_km <= 0) continue;
+    float km = n.moon_distance_km[i] > 0 ? n.moon_distance_km[i] : m.distance_km;
+    const std::string label = m.name + " distance";
+    if (ImGui::SliderFloat(label.c_str(), &km, m.distance_km * 0.25f, m.distance_km * 4, "%.0f km", ImGuiSliderFlags_Logarithmic)) {
+      n.moon_distance_km[i] = std::fabs(km - m.distance_km) < m.distance_km * 0.005f ? 0.0f : km;
+      changed = true;
+    }
+    ImGui::SetItemTooltip("Usually %.0f km. Nearer, it is bigger in the sky (%.2f degrees at its usual distance)\n"
+                          "and its light on the ground grows as the square. Its orbit keeps its period.\n"
+                          "Ctrl-click to type a distance.", m.distance_km, m.size_deg);
+    ImGui::SameLine();
+    ImGui::PushID(static_cast<int>(i));
+    if (ImGui::SmallButton("usual")) {
+      n.moon_distance_km[i] = 0;
+      changed = true;
+    }
+    ImGui::PopID();
+  }
+  changed |= ImGui::Checkbox("shadows", &n.shadows);
+  ImGui::Text("Constellations");
+  ImGui::SameLine();
+  for (uint8_t v = 0; v < 3; ++v) {
+    static const char *all[] = {"all dark", "all lit", "all connected"};
+    if (v) ImGui::SameLine();
+    if (ImGui::SmallButton(all[v])) {
+      std::fill(n.constellations.begin(), n.constellations.end(), v);
+      changed = true;
+    }
+  }
+  n.constellations.resize(o->constellations.size(), runtime::sky::kDark);
+  if (ImGui::BeginTable("constellations", 4, ImGuiTableFlags_SizingStretchProp | ImGuiTableFlags_RowBg)) {
+    for (size_t i = 0; i < o->constellations.size(); ++i) {
+      ImGui::PushID(static_cast<int>(i));
+      ImGui::TableNextRow();
+      ImGui::TableNextColumn();
+      ImGui::TextUnformatted(o->constellations[i].name.c_str());
+      static const char *names[] = {"dark", "lit", "connected"};
+      for (uint8_t v = 0; v < 3; ++v) {
+        ImGui::TableNextColumn();
+        if (ImGui::RadioButton(names[v], n.constellations[i] == v)) {
+          n.constellations[i] = v;
+          changed = true;
+        }
+      }
+      ImGui::PopID();
+    }
+    ImGui::EndTable();
+  }
+  if (changed && !obs.set_state(item.name, n, error)) st.message = error;
+  // The seeds its sky is generated from, kept in its file: a seed always gives the same stars, Milky Way,
+  // and clouds, however often they are baked again.
+  ImGui::SeparatorText("Generation");
+  int seeds[2] = {static_cast<int>(o->star_seed), static_cast<int>(o->cloud_seed)};
+  ImGui::SetNextItemWidth(220);
+  ImGui::InputInt2("star and cloud seeds", seeds);
+  ImGui::SetItemTooltip("The star chart and Milky Way come from the first, the cloud map from the second.\n"
+                        "The same seed always bakes the same sky; it is written into %s.json.", item.name.c_str());
+  if (ImGui::IsItemDeactivatedAfterEdit() && (seeds[0] != static_cast<int>(o->star_seed) || seeds[1] != static_cast<int>(o->cloud_seed))) {
+    if (!obs.set_seeds(item.name, std::max(seeds[0], 0), std::max(seeds[1], 0), error)) st.message = error;
+    else st.message = item.name + ": a sky from star seed " + std::to_string(std::max(seeds[0], 0)) + ", cloud seed " +
+                      std::to_string(std::max(seeds[1], 0));
+  }
+  ImGui::SameLine();
+  if (ImGui::SmallButton("new stars")) {
+    const long long seed = static_cast<long long>(SDL_GetPerformanceCounter() % 100000);
+    if (!obs.set_seeds(item.name, seed, -1, error)) st.message = error;
+    else st.message = item.name + ": a new sky, star seed " + std::to_string(seed);
+  }
+  ImGui::Text("%u stars at density 1, %u baked (density %.0f)", o->stars,
+              static_cast<unsigned>(o->stars * runtime::sky::kMaxStarDensity), runtime::sky::kMaxStarDensity);
+  ImGui::Separator();
+  if (ImGui::Button("Save as its start")) {
+    if (!obs.save(item.name, error)) st.message = error;
+    else st.message = "saved " + item.name + "'s state as its start";
+  }
+  ImGui::SameLine();
+  if (ImGui::Button("Back to its start") && !obs.reset(item.name, error)) st.message = error;
+  if (!st.message.empty()) ImGui::TextWrapped("%s", st.message.c_str());
+}
+
 // A plotter: its region's ground, seed, shared values, growth, clearing, and metrics (design/plotter.md).
 // The plotter's performance in the native runtime: the newest scale report, summarized, and a button
 // that runs the scale plan (plotter_perf does the same through MCP).
@@ -1363,6 +1568,10 @@ void draw_plotter(Services &sv, UiState &st, const workspace::Item &item) {
   ImGui::SameLine();
   ImGui::SetNextItemWidth(100);
   ImGui::SliderFloat("jitter (m)", &u.terrain_jitter, 0.0f, 2.0f, "%.2f");
+  ImGui::SetNextItemWidth(120);
+  ImGui::SliderFloat("smooth", &u.terrain_smooth, 0.0f, 1.0f, "%.2f");
+  ImGui::SetItemTooltip("0: as made. 1: blurred, with no step between neighbouring cells over %.2f m (no cliffs)",
+                        plot::kSmoothStep);
   if (ImGui::Button("Use shape")) {
     plot::View::Terrain t;
     t.style = terrains[u.terrain];
@@ -1370,6 +1579,7 @@ void draw_plotter(Services &sv, UiState &st, const workspace::Item &item) {
     t.scale_cells = u.terrain_scale;
     t.roughness = u.terrain_rough;
     t.jitter_m = u.terrain_jitter;
+    t.smooth = u.terrain_smooth;
     nlohmann::json out;
     if (!view.set_regions(plot::View::preset(presets[u.preset], u.radius, view.seed(), t), out, error)) u.message = error;
     else u.message = "ground: " + out.dump();
@@ -1593,6 +1803,8 @@ void draw_details(Services &sv, UiState &st, const workspace::Item &item) {
                 d.value("height", 0.0f));
   } else if (item.kind == "plotter") {
     draw_plotter(sv, st, item);
+  } else if (item.kind == "observatory") {
+    draw_observatory(st, item);
   } else if (item.kind == "pipeline") {
     std::string error;
     if (sv.live->show(item.name, error)) draw_live(sv);
@@ -1647,7 +1859,7 @@ void draw_inspector(Services &sv, UiState &st) {
   workspace::Item item;
   if (!sv.ws->find(st.selected, item)) return;
   ImGui::Text("%s", item.id.c_str());
-  const bool approvable = item.kind != "reference";
+  const bool approvable = item.kind != "reference" && item.kind != "observatory";  // observatories are data, not versioned
   if (approvable) ImGui::TextColored(state_color(item.state()), "%s", item.state().c_str());
   if (item.data.contains("approved_at"))
     ImGui::TextDisabled("approved %s", item.data["approved_at"].get<std::string>().c_str());
@@ -2180,6 +2392,65 @@ void draw_video(Services &sv, UiState &st) {
   }
 }
 
+// The static view's size in metres (its mesh's widest reach), for how far a pixel or a stick pans.
+float view_scale(UiState &st) {
+  const runtime::Mesh *m = st.content.mesh.get();
+  if (m != st.scale_of) {
+    st.scale_of = m;
+    float r = 1;
+    if (m)
+      for (const auto &p : m->positions) r = std::max(r, std::max(std::hypot(p.x, p.z), p.y));
+    st.view_scale = r;
+  }
+  return st.view_scale;
+}
+
+// The world a play test walks in for the static view: a floor at the ground's height, and what the
+// selection stands for: a plotter's ground, a pipeline's collision bodies, or a fixed mesh as it is.
+// Returns the highest ground under the scene, to drop the walker onto.
+float build_walk_world(Services &sv, UiState &st, physics::Walker &w) {
+  w.clear();
+  w.add_floor(0);
+  std::vector<float> tris;
+  if (is_plot(st.selected)) {
+    tris = sv.plot->ground_triangles();
+  } else if (!st.walk_bodies.empty()) {
+    const float at[3] = {0, 0, 0};
+    w.add_bodies(st.walk_bodies, at, 0);
+  } else if (!is_live(st.selected) && st.content.mesh) {  // a pipeline without collision has nothing to bump into
+    const runtime::Mesh &m = *st.content.mesh;
+    tris.reserve(m.indices.size() * 3);
+    for (uint32_t i : m.indices) tris.insert(tris.end(), {m.positions[i].x, m.positions[i].y, m.positions[i].z});
+  }
+  float top = 0;
+  if (is_plot(st.selected))
+    for (size_t i = 1; i < tris.size(); i += 3) top = std::max(top, tris[i]);
+  w.add_triangles(tris);
+  return top;
+}
+
+// The camera's height and centre (the orbit's target, which drags and the gamepad move), and the
+// play test: the hero's capsule walking the scene.
+void draw_camera_row(UiState &st) {
+  if (st.play.on()) {
+    if (ImGui::Button("Stop playing")) st.play.stop();
+    ImGui::SameLine();
+    ImGui::TextDisabled("%s", st.play.help());
+    return;
+  }
+  if (ImGui::Button("Play")) st.play_request = true;
+  ImGui::SetItemTooltip("Walk the scene as the hero's capsule (1.8 m): %s", st.play.help());
+  ImGui::SameLine();
+  ImGui::SetNextItemWidth(100);
+  ImGui::DragFloat("height", &st.camera.pan[1], 0.05f, -50.0f, 300.0f, "%.1f m");
+  ImGui::SetItemTooltip("Raise or lower what the camera orbits (ctrl-drag in the view; LB and RB on a gamepad).");
+  ImGui::SameLine();
+  if (ImGui::SmallButton("Centre")) st.camera.pan[0] = st.camera.pan[1] = st.camera.pan[2] = 0;
+  ImGui::SetItemTooltip("Back to the middle at the ground's height. Shift-drag or right-drag pans; so does the left stick.");
+  ImGui::SameLine();
+  ImGui::TextDisabled(st.pad.connected ? "| gamepad: right stick orbits, left pans, triggers zoom" : "");
+}
+
 void draw_viewport_controls(UiState &st) {
   const char *views[] = {"Orbit", "Front", "Side", "Top", "Iso"};
   for (int v = 0; v < 5; ++v) {
@@ -2215,6 +2486,7 @@ void draw_viewport_controls(UiState &st) {
     ImGui::Checkbox("Reference", &st.show_reference);
     ImGui::SetItemTooltip("Show the photos the config entries in use link to, in the corner (click it for the next)");
   }
+  draw_camera_row(st);
   if (st.camera.distance > 0) {
     ImGui::SameLine();
     ImGui::Text("| camera at %.1f m (game FOV)", st.camera.distance);
@@ -2259,6 +2531,45 @@ void stop_live_plot(SDL_GPUDevice *device, SDL_Window *window) {
 
 // The plotter's region in the native runtime: grown to full when the ground or seed changes,
 // simulated and drawn every frame, with its frame rate and the runtime's numbers above it.
+// World lines drawn over an image seen from eye toward target with a vertical field of view (the
+// live view's camera), clipped at the near plane.
+void draw_lines_over(const std::vector<viewport::Line> &lines, const float eye[3], const float target[3], float fov, ImVec2 lo,
+                     ImVec2 hi) {
+  float f[3] = {target[0] - eye[0], target[1] - eye[1], target[2] - eye[2]};
+  const float fl = std::max(1e-6f, std::sqrt(f[0] * f[0] + f[1] * f[1] + f[2] * f[2]));
+  for (float &v : f) v /= fl;
+  float r[3] = {-f[2], 0, f[0]};
+  const float rl = std::max(1e-6f, std::sqrt(r[0] * r[0] + r[2] * r[2]));
+  for (float &v : r) v /= rl;
+  const float u[3] = {r[1] * f[2] - r[2] * f[1], r[2] * f[0] - r[0] * f[2], r[0] * f[1] - r[1] * f[0]};
+  const float sx = hi.x - lo.x, sy = hi.y - lo.y, k = 0.5f * sy / std::tan(fov * 0.5f);
+  ImDrawList *dl = ImGui::GetWindowDrawList();
+  dl->PushClipRect(lo, hi, true);
+  auto cam = [&](const foundry::vec3 &p, float out[3]) {
+    const float d[3] = {p.x - eye[0], p.y - eye[1], p.z - eye[2]};
+    out[0] = d[0] * r[0] + d[1] * r[1] + d[2] * r[2];
+    out[1] = d[0] * u[0] + d[1] * u[1] + d[2] * u[2];
+    out[2] = d[0] * f[0] + d[1] * f[1] + d[2] * f[2];
+  };
+  for (const viewport::Line &l : lines) {
+    float a[3], b[3];
+    cam(l.a, a);
+    cam(l.b, b);
+    const float near_z = 0.1f;
+    if (a[2] < near_z && b[2] < near_z) continue;
+    if (a[2] < near_z || b[2] < near_z) {  // clip to the near plane
+      float *in = a[2] < near_z ? a : b;
+      const float *other = a[2] < near_z ? b : a;
+      const float t = (near_z - in[2]) / (other[2] - in[2]);
+      for (int i = 0; i < 3; ++i) in[i] += (other[i] - in[i]) * t;
+    }
+    const ImVec2 pa(lo.x + 0.5f * sx + a[0] / a[2] * k, lo.y + 0.5f * sy - a[1] / a[2] * k);
+    const ImVec2 pb(lo.x + 0.5f * sx + b[0] / b[2] * k, lo.y + 0.5f * sy - b[1] / b[2] * k);
+    dl->AddLine(pa, pb, ImGui::GetColorU32(ImVec4(l.r, l.g, l.bl, l.alpha)), 1.5f);
+  }
+  dl->PopClipRect();
+}
+
 void draw_live_plot(Services &sv, UiState &st, SDL_GPUDevice *device, SDL_Window *window) {
   plot::Live &live = live_plot();
   const std::string name = st.selected.substr(8);
@@ -2291,23 +2602,71 @@ void draw_live_plot(Services &sv, UiState &st, SDL_GPUDevice *device, SDL_Window
                                 " things and fields grown in " + std::to_string(static_cast<int>(live.stats().grow_ms)) + " ms");
   }
   live.share(sv.plot->shared());  // the inspector's season and wind
+  // The play test walks in the runtime's own Jolt world (it keeps the trunks there); the ground is
+  // the plot view's, rebuilt when it changes.
+  st.pad_owned = true;
+  ImGuiIO &io = ImGui::GetIO();
+  const float dt = std::clamp(io.DeltaTime, 0.0f, 0.1f);
+  if (st.play_request || (st.play.on() && st.play.world_key != key)) {
+    physics::Walker &w = live.walker();
+    w.clear();
+    const std::vector<float> tris = sv.plot->ground_triangles();
+    float lo = 0, top = 0;
+    for (size_t i = 1; i < tris.size(); i += 3) {
+      lo = std::min(lo, tris[i]);
+      top = std::max(top, tris[i]);
+    }
+    w.add_triangles(tris);
+    w.add_floor(lo - 0.05f);
+    st.play.world_key = key;
+    if (st.play_request) {  // drop in where the orbit looks, facing the way it faces
+      const float feet[3] = {st.camera.pan[0], top + 0.5f, st.camera.pan[2]};
+      st.play.start(&w, feet, -st.camera.yaw);
+      st.fly = false;
+    } else {
+      st.play.move_to(&w);
+    }
+  }
+  st.play_request = false;
+  st.play.update(dt, st.view_hovered, st.pad);
+  float feet[3] = {0, 0, 0};
+  if (st.play.on()) {
+    float t[3];
+    st.play.eye_target(feet, t);
+    feet[1] -= physics::Walker::kEye;
+  }
+  {  // the viewer's sky, its shadow map over what the camera looks at (or around the walker)
+    viewport::SkyScene sky_scene;
+    const float centre[3] = {st.play.on() ? feet[0] : st.camera.pan[0], 0, st.play.on() ? feet[2] : st.camera.pan[2]};
+    if (sky::observatories().scene_for(st.selected, sky_scene)) {
+      const float dist = live.extent() * 1.7f / std::max(st.camera.zoom, 0.05f);
+      live.set_sky(sky_scene.observatory, sky_scene.state, centre,
+                   st.play.on() ? 40.0f : st.fly ? 0.0f : std::clamp(std::min(live.extent() * 1.1f, dist * 1.2f), 20.0f, 220.0f));
+    } else {
+      live.set_sky(nullptr, sky::State(), centre, 0);
+    }
+  }
   const plot::LiveStats ls = live.stats();
   ImGui::Text("%.0f fps   update %.2f ms   prepare %.2f ms   %llu of %llu drawn (%llu trees)   %llu grass tiles   %.1f M triangles   "
               "%llu posed%s",
               ls.fps, ls.update_ms, ls.prepare_ms, (unsigned long long)ls.drawn, (unsigned long long)ls.instances,
               (unsigned long long)ls.trees, (unsigned long long)ls.field_tiles, ls.triangles / 1e6, (unsigned long long)ls.animated,
               ls.builds_pending ? "   building..." : "");
-  ImGui::TextDisabled("Drag to orbit, wheel to zoom; hold the right button to fly (WASD, Space and C, Shift faster).");
-  ImGuiIO &io = ImGui::GetIO();
+  draw_camera_row(st);
+  if (!st.play.on())
+    ImGui::TextDisabled("Drag to orbit, wheel to zoom, shift-drag to pan, ctrl-drag for height; hold the right button to fly "
+                        "(WASD, Space and C, Shift faster).");
   const ImVec2 avail = ImGui::GetContentRegionAvail();
   const int w = std::max(64, static_cast<int>(avail.x)), h = std::max(64, static_cast<int>(avail.y));
   // The camera: an orbit about the region's middle, or flying.
   const float yaw = st.camera.yaw, pitch = std::clamp(st.camera.pitch, 0.05f, 1.4f);
   const float dist = live.extent() * 1.7f / std::max(st.camera.zoom, 0.05f);
-  float target[3] = {0, 2, 0};
+  float target[3] = {st.camera.pan[0], 2 + st.camera.pan[1], st.camera.pan[2]};
   float eye[3] = {target[0] + dist * std::sin(yaw) * std::cos(pitch), target[1] + dist * std::sin(pitch),
                   target[2] + dist * std::cos(yaw) * std::cos(pitch)};
-  if (st.fly) {
+  if (st.play.on()) {
+    st.play.eye_target(eye, target);
+  } else if (st.fly) {
     std::memcpy(eye, st.fly_eye, sizeof eye);
     target[0] = eye[0] + std::sin(st.fly_yaw) * std::cos(st.fly_pitch);
     target[1] = eye[1] + std::sin(st.fly_pitch);
@@ -2318,6 +2677,14 @@ void draw_live_plot(Services &sv, UiState &st, SDL_GPUDevice *device, SDL_Window
   SDL_SubmitGPUCommandBuffer(cmd);
   if (!tex) return;
   ImGui::Image(reinterpret_cast<ImTextureID>(tex), ImVec2(static_cast<float>(w), static_cast<float>(h)));
+  st.view_hovered = ImGui::IsItemHovered();
+  if (st.play.on()) {  // the walker's capsule over the picture, seen as the live camera sees it
+    std::vector<viewport::Line> lines;
+    st.play.lines(lines);
+    draw_lines_over(lines, eye, target, 50.0f * 3.14159265f / 180.0f, ImGui::GetItemRectMin(), ImGui::GetItemRectMax());
+    return;
+  }
+  if (!st.fly) orbit_input(st.camera, st.pad, dt, st.view_hovered, live.extent() * 0.5f);
   if (!ImGui::IsItemHovered() && !(st.fly && ImGui::IsMouseDown(ImGuiMouseButton_Right))) return;
   if (ImGui::IsMouseDown(ImGuiMouseButton_Right)) {
     if (!st.fly) {  // start flying from where the orbit stands, looking where it looked
@@ -2343,7 +2710,7 @@ void draw_live_plot(Services &sv, UiState &st, SDL_GPUDevice *device, SDL_Window
     if (ImGui::IsKeyDown(ImGuiKey_Space)) st.fly_eye[1] += speed;
     if (ImGui::IsKeyDown(ImGuiKey_C)) st.fly_eye[1] -= speed;
     st.fly_eye[1] = std::max(st.fly_eye[1], 0.3f);
-  } else if (ImGui::IsMouseDragging(ImGuiMouseButton_Left)) {
+  } else if (ImGui::IsMouseDragging(ImGuiMouseButton_Left) && !io.KeyShift && !io.KeyCtrl) {
     st.fly = false;
     st.camera.yaw -= io.MouseDelta.x * 0.01f;
     st.camera.pitch = std::clamp(st.camera.pitch + io.MouseDelta.y * 0.01f, 0.05f, 1.4f);
@@ -2433,9 +2800,17 @@ int run_ui(Services &sv) {
     if (version != st.ws_version || selected != st.selected) {
       if (selected != st.selected) {
         st.message.clear();
+        if (is_obs(selected)) {  // low over the sundial, so its sky shows
+          st.camera.view = viewport::View::Orbit;
+          st.camera.pitch = 0.12f;
+          st.camera.zoom = 0.75f;
+        }
         st.triangles = 0;
         st.selected_lod = -1;
         st.camera.distance = 0;
+        st.camera.pan[0] = st.camera.pan[1] = st.camera.pan[2] = 0;
+        st.play.stop();
+        st.walk_bodies.clear();
       }
       st.ws_version = version;
       st.selected = selected;
@@ -2487,18 +2862,45 @@ int run_ui(Services &sv) {
           st.content.height = f.conformance_height;
           st.content.collision.clear();
           if (f.collision) physics::wireframe(*f.collision, st.content.collision);
+          st.walk_bodies = f.collision ? f.collision->bodies : std::vector<runtime::CollisionBody>();
           st.content.progressive = nullptr;
           st.content.lods.clear();
+        }
+      }
+    } else if (is_obs(st.selected)) {
+      // An observatory shows its sundial, built for its latitude now.
+      std::shared_ptr<const sky::Observatory> o;
+      sky::State s;
+      std::string err;
+      if (sky::observatories().get(st.selected.substr(12), o, s, err)) {
+        const std::string key = "|obs" + std::to_string(std::lround(s.latitude_deg * 10));
+        if (key != st.live_key) {
+          st.live_key = key;
+          st.content.mesh = sky::observatories().sundial_for(s.latitude_deg);
+          st.content.has_conformance = false;
+          st.content.progressive = nullptr;
+          st.content.lods.clear();
+          st.content.collision.clear();
+          st.camera.frame = 0;
         }
       }
     } else {
       st.live_key.clear();
       st.camera.frame = 0;
     }
+    if (!st.selected_sky_open.empty()) {  // a viewer's "open" button
+      sv.ws->select("observatory:" + st.selected_sky_open);
+      st.selected_sky_open.clear();
+    }
 
+    // A 3D view takes the gamepad: its sticks move the camera, not ImGui's focus.
+    if (st.pad_owned) io.ConfigFlags &= ~ImGuiConfigFlags_NavEnableGamepad;
+    else io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;
     ImGui_ImplSDLGPU3_NewFrame();
     ImGui_ImplSDL3_NewFrame();
     ImGui::NewFrame();
+    st.pad = read_pad();
+    st.pad_owned = false;
 
     const ImGuiViewport *vp = ImGui::GetMainViewport();
     const float W = vp->WorkSize.x, H = vp->WorkSize.y;
@@ -2555,12 +2957,24 @@ int run_ui(Services &sv) {
       if (ImGui::IsItemHovered())
         ImGui::SetTooltip("The region simulated and drawn by the native runtime a game links, every frame.\n"
                           "Off: the picture composed from WebAssembly.");
+      ImGui::SameLine();
+      draw_sky_controls(st);
     }
     if (is_plot(st.selected) && st.plot_live) {
       draw_live_plot(sv, st, device, window);
     } else {
     if (live_plot().running()) stop_live_plot(device, window);
-    draw_viewport_controls(st);
+    if (is_obs(st.selected)) {
+      if (ImGui::RadioButton("Orbit the sundial", !st.sky_look)) st.sky_look = false;
+      ImGui::SameLine();
+      if (ImGui::RadioButton("Stand and look", st.sky_look)) st.sky_look = true;
+      ImGui::SameLine();
+      ImGui::TextDisabled(st.sky_look ? "Drag or a stick to look around, wheel or the triggers to zoom." : "Drag to orbit, wheel to zoom.");
+      draw_camera_row(st);
+    } else {
+      draw_viewport_controls(st);
+      if (is_live(st.selected)) draw_sky_controls(st);
+    }
     ImVec2 avail = ImGui::GetContentRegionAvail();
     int side = std::max(64, static_cast<int>(std::min(avail.x, avail.y)));
     int px = std::min(side, 900);
@@ -2573,10 +2987,51 @@ int run_ui(Services &sv) {
                                (st.selected.rfind("fracture:", 0) == 0 && st.fracture.playing);
       const int rpx = interacting && !viewport::gpu_renderer() ? std::max(64, px / 2) : px;  // the GPU keeps up
       std::string key = render_key(st, rpx, rpx);
+      // Under a sky, it moves (clouds, stars, the aurora, a playing day): on the GPU, every frame.
+      viewport::SkyScene sky_scene;
+      const bool has_sky = is_obs(st.selected) ? sky::observatories().scene(st.selected.substr(12), sky_scene)
+                                               : sky::observatories().scene_for(st.selected, sky_scene);
+      st.pad_owned = !st.content.image;
+      // The play test: walk where the view is, then look from behind the walker or its eyes.
+      if (st.play_request && !st.content.image) {
+        const float top = build_walk_world(sv, st, st.play.own_world());
+        st.play.world_key = st.selected + st.live_key;
+        const float d = std::max(3.0f, view_scale(st) * 1.3f + 1.5f), yaw = st.camera.yaw;
+        const float feet[3] = {st.camera.pan[0] + std::sin(yaw) * d, top + 0.3f, st.camera.pan[2] + std::cos(yaw) * d};
+        st.play.start(nullptr, feet, -yaw);
+      } else if (st.play.on() && st.play.world_key != st.selected + st.live_key) {
+        build_walk_world(sv, st, st.play.own_world());  // the model changed under it
+        st.play.world_key = st.selected + st.live_key;
+        st.play.move_to(&st.play.own_world());
+      }
+      st.play_request = false;
+      st.play.update(std::clamp(io.DeltaTime, 0.0f, 0.1f), st.view_hovered, st.pad);
+      viewport::Camera cam = st.camera;
+      if (has_sky) key += "|sky" + (viewport::gpu_renderer() ? std::to_string(sky_scene.time) : std::to_string(sky::observatories().version()));
+      assets::ViewContent playing;  // the content with the walker's capsule drawn in
+      if (st.play.on()) {
+        cam = st.play.camera();
+        float e[3], t[3];
+        st.play.eye_target(e, t);
+        char buf[160];
+        std::snprintf(buf, sizeof buf, "|play%.3f,%.3f,%.3f,%.3f,%.3f,%.3f", e[0], e[1], e[2], t[0], t[1], t[2]);
+        key += buf;
+        playing = st.content;
+        st.play.lines(playing.lines);
+      } else if (is_obs(st.selected) && st.sky_look) {
+        cam.free = true;
+        cam.azimuth = st.look_azimuth;
+        cam.elevation = st.look_elevation;
+        cam.fov = st.look_fov;
+        key += "|look" + std::to_string(st.look_azimuth) + std::to_string(st.look_elevation) + std::to_string(st.look_fov);
+      }
       if (key != st.rendered_key) {
         // A plotter's region draws its own lines; its collision has its own toggle, off at first.
-        const viewport::Overlays ov = is_plot(st.selected) ? plot::overlays(st.plot_ui.collision) : st.overlays;
-        st.pending = assets::render_view(st.content, st.camera, ov, st.silhouette, rpx, rpx, st.triangles);
+        viewport::Overlays ov = is_plot(st.selected) ? plot::overlays(st.plot_ui.collision) : st.overlays;
+        if (is_obs(st.selected)) ov = plot::overlays(false);
+        if (st.play.on()) ov.hero = false;
+        st.pending = assets::render_view(st.play.on() ? playing : st.content, cam, ov, st.silhouette && !is_obs(st.selected), rpx, rpx, st.triangles,
+                                         has_sky ? &sky_scene : nullptr);
         st.has_pending = true;
         st.rendered_key = key;
       }
@@ -2588,15 +3043,33 @@ int run_ui(Services &sv) {
                                     ImGui::GetIO().MousePos.x >= ImGui::GetItemRectMax().x - size.x * 0.34f - 10 &&
                                     ImGui::GetIO().MousePos.y <= ImGui::GetItemRectMin().y + 10 + size.x * 0.34f * ref_tex.height / std::max(1, ref_tex.width);
         draw_reference_corner(st, ref_tex.texture, ref_tex.width, ref_tex.height, ImGui::GetItemRectMin(), ImGui::GetItemRectMax());
-        if (ImGui::IsItemHovered() && !st.content.image && !over_reference) {
+        st.view_hovered = ImGui::IsItemHovered() && !over_reference;
+        const float dt = std::clamp(io.DeltaTime, 0.0f, 0.1f);
+        if (st.play.on() || st.pad.moving() || st.pad.lb || st.pad.rb) st.interact_until = SDL_GetTicks() + 200;
+        if (!st.play.on() && !st.content.image) {  // the gamepad: look around while standing, else orbit
+          if (is_obs(st.selected) && st.sky_look) {
+            st.look_azimuth += (st.pad.rx + st.pad.lx) * 1.2f * dt * st.look_fov;
+            st.look_elevation = std::clamp(st.look_elevation + (st.pad.ry + st.pad.ly) * 0.9f * dt * st.look_fov, -0.3f, 1.55f);
+            st.look_fov = std::clamp(st.look_fov * std::pow(2.0f, (st.pad.lt - st.pad.rt) * dt), 0.1f, 2.2f);
+          } else {
+            orbit_input(st.camera, st.pad, dt, st.view_hovered && !st.content.image, view_scale(st));
+          }
+        }
+        if (ImGui::IsItemHovered() && !st.content.image && !over_reference && !st.play.on()) {
           if (ImGui::IsMouseDragging(ImGuiMouseButton_Left) || io.MouseWheel != 0) st.interact_until = SDL_GetTicks() + 200;
-          if (ImGui::IsMouseDragging(ImGuiMouseButton_Left)) {
+          if (is_obs(st.selected) && st.sky_look) {  // standing: look around, zoom the view
+            if (ImGui::IsMouseDragging(ImGuiMouseButton_Left)) {
+              st.look_azimuth -= io.MouseDelta.x * 0.005f * st.look_fov;
+              st.look_elevation = std::clamp(st.look_elevation + io.MouseDelta.y * 0.005f * st.look_fov, -0.3f, 1.55f);
+            }
+            if (io.MouseWheel != 0) st.look_fov = std::clamp(st.look_fov / std::pow(1.1f, io.MouseWheel), 0.1f, 2.2f);
+          } else if (ImGui::IsMouseDragging(ImGuiMouseButton_Left) && !io.KeyShift && !io.KeyCtrl) {
             ImVec2 d = io.MouseDelta;
             st.camera.view = viewport::View::Orbit;
             st.camera.yaw -= d.x * 0.01f;
             st.camera.pitch = std::clamp(st.camera.pitch + d.y * 0.01f, -1.4f, 1.4f);
           }
-          if (io.MouseWheel != 0) {
+          if (io.MouseWheel != 0 && !(is_obs(st.selected) && st.sky_look)) {
             if (st.camera.distance > 0) st.camera.distance = std::max(0.2f, st.camera.distance / std::pow(1.1f, io.MouseWheel));
             else st.camera.zoom = std::clamp(st.camera.zoom * std::pow(1.1f, io.MouseWheel), 0.2f, 8.0f);
           }

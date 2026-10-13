@@ -5,6 +5,7 @@
 
 #include "scatter_cs_spirv.h"
 #include "skinned_ps_spirv.h"
+#include "skinned_shadow_ps_spirv.h"
 #include "skinned_vs_spirv.h"
 
 namespace runtime {
@@ -43,9 +44,18 @@ bool SkinnedRenderer::init(SDL_GPUDevice *device, SDL_GPUTextureFormat color_for
   ps.entrypoint = "ps_main";
   ps.format = SDL_GPU_SHADERFORMAT_SPIRV;
   ps.stage = SDL_GPU_SHADERSTAGE_FRAGMENT;
+  ps.num_samplers = 2;  // light.hlsli: the shadow map and the clouds
+  ps.num_uniform_buffers = 1;
+  SDL_GPUShaderCreateInfo sps = ps;  // depth only, for the sky's shadow map
+  sps.code = skinned_shadow_ps_spirv;
+  sps.code_size = skinned_shadow_ps_spirv_size;
+  sps.entrypoint = "shadow_ps";
+  sps.num_samplers = 0;
+  sps.num_uniform_buffers = 0;
   SDL_GPUShader *vsh = SDL_CreateGPUShader(device, &vs);
   SDL_GPUShader *psh = SDL_CreateGPUShader(device, &ps);
-  if (!vsh || !psh) {
+  SDL_GPUShader *shadow_psh = SDL_CreateGPUShader(device, &sps);
+  if (!vsh || !psh || !shadow_psh) {
     error = std::string("shader creation failed: ") + SDL_GetError();
     return false;
   }
@@ -87,9 +97,19 @@ bool SkinnedRenderer::init(SDL_GPUDevice *device, SDL_GPUTextureFormat color_for
   info.target_info.depth_stencil_format = depth_format;
   info.target_info.has_depth_stencil_target = true;
   pipeline_ = SDL_CreateGPUGraphicsPipeline(device, &info);
+  // The shadow map's pass: the same vertices seen from the key light, depth only, biased by slope.
+  info.fragment_shader = shadow_psh;
+  info.target_info.num_color_targets = 0;
+  info.target_info.color_target_descriptions = nullptr;
+  info.target_info.depth_stencil_format = SDL_GPU_TEXTUREFORMAT_D32_FLOAT;
+  info.rasterizer_state.enable_depth_bias = true;
+  info.rasterizer_state.depth_bias_constant_factor = 1.0f;
+  info.rasterizer_state.depth_bias_slope_factor = 1.75f;
+  shadow_pipeline_ = SDL_CreateGPUGraphicsPipeline(device, &info);
   SDL_ReleaseGPUShader(device, vsh);
   SDL_ReleaseGPUShader(device, psh);
-  if (!pipeline_) {
+  SDL_ReleaseGPUShader(device, shadow_psh);
+  if (!pipeline_ || !shadow_pipeline_) {
     error = std::string("pipeline creation failed: ") + SDL_GetError();
     return false;
   }
@@ -124,7 +144,8 @@ void SkinnedRenderer::shutdown() {
   staging_ = nullptr;
   staging_capacity_ = 0;
   if (pipeline_) SDL_ReleaseGPUGraphicsPipeline(device_, pipeline_);
-  pipeline_ = nullptr;
+  if (shadow_pipeline_) SDL_ReleaseGPUGraphicsPipeline(device_, shadow_pipeline_);
+  pipeline_ = shadow_pipeline_ = nullptr;
 }
 
 SDL_GPUBuffer *SkinnedRenderer::make(SDL_GPUBufferUsageFlags usage, uint32_t size) {
@@ -302,11 +323,15 @@ void SkinnedRenderer::scatter(SDL_GPUCommandBuffer *cmd) {
 }
 
 void SkinnedRenderer::draw(SDL_GPUCommandBuffer *cmd, SDL_GPURenderPass *pass, const std::vector<DrawRange> &ranges,
-                           const float view_proj[16]) {
+                           const float view_proj[16], const LightBinding *light) {
   if (ranges.empty() || !instances_ || !bones_) return;
-  SDL_BindGPUGraphicsPipeline(pass, pipeline_);
+  SDL_BindGPUGraphicsPipeline(pass, light ? pipeline_ : shadow_pipeline_);
   SDL_BindGPUVertexStorageBuffers(pass, 0, &bones_, 1);
   SDL_PushGPUVertexUniformData(cmd, 0, view_proj, 64);
+  if (light) {
+    SDL_BindGPUFragmentSamplers(pass, 0, light->samplers, 2);
+    SDL_PushGPUFragmentUniformData(cmd, 0, &light->uniform, sizeof light->uniform);
+  }
   for (const DrawRange &r : ranges) {
     if (!r.mesh->vertices || r.count == 0) continue;
     SDL_GPUBufferBinding vbs[2] = {{r.mesh->vertices, 0}, {instances_, 0}};

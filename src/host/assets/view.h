@@ -40,9 +40,9 @@ void set_live_provider(LiveProvider provider);
 // mesh). For a fixed asset, the stamped LOD nearest that count (LOD0 when 0).
 std::shared_ptr<const runtime::Mesh> mesh_at(const ViewContent &content, uint32_t triangles);
 
-// triangles > 0 shows the progressive level at or under that count.
+// triangles > 0 shows the progressive level at or under that count; sky puts it under an observatory.
 viewport::Image render_view(const ViewContent &content, const viewport::Camera &camera,
                             const viewport::Overlays &overlays, bool silhouette, int width, int height,
-                            uint32_t triangles = 0);
+                            uint32_t triangles = 0, const viewport::SkyScene *sky = nullptr);
 
 }  // namespace assets

@@ -55,6 +55,7 @@ World::World(const Config &config, std::string &error) : config_(config) {
   if (config.device) {
     if (!renderer_.init(config.device, config.color_format, config.depth_format, error)) return;
     if (!field_renderer_.init(config.device, config.color_format, config.depth_format, error)) return;
+    if (!sky_.init(config.device, config.color_format, config.depth_format, error)) return;
     have_renderer_ = true;
   }
   ok_ = true;
@@ -71,6 +72,7 @@ World::~World() {
   if (have_renderer_) {
     renderer_.shutdown();
     field_renderer_.shutdown();
+    sky_.shutdown();
   }
 }
 
@@ -494,6 +496,8 @@ Status World::sleeping(uint64_t handle, bool &out) const {
 }
 
 void World::set_camera(const float view[16], const float projection[16]) {
+  std::memcpy(view_, view, sizeof view_);
+  std::memcpy(projection_, projection, sizeof projection_);
   for (int c = 0; c < 4; ++c)
     for (int r = 0; r < 4; ++r) {
       float sum = 0;
@@ -904,6 +908,7 @@ void World::prepare(SDL_GPUCommandBuffer *cmd) {
   const auto t0 = std::chrono::steady_clock::now();
   SDL_GPUCopyPass *copy = have_renderer_ && cmd ? SDL_BeginGPUCopyPass(cmd) : nullptr;
   if (copy) {
+    sky_.upload(copy);
     for (auto &[key, e] : cache_) {
       if (e.pending || e.failed || e.uploaded || !e.build) continue;
       if (e.field) e.fgpu = field_renderer_.upload(copy, e.build->mesh);
@@ -1056,7 +1061,62 @@ void World::prepare(SDL_GPUCommandBuffer *cmd) {
   for (int l = 0; l < 4; ++l) counters_.by_level[l] = by_level[l];
   counters_.triangles = triangles + field_triangles_;
   counters_.bones_uploaded = copy ? dirty_bones : 0;
+  prepare_sky(cmd);
   times_.prepare_ms = ms_since(t0);
+}
+
+// The sky's frame, and the key light's shadow map: what is drawn this frame, seen from the light.
+void World::prepare_sky(SDL_GPUCommandBuffer *cmd) {
+  have_sky_frame_ = false;
+  shadow_drawn_ = false;
+  if (!observatory_) return;
+  sky_frame_ = sky::compute(*observatory_, sky_state_);
+  have_sky_frame_ = true;
+  if (!have_renderer_ || !cmd || !sky_state_.shadows || sky_frame_.key_dir[1] < 0.03f) return;
+  float centre[3] = {shadow_centre_[0], shadow_centre_[1], shadow_centre_[2]};
+  float radius = shadow_radius_;
+  if (radius <= 0) {  // ahead of the camera, on the ground
+    const SkyCamera cam = sky_camera(view_, projection_);
+    radius = 60;
+    const float fl = std::max(1e-4f, std::hypot(cam.forward[0], cam.forward[2]));
+    centre[0] = cam.eye[0] + cam.forward[0] / fl * radius * 0.75f;
+    centre[1] = 0;
+    centre[2] = cam.eye[2] + cam.forward[2] / fl * radius * 0.75f;
+  }
+  SDL_GPUTexture *map = sky_.shadow_map();
+  if (!map) return;
+  shadow_ = shadow_view(sky_frame_.key_dir, centre, radius, SkyRenderer::kShadowSize);
+  SDL_GPUDepthStencilTargetInfo dt = {};
+  dt.texture = map;
+  dt.clear_depth = 1;
+  dt.load_op = SDL_GPU_LOADOP_CLEAR;
+  dt.store_op = SDL_GPU_STOREOP_STORE;
+  SDL_GPURenderPass *pass = SDL_BeginGPURenderPass(cmd, nullptr, 0, &dt);
+  renderer_.draw(cmd, pass, frame_ranges_, shadow_.view_proj, nullptr);
+  SDL_EndGPURenderPass(pass);
+  shadow_drawn_ = true;
+}
+
+void World::set_sky(std::shared_ptr<const sky::Observatory> observatory) {
+  observatory_ = std::move(observatory);
+  if (have_renderer_) sky_.set(observatory_, sky_state_.constellations);
+  if (!observatory_) have_sky_frame_ = false;
+}
+
+void World::set_sky_state(const sky::State &state) {
+  sky_state_ = state;
+  if (have_renderer_ && observatory_) sky_.set(observatory_, sky_state_.constellations);
+}
+
+void World::set_shadow_focus(const float centre[3], float radius) {
+  std::memcpy(shadow_centre_, centre, sizeof shadow_centre_);
+  shadow_radius_ = std::max(radius, 0.0f);
+}
+
+bool World::sky_frame(sky::Frame &out) const {
+  if (!observatory_) return false;
+  out = have_sky_frame_ ? sky_frame_ : sky::compute(*observatory_, sky_state_);
+  return true;
 }
 
 // Fields: each chunk in view picks its level by the size of a tile at its nearest point (with
@@ -1215,8 +1275,12 @@ void World::draw(SDL_GPUCommandBuffer *cmd, SDL_GPURenderPass *pass) {
   const auto t0 = std::chrono::steady_clock::now();
   if (have_renderer_ && cmd && pass) {
     float identity[16] = {1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1};
-    renderer_.draw(cmd, pass, frame_ranges_, have_camera_ ? view_proj_ : identity);
-    field_renderer_.draw(cmd, pass, field_ranges_, have_camera_ ? view_proj_ : identity, static_cast<float>(clock_));
+    const bool sky = observatory_ && have_sky_frame_ && sky_.ready();
+    const LightBinding light = sky ? sky_.light(sky_frame_, sky_state_, eye_, clock_, shadow_drawn_ ? &shadow_ : nullptr)
+                                   : sky_.classic_light();
+    renderer_.draw(cmd, pass, frame_ranges_, have_camera_ ? view_proj_ : identity, &light);
+    field_renderer_.draw(cmd, pass, field_ranges_, have_camera_ ? view_proj_ : identity, static_cast<float>(clock_), light);
+    if (sky && have_camera_) sky_.draw(cmd, pass, sky_.sky_uniform(sky_frame_, sky_state_, sky_camera(view_, projection_), clock_));
   }
   times_.draw_ms = ms_since(t0);
 }

@@ -225,6 +225,28 @@ foundry_light_desc torch_desc = {
 foundry_light torch = foundry_add_light(rt, &torch_desc);
 ```
 
+### The sky
+
+Built (`observatory.md`): the game hands the runtime an observatory as data, and sets its state whenever it changes. The runtime renders the key light's shadow map in `foundry_prepare`, lights every instance by the sky in `foundry_draw` (the sun, or a moon at night; shadows, the clouds' shadows, fog, exposure), and draws the sky last. This stands in for the sketch's `foundry_set_sun`.
+
+```c
+foundry_observatory_desc earth;
+foundry_observatory_default(&earth);          /* Earth's air; add moons and constellations */
+earth.moons = moons;  earth.moon_count = 1;
+foundry_sky_set_observatory(rt, &earth);      /* bakes its star chart; NULL removes the sky */
+
+foundry_sky_state s;
+foundry_sky_state_default(&s);
+s.time_of_day = 0.75f;  s.year = 0.47f;  s.latitude_deg = 52;
+s.clouds = 0.4f;  s.aurora = 0;  s.star_density = 0.5f;  /* up to 4 */
+s.moon_distance_km[0] = 0;  /* 0: its usual distance */  s.shadows = true;
+s.constellations = states;  s.constellation_count = 17;  /* DARK, LIT, or CONNECTED each */
+foundry_sky_set_state(rt, &s);
+
+foundry_sky_light light;                      /* the sun's place, the key light, the ambient, the exposure */
+foundry_sky_get_light(rt, &light);
+```
+
 ### Wind
 
 A pipeline's `wind_heading` is the world's: degrees toward which the wind blows, from +Z toward +X. The runtime turns it into each instance's own frame before posing it, so a meadow of instances turned every which way bends one way. A field's tiles sway in it on the GPU.

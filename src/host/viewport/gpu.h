@@ -16,6 +16,7 @@
 #include <mutex>
 #include <string>
 
+#include "render/sky_renderer.h"
 #include "viewport/raster.h"
 
 namespace viewport {
@@ -50,7 +51,11 @@ class GpuRenderer {
 
   SDL_GPUDevice *device_ = nullptr;
   std::mutex mutex_;
-  SDL_GPUGraphicsPipeline *mesh_ = nullptr, *ink_ = nullptr, *down_ = nullptr, *lines_ = nullptr;
+  SDL_GPUGraphicsPipeline *mesh_ = nullptr, *ink_ = nullptr, *down_ = nullptr, *lines_ = nullptr, *sky_ = nullptr, *shadow_ = nullptr;
+  // An observatory's sky (Scene::sky): its textures, uniforms, and shadow map, and the ground it puts down.
+  runtime::SkyRenderer sky_renderer_;
+  runtime::Mesh ground_;
+  float ground_key_[4] = {0, 0, 0, 0};  // the radius and colour it was made for
   SDL_GPUSampler *nearest_ = nullptr, *linear_ = nullptr;
   std::list<Mesh> meshes_;  // most recently used first
   Targets t_;

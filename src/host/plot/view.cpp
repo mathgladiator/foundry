@@ -63,6 +63,76 @@ void place(const runtime::Mesh &m, foundry::vec3 at, float yaw, runtime::Mesh &o
 
 }  // namespace
 
+// The ground: a flat hex tile per cell at its height, coloured by its ground, with banks down to
+// lower neighbours; and, when lines is given, the cells' outlines.
+static void add_ground(const nlohmann::json &cells, runtime::Mesh &out, std::vector<viewport::Line> *lines) {
+  runtime::Mesh *mesh = &out;
+  std::map<std::pair<int, int>, float> heights;
+  for (const auto &c : cells) heights[{c["q"].get<int>(), c["r"].get<int>()}] = c.value("height", 0.0f);
+  for (const auto &c : cells) {
+    const int q = c["q"], r = c["r"];
+    const float x = cell_x(q, r), z = cell_z(r), y = c.value("height", 0.0f);
+    const std::string g = c.value("ground", std::string("soil"));
+    const float grove = c.value("grove", 0.5f), wet = c.value("moisture", 0.5f);
+    float cr = 0.45f, cg = 0.66f, cb = 0.32f;  // a sunny meadow
+    if (g == "water") cr = 0.32f, cg = 0.55f, cb = 0.78f;
+    else if (g == "path") cr = 0.74f, cg = 0.63f, cb = 0.45f;
+    else if (g == "rock") cr = 0.6f, cg = 0.6f, cb = 0.58f;
+    else if (g == "sand") cr = 0.86f, cg = 0.8f, cb = 0.58f;
+    else {
+      cr -= 0.08f * grove;  // groves shade the grass a little darker and wetter ground a little greener
+      cg += 0.04f * (wet - 0.5f) - 0.04f * grove;
+    }
+    const float shade = 0.97f + 0.06f * static_cast<float>((static_cast<uint32_t>(q * 7 + r * 13)) % 3) / 2.0f;
+    const uint32_t col = pack(cr * shade, cg * shade, cb * shade);
+    const uint32_t base = static_cast<uint32_t>(mesh->positions.size());
+    mesh->positions.push_back({x, y, z});
+    mesh->normals.push_back({0, 1, 0});
+    mesh->colors.push_back(col);
+    for (int k = 0; k < 6; ++k) {
+      const float a = 3.14159265f / 6.0f + 3.14159265f / 3.0f * static_cast<float>(k);
+      mesh->positions.push_back({x + std::cos(a), y, z + std::sin(a)});
+      mesh->normals.push_back({0, 1, 0});
+      mesh->colors.push_back(col);
+    }
+    for (int k = 0; k < 6; ++k) {
+      mesh->indices.push_back(base);
+      mesh->indices.push_back(base + 1 + static_cast<uint32_t>((k + 1) % 6));
+      mesh->indices.push_back(base + 1 + static_cast<uint32_t>(k));
+    }
+    // Skirts: a bank down to each lower neighbour (or to the ground plane at the border), so rises read as ground.
+    for (int k = 0; k < 6; ++k) {
+      const float a0 = 3.14159265f / 6.0f + 3.14159265f / 3.0f * static_cast<float>(k), a1 = a0 + 3.14159265f / 3.0f;
+      // The neighbour across this edge: its centre lies at the edge's midpoint, doubled.
+      const float mx = x + std::cos((a0 + a1) * 0.5f) * kSqrt3, mz = z + std::sin((a0 + a1) * 0.5f) * kSqrt3;
+      const float fq = kSqrt3 / 3.0f * mx - mz / 3.0f, fr = 2.0f / 3.0f * mz;
+      const int nq = static_cast<int>(std::lround(fq)), nr = static_cast<int>(std::lround(fr));
+      auto it = heights.find({nq, nr});
+      const float below = it == heights.end() ? std::min(0.0f, y) - 0.05f : it->second;
+      if (below >= y - 1e-3f) continue;
+      const foundry::vec3 out{std::cos((a0 + a1) * 0.5f), 0, std::sin((a0 + a1) * 0.5f)};
+      const uint32_t side = pack(cr * 0.62f, cg * 0.55f, cb * 0.45f);
+      const uint32_t s0 = static_cast<uint32_t>(mesh->positions.size());
+      mesh->positions.push_back({x + std::cos(a0), y, z + std::sin(a0)});
+      mesh->positions.push_back({x + std::cos(a1), y, z + std::sin(a1)});
+      mesh->positions.push_back({x + std::cos(a1), below, z + std::sin(a1)});
+      mesh->positions.push_back({x + std::cos(a0), below, z + std::sin(a0)});
+      for (int i = 0; i < 4; ++i) {
+        mesh->normals.push_back(out);
+        mesh->colors.push_back(side);
+      }
+      for (uint32_t i : {0u, 2u, 1u, 0u, 3u, 2u}) mesh->indices.push_back(s0 + i);
+    }
+    float lr = 0.85f, lg = 0.95f, lb = 0.8f;
+    if (!c.value("available", true)) lr = 1.0f, lg = 0.45f, lb = 0.4f;
+    for (int k = 0; k < 6; ++k) {
+      const float a0 = 3.14159265f / 6.0f + 3.14159265f / 3.0f * static_cast<float>(k);
+      const float a1 = a0 + 3.14159265f / 3.0f;
+      if (lines) lines->push_back({{x + std::cos(a0), y + 0.01f, z + std::sin(a0)}, {x + std::cos(a1), y + 0.01f, z + std::sin(a1)}, lr, lg, lb, 0.18f});
+    }
+  }
+}
+
 View::~View() {
   if (worker_.joinable()) worker_.join();
 }
@@ -85,6 +155,7 @@ View::Terrain View::terrain_of(const nlohmann::json &j) {
   t.scale_cells = std::clamp(j.value("scale_cells", t.scale_cells), 1.0f, 200.0f);
   t.roughness = std::clamp(j.value("roughness", t.roughness), 0.0f, 1.0f);
   t.jitter_m = std::clamp(j.value("jitter_m", t.jitter_m), 0.0f, 5.0f);
+  t.smooth = std::clamp(j.value("smooth", t.smooth), 0.0f, 1.0f);
   return t;
 }
 
@@ -250,6 +321,12 @@ nlohmann::json View::preset(const std::string &name, int R, uint32_t seed, const
     std::map<std::pair<int, int>, std::vector<int>> groups;  // (height cm/5, moisture %/5) -> q, r pairs
     std::vector<std::array<int, 3>> pond_cells;               // q, r, height
     int pond_floor = 1 << 30;
+    // Every land cell's height and noise first (a dense grid over the extent), so smoothing can see
+    // its neighbours.
+    const int side = 2 * ext + 1;
+    std::vector<float> H(size_t(side) * side, 0), N(H.size(), 0);
+    std::vector<uint8_t> is_land(H.size(), 0);
+    auto at = [&](int q, int r) { return size_t(q + ext) * side + size_t(r + ext); };
     for (int q = -ext; q <= ext; ++q)
       for (int r = -ext; r <= ext; ++r) {
         if (hex_distance(q, r) > ext || !ground_cell(q, r)) continue;
@@ -257,13 +334,72 @@ nlohmann::json View::preset(const std::string &name, int R, uint32_t seed, const
         float h01 = terrain01(terrain, x, z, seed * 2654435761u + 17u);
         float h = terrain.height_m * h01;
         h += terrain.jitter_m * (2.0f * lattice(q, r, seed ^ 0x5bd1e995u) - 1.0f);
-        const int hq = static_cast<int>(std::lround(h / 0.05f));
         if (pond && hex_distance(q - pq, r - pr) <= prad) {
+          const int hq = static_cast<int>(std::lround(h / 0.05f));
           pond_cells.push_back({q, r, hq});
           pond_floor = std::min(pond_floor, hq);
           continue;
         }
-        const float wet = terrain.height_m > 0 ? std::clamp(0.8f - 0.5f * h01, 0.2f, 0.9f) : 0.55f;
+        H[at(q, r)] = h;
+        N[at(q, r)] = h01;
+        is_land[at(q, r)] = 1;
+      }
+    // Smoothing: blur passes (each cell toward its neighbours' mean), then a limit on the step between
+    // neighbours, kSmoothStep at 1 and loosening to none at 0, so a game that blends between cells
+    // gets slopes, not cliffs. Steps are closed from both sides, so hills keep their middle height.
+    static const int nq[6] = {1, 1, 0, -1, -1, 0}, nr[6] = {0, -1, -1, 0, 1, 1};
+    auto neighbour = [&](int q, int r, int k, size_t &out) {
+      const int a = q + nq[k], b = r + nr[k];
+      if (a < -ext || a > ext || b < -ext || b > ext) return false;
+      out = at(a, b);
+      return is_land[out] != 0;
+    };
+    if (terrain.smooth > 0) {
+      const int passes = static_cast<int>(std::lround(terrain.smooth * 6.0f));
+      for (int p = 0; p < passes; ++p) {
+        std::vector<float> next = H;
+        for (int q = -ext; q <= ext; ++q)
+          for (int r = -ext; r <= ext; ++r) {
+            if (!is_land[at(q, r)]) continue;
+            float sum = 0;
+            int n = 0;
+            size_t o;
+            for (int k = 0; k < 6; ++k)
+              if (neighbour(q, r, k, o)) {
+                sum += H[o];
+                ++n;
+              }
+            if (n) next[at(q, r)] = H[at(q, r)] * 0.4f + 0.6f * sum / static_cast<float>(n);
+          }
+        H.swap(next);
+      }
+      const float a = 1.0f - terrain.smooth;
+      const float limit = kSmoothStep + 8.0f * a * a;  // metres
+      for (int iter = 0; iter < 400; ++iter) {
+        bool changed = false;
+        for (int q = -ext; q <= ext; ++q)
+          for (int r = -ext; r <= ext; ++r) {
+            if (!is_land[at(q, r)]) continue;
+            for (int k = 0; k < 3; ++k) {  // each pair once
+              size_t o;
+              if (!neighbour(q, r, k, o)) continue;
+              float &h = H[at(q, r)];
+              const float d = h - H[o];
+              if (std::fabs(d) <= limit + 1e-3f) continue;
+              const float fix = 0.5f * (std::fabs(d) - limit) * (d > 0 ? 1.0f : -1.0f);
+              h -= fix;
+              H[o] += fix;
+              changed = true;
+            }
+          }
+        if (!changed) break;
+      }
+    }
+    for (int q = -ext; q <= ext; ++q)
+      for (int r = -ext; r <= ext; ++r) {
+        if (!is_land[at(q, r)]) continue;
+        const int hq = static_cast<int>(std::lround(H[at(q, r)] / 0.05f));
+        const float wet = terrain.height_m > 0 ? std::clamp(0.8f - 0.5f * N[at(q, r)], 0.2f, 0.9f) : 0.55f;
         const int mq = static_cast<int>(std::lround(wet / 0.05f));
         auto &cells = groups[{hq, mq}];
         cells.push_back(q);
@@ -633,6 +769,23 @@ nlohmann::json View::metrics_locked() const {
   return m;
 }
 
+std::vector<float> View::ground_triangles() const {
+  nlohmann::json cells;
+  {
+    std::lock_guard<std::mutex> lock(mutex_);
+    cells = cells_;
+  }
+  runtime::Mesh m;
+  add_ground(cells, m, nullptr);
+  std::vector<float> out;
+  out.reserve(m.indices.size() * 3);
+  for (uint32_t i : m.indices) {
+    const auto &p = m.positions[i];
+    out.insert(out.end(), {p.x, p.y, p.z});
+  }
+  return out;
+}
+
 Picture View::picture() {
   std::lock_guard<std::mutex> lock(mutex_);
   if (loaded_ && picture_.version != version_ && composing_ != version_ && composing_ == 0) {
@@ -664,71 +817,7 @@ void View::compose(int version) {
   (void)seed;
   auto mesh = std::make_shared<runtime::Mesh>();
   std::vector<viewport::Line> lines, collision;
-  // The ground: a flat hex tile per cell at its height, coloured by its ground.
-  std::map<std::pair<int, int>, float> heights;
-  for (const auto &c : cells) heights[{c["q"].get<int>(), c["r"].get<int>()}] = c.value("height", 0.0f);
-  for (const auto &c : cells) {
-    const int q = c["q"], r = c["r"];
-    const float x = cell_x(q, r), z = cell_z(r), y = c.value("height", 0.0f);
-    const std::string g = c.value("ground", std::string("soil"));
-    const float grove = c.value("grove", 0.5f), wet = c.value("moisture", 0.5f);
-    float cr = 0.45f, cg = 0.66f, cb = 0.32f;  // a sunny meadow
-    if (g == "water") cr = 0.32f, cg = 0.55f, cb = 0.78f;
-    else if (g == "path") cr = 0.74f, cg = 0.63f, cb = 0.45f;
-    else if (g == "rock") cr = 0.6f, cg = 0.6f, cb = 0.58f;
-    else if (g == "sand") cr = 0.86f, cg = 0.8f, cb = 0.58f;
-    else {
-      cr -= 0.08f * grove;  // groves shade the grass a little darker and wetter ground a little greener
-      cg += 0.04f * (wet - 0.5f) - 0.04f * grove;
-    }
-    const float shade = 0.97f + 0.06f * static_cast<float>((static_cast<uint32_t>(q * 7 + r * 13)) % 3) / 2.0f;
-    const uint32_t col = pack(cr * shade, cg * shade, cb * shade);
-    const uint32_t base = static_cast<uint32_t>(mesh->positions.size());
-    mesh->positions.push_back({x, y, z});
-    mesh->normals.push_back({0, 1, 0});
-    mesh->colors.push_back(col);
-    for (int k = 0; k < 6; ++k) {
-      const float a = 3.14159265f / 6.0f + 3.14159265f / 3.0f * static_cast<float>(k);
-      mesh->positions.push_back({x + std::cos(a), y, z + std::sin(a)});
-      mesh->normals.push_back({0, 1, 0});
-      mesh->colors.push_back(col);
-    }
-    for (int k = 0; k < 6; ++k) {
-      mesh->indices.push_back(base);
-      mesh->indices.push_back(base + 1 + static_cast<uint32_t>((k + 1) % 6));
-      mesh->indices.push_back(base + 1 + static_cast<uint32_t>(k));
-    }
-    // Skirts: a bank down to each lower neighbour (or to the ground plane at the border), so rises read as ground.
-    for (int k = 0; k < 6; ++k) {
-      const float a0 = 3.14159265f / 6.0f + 3.14159265f / 3.0f * static_cast<float>(k), a1 = a0 + 3.14159265f / 3.0f;
-      // The neighbour across this edge: its centre lies at the edge's midpoint, doubled.
-      const float mx = x + std::cos((a0 + a1) * 0.5f) * kSqrt3, mz = z + std::sin((a0 + a1) * 0.5f) * kSqrt3;
-      const float fq = kSqrt3 / 3.0f * mx - mz / 3.0f, fr = 2.0f / 3.0f * mz;
-      const int nq = static_cast<int>(std::lround(fq)), nr = static_cast<int>(std::lround(fr));
-      auto it = heights.find({nq, nr});
-      const float below = it == heights.end() ? std::min(0.0f, y) - 0.05f : it->second;
-      if (below >= y - 1e-3f) continue;
-      const foundry::vec3 out{std::cos((a0 + a1) * 0.5f), 0, std::sin((a0 + a1) * 0.5f)};
-      const uint32_t side = pack(cr * 0.62f, cg * 0.55f, cb * 0.45f);
-      const uint32_t s0 = static_cast<uint32_t>(mesh->positions.size());
-      mesh->positions.push_back({x + std::cos(a0), y, z + std::sin(a0)});
-      mesh->positions.push_back({x + std::cos(a1), y, z + std::sin(a1)});
-      mesh->positions.push_back({x + std::cos(a1), below, z + std::sin(a1)});
-      mesh->positions.push_back({x + std::cos(a0), below, z + std::sin(a0)});
-      for (int i = 0; i < 4; ++i) {
-        mesh->normals.push_back(out);
-        mesh->colors.push_back(side);
-      }
-      for (uint32_t i : {0u, 2u, 1u, 0u, 3u, 2u}) mesh->indices.push_back(s0 + i);
-    }
-    float lr = 0.85f, lg = 0.95f, lb = 0.8f;
-    if (!c.value("available", true)) lr = 1.0f, lg = 0.45f, lb = 0.4f;
-    for (int k = 0; k < 6; ++k) {
-      const float a0 = 3.14159265f / 6.0f + 3.14159265f / 3.0f * static_cast<float>(k);
-      const float a1 = a0 + 3.14159265f / 3.0f;
-      lines.push_back({{x + std::cos(a0), y + 0.01f, z + std::sin(a0)}, {x + std::cos(a1), y + 0.01f, z + std::sin(a1)}, lr, lg, lb, 0.18f});
-    }
-  }
+  add_ground(cells, *mesh, &lines);
   // Every occupant: its kind's pipeline at its values, turned and placed.
   const auto t_pipelines = std::chrono::steady_clock::now();
   double run_ms = 0;

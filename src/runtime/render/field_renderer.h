@@ -11,6 +11,7 @@
 #include <vector>
 
 #include "core/pipeline.h"
+#include "render/sky_renderer.h"
 
 namespace runtime {
 
@@ -45,7 +46,7 @@ class FieldRenderer {
   FieldInstance *begin_frame(uint32_t count);
   void end_frame(SDL_GPUCopyPass *copy);
   void draw(SDL_GPUCommandBuffer *cmd, SDL_GPURenderPass *pass, const std::vector<FieldRange> &ranges, const float view_proj[16],
-            float time);
+            float time, const LightBinding &light);
   uint64_t gpu_bytes() const { return bytes_; }
 
  private:

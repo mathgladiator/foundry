@@ -6,6 +6,7 @@
 
 #include "core/log.h"
 #include "core/util.h"
+#include "sky/observatory.h"
 #include "viewport/image.h"
 
 namespace plot {
@@ -78,7 +79,8 @@ void register_tools(mcp::Registry &registry, View &view) {
                              {"shared", {{"type", "object"}}},
                              {"terrain", {{"type", "object"},
                                           {"description", "with preset: {style: flat|hills|ridges|terraces|dunes|mesas|wild, "
-                                                          "height_m, scale_cells, roughness 0..1, jitter_m}"}}}}),
+                                                          "height_m, scale_cells, roughness 0..1, jitter_m, smooth 0..1 (1: blurred, no step between "
+                                                          "neighbouring cells over 0.25 m)}"}}}}),
                 [&view](const json &args) {
                   std::string error;
                   if (!ensure(view, args, error)) return mcp::Result::error(error);
@@ -158,6 +160,9 @@ void register_tools(mcp::Registry &registry, View &view) {
                              {"distance", {{"type", "number"}}},
                              {"collision", {{"type", "boolean"}}},
                              {"cpu", {{"type", "boolean"}, {"description", "draw it on the CPU, to compare with the GPU"}}},
+                             {"observatory", {{"type", "string"},
+                                              {"description", "under this observatory's sky, or none; default: what the plotter's "
+                                                              "viewer is under"}}},
                              {"size", {{"type", "integer"}, {"description", "pixels (default 900)"}}}}),
                 [&view](const json &args) {
                   std::string error;
@@ -176,7 +181,11 @@ void register_tools(mcp::Registry &registry, View &view) {
                   {
                     std::optional<viewport::ForceCpu> cpu;
                     if (args.value("cpu", false)) cpu.emplace();
-                    img = assets::render_view(c, cam, overlays(args.value("collision", false)), false, size, size);
+                    viewport::SkyScene sky_scene;
+                    const std::string under = args.value("observatory", sky::observatories().view_of("plotter:" + view.name()));
+                    const bool has_sky = under != "none" && sky::observatories().scene(under, sky_scene);
+                    img = assets::render_view(c, cam, overlays(args.value("collision", false)), false, size, size, 0,
+                                              has_sky ? &sky_scene : nullptr);
                   }
                   const std::string on = viewport::last_renderer();
                   core::log().add("plot", "rendered " + std::to_string(c.mesh ? c.mesh->indices.size() / 3 : 0) + " triangles at " +

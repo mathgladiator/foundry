@@ -35,6 +35,7 @@ endforeach()
 set(FOUNDRY_DXC "${FOUNDRY_DEPS_DIR}/dxc/bin/dxc" CACHE FILEPATH "DXC (tools/bootstrap.sh)")
 set(shader_header_dir "${CMAKE_BINARY_DIR}/shaders")
 set(shader_headers "")
+file(GLOB shader_includes CONFIGURE_DEPENDS "${CMAKE_SOURCE_DIR}/src/runtime/shaders/*.hlsli")
 function(foundry_shader hlsl stage entry name)
   set(spv "${shader_header_dir}/${name}.spv")
   set(hdr "${shader_header_dir}/${name}.h")
@@ -42,7 +43,7 @@ function(foundry_shader hlsl stage entry name)
     COMMAND "${CMAKE_COMMAND}" -E make_directory "${shader_header_dir}"
     COMMAND "${FOUNDRY_DXC}" -spirv -fspv-target-env=vulkan1.0 -T ${stage} -E ${entry} "${hlsl}" -Fo "${spv}"
     COMMAND "${CMAKE_COMMAND}" -DIN=${spv} -DOUT=${hdr} -DNAME=${name} -P "${CMAKE_SOURCE_DIR}/cmake/embed.cmake"
-    DEPENDS "${hlsl}" "${CMAKE_SOURCE_DIR}/cmake/embed.cmake"
+    DEPENDS "${hlsl}" ${shader_includes} "${CMAKE_SOURCE_DIR}/cmake/embed.cmake"
     COMMENT "shader: ${name}"
     VERBATIM)
   set(shader_headers ${shader_headers} "${hdr}" PARENT_SCOPE)
@@ -51,9 +52,12 @@ foundry_shader("${CMAKE_SOURCE_DIR}/src/runtime/shaders/cel.hlsl" vs_6_0 vs_main
 foundry_shader("${CMAKE_SOURCE_DIR}/src/runtime/shaders/cel.hlsl" ps_6_0 ps_main cel_ps_spirv)
 foundry_shader("${CMAKE_SOURCE_DIR}/src/runtime/shaders/skinned.hlsl" vs_6_0 vs_main skinned_vs_spirv)
 foundry_shader("${CMAKE_SOURCE_DIR}/src/runtime/shaders/skinned.hlsl" ps_6_0 ps_main skinned_ps_spirv)
+foundry_shader("${CMAKE_SOURCE_DIR}/src/runtime/shaders/skinned.hlsl" ps_6_0 shadow_ps skinned_shadow_ps_spirv)
 foundry_shader("${CMAKE_SOURCE_DIR}/src/runtime/shaders/scatter.hlsl" cs_6_0 cs_main scatter_cs_spirv)
 foundry_shader("${CMAKE_SOURCE_DIR}/src/runtime/shaders/field.hlsl" vs_6_0 vs_main field_vs_spirv)
 foundry_shader("${CMAKE_SOURCE_DIR}/src/runtime/shaders/field.hlsl" ps_6_0 ps_main field_ps_spirv)
+foundry_shader("${CMAKE_SOURCE_DIR}/src/runtime/shaders/sky.hlsl" vs_6_0 sky_vs sky_vs_spirv)
+foundry_shader("${CMAKE_SOURCE_DIR}/src/runtime/shaders/sky.hlsl" ps_6_0 sky_ps sky_ps_spirv)
 foundry_shader("${CMAKE_SOURCE_DIR}/src/host/viewport/shaders/viewport.hlsl" vs_6_0 mesh_vs viewport_mesh_vs_spirv)
 foundry_shader("${CMAKE_SOURCE_DIR}/src/host/viewport/shaders/viewport.hlsl" ps_6_0 mesh_ps viewport_mesh_ps_spirv)
 foundry_shader("${CMAKE_SOURCE_DIR}/src/host/viewport/shaders/viewport.hlsl" vs_6_0 full_vs viewport_full_vs_spirv)
@@ -61,6 +65,9 @@ foundry_shader("${CMAKE_SOURCE_DIR}/src/host/viewport/shaders/viewport.hlsl" ps_
 foundry_shader("${CMAKE_SOURCE_DIR}/src/host/viewport/shaders/viewport.hlsl" ps_6_0 down_ps viewport_down_ps_spirv)
 foundry_shader("${CMAKE_SOURCE_DIR}/src/host/viewport/shaders/viewport.hlsl" vs_6_0 line_vs viewport_line_vs_spirv)
 foundry_shader("${CMAKE_SOURCE_DIR}/src/host/viewport/shaders/viewport.hlsl" ps_6_0 line_ps viewport_line_ps_spirv)
+foundry_shader("${CMAKE_SOURCE_DIR}/src/host/viewport/shaders/viewport.hlsl" vs_6_0 skyfull_vs viewport_sky_vs_spirv)
+foundry_shader("${CMAKE_SOURCE_DIR}/src/host/viewport/shaders/viewport.hlsl" ps_6_0 sky_ps viewport_sky_ps_spirv)
+foundry_shader("${CMAKE_SOURCE_DIR}/src/host/viewport/shaders/viewport.hlsl" ps_6_0 shadow_ps viewport_shadow_ps_spirv)
 add_custom_target(shaders DEPENDS ${shader_headers})
 
 # The runtime (src/runtime): the engine that ships in games. Never depends on the host.
@@ -155,3 +162,12 @@ add_test(NAME results COMMAND results_test)
 add_executable(region_test "${CMAKE_SOURCE_DIR}/tests/region_test.cpp")
 target_link_libraries(region_test PRIVATE foundry_library Jolt)
 add_test(NAME region COMMAND region_test)
+add_executable(sky_test "${CMAKE_SOURCE_DIR}/tests/sky_test.cpp" "${CMAKE_SOURCE_DIR}/src/runtime/sky/sky.cpp")
+target_include_directories(sky_test PRIVATE "${CMAKE_SOURCE_DIR}/src/runtime")
+add_test(NAME sky COMMAND sky_test)
+add_executable(walker_test "${CMAKE_SOURCE_DIR}/tests/walker_test.cpp"
+  "${CMAKE_SOURCE_DIR}/src/host/physics/walker.cpp" "${CMAKE_SOURCE_DIR}/src/host/physics/toy.cpp")
+target_include_directories(walker_test PRIVATE "${CMAKE_SOURCE_DIR}/src/host" "${CMAKE_SOURCE_DIR}/src/common"
+  "${CMAKE_SOURCE_DIR}/src/generated")
+target_link_libraries(walker_test PRIVATE foundry_library foundry_runtime Jolt nlohmann_json::nlohmann_json)
+add_test(NAME walker COMMAND walker_test)

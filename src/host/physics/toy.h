@@ -24,6 +24,9 @@ struct Collision {
   nlohmann::json report;       // for pipeline_set and the inspector
 };
 
+// Registers Jolt's allocator, factory, and types, once for the process.
+void init_jolt();
+
 // conformance_radius 0: no conformance to check against.
 std::shared_ptr<const Collision> analyze(const std::vector<runtime::CollisionBody> &bodies, float conformance_radius,
                                          float conformance_height);

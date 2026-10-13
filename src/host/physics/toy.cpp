@@ -48,12 +48,7 @@ struct Toy {
 };
 
 Toy &toy() {
-  static std::once_flag once;
-  std::call_once(once, [] {
-    JPH::RegisterDefaultAllocator();
-    JPH::Factory::sInstance = new JPH::Factory();
-    JPH::RegisterTypes();
-  });
+  init_jolt();
   static Toy t;
   return t;
 }
@@ -64,6 +59,15 @@ const char *purpose_name(uint32_t p) {
 }
 
 }  // namespace
+
+void init_jolt() {
+  static std::once_flag once;
+  std::call_once(once, [] {
+    JPH::RegisterDefaultAllocator();
+    JPH::Factory::sInstance = new JPH::Factory();
+    JPH::RegisterTypes();
+  });
+}
 
 void wireframe(const Collision &c, std::vector<viewport::Line> &out, foundry::vec3 at, float yaw) {
   static const float kColor[4][3] = {{1.0f, 0.3f, 0.25f}, {1.0f, 0.62f, 0.2f}, {0.35f, 0.85f, 1.0f}, {1.0f, 0.9f, 0.3f}};

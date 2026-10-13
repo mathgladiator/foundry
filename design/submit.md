@@ -167,6 +167,15 @@ What a light renders into its shadow map depends on the light's distance from th
 
 Either way, the shadow pass only needs the animated shape and the mesh: it is a pure geometry bus, with no materials or textures involved.
 
+### Built so far
+
+The sky's key light (the sun, or a moon at night) has one shadow map (`observatory.md`):
+- **The map:** 2048² of depth, orthographic around what the game names (or 60 m ahead of the camera), snapped to its texels, and biased by slope.
+- **Casters:** the skinned instances drawn this frame; fields receive shadows but don't cast them.
+- **Sampling:** the mega shader's light (`src/runtime/shaders/light.hlsli`) samples it with soft edges and fades it out at its reach.
+
+The clouds' shadows come from the same cloud map the sky draws. Its test scene is the observatory's sundial. Lights other than the sun and cascades aren't built.
+
 ### Validation
 
 Shadow maps fail in well-known ways: acne (speckled self-shadowing), peter-panning (shadows detached from their object), and blurry or blocky edges. Play testing (`playtest.md`) needs a shadow test scene with known geometry and light positions, plus a debug view of each shadow map, so the agent and the human can check them.

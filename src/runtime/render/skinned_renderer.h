@@ -13,6 +13,7 @@
 #include <vector>
 
 #include "core/pipeline.h"
+#include "render/sky_renderer.h"
 
 namespace runtime {
 
@@ -62,8 +63,10 @@ class SkinnedRenderer {
   void end_frame(SDL_GPUCopyPass *copy);
   void scatter(SDL_GPUCommandBuffer *cmd);
 
+  // Draws into an open render pass, lit; or, with no light, depth only into a shadow map's pass
+  // (view_proj then the key light's).
   void draw(SDL_GPUCommandBuffer *cmd, SDL_GPURenderPass *pass, const std::vector<DrawRange> &ranges,
-            const float view_proj[16]);
+            const float view_proj[16], const LightBinding *light);
 
   uint64_t buffers_created() const { return created_; }
   uint64_t buffers_released() const { return released_; }
@@ -76,7 +79,7 @@ class SkinnedRenderer {
   void grow(SDL_GPUBuffer *&buffer, uint32_t &capacity, SDL_GPUBufferUsageFlags usage, uint32_t need);
 
   SDL_GPUDevice *device_ = nullptr;
-  SDL_GPUGraphicsPipeline *pipeline_ = nullptr;
+  SDL_GPUGraphicsPipeline *pipeline_ = nullptr, *shadow_pipeline_ = nullptr;
   SDL_GPUComputePipeline *scatter_ = nullptr;
   SDL_GPUBuffer *instances_ = nullptr, *bones_ = nullptr, *rows_ = nullptr, *slots_ = nullptr;
   uint32_t instance_capacity_ = 0, bone_capacity_ = 0, rows_capacity_ = 0, slots_capacity_ = 0;  // bytes

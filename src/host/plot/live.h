@@ -11,12 +11,15 @@
 #include <SDL3/SDL_gpu.h>
 
 #include <cstdint>
+#include <memory>
 #include <string>
 #include <vector>
 
 #include <nlohmann/json.hpp>
 
+#include "physics/walker.h"
 #include "runtime.h"
+#include "sky/sky.h"
 
 namespace plot {
 
@@ -49,12 +52,19 @@ class Live {
   // The plot view's shared values (season, wind) on every instance and field that has them, by
   // name, whenever they change (a build parameter such as season rebuilds; wind only sways).
   void share(const nlohmann::json &shared);
+  // The sky over the region (design/observatory.md), through the game's API: the observatory (null:
+  // none) is handed in when it changes, its state every call; the shadow map looks at centre.
+  void set_sky(const std::shared_ptr<const runtime::sky::Observatory> &observatory, const runtime::sky::State &state,
+               const float centre[3], float radius);
   LiveStats stats() const { return stats_; }
   float extent() const { return extent_; }  // the region's radius, metres
   size_t count() const { return instances_.size(); }  // instances spawned (things and fields)
+  // The Jolt world the runtime keeps every instance's collision in, as a game's: a play test walks in it.
+  physics::Walker &walker() { return *walker_; }
 
  private:
   SDL_GPUDevice *device_ = nullptr;
+  std::unique_ptr<physics::Walker> walker_ = std::make_unique<physics::Walker>();  // outlives each runtime
   foundry_runtime *rt_ = nullptr;
   foundry_region region_ = FOUNDRY_NO_REGION;
   std::vector<foundry_instance> instances_;
@@ -63,6 +73,7 @@ class Live {
   int w_ = 0, h_ = 0;
   float extent_ = 10;
   std::string key_, shared_;
+  std::shared_ptr<const runtime::sky::Observatory> sky_;  // what the runtime was handed
   LiveStats stats_;
   uint64_t frames_ = 0;
   double fps_window_ = 0;

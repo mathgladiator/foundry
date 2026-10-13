@@ -12,8 +12,8 @@ For each pipelines/<name>.json in the workspace (default demo/), it writes:
                                        tables (config/<table>/) compiled in
   src/generated/stress/stress_<name>.c the stress binding (design/quality.perf.md):
                                        a parameter table and thunks onto the API
-and src/library/runtime.h, every fragment in a fixed order: foundry.h, then the
-pipelines by name.
+and src/library/runtime.h, every fragment in a fixed order: foundry.h, region.h,
+sky.h, then the pipelines by name, then the plotters.
 
 Config floats are written as exact hex literals of the float the foundry gets
 from JSON, so the native build makes the same models as WebAssembly.
@@ -1080,8 +1080,10 @@ def main():
         core = f.read()
     with open(os.path.join(LIBRARY, "region.h")) as f:
         core += "\n" + f.read()
+    with open(os.path.join(LIBRARY, "sky.h")) as f:
+        core += "\n" + f.read()
     runtime_h = ["/* runtime.h: the game-facing API (design/api.md). Assembled by tools/gen_pipelines.py from\n"
-                 " * the fragments in src/library/: foundry.h, region.h, each pipeline by name, then the plotters. Do not edit. */\n"
+                 " * the fragments in src/library/: foundry.h, region.h, sky.h, each pipeline by name, then the plotters. Do not edit. */\n"
                  "#pragma once\n\n", core]
     for p in pipelines:
         runtime_h.append("\n" + files[os.path.join(LIBRARY, f"{p.name}.h")])

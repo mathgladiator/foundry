@@ -2,8 +2,29 @@
 // renderer (raster.cpp; style.md section 6): cel bands with warm light and cool
 // shadow, a rim band, ink on silhouettes and depth edges, and overlay lines that
 // fade where the mesh hides them. Drawn at twice the size and box-filtered down.
+// Lit by the runtime's light.hlsli, so under an observatory's sky (sky_ps, the
+// runtime's sky.hlsli) a model has the same sun, shadows, clouds, and fog as in
+// the game; shadow_ps draws the shadow map's depth.
 // SDL GPU binding model for SPIR-V: vertex uniforms are set 1; fragment samplers
 // set 2, fragment uniforms set 3.
+
+// The mesh pass's light is its second uniform slot (Look is the first); the sky's is its third.
+#define LIGHT_BINDING 1
+#define LIGHT_REG b1
+#define LIGHT_T0 t4
+#define LIGHT_S0 s4
+#define LIGHT_T1 t5
+#define LIGHT_S1 s5
+#include "../../../runtime/shaders/light.hlsli"
+#define SKY_BINDING 2
+#define SKY_REG b2
+#define SKY_T0 t6
+#define SKY_S0 s6
+#define SKY_T1 t7
+#define SKY_S1 s7
+#define SKY_T2 t8
+#define SKY_S2 s8
+#include "../../../runtime/shaders/sky.hlsli"
 
 [[vk::binding(0, 1)]] cbuffer Camera : register(b0, space1) {
   float4x4 clip;     // world to clip
@@ -36,7 +57,8 @@ MeshOut mesh_vs(MeshIn v) {
 }
 
 [[vk::binding(0, 3)]] cbuffer Look : register(b0, space3) {
-  float4 mode;  // x: 1 draws a silhouette (solid black)
+  float4 mode;  // x: 1 draws a silhouette (solid black); y: 1 under a sky (the background is the sky pass's);
+                // z: 1 draws backdrop (a sky's ground: no depth for the ink, so it is never inked)
 };
 
 struct MeshTargets {
@@ -46,11 +68,8 @@ struct MeshTargets {
 };
 
 MeshTargets mesh_ps(MeshOut i) {
-  const float3 light_dir = normalize(float3(0.62, 0.68, 0.40));
-  const float3 light = float3(1.04, 0.98, 0.88);
-  const float3 shadow = float3(0.50, 0.52, 0.72);
   MeshTargets o;
-  o.depth = max(i.depth, 1e-4);
+  o.depth = mode.z > 0.5 ? 0.0 : max(i.depth, 1e-4);
   if (mode.x > 0.5) {
     o.color = float4(0, 0, 0, 1);
     o.albedo = float4(0, 0, 0, 1);
@@ -59,12 +78,38 @@ MeshTargets mesh_ps(MeshOut i) {
   float3 to_cam = eye.w > 0.5 ? -forward.xyz : normalize(eye.xyz - i.world);
   float3 n = normalize(i.normal);
   if (dot(n, to_cam) < 0) n = -n;  // two-sided
-  float ndl = dot(n, light_dir);
   float3 al = i.color.rgb;
-  float3 c = ndl > 0.02 ? al * light * (ndl > 0.45 ? 1.0 : 0.84) : al * shadow * 1.05;
-  if (dot(n, to_cam) < 0.28) c += float3(0.07, 0.07, 0.08);  // rim band
+  float3 c = shade(al, n, i.world);
+  if (dot(n, to_cam) < 0.28 && mode.z < 0.5) c += float3(0.07, 0.07, 0.08) * (light.key_dir.w > 0.5 ? light.eye.w * dot(light.ambient.rgb, 0.6) : 1.0);  // rim band
   o.color = float4(c, 1);
   o.albedo = float4(al, 1);
+  return o;
+}
+
+// Depth only, for the shadow map.
+void shadow_ps() {}
+
+// The sky, after the mesh at the far plane: where nothing was drawn, its colour, and no depth
+// (so the ink pass treats it as background).
+struct SkyFull {
+  float4 position : SV_Position;
+  [[vk::location(0)]] float2 ndc : TEXCOORD0;
+};
+
+SkyFull skyfull_vs(uint id : SV_VertexID) {
+  SkyFull o;
+  const float2 p = float2((id << 1) & 2, id & 2);
+  o.ndc = p * float2(2, -2) + float2(-1, 1);
+  o.position = float4(o.ndc, 1.0, 1.0);
+  return o;
+}
+
+MeshTargets sky_ps(SkyFull i) {
+  const float3 dir = normalize(sky.ray_z.xyz + i.ndc.x * sky.ray_x.xyz + i.ndc.y * sky.ray_y.xyz);
+  MeshTargets o;
+  o.color = float4(sky_color(dir) + (sky_hash(i.position.xy) - 0.5) / 255.0, 1);
+  o.albedo = float4(0, 0, 0, 1);
+  o.depth = 0;
   return o;
 }
 
@@ -103,6 +148,7 @@ float4 ink_ps(Full i) : SV_Target0 {
   bool mesh = d > 0;
   bool silhouette = mode.x > 0.5;
   if (!mesh) {
+    if (mode.y > 0.5) return color_tex.Load(int3(p, 0));
     float s = (float)p.y / (float)h;
     return float4(0.20 + 0.06 * s, 0.22 + 0.05 * s, 0.27 + 0.02 * s, 1);
   }
