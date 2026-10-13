@@ -1,0 +1,43 @@
+{
+  "family": "house",
+  "version": 1,
+  "feature": "motion",
+  "doc": "The building animator's input: its moving parts, the local wind (as trees use it), the time, when the door last opened, and the seed.",
+  "fields": [
+    {
+      "name": "bones",
+      "type": "house_v1_bone[]",
+      "doc": "The moving parts."
+    },
+    {
+      "name": "wind_speed",
+      "type": "f32",
+      "doc": "Wind speed, m/s."
+    },
+    {
+      "name": "wind_heading",
+      "type": "f32",
+      "doc": "Toward which the wind blows, degrees from +Z toward +X."
+    },
+    {
+      "name": "gust_damping",
+      "type": "f32",
+      "doc": "0 gusty to 1 steady."
+    },
+    {
+      "name": "time",
+      "type": "f32",
+      "doc": "Seconds, for the sway, spin, smoke, and flicker."
+    },
+    {
+      "name": "door_time",
+      "type": "f32",
+      "doc": "Seconds since the door opened; negative while shut. It swings open, stays for a visit, and closes."
+    },
+    {
+      "name": "seed",
+      "type": "u32",
+      "doc": "Per-building phases."
+    }
+  ]
+}

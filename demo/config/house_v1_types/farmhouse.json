@@ -1,0 +1,83 @@
+{
+  "created_at": "2026-10-13T12:00:00Z",
+  "doc": "A farm's house: a long log house under thatch, hay, a cart, a trough and beehives, a fence around it, sails turning on its end.",
+  "notes": [],
+  "state": "draft",
+  "value": {
+    "name": "farmhouse",
+    "kind": "home",
+    "footprint": "rect4x3",
+    "footprint_alt": "rect5x4",
+    "walls": "log",
+    "wall_color": [
+      0.55,
+      0.4,
+      0.26
+    ],
+    "trim_color": [
+      0.4,
+      0.29,
+      0.19
+    ],
+    "base_color": [
+      0.58,
+      0.56,
+      0.52
+    ],
+    "roof": "thatch",
+    "roof_color": [
+      0.74,
+      0.62,
+      0.36
+    ],
+    "roof_pitch": 40,
+    "wall_height": 2.4,
+    "stories": 1,
+    "door_color": [
+      0.45,
+      0.3,
+      0.18
+    ],
+    "shutter_color": [
+      0.55,
+      0.3,
+      0.2
+    ],
+    "accent": [
+      0.75,
+      0.25,
+      0.22
+    ],
+    "sign": "none",
+    "symbol": "none",
+    "sign_color": [
+      0.55,
+      0.38,
+      0.22
+    ],
+    "smoke": 0.3,
+    "glow": false,
+    "feature": "windmill",
+    "awning": false,
+    "porch": false,
+    "laundry": false,
+    "banners": false,
+    "garden": true,
+    "fence": true,
+    "barrels": false,
+    "crates": false,
+    "sacks": false,
+    "anvil": false,
+    "woodpile": true,
+    "cart": true,
+    "well": true,
+    "bench": false,
+    "stall": false,
+    "flowerpots": false,
+    "beehives": true,
+    "hay": true,
+    "trough": true,
+    "cauldron": false,
+    "lanterns": false
+  }
+}

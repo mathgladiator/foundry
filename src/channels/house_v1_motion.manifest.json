@@ -1,0 +1,8 @@
+{
+  "kind": "channel",
+  "name": "house_v1_motion",
+  "state": "draft",
+  "reason": "The input to house_animate_v1 (approved 2026-10-13): the wind and time as the trees take them, plus the door's event time.",
+  "notes": [],
+  "created_at": "2026-10-13T12:00:00Z"
+}

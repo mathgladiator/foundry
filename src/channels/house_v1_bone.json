@@ -1,0 +1,56 @@
+{
+  "family": "house",
+  "version": 1,
+  "feature": "bone",
+  "doc": "A moving part of a building: where it turns or moves from, and how (design/systems.md, Village houses). Bones come after their parents.",
+  "fields": [
+    {
+      "name": "parent",
+      "type": "i32",
+      "doc": "The parent bone, or -1."
+    },
+    {
+      "name": "pivot",
+      "type": "vec3",
+      "doc": "Where it turns, metres, in the model's rest frame."
+    },
+    {
+      "name": "axis",
+      "type": "vec3",
+      "doc": "A unit axis: what it spins or hinges about; for sway, the way the part hangs or streams; for rise, up."
+    },
+    {
+      "name": "motion",
+      "type": "u32",
+      "doc": "fixed (the root), sway (bends in the wind: a sign, a banner, laundry, an awning, the tent), spin (a wheel, sails, a weathervane), rise (a smoke puff rising, swelling, and fading, on a loop), hinge (the door, by door_time), flicker (a glow or flame pulsing).",
+      "enum": [
+        "fixed",
+        "sway",
+        "spin",
+        "rise",
+        "hinge",
+        "flicker"
+      ]
+    },
+    {
+      "name": "rate",
+      "type": "f32",
+      "doc": "Spin: turns per second (sails and vanes turn faster with the wind); rise: loops per second; sway: its natural frequency, Hz; flicker: Hz."
+    },
+    {
+      "name": "reach",
+      "type": "f32",
+      "doc": "Hinge: the open angle, radians; rise: how high a puff goes, metres; flicker: how much it pulses (0 to 1); sway: the most it bends, radians."
+    },
+    {
+      "name": "drag",
+      "type": "f32",
+      "doc": "How much the wind moves it (0: not at all)."
+    },
+    {
+      "name": "phase",
+      "type": "f32",
+      "doc": "Where in its loop it starts, 0 to 1, so neighbours don't move together."
+    }
+  ]
+}

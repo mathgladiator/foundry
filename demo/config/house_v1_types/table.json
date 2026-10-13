@@ -1,0 +1,97 @@
+{
+  "channel": "house_v1_type",
+  "doc": "Village building types for house_v1: each entry is one type, everything that makes the smithy the smithy (its kind, footprints, walls, roof, sign, smoke, feature, and yard things). The pipeline's type parameter picks one by name; the native runtime compiles every entry in (tools/gen_pipelines.py), so the game sees only the names.",
+  "label": "type",
+  "editor": {
+    "groups": [
+      {
+        "label": "Identity",
+        "fields": [
+          "name",
+          "kind",
+          "footprint",
+          "footprint_alt"
+        ]
+      },
+      {
+        "label": "Walls and roof",
+        "fields": [
+          "walls",
+          "wall_color",
+          "trim_color",
+          "base_color",
+          "roof",
+          "roof_color",
+          "roof_pitch",
+          "wall_height",
+          "stories"
+        ]
+      },
+      {
+        "label": "Door, windows, and cloth",
+        "fields": [
+          "door_color",
+          "shutter_color",
+          "accent"
+        ]
+      },
+      {
+        "label": "Sign",
+        "fields": [
+          "sign",
+          "symbol",
+          "sign_color"
+        ]
+      },
+      {
+        "label": "Moving",
+        "fields": [
+          "smoke",
+          "glow",
+          "feature",
+          "awning",
+          "laundry",
+          "banners"
+        ]
+      },
+      {
+        "label": "Front and yard",
+        "fields": [
+          "porch",
+          "garden",
+          "fence",
+          "lanterns",
+          "flowerpots",
+          "bench"
+        ]
+      },
+      {
+        "label": "Doodads",
+        "fields": [
+          "barrels",
+          "crates",
+          "sacks",
+          "anvil",
+          "woodpile",
+          "cart",
+          "well",
+          "stall",
+          "beehives",
+          "hay",
+          "trough",
+          "cauldron"
+        ]
+      }
+    ],
+    "colors": [
+      "wall_color",
+      "trim_color",
+      "base_color",
+      "roof_color",
+      "door_color",
+      "shutter_color",
+      "accent",
+      "sign_color"
+    ]
+  }
+}

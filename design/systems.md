@@ -141,6 +141,63 @@ Even though dungeons belong to the game, the foundry still tests that pieces com
 - Every damage stage of every piece still blocks or allows movement as the game expects (for example, a broken wall becomes passable at the stage the game declares).
 - Doodads mounted in a room stay inside their sphere through every damage stage of the piece they are mounted on.
 
+## Village houses (`house_v1`)
+
+A whole house, store, or workshop, seen from outside, as in a classic RPG village. It is one instance, not assembled from pieces: the piece kit above stays the way to build interiors, forts, and dungeons. The game asks for a **type** (a cottage, the inn, a smithy) and a **stage**, and the house shows the season, moves a little on its own, and answers the wind. The player meets it from the **command view** (high, looking down: the roof and the yard must read, and the model says where its marker goes) or at its **doorway** (the model says where the doorway is and which way it faces, and the door opens when the game says).
+
+### Stages: an upgrade cycle
+
+The person living on site upgrades it. Every stage stands on the same footprint, because the conformance is the maximum (`plotter.md`): the plot is reserved at its premium size from the first day.
+
+| Stage | What stands there |
+|---|---|
+| `construction` | The owner's tent and campfire, the plot staked out with string, a foundation half laid, a scaffold, a lumber pile, a cart |
+| `basic` | A one-room house: plain walls, a thatched or plank roof, one door, a window or two, the type's simplest sign |
+| `deluxe` | Shingled roof, chimney, shutters, window boxes, a porch or awning, the type's real sign and its working doodads |
+| `premium` | A stone base, a second floor or a wing, dormers, lanterns, a fence and garden, banners, the type's showpiece (a forge's bellows, an inn's balcony) |
+
+### Types (config `house_v1_types`)
+
+Each type is a config entry, so new ones need no code: its kind (`home`, `store`, `workshop`), its footprints, its walls, roof, and palette, its sign (a shape and a symbol: a mug, an anvil, a loaf), and its doodads by name. A starting set of ten: cottage, farmhouse, inn, general store, bakery, smithy, carpenter, tailor, alchemist, and mill.
+
+**Footprints** are diverse but reasonable (`style.md` §2): each type has a usual footprint and an alternate one, and the spec picks one. They are `flower7` and `flower19` (round), or `rect W×H`: H rows of W cells laid like bricks, so the plot is nearly rectangular and a house fits it better than a skewed `box`. The largest rectangle inside each (shrunk by 0.1 m from the lot's edge) is measured once:
+- `flower7`: 3.3 × 3.3 m;
+- `rect3x2`: 4.2 × 2.3 m;
+- `rect3x3`: 4.2 × 3.8 m;
+- `rect4x3`: 5.9 × 3.8 m;
+- `rect5x4`: 7.6 × 5.4 m;
+- `flower19`: 6.8 × 3.9 m.
+
+The house stands at the back of that rectangle, at 68% of it when basic, 80% deluxe, and 90% premium. Its yard is the rest of the lot, and the lot also stays inside the round footprint that holds its cells. The cottage, bakery, and alchemist take `flower7`; the tailor `rect3x2`; the general store and smithy `rect3x3`; the farmhouse, carpenter, and mill `rect4x3`; and the inn `flower19`. Each has a larger or smaller alternate. `book/house_v1.md` has the details and the measurements.
+
+### Moving, by itself and in the wind
+
+- **By itself:** chimney smoke (puffs that rise, swell, and fade, on a loop), a mill's waterwheel or sails, a weathervane, the forge's glow, a tent flap. These are the base animation, always on and cheap.
+- **In the wind** (`wind_speed`, `wind_heading`, `gust_damping` as the trees use): the hanging sign swings, banners and flags stream, laundry lines and awnings ripple, the tent breathes.
+- **The door** opens and closes when the game sets `door_time` (an event, like the rock's break): 0.6 s to open, a 3 s visit, 0.8 s to close.
+- A house never settles, since its smoke, sails, and glows always move; see `book/house_v1.md`, "Known limits".
+
+### Seasons
+
+Snow on the roof, the eaves, and the yard in winter, with a woodpile and icicles. Flower boxes and a vegetable patch in spring and summer. Leaves in the yard and pumpkins or a harvest basket in fall.
+
+### Collision
+
+Walls and the roof are solid boxes. Fences, carts, and barrels are solid and low; the laundry and banners have none. The doorway is left open as a sensor (a box in front of the door), so the game knows when the player stands there.
+
+### Proposed channels and systems
+
+| Channel | What it carries |
+|---|---|
+| `house_v1_type` | A type, as a config entry: kind, footprints, walls, roof, palette, sign, doodads, and moving parts |
+| `house_v1_spec` | The build's input: type, stage, season, footprint (by index into the type's list), seed, detail |
+| `house_v1_bone` | A moving part: parent, pivot, axis, and how it moves (sway in the wind, spin, rise and fade, hinge) with its rate and reach |
+| `house_v1_model` | The mesh with its bones, its conformance (radius, height) and footprint, its collision (`physics_v1_body`), the doorway (position and heading), and the command view's marker |
+| `house_v1_motion` | The animator's input: bones, the wind, the time, the door's event time, the seed |
+| `house_v1_pose` | The bones' matrices, and whether it has settled |
+
+Two systems, as the bush has: `house_build_v1` (spec to model) and `house_animate_v1` (motion to pose).
+
 ## Humanoid heroes and villains
 
 This is the hardest type, because it needs a long pipeline. We start with one capsule conformance with height and radius parameters, covering everything from a gnome to an elf, so height comes first. The interaction model covers essentially everything.

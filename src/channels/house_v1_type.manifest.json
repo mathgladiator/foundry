@@ -1,0 +1,8 @@
+{
+  "kind": "channel",
+  "name": "house_v1_type",
+  "state": "draft",
+  "reason": "Village building types as config entries for house_v1 (approved 2026-10-13): no existing channel describes a building's kind, footprints, materials, sign, and doodads.",
+  "notes": [],
+  "created_at": "2026-10-13T12:00:00Z"
+}

@@ -1,0 +1,83 @@
+{
+  "created_at": "2026-10-13T12:00:00Z",
+  "doc": "The alchemist's: a crooked stone tower-house under slate, a potion on its sign, a cauldron steaming in the herb garden, a weathervane, and bees.",
+  "notes": [],
+  "state": "draft",
+  "value": {
+    "name": "alchemist",
+    "kind": "store",
+    "footprint": "flower7",
+    "footprint_alt": "rect3x3",
+    "walls": "stone",
+    "wall_color": [
+      0.5,
+      0.52,
+      0.48
+    ],
+    "trim_color": [
+      0.26,
+      0.3,
+      0.24
+    ],
+    "base_color": [
+      0.58,
+      0.56,
+      0.52
+    ],
+    "roof": "slate",
+    "roof_color": [
+      0.28,
+      0.38,
+      0.34
+    ],
+    "roof_pitch": 55,
+    "wall_height": 2.8,
+    "stories": 2,
+    "door_color": [
+      0.45,
+      0.3,
+      0.18
+    ],
+    "shutter_color": [
+      0.25,
+      0.4,
+      0.35
+    ],
+    "accent": [
+      0.35,
+      0.62,
+      0.45
+    ],
+    "sign": "hanging",
+    "symbol": "potion",
+    "sign_color": [
+      0.25,
+      0.3,
+      0.35
+    ],
+    "smoke": 0.25,
+    "glow": false,
+    "feature": "weathervane",
+    "awning": false,
+    "porch": false,
+    "laundry": false,
+    "banners": false,
+    "garden": true,
+    "fence": false,
+    "barrels": false,
+    "crates": false,
+    "sacks": false,
+    "anvil": false,
+    "woodpile": false,
+    "cart": false,
+    "well": false,
+    "bench": false,
+    "stall": false,
+    "flowerpots": true,
+    "beehives": true,
+    "hay": false,
+    "trough": false,
+    "cauldron": true,
+    "lanterns": true
+  }
+}

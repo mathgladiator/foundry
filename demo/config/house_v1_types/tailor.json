@@ -1,0 +1,83 @@
+{
+  "created_at": "2026-10-13T12:00:00Z",
+  "doc": "The tailor's: a tall timber house under tile with a needle on its sign, a striped awning, cloth drying on the line, and pots of flowers.",
+  "notes": [],
+  "state": "draft",
+  "value": {
+    "name": "tailor",
+    "kind": "store",
+    "footprint": "rect3x2",
+    "footprint_alt": "flower7",
+    "walls": "timber",
+    "wall_color": [
+      0.88,
+      0.82,
+      0.92
+    ],
+    "trim_color": [
+      0.3,
+      0.22,
+      0.3
+    ],
+    "base_color": [
+      0.58,
+      0.56,
+      0.52
+    ],
+    "roof": "tile",
+    "roof_color": [
+      0.46,
+      0.3,
+      0.48
+    ],
+    "roof_pitch": 48,
+    "wall_height": 2.4,
+    "stories": 2,
+    "door_color": [
+      0.45,
+      0.3,
+      0.18
+    ],
+    "shutter_color": [
+      0.45,
+      0.3,
+      0.55
+    ],
+    "accent": [
+      0.55,
+      0.3,
+      0.65
+    ],
+    "sign": "hanging",
+    "symbol": "needle",
+    "sign_color": [
+      0.85,
+      0.8,
+      0.9
+    ],
+    "smoke": 0.2,
+    "glow": false,
+    "feature": "none",
+    "awning": true,
+    "porch": false,
+    "laundry": true,
+    "banners": false,
+    "garden": false,
+    "fence": false,
+    "barrels": false,
+    "crates": true,
+    "sacks": false,
+    "anvil": false,
+    "woodpile": false,
+    "cart": false,
+    "well": false,
+    "bench": false,
+    "stall": false,
+    "flowerpots": true,
+    "beehives": false,
+    "hay": false,
+    "trough": false,
+    "cauldron": false,
+    "lanterns": false
+  }
+}

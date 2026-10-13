@@ -108,6 +108,36 @@ Asked for next, on 2026-10-13: a denser, adjustable star field; panning and sett
 3. **Stylized, not exact:** the Moon is drawn at twice its size, moonlight is blue and brighter than real, faint stars are brighter than real, and the eye opens up to 14 times at night so nights stay readable. A full-moon midnight is now about a quarter as bright as noon (0.41 against 1.45), darker than sunset. Is that the right balance for the game, or should nights be darker still?
 4. **The night sky's star data** (positions, magnitudes, colours of the constellations' 119 stars) is from the standard catalogue values as I know them, not from a downloaded catalogue. Should I check them against a CC0 catalogue (such as the Yale Bright Star Catalogue)?
 5. **The play test isn't on MCP yet.** The agent can't press Play, walk, or jump through MCP, so I tested the walker with a unit test, not by playing. Should there be a `view_play` tool (start, walk for a time along a heading, jump, then screenshot)? `CLAUDE.md` says the agent can do everything a human does in a play test.
+### Village buildings (`book/house_v1.md`; `design/systems.md`, "Village houses")
+
+Asked for on 2026-10-13: a new pipeline for classic RPG village houses, stores, and workshops, exteriors only, with:
+- a type that brings its own signs and doodads;
+- the season, a base level of animation, and parts that answer the wind;
+- four stages mirroring the owner's upgrades: construction with a tent, basic, deluxe, and premium;
+- the player meeting it from a command view or at its doorway;
+- reasonable but diverse footprints.
+
+Its six channels were approved on 2026-10-13.
+
+- [ ] **The pipeline.** `house_v1`, with:
+  - `house_build_v1`: the lot, stages, walls and roofs by material, door, windows, signs and symbols, features, yard things, seasons, collision, the doorway, and the marker;
+  - `house_animate_v1`: sway in the trees' gusts, spin, smoke, the door, and glows;
+  - the `house_v1_*` channels.
+- [ ] **Ten types** in `config/house_v1_types/`: cottage, farmhouse, inn, general store, bakery, smithy, carpenter, tailor, alchemist, and mill. Each has a usual and an alternate footprint among `flower7`, `rect3x2`, `rect3x3`, `rect4x3`, `rect5x4`, and `flower19`.
+- [ ] **Checked and measured.**
+  - All 160 type × footprint × stage × season (summer and winter) builds match their WebAssembly builds and stay inside their round footprints, with collision Jolt takes inside the conformance.
+  - Detail sizes are measured.
+  - The quick stress plan holds 800 houses at 0.30 ms p95. It fails its event checks (question 2 below).
+  - The book is written.
+
+**Questions from the agent** (village buildings; built and in draft, nothing is committed)
+1. **Buildings were under "Not in this milestone"**, and `design/systems.md` designs a kit of pieces (walls, floors, stairs) for houses, forts, and dungeons. `house_v1` is a different, whole-house pipeline for village exteriors, beside that kit rather than replacing it. Is that the split you want?
+2. **A house never settles.** Its smoke, sails, and glows always move, so the runtime never sleeps it. The runtime's event-over flag and the stress plan's event checks treat "settled" as "the event is over", so `house_v1` fails them by design:
+   - the door's event never reads as over;
+   - "same as alone" differs, because the runtime skips posing unseen houses.
+
+   Should events get their own end, apart from sleeping? For example, an event parameter could declare how long it lasts (the door's 4.4 s), the runtime could raise its over flag then, and the stress plan could check that instead.
+3. **The game can't read a house's doorway, marker, or cells.** They are in the model, but the C API's instance results carry only event flags. Should instance results (`api.md`, "Instance results") carry such model facts, by name, for any pipeline?
 
 ## Not in this milestone
 

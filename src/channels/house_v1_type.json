@@ -1,0 +1,289 @@
+{
+  "family": "house",
+  "version": 1,
+  "feature": "type",
+  "doc": "A type of village building, as a config entry (config/house_v1_types/): what makes the smithy a smithy. Its kind, footprints, walls and roof, colours, sign, smoke, moving feature, and which yard things and doodads it has. The pipeline's type parameter picks one by name; the native runtime compiles every entry in.",
+  "fields": [
+    {
+      "name": "name",
+      "type": "string",
+      "doc": "The type's name (cottage, smithy)."
+    },
+    {
+      "name": "kind",
+      "type": "u32",
+      "doc": "What it is to the village: a home, a store, or a workshop.",
+      "enum": [
+        "home",
+        "store",
+        "workshop"
+      ]
+    },
+    {
+      "name": "footprint",
+      "type": "u32",
+      "doc": "Its usual footprint (design/systems.md, Village houses): flower7 (a cell and its six neighbours), rectWxH (H rows of W cells, brick-laid, so the plot is nearly rectangular), or flower19.",
+      "enum": [
+        "flower7",
+        "rect3x2",
+        "rect3x3",
+        "rect4x3",
+        "rect5x4",
+        "flower19"
+      ]
+    },
+    {
+      "name": "footprint_alt",
+      "type": "u32",
+      "doc": "Its other footprint, for variety along a street.",
+      "enum": [
+        "flower7",
+        "rect3x2",
+        "rect3x3",
+        "rect4x3",
+        "rect5x4",
+        "flower19"
+      ]
+    },
+    {
+      "name": "walls",
+      "type": "u32",
+      "doc": "What its walls are made of.",
+      "enum": [
+        "timber",
+        "plank",
+        "log",
+        "stone",
+        "brick"
+      ]
+    },
+    {
+      "name": "wall_color",
+      "type": "vec3",
+      "doc": "Walls: plaster between the timbers, or the planks, logs, stone, or brick."
+    },
+    {
+      "name": "trim_color",
+      "type": "vec3",
+      "doc": "Timbers, corner posts, window and door frames."
+    },
+    {
+      "name": "base_color",
+      "type": "vec3",
+      "doc": "The stone base and foundation."
+    },
+    {
+      "name": "roof",
+      "type": "u32",
+      "doc": "What covers the roof (a basic house's is always thatch or planks).",
+      "enum": [
+        "thatch",
+        "shingle",
+        "slate",
+        "tile"
+      ]
+    },
+    {
+      "name": "roof_color",
+      "type": "vec3",
+      "doc": "The roof."
+    },
+    {
+      "name": "roof_pitch",
+      "type": "f32",
+      "doc": "The roof's slope, degrees.",
+      "min": 20,
+      "max": 60
+    },
+    {
+      "name": "wall_height",
+      "type": "f32",
+      "doc": "One storey's wall height, metres.",
+      "min": 2.0,
+      "max": 3.4
+    },
+    {
+      "name": "stories",
+      "type": "u32",
+      "doc": "Storeys at premium (1 or 2; basic and deluxe have one).",
+      "min": 1,
+      "max": 2
+    },
+    {
+      "name": "door_color",
+      "type": "vec3",
+      "doc": "The door."
+    },
+    {
+      "name": "shutter_color",
+      "type": "vec3",
+      "doc": "Shutters and window boxes."
+    },
+    {
+      "name": "accent",
+      "type": "vec3",
+      "doc": "Awnings, banners, and the tent's cloth."
+    },
+    {
+      "name": "sign",
+      "type": "u32",
+      "doc": "How it says what it is: none, a sign hanging from a bracket (swings in the wind), or a board over the door.",
+      "enum": [
+        "none",
+        "hanging",
+        "board"
+      ]
+    },
+    {
+      "name": "symbol",
+      "type": "u32",
+      "doc": "The sign's symbol.",
+      "enum": [
+        "none",
+        "mug",
+        "anvil",
+        "loaf",
+        "needle",
+        "potion",
+        "coins",
+        "hammer",
+        "wheat",
+        "bed"
+      ]
+    },
+    {
+      "name": "sign_color",
+      "type": "vec3",
+      "doc": "The sign's board."
+    },
+    {
+      "name": "smoke",
+      "type": "f32",
+      "doc": "Chimney smoke: 0 none, 0.3 a hearth, 1 a forge's.",
+      "min": 0,
+      "max": 1
+    },
+    {
+      "name": "glow",
+      "type": "bool",
+      "doc": "A forge's or oven's glow at the door or lean-to, flickering."
+    },
+    {
+      "name": "feature",
+      "type": "u32",
+      "doc": "Its moving showpiece: a waterwheel, windmill sails, a weathervane, or a lean-to workshop (for the forge or the bench).",
+      "enum": [
+        "none",
+        "waterwheel",
+        "windmill",
+        "weathervane",
+        "lean_to"
+      ]
+    },
+    {
+      "name": "awning",
+      "type": "bool",
+      "doc": "A cloth awning over the front (deluxe and up), rippling in the wind."
+    },
+    {
+      "name": "porch",
+      "type": "bool",
+      "doc": "A porch with posts and a bench (deluxe and up)."
+    },
+    {
+      "name": "laundry",
+      "type": "bool",
+      "doc": "A laundry line in the yard, swaying in the wind."
+    },
+    {
+      "name": "banners",
+      "type": "bool",
+      "doc": "Banners on the front at premium."
+    },
+    {
+      "name": "garden",
+      "type": "bool",
+      "doc": "A vegetable patch, by season."
+    },
+    {
+      "name": "fence",
+      "type": "bool",
+      "doc": "A fence around the yard at premium."
+    },
+    {
+      "name": "barrels",
+      "type": "bool",
+      "doc": "Barrels."
+    },
+    {
+      "name": "crates",
+      "type": "bool",
+      "doc": "Crates."
+    },
+    {
+      "name": "sacks",
+      "type": "bool",
+      "doc": "Sacks of grain or flour."
+    },
+    {
+      "name": "anvil",
+      "type": "bool",
+      "doc": "An anvil on a stump."
+    },
+    {
+      "name": "woodpile",
+      "type": "bool",
+      "doc": "A woodpile (bigger in winter)."
+    },
+    {
+      "name": "cart",
+      "type": "bool",
+      "doc": "A hand cart."
+    },
+    {
+      "name": "well",
+      "type": "bool",
+      "doc": "A well with a little roof."
+    },
+    {
+      "name": "bench",
+      "type": "bool",
+      "doc": "A bench by the door."
+    },
+    {
+      "name": "stall",
+      "type": "bool",
+      "doc": "A market stall with goods, in front."
+    },
+    {
+      "name": "flowerpots",
+      "type": "bool",
+      "doc": "Pots by the door, flowering by season."
+    },
+    {
+      "name": "beehives",
+      "type": "bool",
+      "doc": "Skep beehives."
+    },
+    {
+      "name": "hay",
+      "type": "bool",
+      "doc": "Hay bales."
+    },
+    {
+      "name": "trough",
+      "type": "bool",
+      "doc": "A water trough."
+    },
+    {
+      "name": "cauldron",
+      "type": "bool",
+      "doc": "A cauldron on a fire (an alchemist's or a dyer's), steaming."
+    },
+    {
+      "name": "lanterns",
+      "type": "bool",
+      "doc": "Lanterns by the door at premium."
+    }
+  ]
+}

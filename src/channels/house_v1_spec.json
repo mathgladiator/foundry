@@ -1,0 +1,59 @@
+{
+  "family": "house",
+  "version": 1,
+  "feature": "spec",
+  "doc": "One village building to build: what the game asks for (\"the smithy, deluxe, in winter, on its other footprint\"), plus the seed that makes it differ from its neighbours and the level of detail the runtime picked.",
+  "fields": [
+    {
+      "name": "type",
+      "type": "house_v1_type",
+      "doc": "The type."
+    },
+    {
+      "name": "stage",
+      "type": "u32",
+      "doc": "How far its owner has come: construction (a tent on a staked plot), basic, deluxe, or premium. Every stage stands on the same footprint.",
+      "enum": [
+        "construction",
+        "basic",
+        "deluxe",
+        "premium"
+      ]
+    },
+    {
+      "name": "season",
+      "type": "u32",
+      "doc": "The time of year.",
+      "enum": [
+        "winter",
+        "spring",
+        "summer",
+        "fall"
+      ]
+    },
+    {
+      "name": "footprint",
+      "type": "u32",
+      "doc": "The type's usual footprint, or its other one.",
+      "enum": [
+        "usual",
+        "alternate"
+      ]
+    },
+    {
+      "name": "seed",
+      "type": "u32",
+      "doc": "Stable randomness: the runtime maps each building's ID onto a capped set of seeds per quality level."
+    },
+    {
+      "name": "detail",
+      "type": "u32",
+      "doc": "Level of detail, chosen by the runtime from distance and quality.",
+      "enum": [
+        "high",
+        "medium",
+        "low"
+      ]
+    }
+  ]
+}
