@@ -30,5 +30,5 @@
                "gust_damping": "$gust_damping", "time": "$time", "break_time": "$break_time",
                "break_heading": "$break_heading", "seed": "$seed"}}
   ],
-  "draw": {"model": "colorize", "pose": "animate", "conformance": {"radius": "stump_radius", "height": "crown_base"}, "footprint": {"radius": "footprint_radius", "cells": "footprint_cells"}}
+  "draw": {"model": "colorize", "pose": "animate", "conformance": {"radius": "stump_radius", "height": "crown_base"}, "footprint": {"radius": "footprint_radius", "cells": "footprint_cells"}, "detail_pixels": {"report": "perf/report-tree_v1-detail-20261013T002122Z.json", "high": [32, 16, 0], "medium": [256, 256, 12], "low": [256, 256, 256]}}
 }

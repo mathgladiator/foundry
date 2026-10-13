@@ -1,127 +1,108 @@
-# Current FPS: a happy glen with 1,000 trees in view
+# Current FPS: the runtime owns cost
 
-**39.8 fps** with 1,377 trees in view (32,191 things drawn, 188.7 million triangles) at 1920 x 1080, in the native runtime, on an AMD Ryzen AI Max+ 395 with its Radeon 8060S (Vulkan). From a game camera standing in the same world, it runs at **73.6 fps**. A 1,000-tree view at 60 fps is a reasonable ask, and today we miss it by about 10 ms a frame. Most of that time goes to things nobody can see at that distance: flowers under a metre tall, each drawn with about 4,100 triangles and animated every frame, even off screen.
+**At 60 fps, 8,227 trees in view.** A vista across a 44 x 44 grid of happy glens (269,743 things on 236 hectares), from a corner of the world at game height, holds 61.1 fps at 1920 x 1080 with 8,227 trees in view and 21,420 things drawn. Above the same world, the overview holds 90.7 fps with 7,312 trees in view. At 48 x 48 the vista drops to 57.0 fps. The machine is an AMD Ryzen AI Max+ 395 with its Radeon 8060S (Vulkan).
 
-Every number below comes from one run: `demo/perf/report-plotter_happy_glen_v1-scale-20261012T224722Z.json`. To reproduce it, run `build/linux-release/stress/stress_plotter_happy_glen_v1 --plan scale`, call `plotter_perf` through MCP, or press **Run the scale plan** in the plotter's inspector. The inspector shows the newest report.
+**The 1,000-tree view.** The scene from the first report (16 x 16 glens, 1,377 trees in view from the overview) went from **39.8 fps to 295.4 fps**. Its game camera went from 73.6 to 349.7 fps.
 
-## How it was measured
-
-The plotter's scale plan (`design/quality.perf.md`, "Scale") builds N x N grids of happy glens. Each glen is radius 12 (0.12 ha) with its own world seed, and each grid is grown to full with every placement spawned as an ordinary instance with its Jolt body. The plan then runs 240 frames from two cameras:
-- **Overview:** sees everything.
-- **Game:** 12 m up at the centre, looking ahead.
-
-Each frame:
-- **Update:** wind and animation on the CPU.
-- **Prepare:** culling, sorting, and streaming bones to the GPU.
-- **Draw:** instanced, skinned meshes, two frames in flight.
-
-One frame in ten waits for its own fence, to time the GPU alone. The frame rate comes from the mean frame time. Nothing here runs WebAssembly: this is the flattened native runtime a game links.
-
-| Grid | Hectares | Things | Overview fps | Trees seen | Triangles | Game fps | Trees seen |
-|---|---|---|---|---|---|---|---|
-| 1 x 1 | 0.12 | 134 | 4,972 | 5 | 0.8 M | 3,741 | 5 |
-| 2 x 2 | 0.49 | 551 | 2,035 | 17 | 2.8 M | 2,664 | 11 |
-| 4 x 4 | 1.95 | 2,177 | 538 | 82 | 11.6 M | 1,071 | 28 |
-| 8 x 8 | 7.80 | 8,888 | 147 | 327 | 47.4 M | 319 | 93 |
-| 12 x 12 | 17.6 | 20,094 | 68.6 | 764 | 106.7 M | 130 | 194 |
-| 16 x 16 | 31.2 | 35,613 | **39.8** | **1,377** | 188.7 M | 73.6 | 338 |
-
-Cost grows linearly with what is in the world. It does not grow with what is on screen.
-
-## Where the 25 ms goes (16 x 16, overview)
-
-| Part | Mean ms | What it is |
-|---|---|---|
-| Update | 17.5 | Every awake instance's `animate` on 24 of 32 threads: 35,297 instances, all of them every frame |
-| Prepare | 7.2 | Culling 35,613 instances, sorting 32,191, and streaming every visible instance's bones to the GPU |
-| Draw | 0.13 | 76 instanced draws |
-| GPU, alone | 24.9 | 188.7 M triangles, measured on the synchronous frames; it overlaps the CPU on the others (0.17 ms waiting) |
-
-The frame is CPU-bound: update and prepare run one after the other, adding up to about 25 ms. The GPU, taking about as long, hides behind them. Fixing only one side buys little. In the experiments below, low detail alone reaches 57.5 fps and no animation alone 49.1 fps, but the two together reach 98.6 fps.
-
-### Triangles: 91 per pixel, mostly flowers
-
-| Pipeline | Visible | Triangles each | Triangles | Share |
-|---|---|---|---|---|
-| `flower_v1` | 28,128 | 4,131 | 116.2 M | 62% |
-| `bush_v1` | 2,395 | 16,843 | 40.3 M | 21% |
-| `tree_v1` | 1,377 | 22,156 | 30.5 M | 16% |
-| `rock_v1` | 290 | 5,748 | 1.7 M | 1% |
-
-188.7 M triangles in a 2.07-megapixel frame is 91 triangles per pixel. From the overview, a 0.6 m daisy clump covers less than a pixel and still draws 4,131 triangles. The trees, the thing the scene is about, are only a sixth of the work.
-
-### Animation: everything, always
-
-| Update stage | Calls per frame | CPU ms per frame (summed over threads) | µs per call |
-|---|---|---|---|
-| `flower_v1.animate` | 31,146 | 185.6 | 5.96 |
-| `bush_v1.animate` | 2,640 | 45.4 | 17.2 |
-| `tree_v1.animate` | 1,511 | 27.2 | 18.0 |
-
-That is 258 ms of CPU per frame, spread over 24 threads into 17.5 ms of wall time, which is about 60% parallel efficiency. The game camera sees 8,074 things, yet it still animates all 35,297: its update is 11.6 ms for a view with a quarter as much in it. A call costs less from the game camera (3.56 µs per flower) than from the overview (5.96 µs). The CPU and GPU share one power budget and one memory on this machine, so a busier GPU may slow the CPU, but I haven't verified that.
-
-### What changing one thing does
-
-The largest scene, from the overview:
-
-| Experiment | fps | Update | Prepare | GPU alone | Triangles |
-|---|---|---|---|---|---|
-| As placed (high detail, wind 3 m/s) | 39.6 | 17.6 | 7.3 | 24.7 | 188.7 M |
-| No drawing (CPU only) | 71.2 | 11.1 | 2.9 | none | none |
-| Medium detail everywhere | 51.0 | 13.9 | 5.5 | 16.6 | 118.0 M |
-| Low detail everywhere | 57.5 | 12.4 | 4.8 | 11.5 | 63.7 M |
-| Low detail, no wind (all asleep) | **98.6** | 1.6 | 8.2 | 9.3 | 63.7 M |
-| High detail, no wind (all asleep) | 49.1 | 1.5 | 8.7 | 37.8 | 188.7 M |
-
-- **The two levers combined clear 60 fps with room to spare.** Low detail plus no animation runs at 98.6 fps. Each alone stays under 60.
-- **Low detail is not low.** A tree at `low` still has 4,209 triangles, and a flower clump 1,755. That's fine up close, but nothing like what something 300 m away needs.
-- **Sleeping costs nothing to update but still costs to prepare.** With everything asleep, prepare grew from 7.2 to 8.2 ms. Every visible instance's bones are copied and streamed every frame, whether they moved or not.
-- **Even without drawing, update is 11.1 ms.** This is the CPU floor of animating 35,000 things.
-
-### Not the problem
-
-- **Draw calls:** 76, because instancing works.
-- **Plotting:** 35,613 placements took 206 ms of grow calls, with every build ready 0.48 s after the grow started (76 distinct builds, shared by `distinct_seeds`).
-- **Memory:** 349 MB RSS for the largest scene, Jolt bodies included.
-
-## Is it the WebAssembly boundary?
-
-Not in the game. The native runtime contains no WebAssembly. In the foundry, WebAssembly is a fixed cost: composing the plotter view ran pipelines for about 0.45 s whether the region held 156, 950, or 3,900 things, because builds are cached.
-
-What makes the foundry feel slow is its viewport, a software renderer on the CPU (`src/host/viewport/raster.h`). It redraws the whole region on every camera move:
-
-| Region (foundry, `plotter_view` at 900 px) | Things | Triangles | One picture on the CPU |
-|---|---|---|---|
-| Hex radius 12 | 156 | 0.9 M | 175 ms |
-| Hex radius 30 | 950 | 5.7 M | about 0.5 s |
-| Hex radius 60 | 3,900 | 22.6 M | about 1.4 s |
-
-The same machine's GPU draws 188.7 M triangles in about 25 ms.
+Every number here comes from `demo/perf/report-plotter_happy_glen_v1-scale-20261013T005027Z.json`, except where another report is named. To reproduce it, run `build/linux-release/stress/stress_plotter_happy_glen_v1 --plan scale --find 60`, call `plotter_perf` with `find: 60`, or press **Run the scale plan** in the plotter's inspector.
 
 ## The thesis change
 
-Today the game decides every input, detail included (`design/api.md`). A game that fills its world from plotters can't sensibly do that: it doesn't know what is near, what is on screen, or what anything costs. The runtime does know.
+**The game says what; the runtime says how much.** The game still sets every parameter of everything in its world. The runtime now decides how much of it to compute and draw, from what the camera sees and the quality setting (`design/submit.md`, "Cost"; `design/api.md`, "Quality"):
+- **Detail level:** each instance's level of detail.
+- **Posing:** whether the instance is posed this frame at all, and how often.
+- **Drawing:** whether it is too small to draw.
 
-**The proposed thesis: the runtime owns cost.** The game sets a budget: a frame time, or the quality level that `foundry_set_quality` already accepts and nothing reads. The runtime then chooses each instance's detail and animation rate from its size on screen. Parameters stay the game's; *how much of it to compute and draw* becomes the runtime's.
+A pipeline's `detail` parameter is now the finest level the game allows, not the level that gets drawn.
 
-It needs the human's approval as a design change, and it changes `design/api.md` ("the game decides every input"), `design/submit.md` (sleep and wake), and every pipeline's notion of `detail`.
+## The ideas, in the order predicted, and what each bought
 
-## Proposals, in order of what they buy
+I ranked the ideas by predicted gain for the least change in looks, then built them in that order. The scale plan's ladder turns them on one at a time on the 16 x 16 scene. The looks column comes from comparing pictures: it is the share of pixels that show something and that visibly change, against the scene drawn in full at the same moment.
 
-1. **Screen-size detail, chosen by the runtime.** Each frame, the runtime picks every instance's detail from its projected height, and the build cache holds the levels the way it holds species. Measured: going from high to low everywhere cut the GPU from 24.7 to 11.5 ms. With distance doing it, only what's near stays high. *Needs:* a projected-size rule per pipeline (in its conformance), `detail` moved from the game's parameters to the runtime's, and hysteresis so things don't flicker between levels.
-2. **A far tier below `low`.** Trees and bushes become impostors (a camera-facing card baked from the build, a few triangles) beyond a distance their conformance sets. Flowers beyond about 30 m become a colour in the ground's shading, or fade out by density. Flowers are 116 M of the 189 M triangles, and from the overview they are sub-pixel. *Needs:* a baked impostor per build (the foundry already renders builds), and a ground the runtime draws, which it doesn't yet (the native scenes have no terrain).
-3. **Animate what is seen, at the rate it is seen.** Sleep what is off screen and wake it when it enters view. Animate far things every Nth frame, and freeze the farthest. Measured: with no animation, update fell from 17.6 to 1.6 ms. From the game camera, 77% of the animated instances aren't visible at all. *Needs:* visibility and distance fed back from prepare to update, and the poses stay pure (time is an input, so skipping frames is exact).
-4. **Wind on the GPU for small things.** A flower's or shrub's sway can be a vertex-shader function of time, wind, and a per-instance phase, with no bones on the CPU. Flowers alone are 72% of the animation CPU. *Needs:* a "procedural sway" mode in the skinned shader. The pipeline declares it, and its `animate` becomes the sway's parameters, built once.
-5. **Persistent poses on the GPU.** Give each instance a stable slot in the bone buffer and upload only the poses that changed. Sleeping and far-frozen things then cost nothing in prepare (8.2 ms today with everything asleep).
-6. **Overlap update and prepare.** They run back to back today, at about 60% parallel efficiency. Pipelining them, preparing frame N while updating frame N + 1, and larger work chunks would use more of the 32 threads. *Needs:* double-buffered poses.
-7. **Triangle budgets as conformance.** Cap each pipeline's high detail (a flower clump at 4,131 and a bush at 16,843 are generous) and check the cap in the stress plan and the book, as the conformance capsule is checked.
-8. **Draw the foundry's viewport on the GPU.** The host already links SDL3's GPU API and the native runtime. Rendering the plotter view through the runtime's renderer would make orbiting a 4,000-thing region real time instead of 1.4 s a picture. *Needs:* a GPU viewport in the host (`design/submit.md` already plans for this) and screenshot readback for MCP.
-9. **A standing gate.** Make "1,000 trees in view at 60 fps on this machine" a threshold in the scale plan, so the headline passes or fails like the soak does.
+| # | Idea, as ranked | Predicted cost in looks | Overview fps | Game fps | Looks: overview / game |
+|---|---|---|---|---|---|
+| | None: the game's detail everywhere, everything posed and uploaded every frame | | 58.1 | 91.7 | |
+| 1 | Poses kept on the GPU: a slot per instance, only changed poses uploaded | none | 58.1 | 91.2 | none |
+| 2 | Nothing out of view or too small is posed (events still play) | none | 59.2 | 194.8 | none |
+| 3 | Small things are posed less often (every 2nd to 16th frame by size) | barely any | 74.9 | 227.2 | 2.2% / 0.4% |
+| 4 | Detail by size on screen, at sizes each pipeline measured | small | 139.2 | 295.3 | 12.9% / 0.9% |
+| 5 | Too small not drawn (under 4 px) | small | 288.8 | 334.2 | 4.6% / 0.0% |
+| | All of them | | **288.8** | **334.2** | **16.0% / 1.1%** |
 
-**What I'd do first:** 1, 3, and 5. Together they are what the "low detail, no wind" experiment measured (98.6 fps), with distance deciding instead of a global switch. They don't touch any pipeline's look up close. Then 2 and 4, for scenes larger than this one.
+The "none" row is already faster than the first report's 39.8 fps, because of two changes with no cost in looks:
+- **Flowers drew every leaf and petal twice,** once per side, though the renderer draws both faces anyway. They now draw one sheet: 188.7M triangles became 126.4M with no change on screen.
+- **Prepare runs in parallel,** with draws bucketed by build.
+
+### Reading the ladder
+
+- **Keeping poses on the GPU gains nothing alone, and is what makes 3 cheap.** With everything posed every frame, every pose still uploads. Once small things are posed less often, uploads fall from 718,014 bones a frame to 61,390.
+- **Skipping what can't be seen is worth most from inside the world.** The game camera sees 8,074 of 35,297 things, and posing only those halved its frame (91.7 to 194.8 fps). From the overview, almost everything is in view, so it changed little there.
+- **The posing rate fixed the CPU.** The overview's update went from 13.4 ms to 1.9 ms. Poses are pure functions of time, so a skipped pose is never wrong, only late: 2.2% of what shows moves by a few pixels in the far view.
+- **Detail by size halved the GPU's work** (126.4M to 51.8M triangles from the overview).
+- **Too small finished the job.** 28,262 flowers and shrubs under 4 px stopped being drawn (51.8M to 23.1M triangles).
+- **Most of the overview's 16% change is detail, on things a few pixels tall.** From the game camera, the scene changes on 1.1% of what shows.
+
+`--snapshot` writes each comparison and its differences as PNGs.
+
+### How detail is chosen: measured, not guessed
+
+A coarser level switches in only below a measured size: where the median configuration differs from the finest on at most 10% of its pixels. That is the foundry's existing switch rule for fixed assets. Medium quality allows 20%, and low 30%.
+
+`stress_<pipeline> --lod` measures these sizes (`design/quality.perf.md`, "Detail sizes"):
+- It draws each level at sizes from 8 to 256 px, supersampled so a pixel holds what it covers.
+- It writes the sizes into the pipeline's `draw.detail_pixels`, which the generator compiles into the runtime.
+
+The measurement showed the old levels were poor. Flowers dropped up to 55% of their leaves and florets. Shrubs and trees dropped half their leaf clumps and grew the rest to cover the gaps. Every level now keeps every element and simplifies its shape: fewer petal segments, and 20-face or 8-face leaf clumps instead of 80. This version is closer to the finest level and costs fewer triangles. A shrub's medium level at 64 px went from 21.9% to 14.1% of its pixels differing, at 3,699 triangles instead of 7,973.
+
+Mean triangles per level, from the detail reports (`demo/perf/report-*-detail-20261013T002122Z.json`):
+
+| | high | medium | low | far (the runtime's) | Switches to medium / low / far at high quality |
+|---|---|---|---|---|---|
+| tree | 6,927 | 3,076 | 1,696 | 661 | 32 / 16 px / never |
+| shrub | 9,599 | 3,699 | 1,774 | 1,021 | 32 / 16 px / never |
+| flower | 1,554 | 1,225 | 860 | 115 | 64 / 24 px / never |
+| rock | 3,103 | (game's level) | | | never: see below |
+
+- **The far level is new and generic.** The runtime clusters a build's coarsest mesh on a grid, so every pipeline gets one without a level of its own. At high quality it never passes the 10% rule. Medium and low quality use it.
+- **Coarser levels share the instance's pose.** The runtime checks each pair of levels first, and refuses a pair whose poses differ. A rock's pieces fly differently at each level, so rocks always keep the game's level.
+
+## Where 60 fps runs out
+
+| Grid | Things | Vista fps | Trees in view (vista) | Triangles (vista) | Overview fps | Game fps |
+|---|---|---|---|---|---|---|
+| 16 x 16 | 35,613 | 183.5 | 1,392 | 31.4M | 295.4 | 349.7 |
+| 24 x 24 | 80,164 | 113.5 | 3,052 | 54.0M | 171.0 | 248.3 |
+| 32 x 32 | 142,780 | 80.8 | 5,103 | 80.6M | 109.3 | 232.7 |
+| 40 x 40 | 222,612 | 64.5 | 7,210 | 103.1M | 89.4 | 214.6 |
+| **44 x 44** | **269,743** | **61.1** | **8,227** | **110.6M** | **90.7** | **219.2** |
+| 48 x 48 | 321,243 | 57.0 | 9,188 | 116.9M | 89.6 | 197.5 |
+
+
+- **The vista is limited by the GPU.** At 44 x 44 the CPU spends 5.0 ms updating and 1.9 ms preparing. The GPU has 110.6M triangles to draw: 52.0M of trees and 53.1M of shrubs, mostly at their low level, since a tree 20 px tall is still 1,700 to 6,000 triangles.
+- **The overview flattens out at about 90 fps.** From 2.6 km up, most trees are about 5 px tall and every flower and most shrubs are under the 4 px cutoff.
+- **The game camera loses frames as the world grows,** though it always sees about 700 trees. Classifying every instance and deciding who is posed are per-frame scans of the whole world: from the game camera, 2.8 ms of its update at 44 x 44 (classification 1.3 ms, choosing and posing 1.5 ms, with only about 770 posed), and 8.4 ms at 88 x 88 (a run of `--sizes 88` without a report). That is the next limit for big worlds.
+- **Memory:** 1,302 MB RSS at 44 x 44, collision bodies included.
+
+## The foundry draws on the GPU
+
+The workspace's viewport, screenshots, contact sheets and `plotter_view` now render through SDL's GPU API (`src/host/viewport/gpu.h`).
+- **The look is the same:** cel bands, rim band, ink on silhouettes and depth edges, overlays that fade behind the mesh, and 2x supersampling.
+- **Region meshes upload once and are kept while shown,** so orbiting a region only draws.
+- **Speed:** a radius-30 glen of 3.5M triangles at 900 px renders in 17 to 19 ms. The CPU renderer took 350 ms for the same picture, and the first GPU render (with the upload) took 42 ms. These timings come from the foundry's log.
+- **The two renderers agree:** the GPU and CPU pictures differ on 1.7% of pixels, along edges.
+- **Headless runs keep the CPU renderer.** `plotter_view` reports which renderer drew, and takes `cpu: true` to compare.
+- **Composing a region still runs its pipelines in WebAssembly** (about 0.85 s for 871 things), once per change.
+
+## What's next, ranked the same way
+
+1. **Cull and classify by region.** Each plotter region gets bounds; a region out of view, or far beyond the posing sizes, is skipped whole. This removes the per-frame scan that grows with the world. No cost in looks.
+2. **A cheaper far tier for trees and shrubs.** Impostors, or a stricter cluster, so a 20 px tree costs hundreds of triangles, not thousands. This is the vista's limit. At high quality the far level doesn't pass the 10% rule yet; a better far level would.
+3. **Rocks that switch levels.** The pieces' physics would come from the finest level at every level (a change to `rock_body_v1`).
+4. **A standing gate.** "1,000 trees at 60 fps" is now passed six times over; the scale plan could fail any run below it.
+5. **Built ideas not needed yet:** wind on the GPU for flowers, and overlapping update with prepare. Posing is now about 1 ms.
 
 ## What this doesn't cover
 
-- **Scope of the measurement:** one machine (an APU with shared memory), one plotter, and one resolution. There are no shadows, no ground, and no occlusion culling; all three would change the balance.
-- **Wind:** a steady 3 m/s, the glen's shared value. A calm world sleeps and is much cheaper (above).
-- **The foundry figures:** the CPU render times are from the foundry's log, one run each (`plotter_view` at 900 px); they are not in a committed report.
+- **One machine, one resolution, one plotter.** The machine is an APU, whose CPU and GPU share power and memory. GPU times measured alone (one frame in ten) overstate the GPU's share of a steady frame on it.
+- **No ground, shadows or occlusion.** All three would change the balance. Flowers culled under 4 px would read as ground colour if there were a ground.
+- **Standard stress plans not rerun.** The quick plans were rerun after the level and flower changes, and all four pipelines pass with native matching WebAssembly 100/100. The standard plans weren't rerun.

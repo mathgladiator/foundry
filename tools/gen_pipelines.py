@@ -401,6 +401,24 @@ class Pipeline:
         o.append("  size_t params_size() const override { return sizeof(Params); }\n")
         o.append(f"  size_t event_count() const override {{ return {len(self.events)}; }}\n")
         o.append(f"  bool has_update() const override {{ return {'true' if updates else 'false'}; }}\n")
+        detail = next((p for p in self.params if p["name"] == "detail" and p["type"] == "enum"), None)
+        if detail:
+            # The runtime picks the level of detail (design/submit.md, "Level of detail"): the enum
+            # parameter named detail, finest first.
+            o.append(f"  uint32_t detail_levels() const override {{ return {len(detail['values'])}; }}\n")
+            o.append("  size_t detail_offset() const override { return offsetof(Params, detail); }\n")
+            dp = self.j.get("draw", {}).get("detail_pixels")
+            if dp:
+                # Measured switch sizes (the stress tool's --lod): per quality, the projected size in
+                # pixels below which each level gives way to the next.
+                rows = []
+                for q in ("low", "medium", "high"):
+                    vals = [float(v) for v in dp[q]][:3]
+                    vals += [0.0] * (3 - len(vals))
+                    rows.append("{" + ", ".join(f"{v:.1f}f" for v in vals) + "}")
+                o.append("  const float *detail_pixels(int quality) const override {\n")
+                o.append(f"    static const float k[3][3] = {{{', '.join(rows)}}};  // low, medium, high\n")
+                o.append("    return k[quality < 0 ? 0 : quality > 2 ? 2 : quality];\n  }\n")
         o.append("  const std::vector<runtime::StageInfo> &stages() const override {\n    static const std::vector<runtime::StageInfo> s = {")
         o.append(", ".join(f"{{\"{self.name}.{st['id']}\", {'true' if st['update'] else 'false'}}}" for st in self.stages))
         o.append("};\n    return s;\n  }\n\n")

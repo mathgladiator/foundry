@@ -58,34 +58,28 @@ struct Builder {
     out.indices.push_back(b);
     out.indices.push_back(c);
   }
-  // A two-sided ribbon along a centreline: `across` gives half the width at each point.
+  // A ribbon along a centreline: `across` gives half the width at each point. One sheet: the
+  // renderers draw both faces and turn the normal to the side that is seen.
   void ribbon(const std::vector<vec3> &mid, const std::vector<vec3> &across, const std::vector<vec3> &colours,
               const std::vector<Skin> &skin) {
     const size_t n = mid.size();
-    for (int side = 0; side < 2; ++side) {
-      std::vector<uint32_t> l, r;
-      for (size_t k = 0; k < n; ++k) {
-        const vec3 t = k + 1 < n ? mid[k + 1] - mid[k] : mid[k] - mid[k - 1];
-        vec3 nrm = cross(t, across[k]);
-        nrm = length(nrm) > 1e-9f ? normalize(nrm) : v3(0, 1, 0);
-        if (side == 1) nrm = -nrm;
-        l.push_back(vertex(mid[k] - across[k], nrm, colours[k], skin[k]));
-        r.push_back(vertex(mid[k] + across[k], nrm, colours[k], skin[k]));
-      }
-      for (size_t k = 0; k + 1 < n; ++k) {
-        if (side == 0) {
-          tri(l[k], r[k], r[k + 1]);
-          tri(l[k], r[k + 1], l[k + 1]);
-        } else {
-          tri(l[k], r[k + 1], r[k]);
-          tri(l[k], l[k + 1], r[k + 1]);
-        }
-      }
+    std::vector<uint32_t> l, r;
+    for (size_t k = 0; k < n; ++k) {
+      const vec3 t = k + 1 < n ? mid[k + 1] - mid[k] : mid[k] - mid[k - 1];
+      vec3 nrm = cross(t, across[k]);
+      nrm = length(nrm) > 1e-9f ? normalize(nrm) : v3(0, 1, 0);
+      l.push_back(vertex(mid[k] - across[k], nrm, colours[k], skin[k]));
+      r.push_back(vertex(mid[k] + across[k], nrm, colours[k], skin[k]));
+    }
+    for (size_t k = 0; k + 1 < n; ++k) {
+      tri(l[k], r[k], r[k + 1]);
+      tri(l[k], r[k + 1], l[k + 1]);
     }
   }
-  // A tube through rings of the given radii (closed at the far end when `tip`).
+  // A tube through rings of the given radii (closed at the far end when `tip`). An open tube's
+  // inside needs no faces of its own: the renderers draw both faces of each triangle.
   void tube(const std::vector<vec3> &path, const std::vector<float> &radii, const std::vector<vec3> &colours,
-            const std::vector<Skin> &skin, int sides, bool tip, bool two_sided) {
+            const std::vector<Skin> &skin, int sides, bool tip) {
     const size_t n = path.size();
     std::vector<vec3> T(n), N(n);
     vec3 prev_n = v3(0, 0, 0);
@@ -98,34 +92,27 @@ struct Builder {
       N[k] = normalize(nn);
       prev_n = N[k];
     }
-    for (int side = 0; side < (two_sided ? 2 : 1); ++side) {
-      std::vector<std::vector<uint32_t>> rings;
-      for (size_t k = 0; k < n; ++k) {
-        const vec3 B = cross(T[k], N[k]);
-        std::vector<uint32_t> ring;
-        for (int j = 0; j < sides; ++j) {
-          const float th = 2 * kPi * static_cast<float>(j) / static_cast<float>(sides);
-          const vec3 d = N[k] * foundry::det::cos(th) + B * foundry::det::sin(th);
-          ring.push_back(vertex(path[k] + d * radii[k], side == 0 ? d : -d, colours[k], skin[k]));
-        }
-        rings.push_back(ring);
+    std::vector<std::vector<uint32_t>> rings;
+    for (size_t k = 0; k < n; ++k) {
+      const vec3 B = cross(T[k], N[k]);
+      std::vector<uint32_t> ring;
+      for (int j = 0; j < sides; ++j) {
+        const float th = 2 * kPi * static_cast<float>(j) / static_cast<float>(sides);
+        const vec3 d = N[k] * foundry::det::cos(th) + B * foundry::det::sin(th);
+        ring.push_back(vertex(path[k] + d * radii[k], d, colours[k], skin[k]));
       }
-      for (size_t k = 0; k + 1 < n; ++k)
-        for (int j = 0; j < sides; ++j) {
-          const size_t a = static_cast<size_t>(j), b = static_cast<size_t>((j + 1) % sides);
-          if (side == 0) {
-            tri(rings[k][a], rings[k + 1][a], rings[k + 1][b]);
-            tri(rings[k][a], rings[k + 1][b], rings[k][b]);
-          } else {
-            tri(rings[k][a], rings[k + 1][b], rings[k + 1][a]);
-            tri(rings[k][a], rings[k][b], rings[k + 1][b]);
-          }
-        }
-      if (tip && side == 0) {
-        const uint32_t t = vertex(path.back() + T.back() * (radii.back() * 0.8f), T.back(), colours.back(), skin.back());
-        for (int j = 0; j < sides; ++j)
-          tri(rings.back()[static_cast<size_t>(j)], t, rings.back()[static_cast<size_t>((j + 1) % sides)]);
+      rings.push_back(ring);
+    }
+    for (size_t k = 0; k + 1 < n; ++k)
+      for (int j = 0; j < sides; ++j) {
+        const size_t a = static_cast<size_t>(j), b = static_cast<size_t>((j + 1) % sides);
+        tri(rings[k][a], rings[k + 1][a], rings[k + 1][b]);
+        tri(rings[k][a], rings[k + 1][b], rings[k][b]);
       }
+    if (tip) {
+      const uint32_t t = vertex(path.back() + T.back() * (radii.back() * 0.8f), T.back(), colours.back(), skin.back());
+      for (int j = 0; j < sides; ++j)
+        tri(rings.back()[static_cast<size_t>(j)], t, rings.back()[static_cast<size_t>((j + 1) % sides)]);
     }
   }
   // A small closed blob (bud, floret, seed pod): an octahedron stretched along an axis.
@@ -216,9 +203,11 @@ bool run(const flower_v1_spec &in, channels::flower_v1_model &out, std::string &
   const uint32_t seed = hash_str(g.name.c_str()) ^ hash_u32(in.seed * 2654435761u);
   Rng place(seed, 1u), pick(seed, 2u), leafy(seed, 3u);
   Builder bd{out};
-  static const int kSegs[3] = {3, 2, 1};
-  static const int kSides[3] = {5, 4, 3};
-  static const float kKeep[3] = {1.0f, 0.7f, 0.45f};
+  // Levels of detail keep every stem, leaf, petal and floret (the same clump at every level, so a
+  // switch doesn't change what is there) and simplify their shapes: fewer segments along petals
+  // and leaves, fewer sides around stems, and a stem of two segments at low detail.
+  static const int kSegs[3] = {2, 1, 0};
+  static const int kSides[3] = {4, 3, 3};
   Grower gr{g, bd, kSegs[in.detail]};
   const int sides = kSides[in.detail];
   const uint32_t season = in.season;
@@ -313,7 +302,14 @@ bool run(const flower_v1_spec &in, channels::flower_v1_model &out, std::string &
     }
     const uint32_t head_kind = g.head;
     const bool raceme = head_kind == flower_v1_genome::kHeadBell || head_kind == flower_v1_genome::kHeadSpike;
-    bd.tube(path, radii, cols, skin, sides, !raceme && head_kind != flower_v1_genome::kHeadCattail, false);
+    const bool stem_tip = !raceme && head_kind != flower_v1_genome::kHeadCattail;
+    if (in.detail == 2) {  // two segments: the foot, the knee where the bones meet, the top
+      const size_t at[3] = {0, static_cast<size_t>(K / 2), static_cast<size_t>(K)};
+      bd.tube({path[at[0]], path[at[1]], path[at[2]]}, {radii[at[0]], radii[at[1]], radii[at[2]]},
+              {cols[at[0]], cols[at[1]], cols[at[2]]}, {skin[at[0]], skin[at[1]], skin[at[2]]}, sides, stem_tip);
+    } else {
+      bd.tube(path, radii, cols, skin, sides, stem_tip);
+    }
     Skin hs;
     hs.a = B;
     const vec3 top = path[K];
@@ -330,8 +326,7 @@ bool run(const flower_v1_spec &in, channels::flower_v1_model &out, std::string &
     };
     // Stem leaves (on every stem but a dead one's).
     if (!dead && g.stem_leaves > 0) {
-      int nl = static_cast<int>(static_cast<float>(g.stem_leaves) * kKeep[in.detail] + 0.5f);
-      if (nl < 1) nl = 1;
+      const int nl = static_cast<int>(g.stem_leaves);
       for (int j = 0; j < nl; ++j) {
         const float u = 0.12f + 0.55f * (static_cast<float>(j) + 0.5f) / static_cast<float>(nl);
         const float at = u * K;
@@ -378,7 +373,7 @@ bool run(const flower_v1_spec &in, channels::flower_v1_model &out, std::string &
         gr.disc(top, head_axis, size * maxf(g.center_size, 0.3f), g.center_height + 0.4f, g.seed_head, hs);
       else if (head_kind == flower_v1_genome::kHeadCattail)
         bd.tube({top - tip_dir * (H * g.raceme), top}, {size * 1.2f, size * 1.2f}, {g.seed_head, g.seed_head}, {hs, hs}, sides + 1,
-                true, false);
+                true);
       else
         bd.blob(top + head_axis * (size * 0.3f), size * 0.35f, head_axis, 2.0f, g.seed_head, hs);
       continue;
@@ -412,7 +407,7 @@ bool run(const flower_v1_spec &in, channels::flower_v1_model &out, std::string &
             cc.push_back(g.center * (0.9f + 0.15f * u));
             sk.push_back(hs);
           }
-          bd.tube(path_t, rad, cc, sk, sides + 3, false, true);
+          bd.tube(path_t, rad, cc, sk, sides + 3, false);
         } else if (rc > 0) {
           gr.disc(top, head_axis, rc, g.center_height, g.center, hs);
         }
@@ -433,9 +428,9 @@ bool run(const flower_v1_spec &in, channels::flower_v1_model &out, std::string &
         const vec3 a = top - tip_dir * L;
         std::vector<vec3> sp = {a, a + tip_dir * (L * 0.08f), top - tip_dir * (L * 0.08f), top};
         std::vector<float> rad = {size * 0.6f, size, size, size * 0.6f};
-        bd.tube(sp, rad, {g.center, g.center, g.center, g.center}, {hs, hs, hs, hs}, sides + 2, false, false);
+        bd.tube(sp, rad, {g.center, g.center, g.center, g.center}, {hs, hs, hs, hs}, sides + 2, false);
         bd.tube({top, top + tip_dir * (L * 0.5f)}, {g.stem_radius * chunk * 0.7f, g.stem_radius * chunk * 0.3f},
-                {g.stem_color, g.stem_color}, {hs, hs}, sides, true, false);
+                {g.stem_color, g.stem_color}, {hs, hs}, sides, true);
         break;
       }
       case flower_v1_genome::kHeadCrest: {
@@ -445,7 +440,7 @@ bool run(const flower_v1_spec &in, channels::flower_v1_model &out, std::string &
         const float L = size * 2.2f;
         bd.tube({top, top + level * (L * 0.5f), top + level * L + v3(0, size * 0.25f, 0)},
                 {size * g.center_size, size * g.center_size * 0.8f, size * 0.05f}, {g.center, g.center, g.center * 1.1f},
-                {hs, hs, hs}, sides + 1, true, false);
+                {hs, hs, hs}, sides + 1, true);
         const vec3 fan_base = top + level * (L * 0.35f) + v3(0, size * g.center_size * 0.6f, 0);
         const uint32_t np = g.petals > 0 ? g.petals : 3;
         for (uint32_t k = 0; k < np; ++k) {
@@ -459,8 +454,7 @@ bool run(const flower_v1_spec &in, channels::flower_v1_model &out, std::string &
       }
       case flower_v1_genome::kHeadBell:
       case flower_v1_genome::kHeadSpike: {
-        int nf = static_cast<int>(static_cast<float>(g.florets) * kKeep[in.detail] + 0.5f);
-        if (nf < 1) nf = 1;
+        const int nf = g.florets > 0 ? static_cast<int>(g.florets) : 1;
         const bool bell = head_kind == flower_v1_genome::kHeadBell;
         const float side_az = pick.uniform() * 2 * kPi;
         for (int j = 0; j < nf; ++j) {
@@ -492,7 +486,7 @@ bool run(const flower_v1_spec &in, channels::flower_v1_model &out, std::string &
               bc.push_back(mixv(colour * 0.85f, colour, v));
               bk.push_back(fs);
             }
-            bd.tube(bp, br, bc, bk, sides + 2, false, true);
+            bd.tube(bp, br, bc, bk, sides + 2, false);
           } else {
             const vec3 c = p + out_f * (size * shrink * 0.9f) + t * (size * 0.2f);
             bd.blob(c, size * shrink, normalize(out_f + t * 0.8f), 1.3f, colour, fs);
@@ -507,7 +501,7 @@ bool run(const flower_v1_spec &in, channels::flower_v1_model &out, std::string &
 
   // ---- basal leaves ----
   if (!dead) {
-    const int nl = static_cast<int>(static_cast<float>(g.leaves) * kKeep[in.detail] + 0.5f);
+    const int nl = static_cast<int>(g.leaves);
     for (int j = 0; j < nl; ++j) {
       const float az = 2 * kPi * (static_cast<float>(j) + 0.5f * leafy.uniform()) / static_cast<float>(nl > 0 ? nl : 1);
       const vec3 od = v3(foundry::det::cos(az), 0, foundry::det::sin(az));

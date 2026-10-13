@@ -1,6 +1,7 @@
 #include "core/world.h"
 
 #include "physics/jolt.h"
+#include "render/simplify.h"
 
 #include <algorithm>
 #include <chrono>
@@ -16,6 +17,30 @@ double ms_since(std::chrono::steady_clock::time_point t0) {
 }
 
 uint64_t make_handle(uint32_t index, uint32_t generation) { return (uint64_t(generation) << 32) | (index + 1); }
+
+// The cost thresholds by quality (design/submit.md, "Cost"), on an instance's projected size: the
+// diameter of its bounding sphere on screen, in pixels.
+struct Thresholds {
+  float too_small;   // below this, it isn't drawn
+  float rate[4];     // at or above rate[0] it animates every frame, rate[1] every 2nd, rate[2] every 4th, rate[3]
+                     // every 8th, else every 16th
+};
+// Levels of detail switch only at the sizes each pipeline measured (PipelineType::detail_pixels).
+const Thresholds kThresholds[3] = {
+    {10, {240, 72, 24, 12}},  // low
+    {7, {200, 60, 20, 10}},   // medium
+    {4, {160, 48, 16, 8}},    // high
+};
+constexpr float kHysteresis = 1.15f;  // a level comes back only this much above where it left
+constexpr int kFarCells = 12;         // the far level's grid: cells across the build's largest side
+constexpr uint64_t kFarSalt = 0x9e3779b97f4a7c15ull;  // a far build's key: the coarsest build's, salted
+
+// The detail parameter's value for a level: a pipeline level as itself, the far level as the coarsest.
+uint32_t detail_value(uint32_t level, uint32_t levels) { return std::min(level, levels - 1); }
+
+uint32_t rate_for(const Thresholds &t, float pixels) {
+  return pixels >= t.rate[0] ? 1 : pixels >= t.rate[1] ? 2 : pixels >= t.rate[2] ? 4 : pixels >= t.rate[3] ? 8 : 16;
+}
 
 }  // namespace
 
@@ -51,32 +76,89 @@ World::Slot *World::slot(uint64_t handle) {
 
 const World::Slot *World::slot(uint64_t handle) const { return const_cast<World *>(this)->slot(handle); }
 
+World::Entry *World::acquire(const PipelineType *type, const std::vector<uint8_t> &params, uint64_t key, bool far) {
+  auto it = cache_.find(key);
+  if (it != cache_.end()) {
+    ++it->second.refs;
+    ++counters_.cache_hits;
+    return &it->second;
+  }
+  ++counters_.cache_misses;
+  Entry &e = cache_[key];
+  e.type = type;
+  e.refs = 1;
+  e.order = next_order_++;
+  if (!free_dense_.empty()) {
+    e.dense = free_dense_.back();
+    free_dense_.pop_back();
+  } else {
+    e.dense = next_dense_++;
+  }
+  auto copy = std::make_shared<std::vector<uint8_t>>(params);
+  builders_->push([this, type, copy, key, far] {
+    Finished f;
+    f.key = key;
+    f.build = type->build(copy->data(), f.error);
+    if (far && f.build) {  // the far level: the coarsest build, clustered
+      simplify(f.build->mesh, kFarCells);
+      f.build->triangles = static_cast<uint32_t>(f.build->mesh.indices.size() / 3);
+    }
+    std::lock_guard<std::mutex> lock(finished_mutex_);
+    finished_.push_back(std::move(f));
+  });
+  return &e;
+}
+
 void World::want(Slot &s) {
   const uint64_t key = s.type->build_key(s.params.data());
   if (key == s.wanted) return;
   if (s.wanted && s.wanted != s.current) unref(s.wanted);
   s.wanted = key;
+  touch(s);
   if (s.has_current && key == s.current) return;
-  auto it = cache_.find(key);
-  if (it != cache_.end()) {
-    ++it->second.refs;
-    ++counters_.cache_hits;
-    return;
+  acquire(s.type, s.params, key);
+  waiting_.push_back(make_handle(static_cast<uint32_t>(&s - slots_.data()), s.generation));
+}
+
+void World::touch(Slot &s) {
+  if (s.touched) return;
+  s.touched = true;
+  touched_.push_back(static_cast<uint32_t>(&s - slots_.data()));
+}
+
+std::vector<StageTotals *> &World::update_stages(const PipelineType *type) {
+  for (auto &[t, v] : stage_slots_)
+    if (t == type) return v;
+  stage_slots_.push_back({type, {}});
+  auto &v = stage_slots_.back().second;
+  for (const StageInfo &st : type->stages()) {
+    if (!st.update) continue;
+    StageTotals &tot = stages_[st.label];
+    tot.label = st.label;
+    tot.update = true;
+    v.push_back(&tot);
   }
-  ++counters_.cache_misses;
-  Entry &e = cache_[key];
-  e.type = s.type;
-  e.refs = 1;
-  e.order = next_order_++;
-  auto params = std::make_shared<std::vector<uint8_t>>(s.params);
-  const PipelineType *type = s.type;
-  builders_->push([this, type, params, key] {
-    Finished f;
-    f.key = key;
-    f.build = type->build(params->data(), f.error);
-    std::lock_guard<std::mutex> lock(finished_mutex_);
-    finished_.push_back(std::move(f));
-  });
+  return v;
+}
+
+void World::drop_lods(Slot &s) {
+  for (int l = 0; l < 4; ++l) {
+    if (s.lods[l]) unref(s.lods[l]);
+    s.lods[l] = 0;
+    s.lod_entries[l] = nullptr;
+    s.lod_ok[l] = -1;
+  }
+}
+
+void World::bind_pose(Slot &s, const Entry &e) {
+  s.pose = s.type->bind(*e.build);
+  s.pose_dirty = true;
+  s.posed_frame = 0;
+  if (have_renderer_ && s.bone_count != e.build->bones) {
+    renderer_.free_bones(s.bone_offset, s.bone_count);
+    s.bone_count = e.build->bones;
+    s.bone_offset = renderer_.alloc_bones(s.bone_count);
+  }
 }
 
 void World::unref(uint64_t key) {
@@ -109,6 +191,15 @@ uint64_t World::spawn(const PipelineType *type, const void *params, const float 
   s.posed_at = -1;
   s.awake = true;
   s.error.clear();
+  s.entry = nullptr;
+  s.level = s.drawn_level = 0;
+  s.in_view = s.near_view = s.drawn = false;
+  s.pixels = 0;
+  s.posed_frame = 0;
+  s.pose_dirty = false;
+  s.touched = false;
+  s.wants_lod = false;
+  s.forced = -1;
   want(s);
   return make_handle(index, s.generation);
 }
@@ -137,6 +228,10 @@ Status World::destroy(uint64_t handle) {
   set_bodies(*s, nullptr);
   if (s->wanted && s->wanted != s->current) unref(s->wanted);
   if (s->has_current) unref(s->current);
+  drop_lods(*s);
+  if (have_renderer_) renderer_.free_bones(s->bone_offset, s->bone_count);
+  s->bone_offset = s->bone_count = 0;
+  s->entry = nullptr;
   s->alive = false;
   ++s->generation;
   s->pose.reset();
@@ -167,6 +262,7 @@ Status World::set_param(uint64_t handle, const PipelineType *type, size_t offset
     want(*s);
   }
   s->awake = true;  // setting a parameter wakes the instance (api.md)
+  touch(*s);
   return Status::ok;
 }
 
@@ -177,6 +273,7 @@ Status World::trigger(uint64_t handle, const PipelineType *type, size_t event) {
   if (event >= s->fired.size()) return Status::bad_parameter;
   s->fired[event] = s->time;
   s->awake = true;
+  touch(*s);
   return Status::ok;
 }
 
@@ -211,7 +308,31 @@ void World::set_camera(const float view[16], const float projection[16]) {
       for (int k = 0; k < 4; ++k) sum += projection[k * 4 + r] * view[c * 4 + k];
       view_proj_[c * 4 + r] = sum;
     }
+  // The eye, for distances: the view's translation brought back through its rotation.
+  for (int i = 0; i < 3; ++i) eye_[i] = -(view[i * 4 + 0] * view[12] + view[i * 4 + 1] * view[13] + view[i * 4 + 2] * view[14]);
+  p11_ = std::fabs(projection[5]);
+  ortho_ = projection[11] == 0.0f;
   have_camera_ = true;
+  ++camera_serial_;
+}
+
+Status World::force_level(uint64_t handle, int level) {
+  Slot *s = slot(handle);
+  if (!s) return Status::stale_handle;
+  s->forced = static_cast<int8_t>(std::clamp(level, -1, 3));
+  ++camera_serial_;
+  return Status::ok;
+}
+
+void World::set_viewport(uint32_t width, uint32_t height) {
+  (void)width;
+  viewport_h_ = std::max(1u, height);
+  ++camera_serial_;
+}
+
+void World::set_quality(int quality) {
+  quality_ = std::clamp(quality, 0, 2);
+  ++camera_serial_;
 }
 
 void World::clocks(const Slot &s, std::vector<float> &out) const {
@@ -233,6 +354,7 @@ void World::integrate() {
     Entry &e = it->second;
     e.pending = false;
     ++counters_.generations;
+    if (e.lod) ++counters_.lod_generations;
     if (!f.build) {
       e.failed = true;
       e.error = f.error.empty() ? "build failed" : f.error;
@@ -257,25 +379,37 @@ void World::integrate() {
     if (e.refs == 0) e.idle_since = clock_;
   }
   // Instances whose wanted build is ready switch to it; the old one stays on screen until then.
-  for (Slot &s : slots_) {
-    if (!s.alive || !s.wanted || (s.has_current && s.wanted == s.current)) continue;
+  size_t keep = 0;
+  for (size_t w = 0; w < waiting_.size(); ++w) {
+    Slot *sp = slot(waiting_[w]);
+    if (!sp || !sp->wanted || (sp->has_current && sp->wanted == sp->current)) continue;  // gone, or done
+    Slot &s = *sp;
     auto it = cache_.find(s.wanted);
-    if (it == cache_.end() || it->second.pending) continue;
+    if (it == cache_.end() || it->second.pending) {
+      waiting_[keep++] = waiting_[w];
+      continue;
+    }
     if (it->second.failed) {
       s.error = it->second.error;
       continue;
     }
     if (s.has_current) unref(s.current);
+    drop_lods(s);  // they were coarser versions of the old build
     s.current = s.wanted;
     s.has_current = true;
-    s.pose = s.type->bind(*it->second.build);
+    s.entry = &it->second;
+    s.level = s.drawn_level = 0;
+    bind_pose(s, it->second);
     s.awake = true;
     set_bodies(s, &it->second);  // the new build's collision replaces the old (a stump for a trunk)
+    touch(s);
   }
+  waiting_.resize(keep);
 }
 
 void World::evict(std::map<uint64_t, Entry>::iterator it) {
   if (it->second.uploaded) renderer_.release(it->second.gpu);
+  free_dense_.push_back(it->second.dense);
   ++counters_.cache_evictions;
   cache_.erase(it);
 }
@@ -305,61 +439,254 @@ void World::release_idle(bool all) {
 
 void World::flush() { release_idle(true); }
 
+// Where each instance stands on screen: in view, its projected size, and the level of detail that
+// size asks for (with hysteresis). With request, the coarser builds it asks for are requested.
+void World::classify(bool request) {
+  classified_serial_ = camera_serial_;
+  if (!have_camera_) return;
+  float planes[6][4];
+  const float *m = view_proj_;
+  auto row = [&](int r, int i) { return m[i * 4 + r]; };
+  for (int i = 0; i < 4; ++i) {
+    planes[0][i] = row(3, i) + row(0, i);
+    planes[1][i] = row(3, i) - row(0, i);
+    planes[2][i] = row(3, i) + row(1, i);
+    planes[3][i] = row(3, i) - row(1, i);
+    planes[4][i] = row(2, i);
+    planes[5][i] = row(3, i) - row(2, i);
+  }
+  for (auto &p : planes) {
+    float len = std::sqrt(p[0] * p[0] + p[1] * p[1] + p[2] * p[2]);
+    for (float &v : p) v /= len;
+  }
+  const Thresholds &t = kThresholds[quality_];
+  const float scale_px = static_cast<float>(viewport_h_) * p11_;
+  const bool detail = cost_ & kCostDetail;
+  constexpr size_t kGrain = 512;
+  std::vector<std::vector<uint32_t>> asks((slots_.size() + kGrain - 1) / kGrain);
+  pool_->parallel_for(slots_.size(), kGrain, [&](size_t b, size_t e) {
+    std::vector<uint32_t> &ask = asks[b / kGrain];
+    for (size_t i = b; i < e; ++i) {
+      Slot &s = slots_[i];
+      if (!s.alive || !s.has_current || !s.entry || !s.entry->build) continue;
+      const Build &build = *s.entry->build;
+      const float *r = s.rows;
+      const float cy = build.height * 0.5f;
+      const float c[3] = {r[1] * cy + r[3], r[5] * cy + r[7], r[9] * cy + r[11]};
+      const float scale = std::sqrt(std::max({r[0] * r[0] + r[4] * r[4] + r[8] * r[8], r[1] * r[1] + r[5] * r[5] + r[9] * r[9],
+                                              r[2] * r[2] + r[6] * r[6] + r[10] * r[10]}));
+      const float radius = build.radius * scale;
+      float worst = 1e30f;
+      for (const auto &p : planes) worst = std::min(worst, p[0] * c[0] + p[1] * c[1] + p[2] * c[2] + p[3]);
+      s.in_view = worst >= -radius;
+      s.near_view = worst >= -(radius * 1.5f + 2.0f);  // a margin, so what turns into view is already posed
+      const float dx = c[0] - eye_[0], dy = c[1] - eye_[1], dz = c[2] - eye_[2];
+      const float d = std::sqrt(dx * dx + dy * dy + dz * dz);
+      s.pixels = ortho_ ? scale_px * radius : (d > radius ? scale_px * radius / d : 1e9f);
+      // The level its size asks for: coarser while below the threshold, finer only clearly above it.
+      const uint32_t levels = s.type->detail_levels();
+      if (!detail || levels < 2) {
+        s.level = 0;
+        continue;
+      }
+      uint32_t base = 0;
+      std::memcpy(&base, s.params.data() + s.type->detail_offset(), sizeof base);
+      static const float kNever[3] = {0, 0, 0};
+      const float *switch_px = s.type->detail_pixels(quality_);
+      if (!switch_px) switch_px = kNever;  // not measured: the game's level, always
+      // The pipeline's levels, then the far level (when the pipeline measured where it switches in).
+      const uint32_t far = levels <= 3 ? levels : 0;
+      const uint32_t last = far && switch_px[levels - 1] > 0 ? far : std::min<uint32_t>(levels, 3) - 1;
+      uint32_t level = std::max<uint32_t>(s.level, base);
+      if (s.forced >= 0) {
+        level = std::clamp<uint32_t>(static_cast<uint32_t>(s.forced), base, far ? far : levels - 1);
+      } else {
+        level = std::min(level, last);
+        while (level < last && s.pixels < switch_px[level]) ++level;
+        while (level > base && s.pixels > switch_px[level - 1] * kHysteresis) --level;
+      }
+      s.level = static_cast<uint8_t>(level);
+      if (level > base && !s.lods[level]) ask.push_back(static_cast<uint32_t>(i));
+    }
+  });
+  if (!request || !detail) return;
+  std::vector<uint8_t> params;
+  for (const auto &ask : asks)
+  for (uint32_t i : ask) {
+    Slot &s = slots_[i];
+    params = s.params;
+    const uint32_t levels = s.type->detail_levels();
+    const uint32_t value = detail_value(s.level, levels);
+    const bool far = s.level >= levels;
+    std::memcpy(params.data() + s.type->detail_offset(), &value, sizeof value);
+    const uint64_t key = s.type->build_key(params.data()) ^ (far ? kFarSalt : 0);
+    s.lods[s.level] = key;
+    s.lod_entries[s.level] = acquire(s.type, params, key, far);
+    if (s.lod_entries[s.level]->pending && s.lod_entries[s.level]->refs == 1) s.lod_entries[s.level]->lod = true;
+  }
+}
+
+// Whether a coarser build poses like the instance's own: the same bones, moving the same way, so
+// the instance's pose can drive it. Checked once per pair, at two moments (swaying, and with every
+// event fired), with this instance's parameters.
+bool World::poses_alike(Slot &s, Entry &coarse) {
+  for (const auto &[key, alike] : coarse.poses_like)
+    if (key == s.current) return alike;
+  const Build &fine = *s.entry->build, &other = *coarse.build;
+  bool alike = fine.bones == other.bones;
+  if (alike && s.type->has_update()) {
+    std::vector<uint8_t> params = s.params;
+    uint32_t level = 0;
+    for (int l = 0; l < 4; ++l)
+      if (s.lod_entries[l] == &coarse) level = static_cast<uint32_t>(l);
+    level = detail_value(level, s.type->detail_levels());
+    std::memcpy(params.data() + s.type->detail_offset(), &level, sizeof level);
+    const size_t events = s.type->event_count();
+    for (int moment = 0; moment < 2 && alike; ++moment) {
+      std::vector<float> clocks(1 + events, -1.0f);
+      clocks[0] = moment == 0 ? 0.37f : 2.5f;
+      if (moment == 1)
+        for (size_t i = 0; i < events; ++i) clocks[1 + i] = 0.8f;
+      auto a = s.type->bind(fine), b = s.type->bind(other);
+      std::string err;
+      alike = s.type->update(fine, *a, s.params.data(), clocks.data(), err) &&
+              s.type->update(other, *b, params.data(), clocks.data(), err) &&
+              s.type->pose_hash(*a) == s.type->pose_hash(*b);
+    }
+  }
+  coarse.poses_like.push_back({s.current, alike});
+  return alike;
+}
+
+// The entry an instance is drawn with: the coarsest ready level at or finer than the one its size
+// asks for that poses like its own build, or its own build. Safe to run in parallel: a level not yet
+// checked is passed over (unchecked is set, and the caller checks it once, serially).
+World::Entry *World::pick_lod(Slot &s, bool &unchecked) {
+  for (int l = s.level; l > 0; --l) {
+    Entry *e = s.lod_entries[l];
+    if (!e || !e->build || e->failed || (have_renderer_ && !e->uploaded)) continue;
+    if (s.lod_ok[l] < 0) {
+      unchecked = true;
+      continue;
+    }
+    if (s.lod_ok[l] == 1) {
+      s.drawn_level = static_cast<uint8_t>(l);
+      return e;
+    }
+  }
+  uint32_t base = 0;
+  if (s.type->detail_levels() > 1) std::memcpy(&base, s.params.data() + s.type->detail_offset(), sizeof base);
+  s.drawn_level = static_cast<uint8_t>(base);
+  return s.entry;
+}
+
 void World::update(float dt) {
   const auto t0 = std::chrono::steady_clock::now();
   clock_ += dt;
+  ++frame_;
   integrate();
+  const auto t1 = std::chrono::steady_clock::now();
+  classify(true);
+  const auto t2 = std::chrono::steady_clock::now();
+  times_.integrate_ms = std::chrono::duration<double, std::milli>(t1 - t0).count();
+  times_.classify_ms = std::chrono::duration<double, std::milli>(t2 - t1).count();
+  const Thresholds &t = kThresholds[quality_];
+  const bool skip_unseen = have_camera_ && (cost_ & kCostUnseen), skip_rate = have_camera_ && (cost_ & kCostRate);
+  const bool skip_small = cost_ & kCostTooSmall;
+  // Who is posed this frame: decided in parallel, gathered in order.
+  struct Part {
+    std::vector<Slot *> active;
+    uint64_t unseen = 0, rate_skipped = 0;
+  };
+  constexpr size_t kGrain = 512;
+  std::vector<Part> parts((slots_.size() + kGrain - 1) / kGrain);
+  pool_->parallel_for(slots_.size(), kGrain, [&](size_t b, size_t e) {
+    Part &part = parts[b / kGrain];
+    for (size_t i = b; i < e; ++i) {
+      Slot &s = slots_[i];
+      if (!s.alive || !s.awake) continue;
+      s.time += dt;
+      if (s.has_current && s.type->has_update() && s.pose) {
+        // An event plays out wherever it is, so its result arrives; anything else is posed only
+        // when it can be seen, and less often the smaller it is. Poses are pure functions of time,
+        // so a skipped frame costs nothing in accuracy: the next pose is exact.
+        bool event_live = false;
+        for (size_t k = 0; k < s.fired.size() && k < 31; ++k)
+          if (s.fired[k] >= 0 && !(s.result & (1u << k))) event_live = true;
+        // Out of view, or too small to be drawn: not seen.
+        if (!event_live && skip_unseen && (!s.near_view || (skip_small && s.pixels < t.too_small))) {
+          ++part.unseen;
+          continue;
+        }
+        if (!event_live && skip_rate && s.posed_frame) {
+          const uint32_t rate = rate_for(t, s.pixels);
+          if (rate > 1 && frame_ - s.posed_frame < 2 * rate && (frame_ + i) % rate != 0) {
+            ++part.rate_skipped;
+            continue;
+          }
+        }
+        part.active.push_back(&s);
+      } else if (s.has_current && !s.type->has_update()) {
+        s.awake = false;  // nothing moves: sleep
+      }
+    }
+  });
   std::vector<Slot *> active;
-  active.reserve(slots_.size());
-  for (Slot &s : slots_) {
-    if (!s.alive || !s.awake) continue;
-    s.time += dt;
-    if (s.has_current && s.type->has_update() && s.pose) active.push_back(&s);
-    else if (s.has_current && !s.type->has_update()) s.awake = false;  // nothing moves: sleep
+  uint64_t unseen = 0, rate_skipped = 0;
+  for (Part &part : parts) {
+    active.insert(active.end(), part.active.begin(), part.active.end());
+    unseen += part.unseen;
+    rate_skipped += part.rate_skipped;
   }
   pool_->parallel_for(active.size(), 16, [&](size_t b, size_t e) {
     std::vector<float> c;
     for (size_t i = b; i < e; ++i) {
       Slot &s = *active[i];
-      const Entry &entry = cache_.find(s.current)->second;
+      const Entry &entry = *s.entry;
       clocks(s, c);
       std::string err;
       if (!s.type->update(*entry.build, *s.pose, s.params.data(), c.data(), err)) {
         s.error = err;
         s.awake = false;
-      } else if ((s.posed_at = s.time, s.pose->settled)) {
-        s.awake = false;  // every update stage voted to sleep (design/submit.md)
+        continue;
       }
+      s.posed_at = s.time;
+      s.posed_frame = frame_;
+      s.pose_dirty = true;
+      if (s.pose->settled) s.awake = false;  // every update stage voted to sleep (design/submit.md)
     }
   });
+  const auto t3 = std::chrono::steady_clock::now();
+  times_.animate_ms = std::chrono::duration<double, std::milli>(t3 - t2).count();
+  counters_.animated = active.size();
+  counters_.unseen = unseen;
+  counters_.rate_skipped = rate_skipped;
   for (Slot *s : active) {
-    const auto &stages = s->type->stages();
-    size_t u = 0;
-    for (const StageInfo &st : stages) {
-      if (!st.update) continue;
-      if (u < s->pose->stage_ms.size()) {
-        StageTotals &t = stages_[st.label];
-        t.label = st.label;
-        t.update = true;
-        ++t.calls;
-        t.total_ms += s->pose->stage_ms[u];
-        t.max_ms = std::max(t.max_ms, s->pose->stage_ms[u]);
-      }
-      ++u;
+    std::vector<StageTotals *> &totals = update_stages(s->type);
+    for (size_t u = 0; u < totals.size() && u < s->pose->stage_ms.size(); ++u) {
+      StageTotals &tot = *totals[u];
+      ++tot.calls;
+      tot.total_ms += s->pose->stage_ms[u];
+      tot.max_ms = std::max(tot.max_ms, s->pose->stage_ms[u]);
     }
+    touch(*s);
   }
-  // Results: list the instances whose current values changed (the game diffs them for edges).
+  // Results: list the instances whose current values changed (the game diffs them for edges). Only
+  // a pose, a switch of build, or the game's own call can change one.
   changed_.clear();
-  for (size_t i = 0; i < slots_.size(); ++i) {
+  for (uint32_t i : touched_) {
     Slot &s = slots_[i];
+    s.touched = false;
     if (!s.alive) continue;
     const uint32_t bits = result_of(s);
     if (bits != s.result) {
       s.result = bits;
-      changed_.push_back(make_handle(static_cast<uint32_t>(i), s.generation));
+      changed_.push_back(make_handle(i, s.generation));
     }
   }
+  touched_.clear();
   release_idle(false);
+  times_.results_ms = ms_since(t3);
   times_.update_ms = ms_since(t0);
 }
 
@@ -374,107 +701,147 @@ void World::prepare(SDL_GPUCommandBuffer *cmd) {
       e.build->mesh.clear();
     }
   }
+  if (classified_serial_ != camera_serial_) classify(false);  // the camera moved since the update
 
-  // Cull against the camera's frustum (Gribb and Hartmann's planes).
-  float planes[6][4];
-  if (have_camera_) {
-    const float *m = view_proj_;
-    auto row = [&](int r, int i) { return m[i * 4 + r]; };
-    for (int i = 0; i < 4; ++i) {
-      planes[0][i] = row(3, i) + row(0, i);
-      planes[1][i] = row(3, i) - row(0, i);
-      planes[2][i] = row(3, i) + row(1, i);
-      planes[3][i] = row(3, i) - row(1, i);
-      planes[4][i] = row(2, i);
-      planes[5][i] = row(3, i) - row(2, i);
-    }
-    for (auto &p : planes) {
-      float len = std::sqrt(p[0] * p[0] + p[1] * p[1] + p[2] * p[2]);
-      for (float &v : p) v /= len;
-    }
-  }
+  // What is drawn, and with which build: in view, big enough, at its level of detail.
+  const Thresholds &t = kThresholds[quality_];
+  const bool too_small = cost_ & kCostTooSmall, detail = cost_ & kCostDetail;
   struct Visible {
-    uint64_t key;
-    Slot *slot;
-    const Entry *entry;
+    uint32_t slot;
+    Entry *entry;
   };
-  std::vector<Visible> visible;
-  visible.reserve(slots_.size());
-  uint64_t culled = 0;
-  for (Slot &s : slots_) {
-    if (!s.alive || !s.has_current) continue;
-    const Entry &e = cache_.find(s.current)->second;
-    if (!e.build) continue;
-    if (have_camera_) {
-      const float *r = s.rows;
-      const float cy = e.build->height * 0.5f;
-      const float c[3] = {r[1] * cy + r[3], r[5] * cy + r[7], r[9] * cy + r[11]};
-      float scale = std::sqrt(std::max({r[0] * r[0] + r[4] * r[4] + r[8] * r[8], r[1] * r[1] + r[5] * r[5] + r[9] * r[9],
-                                        r[2] * r[2] + r[6] * r[6] + r[10] * r[10]}));
-      const float radius = e.build->radius * scale;
-      bool in = true;
-      for (const auto &p : planes)
-        if (p[0] * c[0] + p[1] * c[1] + p[2] * c[2] + p[3] < -radius) {
-          in = false;
-          break;
-        }
-      if (!in) {
-        ++culled;
+  struct Part {
+    std::vector<Visible> visible;
+    std::vector<uint32_t> unchecked;
+    uint64_t culled = 0, small = 0, by_level[4] = {0, 0, 0, 0};
+  };
+  constexpr size_t kGrain = 512;
+  std::vector<Part> parts((slots_.size() + kGrain - 1) / kGrain);
+  pool_->parallel_for(slots_.size(), kGrain, [&](size_t b, size_t e) {
+    Part &part = parts[b / kGrain];
+    for (size_t i = b; i < e; ++i) {
+      Slot &s = slots_[i];
+      s.drawn = false;
+      if (!s.alive || !s.has_current || !s.entry || !s.entry->build) continue;
+      if (have_camera_ && !s.in_view) {
+        ++part.culled;
         continue;
       }
-    }
-    visible.push_back({s.current, &s, &e});
-  }
-  std::stable_sort(visible.begin(), visible.end(), [](const Visible &a, const Visible &b) { return a.key < b.key; });
-
-  frame_instances_.resize(visible.size());
-  std::vector<uint32_t> offsets(visible.size());
-  uint32_t total_bones = 0;
-  for (size_t i = 0; i < visible.size(); ++i) {
-    offsets[i] = total_bones;
-    total_bones += visible[i].entry->build->bones;
-  }
-  frame_bones_.resize(size_t(total_bones) * 12);
-  uint64_t triangles = 0;
-  pool_->parallel_for(visible.size(), 64, [&](size_t b, size_t e) {
-    for (size_t i = b; i < e; ++i) {
-      const Visible &v = visible[i];
-      SkinnedInstance &inst = frame_instances_[i];
-      std::memcpy(inst.row0, v.slot->rows, 16);
-      std::memcpy(inst.row1, v.slot->rows + 4, 16);
-      std::memcpy(inst.row2, v.slot->rows + 8, 16);
-      inst.bone_offset = offsets[i];
-      float *out = frame_bones_.data() + size_t(offsets[i]) * 12;
-      const uint32_t n = v.entry->build->bones;
-      const std::vector<float> *m = v.slot->pose ? &v.slot->pose->matrices : nullptr;
-      for (uint32_t bone = 0; bone < n; ++bone) {
-        float *rows = out + bone * 12;
-        if (m && m->size() >= size_t(bone + 1) * 16) {
-          const float *mm = m->data() + size_t(bone) * 16;
-          for (int r = 0; r < 3; ++r)
-            for (int c = 0; c < 4; ++c) rows[r * 4 + c] = mm[c * 4 + r];
-        } else {
-          const float id[12] = {1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0};
-          std::memcpy(rows, id, sizeof id);
-        }
+      if (have_camera_ && too_small && s.pixels < t.too_small) {
+        ++part.small;
+        continue;
       }
+      Entry *entry = s.entry;
+      if (detail) {
+        bool unchecked = false;
+        entry = pick_lod(s, unchecked);
+        if (unchecked) part.unchecked.push_back(static_cast<uint32_t>(i));
+      } else {
+        uint32_t base = 0;
+        if (s.type->detail_levels() > 1) std::memcpy(&base, s.params.data() + s.type->detail_offset(), sizeof base);
+        s.drawn_level = static_cast<uint8_t>(base);
+      }
+      s.drawn = true;
+      ++part.by_level[std::min<uint32_t>(s.drawn_level, 3)];
+      part.visible.push_back({static_cast<uint32_t>(i), entry});
     }
   });
+  std::vector<Visible> visible;
+  uint64_t culled = 0, small = 0;
+  uint64_t by_level[4] = {0, 0, 0, 0};
+  for (Part &part : parts) {
+    visible.insert(visible.end(), part.visible.begin(), part.visible.end());
+    culled += part.culled;
+    small += part.small;
+    for (int l = 0; l < 4; ++l) by_level[l] += part.by_level[l];
+    // Coarser levels that became ready: check, once, that they pose like the instance's own build
+    // (drawn from the next frame).
+    for (uint32_t i : part.unchecked) {
+      Slot &s = slots_[i];
+      for (int l = 1; l < 4; ++l) {
+        Entry *e = s.lod_entries[l];
+        if (s.lod_ok[l] >= 0 || !e || !e->build || e->failed) continue;
+        s.lod_ok[l] = poses_alike(s, *e) ? 1 : 0;
+      }
+    }
+  }
+  // Bucket by build (a counting sort on the entries' small indices): each bucket is one draw.
+  std::vector<uint32_t> start(next_dense_ + 1, 0);
+  for (const Visible &v : visible) ++start[v.entry->dense + 1];
+  for (uint32_t d = 0; d < next_dense_; ++d) start[d + 1] += start[d];
+  std::vector<Visible> sorted(visible.size());
+  {
+    std::vector<uint32_t> at(start.begin(), start.end() - 1);
+    for (const Visible &v : visible) sorted[at[v.entry->dense]++] = v;
+  }
+  // The bones that changed and can be seen go up this frame; the rest wait in their slots.
+  std::vector<uint32_t> dirty, dirty_at;
+  uint32_t dirty_bones = 0;
+  if (have_renderer_) {
+    const bool retain = cost_ & kCostRetain;  // off: every pose drawn goes up, every frame
+    for (const Visible &v : sorted) {
+      Slot &s = slots_[v.slot];
+      if ((retain && !s.pose_dirty) || s.bone_count == 0) continue;
+      dirty.push_back(v.slot);
+      dirty_at.push_back(dirty_bones);
+      dirty_bones += s.bone_count;
+    }
+  }
+  uint64_t triangles = 0;
+  for (const Visible &v : sorted) triangles += v.entry->build->triangles;
+  if (copy) {
+    SkinnedRenderer::Frame f = renderer_.begin_frame(static_cast<uint32_t>(sorted.size()), dirty_bones);
+    if (f.instances) {
+      pool_->parallel_for(sorted.size(), 256, [&](size_t b, size_t e) {
+        for (size_t i = b; i < e; ++i) {
+          const Slot &s = slots_[sorted[i].slot];
+          SkinnedInstance &inst = f.instances[i];
+          std::memcpy(inst.row0, s.rows, 16);
+          std::memcpy(inst.row1, s.rows + 4, 16);
+          std::memcpy(inst.row2, s.rows + 8, 16);
+          inst.bone_offset = s.bone_offset;
+          inst.pad[0] = inst.pad[1] = inst.pad[2] = 0;
+        }
+      });
+      pool_->parallel_for(dirty.size(), 32, [&](size_t b, size_t e) {
+        for (size_t i = b; i < e; ++i) {
+          Slot &s = slots_[dirty[i]];
+          float *out = f.rows + size_t(dirty_at[i]) * 12;
+          uint32_t *where = f.slots + dirty_at[i];
+          const std::vector<float> *m = s.pose ? &s.pose->matrices : nullptr;
+          for (uint32_t bone = 0; bone < s.bone_count; ++bone) {
+            float *rows = out + bone * 12;
+            where[bone] = s.bone_offset + bone;
+            if (m && m->size() >= size_t(bone + 1) * 16) {
+              const float *mm = m->data() + size_t(bone) * 16;
+              for (int r = 0; r < 3; ++r)
+                for (int c = 0; c < 4; ++c) rows[r * 4 + c] = mm[c * 4 + r];
+            } else {
+              const float id[12] = {1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0};
+              std::memcpy(rows, id, sizeof id);
+            }
+          }
+          s.pose_dirty = false;
+        }
+      });
+    }
+    renderer_.end_frame(copy);
+    SDL_EndGPUCopyPass(copy);
+    renderer_.scatter(cmd);
+  }
   frame_ranges_.clear();
-  for (size_t i = 0; i < visible.size(); ++i) {
-    triangles += visible[i].entry->build->triangles;
-    if (i == 0 || visible[i].key != visible[i - 1].key)
-      frame_ranges_.push_back({&visible[i].entry->gpu, static_cast<uint32_t>(i), 0});
+  for (size_t i = 0; i < sorted.size(); ++i) {
+    if (i == 0 || sorted[i].entry != sorted[i - 1].entry)
+      frame_ranges_.push_back({&sorted[i].entry->gpu, static_cast<uint32_t>(i), 0});
     ++frame_ranges_.back().count;
   }
-  if (copy) {
-    renderer_.stream(copy, frame_instances_, frame_bones_);
-    SDL_EndGPUCopyPass(copy);
-  }
   counters_.draws = frame_ranges_.size();
-  counters_.drawn = visible.size();
+  counters_.drawn = sorted.size();
   counters_.culled = culled;
+  counters_.too_small = small;
+  for (int l = 0; l < 4; ++l) counters_.by_level[l] = by_level[l];
   counters_.triangles = triangles;
+  counters_.bones_uploaded = copy ? dirty_bones : 0;
   times_.prepare_ms = ms_since(t0);
 }
 
@@ -525,6 +892,13 @@ Status World::info(uint64_t handle, InstanceInfo &out) const {
   out.failed = !s->error.empty();
   out.error = s->error;
   out.build_key = s->current;
+  out.drawn = s->drawn;
+  out.level = s->drawn_level;
+  out.pixels = s->pixels;
+  if (s->drawn) {
+    Entry *e = s->drawn_level < 4 && s->lod_entries[s->drawn_level] ? s->lod_entries[s->drawn_level] : s->entry;
+    if (e && e->build) out.drawn_triangles = e->build->triangles;
+  }
   if (s->has_current) {
     const Entry &e = cache_.find(s->current)->second;
     out.ready = e.build != nullptr;

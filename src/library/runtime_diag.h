@@ -17,10 +17,18 @@ typedef struct foundry_diag_counters {
   uint64_t gpu_buffers_created, gpu_buffers_released, gpu_bytes;
   uint64_t draws, drawn, culled, triangles; /* the last prepared frame */
   uint64_t bodies;                          /* collision bodies in the game's physics world */
+  /* The last frame's cost decisions (design/submit.md, "Cost"). */
+  uint64_t too_small;                       /* in view, too small to draw */
+  uint64_t by_level[4];                     /* drawn at each level of detail, finest first */
+  uint64_t animated, unseen, rate_skipped;  /* awake instances posed; not posed: out of view, by rate */
+  uint64_t bones_uploaded;                  /* bones whose changed pose went to the GPU */
+  uint64_t lod_generations;                 /* of the generations, the runtime's coarser levels of detail */
 } foundry_diag_counters;
 
 typedef struct foundry_diag_frame {
   double update_ms, prepare_ms, draw_ms; /* the last frame, on the CPU */
+  /* inside update: finished builds, classification (view, size, detail), posing, results */
+  double integrate_ms, classify_ms, animate_ms, results_ms;
 } foundry_diag_frame;
 
 typedef struct foundry_diag_stage {
@@ -32,6 +40,10 @@ typedef struct foundry_diag_stage {
 
 typedef struct foundry_diag_instance {
   bool ready, sleeping, settled, failed;
+  bool drawn;               /* in the last prepared frame */
+  uint32_t level;           /* the level of detail it was drawn at (finest is 0) */
+  uint32_t drawn_triangles; /* at that level */
+  float pixels;             /* its projected size on screen */
   uint32_t triangles, bones;
   float height, radius;
   uint64_t build_key;
@@ -50,6 +62,20 @@ foundry_status foundry_diag_hash(foundry_runtime *rt, foundry_instance instance,
                                  uint32_t clock_count, uint64_t *model, uint64_t *pose);
 /* Instances whose pose has a non-finite matrix or a bone far outside its bounds. */
 uint64_t foundry_diag_bad_poses(foundry_runtime *rt);
+/* Turns the runtime's cost decisions on and off, to measure each one (bits, all on by default):
+ * pick detail by size on screen, skip what is too small, don't animate what is out of view,
+ * animate small things less often, upload only the poses that changed. */
+#define FOUNDRY_DIAG_COST_DETAIL 1u
+#define FOUNDRY_DIAG_COST_TOO_SMALL 2u
+#define FOUNDRY_DIAG_COST_UNSEEN 4u
+#define FOUNDRY_DIAG_COST_RATE 8u
+#define FOUNDRY_DIAG_COST_RETAIN 16u /* keep poses on the GPU; off uploads every drawn pose each frame */
+#define FOUNDRY_DIAG_COST_ALL 31u
+void foundry_diag_set_cost(foundry_runtime *rt, uint32_t flags);
+/* Draws an instance at one level of detail whatever its size: its pipeline's levels (finest is 0),
+ * then the runtime's far level (one past the coarsest); -1 lets its size pick again. Needs
+ * FOUNDRY_DIAG_COST_DETAIL on. */
+foundry_status foundry_diag_force_level(foundry_runtime *rt, foundry_instance instance, int level);
 /* Releases every unused build now, without waiting for the release timer. */
 void foundry_diag_flush(foundry_runtime *rt);
 

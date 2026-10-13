@@ -86,6 +86,17 @@ class PipelineType {
   // fired, negative before).
   virtual size_t event_count() const = 0;
   virtual bool has_update() const = 0;
+  // The build parameter the runtime sets to pick a level of detail (an enum, finest first; the
+  // game's value is the finest it allows). 0 levels: the pipeline has none.
+  virtual uint32_t detail_levels() const { return 0; }
+  virtual size_t detail_offset() const { return 0; }
+  // Per quality (0 low, 1 medium, 2 high): the projected size in pixels below which level L gives
+  // way to L + 1, measured against the finest level (the pipeline's draw.detail_pixels). Null: the
+  // runtime's defaults.
+  virtual const float *detail_pixels(int quality) const {
+    (void)quality;
+    return nullptr;
+  }
   virtual const std::vector<StageInfo> &stages() const = 0;
   // A key for the build parameters, including the pipeline's identity.
   virtual uint64_t build_key(const void *params) const = 0;

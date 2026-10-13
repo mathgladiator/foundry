@@ -20,7 +20,7 @@ The pipeline's parameters are its whole interface. The generated C API (`src/lib
 | `fruit` | bool | | The tree still carries its fruit (in the seasons it fruits). Clear it when the player picks it; the tree rebuilds bare and shares that build with every other picked tree like it. It applies only to the 14 species whose fruit can be picked (`pickable`, see "Fruit"); for the rest it is disabled and ignored, and their cones or propagules stay on | yes, where it applies |
 | `stump` | bool | | Only the stump is left. The game sets it once a felled tree's fall is over (`break_over` in its result); the mesh draws the stump and its roots, and the trunk's collision body becomes the stump's | yes |
 | `seed` | u32 | 1 to 1000 | Which of the distinct trees of that species, age, and season | yes |
-| `detail` | enum | high, medium, low | Level of detail: ring sides, foliage density, sprigs | yes |
+| `detail` | enum | high, medium, low | The finest level of detail the game allows (ring sides, foliage clumps' facets, sprigs); the runtime draws coarser levels by size on screen (`design/submit.md`, "Cost") | yes |
 | `wind_speed` | f32 | 0 to 25 m/s | The local wind; 0 lets a standing tree sleep | no: the pose only |
 | `wind_heading` | f32 | 0 to 360° | The direction the wind blows toward, from +Z toward +X | no |
 | `gust_damping` | f32 | 0 to 1 | 0 is raw gusts, 1 is a steady wind | no |
@@ -99,7 +99,7 @@ The mesh system wraps the skeleton and dresses it for the season:
   - **Prop roots** (`prop_roots`): a mangrove's roots arching from the lower trunk out and down into the ground.
   - **Spanish moss** (`hanging_moss`): grey strands hanging from the near-level limbs and twigs in every season, as two crossed ribbons riding the branch's bone, coloured by `moss_color`.
   Knees and roots are rigid on the stump's bone, so they stay put when the tree breaks.
-- **Level of detail.** `detail` sets the ring sides (12, 9, or 7 on the trunk), the icosphere subdivision, the share of foliage clumps kept (all, two thirds, or half, grown to cover the gaps), and whether sprigs appear.
+- **Level of detail.** `detail` sets the ring sides (12, 9, or 7 on the trunk), the foliage clumps' facets (an icosahedron subdivided once, 80 faces; the icosahedron, 20; an octahedron 15% larger, 8), and whether sprigs appear. Every level keeps every clump, so the crown's silhouette stays where it was. Levels used to keep two thirds and then half of the clumps, grown to cover the gaps; keeping them all with fewer facets halves the difference from the finest at medium and costs fewer triangles (`demo/perf/report-tree_v1-detail-20261013T002122Z.json`).
 
 ### `tree_colorize`: the paint
 
@@ -274,12 +274,27 @@ The viewport's **Flow** tab draws this graph: `species` feeds a purple lookup bo
 Wind and time never rebuild a tree: they rerun only `animate`, which reads two fields of the rig (`bones`, `pieces`), not the mesh. In the native runtime, every tree with the same six build parameters shares one mesh, so a forest of 10 kinds of tree costs 10 meshes, however many instances it has.
 
 The probe (`pipeline_flow` with `probe`, or the Flow tab's button) varies each parameter and compares every stage's output. It found one place a cache could be shared:
-- **`detail` reaches `animate`** through the rig's bones, but never changes its output. The skeleton is the same at every level of detail, so poses could be shared across them.
+- **`detail` reaches `animate`** through the rig's bones, but never changes its output. The skeleton is the same at every level of detail, so the runtime poses a tree once and draws whichever level its size asks for with that pose (it checks that the poses match before it does).
 - **`fruit` reaches `rig`**, whose output carries the request through to the mesh, but it never changes the skeleton, and `animate` never changes with it. Probed on an oak in fall, it changes the rig's output (the request it carries), the mesh, and the colour; probed on a willow, it changes nothing, because the foundry reads it as off where it doesn't apply. The rig could be cached without it, and picking fruit would then rebuild only the mesh and colour.
 - **`stump` reaches `rig`** the same way: it changes the request the rig carries, not the skeleton.
 - **Conditional dependencies are invisible to it.** `break_heading` shows no change when probed on a standing tree, because it only matters once the tree breaks.
 
+## Levels of detail
+
+From the detail sizes (`demo/perf/report-tree_v1-detail-20261013T002122Z.json`, 32 sampled trees, half of them stumps; `design/quality.perf.md`, "Detail sizes"):
+
+| Level | Triangles (mean) | Drawn below, at high quality | medium | low |
+|---|---|---|---|---|
+| high | 6,927 | | | |
+| medium | 3,076 | 32 px | 256 px or more | 256 px or more |
+| low | 1,696 | 16 px | 256 px or more | 256 px or more |
+| far (the runtime's) | 661 | never | 12 px | 256 px or more |
+
+A size is the tree's bounding sphere on screen, in a 1080-pixel-tall view; at high quality a level switches in where the median tree differs from the finest on at most 10% of its pixels (20% at medium, 30% at low).
+
 ## Performance
+
+Since the levels of detail changed (2026-10-13), the quick plan has been rerun (`demo/perf/report-tree_v1-20261013T003154Z.json`): native matches WebAssembly on 100 of 100 sampled trees and their poses; 800 trees hold the budget at 0.7 ms p95 with 10 generations for 10 sets; felling 100 at once raises the frame from 0.2 to 0.5 ms, and they settle in 3.0 s. The numbers below are from the last standard run, before; it hasn't been rerun.
 
 Native runtime, on an AMD Ryzen AI Max+ 395 with a Radeon 8060S (Vulkan), from the standard stress plan (`demo/perf/report-tree_v1-20261012T193254Z.json`, 32 species, with `stump` and collision bodies in a toy Jolt world):
 
@@ -312,6 +327,6 @@ build/linux-release/stress/stress_tree_v1 --plan explore --window
 ## Known limits
 
 - **Fruit is chunky and placed by rule.** It hangs on the clumps' outer lower side, larger than life. A coconut bunch shows from below and the side but hides under the frond skirt from above. Cedar's cones stand upright on real trees, which the mesh can't draw, so cedar has none.
-- **Level of detail and distinct trees.** The runtime doesn't yet pick `detail` from distance, or cap how many distinct seeds it builds at each quality setting (`design/systems.md`, "Stable randomness"). The game sets both directly.
+- **Distinct trees.** The runtime picks the level of detail by size on screen now, but doesn't yet cap how many distinct seeds it builds at each quality setting (`design/systems.md`, "Stable randomness").
 - **Break debris.** Limbs that fly off can end partly in the ground, and falling leaves aren't particles yet.
 - **Multi-stemmed trees.** Mesquite approximates its multiple stems with limbs that leave the trunk near the ground. The rig grows one stem.

@@ -17,7 +17,7 @@
 | `moss` | enum | none, light, heavy | Moss and lichen on the upper faces, scaled by the material's `lichen` | yes |
 | `season` | enum | winter, spring, summer, fall | Snow on the upper faces in winter | yes |
 | `seed` | u32 | 1 to 1000 | Which of the distinct rocks of that material and size, and how it breaks | yes |
-| `detail` | enum | high, medium, low | Level of detail | yes |
+| `detail` | enum | high, medium, low | Level of detail (the runtime keeps the game's: see "Known limits") | yes |
 | `break_time` | event | | Seconds since the rock broke, negative while it is whole. The game starts it with `foundry_rock_v1_start_break` | no |
 | `break_heading` | f32 | 0 to 360° | Where the blow sends the pieces | no |
 
@@ -139,3 +139,4 @@ Run `perf_stress` with plan `quick` after a change and `standard` before asking 
 - **Convex rocks.** Every rock starts as a convex block; overhangs and holes come only from the surface noise.
 - **One impact side.** `impact` fractures crowd their small pieces toward the rock's front, wherever the blow lands; the heading only steers where they fly.
 - **No dust.** A break has no particles yet.
+- **The runtime can't pick a rock's level.** A coarser level is drawn with the instance's own pose, which needs the same bones moving the same way. A rock's pieces get their mass and spin from their shape, so their break differs at each level, and the runtime's check refuses it (`demo/perf/report-rock_v1-detail-20261013T002122Z.json` measured no change at any size because every coarser level was refused). Its `draw.detail_pixels` are zero, so it never asks for one: a rock is drawn at the game's `detail`. Caching the pieces' physics from the finest level would lift this.

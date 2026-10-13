@@ -63,6 +63,7 @@ struct Plan {
 // Timing of one frame, in milliseconds.
 struct FrameTime {
   double total = 0, update = 0, prepare = 0, draw = 0, gpu_wait = 0;
+  double integrate = 0, classify = 0, animate = 0, results = 0;  // inside update
   double gpu_sync = -1;  // sampled frames: submit to fence, waited on right away
 };
 
@@ -131,6 +132,7 @@ struct Ctx {
   bool use_gpu = false;
   foundry_runtime *rt = nullptr;
   ToyPhysics *physics = nullptr;  // the toy Jolt world the runtime puts collision bodies in
+  uint32_t max_bodies = 1u << 18;  // its capacity
   Journal journal;
   Rng rng{7, 1};
   double sim_time = 0;  // seconds simulated so far
@@ -223,6 +225,22 @@ struct VideoOptions {
   int fps = 30;
 };
 int run_video(Ctx &ctx, const VideoOptions &o);
+
+// How much of a picture visibly changed: a pixel disagrees when its colour moves by more than a
+// tenth of the colour cube's diagonal. Shares (percent) of the whole image and of the pixels that
+// show something (not the sky) in either picture; mask, when given, paints the disagreements red.
+struct Diff {
+  double image = 0, object = 0;
+  uint64_t object_pixels = 0;
+};
+Diff image_diff(const std::vector<uint8_t> &a, const std::vector<uint8_t> &b, std::vector<uint8_t> *mask);
+
+// Detail sizes (lod.cpp): each coarser level's switch size on screen, measured against the finest.
+struct LodOptions {
+  int configs = 32;
+  std::string report_path, snapshot_dir;
+};
+int run_lod(Ctx &ctx, const LodOptions &o);
 
 std::string fmt(const char *f, ...);
 double now_ms();

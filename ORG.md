@@ -58,7 +58,7 @@ The slices so far:
 | `wasm` | Runs system modules in Wasmtime: a fresh sandboxed instance per run, with fuel and memory limits |
 | `forge` | The system lifecycle: create, write source, build (WebAssembly and native), run, and compare native output with WebAssembly output |
 | `workspace` | The workspace model: items, manifests, approval state, notes, and selection |
-| `viewport` | The software renderer for the viewport and screenshots, and image encoding |
+| `viewport` | The viewport's renderers and image encoding: on the GPU (`gpu.h`, `shaders/viewport.hlsl`) when the foundry has a window, and in software (`raster.h`) headless; both share the framing and the overlays |
 | `assets` | The asset-pipeline transforms (`design/transforms.md`): GLB import, sizing and the hull estimator, the progressive mesh, LOD recommendation by image error, vertex-cache optimization (meshoptimizer), the foundry mesh file format, Meshy mesh items, stamping, and fracture (`fracture.h`: Voronoi cuts of LOD1 with capped faces and a baked rigid-body break; `fracture_item.h`: the `fracture:<name>` item beside a fixed asset) |
 | `meshy` | The Meshy client, with the credit budget and ledger |
 | `app` | The entry point, the Dear ImGui workspace UI, and window capture |
@@ -99,8 +99,9 @@ The runtime core and everything that supports the graphics engine: instances, up
 So far it holds:
 
 - `src/runtime/physics/`: the runtime's side of the game's Jolt Physics world (`jolt.h`): checking the game's pointer, making a build's collision shapes, and adding, moving, and removing an instance's bodies. No Jolt type crosses its header.
-- `src/runtime/core/`: the runtime's world (`world.h`): instances and their timelines, the shared cache of builds, generation on background threads, the update broadcast on a thread pool, sleep, culling, and diagnostics; and the interface a pipeline implements (`pipeline.h`), which generated code fills in.
-- `src/runtime/shaders/skinned.hlsl` and `src/runtime/render/skinned_renderer.*`: skinned, instanced drawing, with bones streamed in a storage buffer.
+- `src/runtime/core/`: the runtime's world (`world.h`): instances and their timelines, the shared cache of builds, generation on background threads, the update broadcast on a thread pool, sleep, culling, the cost decisions (`design/submit.md`, "Cost": level of detail by size on screen, too small, posed when seen and as often as it shows), and diagnostics; and the interface a pipeline implements (`pipeline.h`), which generated code fills in.
+- `src/runtime/shaders/skinned.hlsl` and `src/runtime/render/skinned_renderer.*`: skinned, instanced drawing, with each instance's bones in a slot of a persistent storage buffer, the changed ones scattered there by a compute pass (`src/runtime/shaders/scatter.hlsl`).
+- `src/runtime/render/simplify.*`: the far level of detail, a build's coarsest mesh clustered on a grid.
 - `src/runtime/shaders/cel.hlsl`: the first cut of the mega shader, compiled to SPIR-V by DXC at build time and embedded in the binary (`build/*/shaders/`). DXC comes from `tools/bootstrap.sh`; `SDL_shadercross` will add Metal and Direct3D 12 later.
 - `src/runtime/render/`: the engine's in-memory mesh (`runtime::Mesh`) and the instanced cel renderer on SDL3's GPU API, built as the `foundry_runtime` library.
 

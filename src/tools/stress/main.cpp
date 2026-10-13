@@ -274,6 +274,7 @@ void usage() {
                "                         [--gpu auto|none|required] [--workspace DIR] [--reference FILE]\n"
                "                         [--sample OUT] [--no-report] [--snapshot DIR|run] [--window]\n"
                "                         [--video OUT.mp4 [--floats K] [--seconds-per S] [--fps N] [--size WxH]]\n"
+               "                         [--lod REPORT.json [--lod-configs N] [--snapshot DIR]]\n"
                "                         [--fixed JSON] [--ranges JSON]\n"
                "                         [--replay JOURNAL [--until N]]\n";
 }
@@ -289,6 +290,8 @@ extern "C" int stress_main(int argc, char **argv, const stress_pipeline *const *
   double seconds_override = -1;
   bool describe = false, write_report = true, window = false;
   VideoOptions video;
+  LodOptions lod;
+  bool lod_mode = false;
   std::string size_arg, fixed_arg, ranges_arg;
   bool plan_given = false;
   for (int i = 1; i < argc; ++i)
@@ -323,6 +326,8 @@ extern "C" int stress_main(int argc, char **argv, const stress_pipeline *const *
     else if (a == "--title-seconds") video.title_seconds = std::max(0.0, std::atof(next().c_str()));
     else if (a == "--fps") video.fps = std::clamp(std::atoi(next().c_str()), 1, 120);
     else if (a == "--size") size_arg = next();
+    else if (a == "--lod") lod.report_path = next();
+    else if (a == "--lod-configs") lod.configs = std::max(1, std::atoi(next().c_str()));
     else if (a == "--fixed") fixed_arg = next();
     else if (a == "--ranges") ranges_arg = next();
     else {
@@ -383,6 +388,29 @@ extern "C" int stress_main(int argc, char **argv, const stress_pipeline *const *
     return rc;
   }
   if (!gpu_override.empty()) ctx.plan.gpu = gpu_override;
+  lod_mode = !lod.report_path.empty();
+  if (lod_mode) {  // detail sizes: rendered off screen, nothing else runs
+    lod.snapshot_dir = snapshot_dir;
+    ctx.plan.gpu = "required";
+    ctx.plan.width = 1920;
+    ctx.plan.height = 1080;
+    SDL_Init(SDL_INIT_VIDEO);
+    std::string gerr;
+    ctx.use_gpu = ctx.gpu.init(ctx.plan, gerr);
+    if (!ctx.use_gpu) {
+      std::cerr << "stress: detail sizes need a GPU: " << gerr << "\n";
+      return 2;
+    }
+    if (!ctx.create(error)) {
+      std::cerr << "stress: " << error << "\n";
+      return 2;
+    }
+    const int rc = run_lod(ctx, lod);
+    ctx.destroy();
+    ctx.gpu.shutdown();
+    SDL_Quit();
+    return rc;
+  }
   if (window) {
     ctx.plan.window = true;
     ctx.plan.gpu = "required";

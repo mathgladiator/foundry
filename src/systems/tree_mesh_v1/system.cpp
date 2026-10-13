@@ -188,9 +188,16 @@ struct Icosphere {
   std::vector<uint32_t> i;
 };
 
+// An icosahedron subdivided this many times; -1 gives an octahedron (the fewest faces that still
+// read as a lump, for the lowest level of detail).
 Icosphere icosphere(int subdivisions) {
   const float t = 1.618034f;
   Icosphere s;
+  if (subdivisions < 0) {
+    s.v = {v3(1, 0, 0), v3(-1, 0, 0), v3(0, 1, 0), v3(0, -1, 0), v3(0, 0, 1), v3(0, 0, -1)};
+    s.i = {2, 4, 0, 2, 0, 5, 2, 5, 1, 2, 1, 4, 3, 0, 4, 3, 5, 0, 3, 1, 5, 3, 4, 1};
+    return s;
+  }
   s.v = {v3(-1, t, 0), v3(1, t, 0), v3(-1, -t, 0), v3(1, -t, 0), v3(0, -1, t), v3(0, 1, t),
          v3(0, -1, -t), v3(0, 1, -t), v3(t, 0, -1), v3(t, 0, 1), v3(-t, 0, -1), v3(-t, 0, 1)};
   for (auto &p : s.v) p = normalize(p);
@@ -417,11 +424,11 @@ bool run(const channels::tree_v1_rig &in, channels::tree_v1_body &out, std::stri
   if (!stump) {
   const bool deciduous = g.deciduous;
   const uint32_t season = spec.season;
-  const Icosphere ico = icosphere(detail == 2 ? 0 : 1);
+  const Icosphere ico = icosphere(detail == 0 ? 1 : (detail == 1 ? 0 : -1));
   const Icosphere fruit_ico = icosphere(detail == 0 ? 1 : 0);
-  const size_t keep_den = detail == 0 ? 1 : (detail == 1 ? 3 : 2);
-  const size_t keep_num = detail == 0 ? 1 : (detail == 1 ? 2 : 1);
-  const float lod_grow = detail == 0 ? 1.0f : (detail == 1 ? 1.12f : 1.3f);
+  const size_t keep_den = 1;
+  const size_t keep_num = 1;
+  const float lod_grow = detail == 2 ? 1.15f : 1.0f;
   float fruit_scale = spec.age == tree_v1_spec::kAgeSapling ? 0.0f : (spec.age == tree_v1_spec::kAgeYoung ? 0.5f : 1.0f);
   if (g.fruit_seasons.size() != 4) {
     error = "genome needs 4 fruit_seasons values";

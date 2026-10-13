@@ -302,6 +302,9 @@ PhaseResult run_diversity(Ctx &ctx, const json &phase, std::vector<Failure> &fai
       translation(layout[i].first, layout[i].second, 0, m);
       mains.push_back(ctx.spawn(configs[i], m));
     }
+    // The solo runtime has no camera, so it poses everything every frame; so must the main one, for
+    // their live poses to be comparable (the cost decisions skip poses by what the camera sees).
+    foundry_diag_set_cost(ctx.rt, 0);
     foundry_update(ctx.rt, 0);
     for (size_t i = 0; i < thread_check; ++i)
       for (uint32_t e : ctx.events()) {
@@ -321,6 +324,7 @@ PhaseResult run_diversity(Ctx &ctx, const json &phase, std::vector<Failure> &fai
                 ctx.describe(configs[i]));
     }
     foundry_runtime_destroy(solo);
+    foundry_diag_set_cost(ctx.rt, FOUNDRY_DIAG_COST_ALL);
     twin_handles.insert(twin_handles.end(), mains.begin(), mains.end());
   }
   clear(ctx, twin_handles);
@@ -394,7 +398,7 @@ PhaseResult run_forest(Ctx &ctx, const json &phase, std::vector<Failure> &failur
   const uint32_t max_count = counts.empty() ? 0 : *std::max_element(counts.begin(), counts.end());
   auto layout = hex_layout(max_count, spacing, rng, 0.3f);
   std::vector<foundry_instance> handles;
-  const uint64_t gen0 = counters(ctx).generations, hits0 = counters(ctx).cache_hits, miss0 = counters(ctx).cache_misses;
+  const uint64_t gen0 = counters(ctx).generations - counters(ctx).lod_generations, hits0 = counters(ctx).cache_hits, miss0 = counters(ctx).cache_misses;
 
   auto resize = [&](uint32_t count) {
     while (handles.size() > count) {
@@ -442,7 +446,8 @@ PhaseResult run_forest(Ctx &ctx, const json &phase, std::vector<Failure> &failur
               {"triangles", c.triangles},
               {"cache_entries", c.cache_entries}, {"bodies", c.bodies},
               {"cache_gpu_mb", c.cache_gpu_bytes / 1048576.0},
-              {"generations", c.generations - gen0},
+              {"generations", c.generations - c.lod_generations - gen0},
+              {"detail_generations", c.lod_generations},
               {"memory", to_json(before)}};
     return std::make_pair(s.p95, j);
   };
@@ -474,7 +479,8 @@ PhaseResult run_forest(Ctx &ctx, const json &phase, std::vector<Failure> &failur
     }
   }
   foundry_diag_counters c = counters(ctx);
-  const uint64_t generations = c.generations - gen0;
+  // The runtime's coarser levels of detail are builds of their own; sharing is judged on the rest.
+  const uint64_t generations = (c.generations - c.lod_generations) - gen0;
   if (generations > expected)
     fail(failures, ctx, "forest", "caching", fmt("%llu generations for %llu distinct sets: instances are not sharing builds",
                                                  static_cast<unsigned long long>(generations),

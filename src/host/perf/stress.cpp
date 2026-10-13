@@ -275,7 +275,7 @@ void execute_video(forge::Paths paths, VideoRequest q, std::shared_ptr<Run> r) {
   finish(exit, exit == 0 ? "" : "the export failed; see its output");
 }
 
-void execute_scale(forge::Paths paths, std::string plotter, std::string sizes, int frames, bool report,
+void execute_scale(forge::Paths paths, std::string plotter, std::string sizes, int frames, bool report, double find_fps,
                    std::shared_ptr<Run> r) {
   core::Job job("Scale: " + plotter);
   auto finish = [&](int exit, const std::string &error) {
@@ -294,6 +294,10 @@ void execute_scale(forge::Paths paths, std::string plotter, std::string sizes, i
   std::vector<std::string> argv = {binary, "--workspace", paths.workspace, "--plan", "scale", "--sizes", sizes,
                                    "--frames", std::to_string(frames)};
   if (!report) argv.push_back("--no-report");
+  if (find_fps > 0) {
+    argv.push_back("--find");
+    argv.push_back(std::to_string(find_fps));
+  }
   std::string cmd;
   for (const auto &a : argv) cmd += quote(a) + " ";
   cmd += "2>&1";
@@ -366,7 +370,7 @@ int start_video(const forge::Paths &paths, const VideoRequest &request, int *blo
 }
 
 int start_plotter_scale(const forge::Paths &paths, const std::string &plotter, const std::string &sizes, int frames,
-                        bool report, int *blocked_by) {
+                        bool report, double find_fps, int *blocked_by) {
   auto r = std::make_shared<Run>();
   r->pipeline = plotter;
   r->is_scale = true;
@@ -383,7 +387,7 @@ int start_plotter_scale(const forge::Paths &paths, const std::string &plotter, c
     r->id = g_next_run++;
     g_runs[r->id] = r;
   }
-  std::thread(execute_scale, paths, plotter, sizes, frames, report, r).detach();
+  std::thread(execute_scale, paths, plotter, sizes, frames, report, find_fps, r).detach();
   return r->id;
 }
 
@@ -503,13 +507,16 @@ void register_stress_tools(mcp::Registry &registry, const forge::Paths &paths, p
   registry.add({"plotter_perf",
                 "Performance of a plotter's scenes in the native runtime (design/quality.perf.md, \"Scale\"): builds "
                 "stress_plotter_<name> and runs its scale plan, an N x N grid of regions per size, grown to full with "
-                "collision bodies, simulated and drawn from an overview and a game camera, then the largest changed one "
-                "way at a time (medium and low detail, no wind, no drawing). Writes "
+                "collision bodies, simulated and drawn from an overview and a game camera; then the largest as a ladder, "
+                "the runtime's cost decisions (design/submit.md, \"Cost\") turned on one at a time, with what each costs "
+                "in looks (the share of pixels that visibly change); with find, the grid then grows until the overview "
+                "drops below that frame rate (the most trees in view at it). Writes "
                 "perf/report-plotter_<name>-scale-<timestamp>.json, which the plotter's inspector summarizes. Returns a "
                 "job; poll perf_stress_status. latest: true returns the newest report's summary instead of running.",
                 mcp::schema({{"plotter", {{"type", "string"}}},
                              {"sizes", {{"type", "string"}, {"description", "grid sides, default 1,2,4,8,12,16"}}},
                              {"frames", {{"type", "integer"}, {"description", "frames per measurement, default 240"}}},
+                             {"find", {{"type", "number"}, {"description", "a frame rate, e.g. 60: grow until below it"}}},
                              {"no_report", {{"type", "boolean"}}},
                              {"latest", {{"type", "boolean"}}}},
                             {"plotter"}),
@@ -520,13 +527,16 @@ void register_stress_tools(mcp::Registry &registry, const forge::Paths &paths, p
                     std::string path;
                     json rep = latest_scale_report(paths, name, &path);
                     if (rep.is_null()) return mcp::Result::error("no scale report yet for " + name);
-                    return mcp::Result::json({{"report", path}, {"headline", rep["headline"]}, {"summary", rep["summary"]}});
+                    return mcp::Result::json({{"report", path}, {"headline", rep["headline"]},
+                                              {"most_trees", rep.value("most_trees", json())}, {"looks", rep.value("looks", json())},
+                                              {"summary", rep["summary"]}});
                   }
                   if (!fs::exists(paths.workspace + "/plotters/" + name + ".json"))
                     return mcp::Result::error("no plotters/" + name + ".json");
                   int busy = 0;
                   const int job = start_plotter_scale(paths, name, args.value("sizes", std::string("1,2,4,8,12,16")),
-                                                      args.value("frames", 240), !args.value("no_report", false), &busy);
+                                                      args.value("frames", 240), !args.value("no_report", false),
+                                                      args.value("find", 0.0), &busy);
                   if (!job) return mcp::Result::error("blocked: scale job " + std::to_string(busy) + " is running");
                   return mcp::Result::json({{"job", job}, {"status", "running; poll perf_stress_status"}});
                 }});

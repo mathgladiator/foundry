@@ -238,7 +238,7 @@ bool Ctx::create(std::string &error) {
   desc.update_threads = plan.update_threads;
   desc.build_threads = plan.build_threads;
   // The stress tool plays the game: it owns a Jolt world and hands it to the runtime.
-  physics = toy_physics_create(1u << 18);
+  physics = toy_physics_create(max_bodies);
   desc.physics = toy_physics_desc(physics);
   rt = foundry_runtime_create(&desc);
   if (!rt) {
@@ -354,6 +354,10 @@ FrameTime Ctx::frame(bool render, bool sync) {
   t.update = f.update_ms;
   t.prepare = f.prepare_ms;
   t.draw = f.draw_ms;
+  t.integrate = f.integrate_ms;
+  t.classify = f.classify_ms;
+  t.animate = f.animate_ms;
+  t.results = f.results_ms;
   t.total = now_ms() - t0;
   journal.frames(1, plan.dt);
   return t;
@@ -435,6 +439,7 @@ void Ctx::apply_camera() {
   float t = 1.0f / std::tan(fov * 0.5f);
   float p[16] = {t / aspect, 0, 0, 0, 0, t, 0, 0, 0, 0, far_z / (near_z - far_z), -1, 0, 0, near_z * far_z / (near_z - far_z), 0};
   std::memcpy(projection, p, sizeof p);
+  foundry_set_viewport(rt, plan.width, plan.height);
   foundry_set_camera(rt, view, projection);
 }
 

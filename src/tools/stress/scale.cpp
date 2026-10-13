@@ -4,12 +4,19 @@
 //
 // Each size is an N x N grid of regions (the glen's ground, each with its own
 // world seed), grown to full and spawned with collision bodies, then measured
-// from two cameras: the overview, which sees the whole scene, and a game
-// camera standing in it. Every frame updates (wind, animation), prepares
-// (culling, bone streaming), and draws; one frame in ten waits for the GPU on
-// its own, to time the GPU alone. The largest size is then measured again with
-// the scene changed, to say where the time goes: every instance at medium and
-// at low detail, no wind (so everything sleeps), both, and with no drawing.
+// from three cameras: the overview, which sees the whole scene from far above,
+// a vista across it from a corner at game height, and a game camera standing in
+// it. Every frame updates (wind, animation), prepares
+// (culling, levels of detail, pose uploads), and draws; one frame in ten waits
+// for the GPU on its own, to time the GPU alone.
+//
+// The largest listed size is then measured as a ladder: the runtime's cost
+// decisions (design/submit.md, "Cost") turned on one at a time, from none (the
+// game's detail everywhere, everything animated every frame) to all, so each
+// one's gain is measured; and what they cost in looks, as the share of pixels
+// that visibly change against the scene drawn in full at the same moment.
+// With --find FPS, the grid then keeps growing until the overview drops below
+// that frame rate: the most trees in view the machine holds at it.
 #include <SDL3/SDL.h>
 
 #include <algorithm>
@@ -22,6 +29,7 @@
 #include <sstream>
 
 #include "platform.h"
+#include "stb_image_write.h"
 
 namespace fs = std::filesystem;
 
@@ -58,51 +66,23 @@ void wait_built(Ctx &ctx, double max_s) {
   }
 }
 
-// What the camera sees, counted the way the runtime culls: each instance's bounding sphere against
-// the frustum. The runtime doesn't say which pipeline it drew, so the tool counts for itself.
+// What the runtime drew in the last frame, by binding: it says, for each instance, whether it was
+// drawn and with how many triangles (at the level of detail it picked).
 struct Seen {
   std::vector<uint64_t> instances, triangles;  // per binding
   uint64_t trees = 0;
 };
 
 Seen seen(Ctx &ctx, const Scene &scene, size_t bindings) {
-  float vp[16];
-  for (int c = 0; c < 4; ++c)
-    for (int r = 0; r < 4; ++r) {
-      float s = 0;
-      for (int k = 0; k < 4; ++k) s += ctx.projection[k * 4 + r] * ctx.view[c * 4 + k];
-      vp[c * 4 + r] = s;
-    }
-  float planes[6][4];
-  auto row = [&](int r, int i) { return vp[i * 4 + r]; };
-  for (int i = 0; i < 4; ++i) {
-    planes[0][i] = row(3, i) + row(0, i);
-    planes[1][i] = row(3, i) - row(0, i);
-    planes[2][i] = row(3, i) + row(1, i);
-    planes[3][i] = row(3, i) - row(1, i);
-    planes[4][i] = row(2, i);
-    planes[5][i] = row(3, i) - row(2, i);
-  }
-  for (auto &p : planes) {
-    const float len = std::sqrt(p[0] * p[0] + p[1] * p[1] + p[2] * p[2]);
-    for (float &v : p) v /= len;
-  }
   Seen out;
   out.instances.assign(bindings, 0);
   out.triangles.assign(bindings, 0);
   for (const Placed &p : scene.placed) {
     foundry_diag_instance info;
-    if (foundry_diag_instance_get(ctx.rt, p.handle, &info) != FOUNDRY_OK || !info.ready) continue;
-    const float c[3] = {p.x, info.height * 0.5f, p.z};
-    bool in = true;
-    for (const auto &pl : planes)
-      if (pl[0] * c[0] + pl[1] * c[1] + pl[2] * c[2] + pl[3] < -info.radius) {
-        in = false;
-        break;
-      }
-    if (!in || p.pipeline < 0) continue;
+    if (foundry_diag_instance_get(ctx.rt, p.handle, &info) != FOUNDRY_OK || !info.ready || !info.drawn) continue;
+    if (p.pipeline < 0) continue;
     ++out.instances[static_cast<size_t>(p.pipeline)];
-    out.triangles[static_cast<size_t>(p.pipeline)] += info.triangles;
+    out.triangles[static_cast<size_t>(p.pipeline)] += info.drawn_triangles;
     if (p.tree) ++out.trees;
   }
   return out;
@@ -110,6 +90,7 @@ Seen seen(Ctx &ctx, const Scene &scene, size_t bindings) {
 
 struct Measure {
   Stats total, update, prepare, draw, gpu_wait, gpu;
+  Stats integrate, classify, animate, results;  // inside update
   foundry_diag_counters counters{};
   double fps = 0, fps_p95 = 0;
   json stages = json::object();  // update stages: CPU ms and calls per frame, summed over threads
@@ -126,7 +107,7 @@ std::map<std::string, std::pair<uint64_t, double>> stage_totals(Ctx &ctx) {
 
 Measure measure(Ctx &ctx, int frames, bool render) {
   for (int k = 0; k < 30; ++k) ctx.frame(render);  // warm up: uploads, first poses
-  std::vector<double> total, update, prepare, draw, wait, gpu;
+  std::vector<double> total, update, prepare, draw, wait, gpu, integrate, classify, animate, results;
   const auto before = stage_totals(ctx);
   for (int k = 0; k < frames; ++k) {
     const bool sync = render && k % 10 == 9;
@@ -140,6 +121,10 @@ Measure measure(Ctx &ctx, int frames, bool render) {
     prepare.push_back(t.prepare);
     draw.push_back(t.draw);
     wait.push_back(t.gpu_wait);
+    integrate.push_back(t.integrate);
+    classify.push_back(t.classify);
+    animate.push_back(t.animate);
+    results.push_back(t.results);
   }
   Measure m;
   for (const auto &[label, after] : stage_totals(ctx)) {
@@ -155,6 +140,10 @@ Measure measure(Ctx &ctx, int frames, bool render) {
   m.draw = stats(draw);
   m.gpu_wait = stats(wait);
   m.gpu = stats(gpu);
+  m.integrate = stats(integrate);
+  m.classify = stats(classify);
+  m.animate = stats(animate);
+  m.results = stats(results);
   foundry_diag_counters_get(ctx.rt, &m.counters);
   m.fps = m.total.mean > 0 ? 1000.0 / m.total.mean : 0;
   m.fps_p95 = m.total.p95 > 0 ? 1000.0 / m.total.p95 : 0;
@@ -171,6 +160,10 @@ json to_json(const Measure &m, const Seen &s, const stress_pipeline *const *pipe
           {"update_ms", stress::to_json(m.update)},
           {"prepare_ms", stress::to_json(m.prepare)},
           {"draw_ms", stress::to_json(m.draw)},
+          {"update_parts_ms", {{"integrate", std::round(m.integrate.mean * 1000) / 1000},
+                               {"classify", std::round(m.classify.mean * 1000) / 1000},
+                               {"animate", std::round(m.animate.mean * 1000) / 1000},
+                               {"results", std::round(m.results.mean * 1000) / 1000}}},
           {"gpu_wait_ms", stress::to_json(m.gpu_wait)},
           {"gpu_frame_ms", stress::to_json(m.gpu)},
           {"instances", m.counters.instances},
@@ -180,17 +173,25 @@ json to_json(const Measure &m, const Seen &s, const stress_pipeline *const *pipe
           {"draws", m.counters.draws},
           {"triangles", m.counters.triangles},
           {"builds", m.counters.cache_entries},
+          {"too_small", m.counters.too_small},
+          {"by_level", {m.counters.by_level[0], m.counters.by_level[1], m.counters.by_level[2]}},
+          {"animated", m.counters.animated},
+          {"not_animated_unseen", m.counters.unseen},
+          {"not_animated_rate", m.counters.rate_skipped},
+          {"bones_uploaded", m.counters.bones_uploaded},
           {"trees_visible", s.trees},
           {"update_stages", m.stages},
           {"by_pipeline", by}};
 }
 
 std::string line(const std::string &what, const Measure &m, const Seen &s) {
-  return fmt("%-22s %6.1f fps (p95 frame %5.2f ms)  update %5.2f  prepare %5.2f  draw %4.2f  gpu %5.2f ms  "
-             "%6llu drawn (%llu trees)  %5.1f M triangles  %llu draws",
+  return fmt("%-44s %6.1f fps (p95 frame %5.2f ms)  update %5.2f  prepare %5.2f  draw %4.2f  gpu %5.2f ms  "
+             "%6llu drawn (%llu trees)  %5.1f M triangles  %llu draws  %llu animated  [update: integrate %.2f classify %.2f "
+             "animate %.2f results %.2f]",
              what.c_str(), m.fps, m.total.p95, m.update.mean, m.prepare.mean, m.draw.mean, m.gpu.mean,
              (unsigned long long)m.counters.drawn, (unsigned long long)s.trees, m.counters.triangles / 1e6,
-             (unsigned long long)m.counters.draws);
+             (unsigned long long)m.counters.draws, (unsigned long long)m.counters.animated, m.integrate.mean,
+             m.classify.mean, m.animate.mean, m.results.mean);
 }
 
 }  // namespace
@@ -199,8 +200,9 @@ int scale_main(int argc, char **argv, foundry_plotter plotter, const char *name,
                uint32_t count) {
   std::string workspace = FOUNDRY_WORKSPACE, gpu_mode = "auto", preset = "glen", sizes_arg = "1,2,4,8,12,16";
   bool write_report = true, experiments = true;
-  int R = 12, frames = 240;
-  std::string snapshot_dir;
+  int R = 12, frames = 240, max_side = 64, find_step = 4;
+  double find_fps = 0;
+  std::string snapshot_dir, quality = "high";
   for (int i = 1; i < argc; ++i) {
     std::string a = argv[i];
     auto next = [&]() -> std::string { return i + 1 < argc ? argv[++i] : ""; };
@@ -214,10 +216,14 @@ int scale_main(int argc, char **argv, foundry_plotter plotter, const char *name,
     else if (a == "--preset") preset = next();
     else if (a == "--no-experiments") experiments = false;
     else if (a == "--snapshot") snapshot_dir = next();
+    else if (a == "--find") find_fps = std::atof(next().c_str());
+    else if (a == "--find-step") find_step = std::max(1, std::atoi(next().c_str()));
+    else if (a == "--max-side") max_side = std::max(1, std::atoi(next().c_str()));
+    else if (a == "--quality") quality = next();
     else {
       std::cerr << "usage: stress_plotter_<name> --plan scale [--sizes 1,2,4,8 (grid sides)] [--radius cells]\n"
                    "       [--frames N] [--preset glen|hex] [--no-experiments] [--snapshot dir] [--gpu auto|none|required]\n"
-                   "       [--no-report]\n";
+                   "       [--find FPS [--find-step 4] [--max-side 64]] [--quality low|medium|high] [--no-report]\n";
       return 2;
     }
   }
@@ -233,6 +239,7 @@ int scale_main(int argc, char **argv, foundry_plotter plotter, const char *name,
   Ctx ctx;
   ctx.title_name = name;
   ctx.plan.gpu = gpu_mode;
+  ctx.max_bodies = 1u << 21;  // the largest scenes hold a few hundred thousand bodies
   SDL_Init(SDL_INIT_VIDEO);
   if (ctx.plan.gpu != "none") {
     std::string gerr;
@@ -248,6 +255,7 @@ int scale_main(int argc, char **argv, foundry_plotter plotter, const char *name,
     return 2;
   }
   if (!snapshot_dir.empty()) fs::create_directories(snapshot_dir);
+  foundry_set_quality(ctx.rt, quality == "low" ? FOUNDRY_QUALITY_LOW : quality == "medium" ? FOUNDRY_QUALITY_MEDIUM : FOUNDRY_QUALITY_HIGH);
   const auto ground = plot_ground(preset, R);
   const float pitch = (2.0f * static_cast<float>(R) + 2.0f) * 1.7320508f;
   const double region_ha = (3.0 * R * (R + 1) + 1) * 2.5980762 / 10000.0;
@@ -264,12 +272,29 @@ int scale_main(int argc, char **argv, foundry_plotter plotter, const char *name,
   }
 
   std::cout << name << "  scale plan  " << ctx.gpu.name << " (" << ctx.gpu.driver << ")  " << ctx.plan.width << "x"
-            << ctx.plan.height << "\n";
+            << ctx.plan.height << "  quality " << quality << "\n";
   json sizes_out = json::array(), summary = json::array(), failures = json::array();
-  json experiments_out = json::array();
+  json ladder_out = json::array(), quality_out = json::object(), found = nullptr;
   json headline = nullptr;
-  for (size_t si = 0; si < sides.size(); ++si) {
-    const int side = sides[si];
+  auto say = [&](const std::string &l) {
+    summary.push_back(l);
+    std::cout << l << "\n" << std::flush;
+  };
+  auto snap = [&](const std::string &file) {
+    if (!snapshot_dir.empty()) ctx.snapshot(snapshot_dir + "/" + file);
+  };
+  auto game_camera = [&]() {
+    const float eye[3] = {0, 12, 25}, target[3] = {0, 0, -5};
+    ctx.camera(eye, target, 500);
+  };
+  auto vista_camera = [&](float half) {
+    const float eye[3] = {-half, 25, -half}, target[3] = {half * 0.5f, 0, half * 0.5f};
+    ctx.camera(eye, target, 4 * half + 100);
+  };
+
+  // One grid size: grown, measured from both cameras, and (when asked) laddered and judged.
+  // Returns the overview's frame rate.
+  auto run_size = [&](int side, bool ladder) -> double {
     Scene scene;
     scene.half_extent = 0.5f * pitch * static_cast<float>(side);
     const double t0 = now_ms();
@@ -309,26 +334,32 @@ int scale_main(int argc, char **argv, foundry_plotter plotter, const char *name,
     const double ready_s = (now_ms() - t0) / 1000.0;
     Memory mem = memory();
 
+    // The overview sees everything from far above; the vista stands at a corner of the world, 25 m
+    // up, and looks across all of it (the near trees full size, the far ones a few pixels); the game
+    // camera stands at the scene's centre, 12 m up and 25 m back, looking ahead and down, with a
+    // 500 m far plane. Coarser levels of detail are built on first sight, so each camera settles
+    // before it is measured.
     json cams = json::object();
-    // The overview sees everything; the game camera stands at the scene's centre, 12 m up and
-    // 25 m back, looking ahead and down, with a 500 m far plane.
-    for (const char *cam : {"overview", "game"}) {
-      if (std::strcmp(cam, "overview") == 0) {
-        ctx.overview(scene.half_extent, 10.0f);
-      } else {
-        const float eye[3] = {0, 12, 25}, target[3] = {0, 0, -5};
-        ctx.camera(eye, target, 500);
-      }
+    double overview_fps = 0, vista_fps = 0;
+    for (const char *cam : {"overview", "vista", "game"}) {
+      const bool over = std::strcmp(cam, "overview") == 0, vista = std::strcmp(cam, "vista") == 0;
+      if (over) ctx.overview(scene.half_extent, 10.0f);
+      else if (vista) vista_camera(scene.half_extent);
+      else game_camera();
+      for (int k = 0; k < 4; ++k) ctx.frame(true);
+      wait_built(ctx, 300);
       const Measure m = measure(ctx, frames, true);
       const Seen s = seen(ctx, scene, count);
       cams[cam] = to_json(m, s, pipelines, count);
-      const std::string what = fmt("%2dx%-2d %-8s", side, side, cam);
-      summary.push_back(line(what, m, s));
-      std::cout << summary.back().get<std::string>() << "\n" << std::flush;
-      if (std::strcmp(cam, "overview") == 0 && headline.is_null() && s.trees >= 1000)
-        headline = {{"grid", side}, {"trees_visible", s.trees}, {"instances", m.counters.drawn}, {"fps", cams[cam]["fps"]},
-                    {"frame_ms_p95", m.total.p95}};
-      if (!snapshot_dir.empty()) ctx.snapshot(fmt("%s/scale-%dx%d-%s.png", snapshot_dir.c_str(), side, side, cam));
+      say(fmt("%2dx%-2d %-8s", side, side, cam) + " " + line("", m, s).substr(45));
+      if (vista) vista_fps = m.fps;
+      if (over) {
+        overview_fps = m.fps;
+        if (headline.is_null() && s.trees >= 1000)
+          headline = {{"grid", side}, {"trees_visible", s.trees}, {"instances", m.counters.drawn},
+                      {"fps", cams[cam]["fps"]}, {"frame_ms_p95", m.total.p95}};
+      }
+      snap(fmt("scale-%dx%d-%s.png", side, side, cam));
     }
     foundry_diag_counters c;
     foundry_diag_counters_get(ctx.rt, &c);
@@ -344,65 +375,138 @@ int scale_main(int argc, char **argv, foundry_plotter plotter, const char *name,
                          {"memory", to_json(mem)},
                          {"cameras", cams}});
 
-    // The largest scene, changed one way at a time (overview camera).
-    if (experiments && si + 1 == sides.size()) {
-      ctx.overview(scene.half_extent, 10.0f);
-      auto set_all = [&](const char *param, auto value_of) {
-        for (const Placed &p : scene.placed) {
-          if (p.pipeline < 0) continue;
-          const stress_pipeline *b = pipelines[p.pipeline];
-          const int idx = find_param(b, param);
-          if (idx < 0) continue;
-          b->set(ctx.rt, p.handle, static_cast<uint32_t>(idx), value_of(b, idx));
+    if (ladder) {
+      // The ladder: each cost decision turned on in turn, in the order of the most gain for the
+      // least change in looks, from both cameras.
+      struct Step {
+        const char *what;
+        uint32_t cost;
+      };
+      const Step steps[] = {
+          {"none (the game's detail, all animated)", 0},
+          {"+ poses kept on the GPU", FOUNDRY_DIAG_COST_RETAIN},
+          {"+ out of view not animated", FOUNDRY_DIAG_COST_RETAIN | FOUNDRY_DIAG_COST_UNSEEN},
+          {"+ small things animated less often", FOUNDRY_DIAG_COST_RETAIN | FOUNDRY_DIAG_COST_UNSEEN | FOUNDRY_DIAG_COST_RATE},
+          {"+ detail by size on screen",
+           FOUNDRY_DIAG_COST_RETAIN | FOUNDRY_DIAG_COST_UNSEEN | FOUNDRY_DIAG_COST_RATE | FOUNDRY_DIAG_COST_DETAIL},
+          {"+ too small not drawn (all)", FOUNDRY_DIAG_COST_ALL},
+      };
+      for (const char *cam : {"overview", "game"}) {
+        if (std::strcmp(cam, "overview") == 0) ctx.overview(scene.half_extent, 10.0f);
+        else game_camera();
+        for (const Step &st : steps) {
+          foundry_diag_set_cost(ctx.rt, st.cost);
+          for (int k = 0; k < 4; ++k) ctx.frame(true);
+          wait_built(ctx, 300);
+          const Measure m = measure(ctx, frames, true);
+          const Seen s = seen(ctx, scene, count);
+          json j = to_json(m, s, pipelines, count);
+          j["camera"] = cam;
+          j["step"] = st.what;
+          j["cost"] = st.cost;
+          ladder_out.push_back(j);
+          say(fmt("%2dx%-2d %-8s %s", side, side, cam, st.what) + " " + line("", m, s).substr(45));
         }
-        wait_built(ctx, 300);
-      };
-      auto detail = [&](const char *level) {
-        set_all("detail", [&](const stress_pipeline *b, int idx) {
-          stress_value v{};
-          const stress_param &pp = b->params[idx];
-          for (uint32_t e = 0; e < pp.count; ++e)
-            if (std::strcmp(pp.values[e], level) == 0) v.u = e;
-          return v;
-        });
-      };
-      auto wind = [&](float speed) {
-        set_all("wind_speed", [&](const stress_pipeline *, int) {
-          stress_value v{};
-          v.f = speed;
-          return v;
-        });
-      };
-      auto run = [&](const std::string &what, bool render) {
-        const Measure m = measure(ctx, frames, render);
-        const Seen s = seen(ctx, scene, count);
-        json j = to_json(m, s, pipelines, count);
-        j["experiment"] = what;
-        experiments_out.push_back(j);
-        summary.push_back(line(fmt("%2dx%-2d %s", side, side, what.c_str()), m, s));
-        std::cout << summary.back().get<std::string>() << "\n" << std::flush;
-        if (!snapshot_dir.empty() && render) {
-          std::string file = what;
-          std::replace(file.begin(), file.end(), ' ', '-');
-          ctx.snapshot(fmt("%s/scale-%dx%d-%s.png", snapshot_dir.c_str(), side, side, file.c_str()));
+        // No drawing at all: the CPU's floor with every decision on.
+        foundry_diag_set_cost(ctx.rt, FOUNDRY_DIAG_COST_ALL);
+        {
+          const Measure m = measure(ctx, frames, false);
+          const Seen s = seen(ctx, scene, count);
+          json j = to_json(m, s, pipelines, count);
+          j["camera"] = cam;
+          j["step"] = "all, no drawing (the CPU alone)";
+          j["cost"] = FOUNDRY_DIAG_COST_ALL;
+          ladder_out.push_back(j);
+          say(fmt("%2dx%-2d %-8s %s", side, side, cam, "all, no drawing (the CPU alone)") + " " + line("", m, s).substr(45));
         }
-      };
-      run("as placed", true);
-      run("no drawing", false);
-      detail("medium");
-      run("medium detail", true);
-      detail("low");
-      run("low detail", true);
-      wind(0);
-      run("low detail, no wind", true);
-      detail("high");
-      run("high detail, no wind", true);
+
+        // What the decisions cost in looks, against the scene drawn in full at the same moment.
+        // Time stands still (dt 0) for the comparisons, so every pose is exact and only the
+        // decision differs; the rate's cost is its stale poses, against the same moment posed
+        // fresh.
+        std::vector<uint8_t> all_on, exact, detail_only, small_only, full;
+        foundry_diag_set_cost(ctx.rt, FOUNDRY_DIAG_COST_ALL);
+        for (int k = 0; k < 30; ++k) ctx.frame(true);
+        ctx.read_frame(all_on);
+        const double dt = ctx.plan.dt;
+        ctx.plan.dt = 0;
+        auto still = [&](uint32_t cost, std::vector<uint8_t> &px) {
+          foundry_diag_set_cost(ctx.rt, cost);
+          ctx.frame(true);
+          ctx.read_frame(px);
+        };
+        still(FOUNDRY_DIAG_COST_RETAIN | FOUNDRY_DIAG_COST_DETAIL | FOUNDRY_DIAG_COST_TOO_SMALL, exact);
+        still(FOUNDRY_DIAG_COST_RETAIN | FOUNDRY_DIAG_COST_DETAIL, detail_only);
+        still(FOUNDRY_DIAG_COST_RETAIN | FOUNDRY_DIAG_COST_TOO_SMALL, small_only);
+        still(FOUNDRY_DIAG_COST_RETAIN, full);
+        ctx.plan.dt = dt;
+        foundry_diag_set_cost(ctx.rt, FOUNDRY_DIAG_COST_ALL);
+        json q = json::object();
+        auto judge = [&](const char *what, const std::vector<uint8_t> &a, const std::vector<uint8_t> &b) {
+          std::vector<uint8_t> mask;
+          const Diff d = image_diff(a, b, snapshot_dir.empty() ? nullptr : &mask);
+          q[what] = {{"image_pct", std::round(d.image * 1000) / 1000}, {"object_pct", std::round(d.object * 1000) / 1000}};
+          say(fmt("%2dx%-2d %-8s looks: %-28s %6.3f%% of the image, %6.3f%% of what shows, visibly changed", side, side,
+                  cam, what, d.image, d.object));
+          if (!mask.empty())
+            stbi_write_png((snapshot_dir + fmt("/quality-%s-%s.png", cam, what)).c_str(), static_cast<int>(ctx.plan.width),
+                           static_cast<int>(ctx.plan.height), 4, mask.data(), static_cast<int>(ctx.plan.width * 4));
+        };
+        judge("rate", all_on, exact);
+        judge("detail", detail_only, full);
+        judge("too_small", small_only, full);
+        judge("all", all_on, full);
+        quality_out[cam] = q;
+        if (!snapshot_dir.empty()) {
+          auto write = [&](const char *what, const std::vector<uint8_t> &px) {
+            stbi_write_png((snapshot_dir + fmt("/quality-%s-%s.png", cam, what)).c_str(), static_cast<int>(ctx.plan.width),
+                           static_cast<int>(ctx.plan.height), 4, px.data(), static_cast<int>(ctx.plan.width * 4));
+          };
+          write("full", full);
+          write("all-on", all_on);
+        }
+      }
+      foundry_diag_set_cost(ctx.rt, FOUNDRY_DIAG_COST_ALL);
     }
 
     for (const Placed &p : scene.placed) foundry_destroy(ctx.rt, p.handle);
     for (foundry_region r : scene.regions) foundry_region_destroy(ctx.rt, r);
     for (int i = 0; i < 160; ++i) ctx.frame(false);
     foundry_diag_flush(ctx.rt);
+    return std::min(overview_fps, vista_fps);
+  };
+
+  for (size_t si = 0; si < sides.size(); ++si) run_size(sides[si], experiments && si + 1 == sides.size());
+  // The most trees in view at the target frame rate: grow the grid until the overview drops below it.
+  if (find_fps > 0) {
+    // Both wide views must hold it: the overview and the vista.
+    auto held = [&](const json &sz) {
+      return std::min(sz["cameras"]["overview"]["fps"].get<double>(), sz["cameras"]["vista"]["fps"].get<double>());
+    };
+    json best = nullptr;
+    for (const json &sz : sizes_out)
+      if (held(sz) >= find_fps) best = sz;
+    int side = sides.back();
+    double fps = held(sizes_out.back());
+    while (fps >= find_fps && side + find_step <= max_side) {
+      side += find_step;
+      fps = run_size(side, false);
+      if (fps >= find_fps) best = sizes_out.back();
+    }
+    if (!best.is_null()) {
+      const json &o = best["cameras"]["overview"], &v = best["cameras"]["vista"];
+      found = {{"target_fps", find_fps},
+               {"grid", best["grid"]},
+               {"trees_visible", o["trees_visible"]},
+               {"instances", o["drawn"]},
+               {"placements", best["placements"]},
+               {"fps", o["fps"]},
+               {"frame_ms_p95", o["frame_ms"]["p95"]},
+               {"vista", {{"trees_visible", v["trees_visible"]}, {"instances", v["drawn"]}, {"fps", v["fps"]},
+                          {"frame_ms_p95", v["frame_ms"]["p95"]}}},
+               {"next_grid_fps", std::round(fps * 10) / 10},
+               {"stopped_by", fps >= find_fps ? "max side" : "frame rate"}};
+    }
   }
 
   json report = {{"plotter", name},
@@ -410,16 +514,26 @@ int scale_main(int argc, char **argv, foundry_plotter plotter, const char *name,
                  {"started", stamp_now(true)},
                  {"machine", machine(ctx.use_gpu ? ctx.gpu.name : "", ctx.use_gpu ? ctx.gpu.driver : "")},
                  {"settings", {{"sizes", sides}, {"radius", R}, {"preset", preset}, {"frames", frames},
-                               {"width", ctx.plan.width}, {"height", ctx.plan.height}, {"gpu", ctx.use_gpu}}},
+                               {"width", ctx.plan.width}, {"height", ctx.plan.height}, {"gpu", ctx.use_gpu},
+                               {"quality", quality}, {"find_fps", find_fps}}},
                  {"headline", headline},
+                 {"most_trees", found},
                  {"sizes", sizes_out},
-                 {"experiments", experiments_out},
+                 {"ladder", ladder_out},
+                 {"looks", quality_out},
                  {"failures", failures},
                  {"pass", failures.empty()},
                  {"summary", summary}};
   if (!headline.is_null())
     std::cout << fmt("headline: %d trees visible (%llu things drawn) at %.1f fps\n", headline["trees_visible"].get<int>(),
                      (unsigned long long)headline["instances"].get<uint64_t>(), headline["fps"].get<double>());
+  if (!found.is_null())
+    std::cout << fmt("most trees at %.0f fps: grid %d, overview %llu trees visible (%llu things drawn) at %.1f fps, vista %llu "
+                     "trees visible (%llu things drawn) at %.1f fps\n",
+                     find_fps, found["grid"].get<int>(), (unsigned long long)found["trees_visible"].get<uint64_t>(),
+                     (unsigned long long)found["instances"].get<uint64_t>(), found["fps"].get<double>(),
+                     (unsigned long long)found["vista"]["trees_visible"].get<uint64_t>(),
+                     (unsigned long long)found["vista"]["instances"].get<uint64_t>(), found["vista"]["fps"].get<double>());
   if (write_report) {
     const std::string dir = workspace + "/perf";
     fs::create_directories(dir);

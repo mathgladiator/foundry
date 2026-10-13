@@ -79,6 +79,11 @@ void foundry_prepare(foundry_runtime *rt, SDL_GPUCommandBuffer *cmd);
 void foundry_draw(foundry_runtime *rt, SDL_GPUCommandBuffer *cmd, SDL_GPURenderPass *pass);
 
 void foundry_set_camera(foundry_runtime *rt, const float view[16], const float projection[16]);
+/* The render target's size in pixels: the runtime judges each instance's size on screen from it
+ * and the camera's projection, to pick its level of detail and how often it animates. */
+void foundry_set_viewport(foundry_runtime *rt, uint32_t width, uint32_t height);
+/* How much the runtime spends (design/submit.md, "Cost"): higher quality keeps finer detail
+ * farther out, draws smaller things, and animates small things more often. */
 void foundry_set_quality(foundry_runtime *rt, foundry_quality quality);
 
 foundry_status foundry_set_transform(foundry_runtime *rt, foundry_instance instance, const float transform[16]);

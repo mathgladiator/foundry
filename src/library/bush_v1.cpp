@@ -665,6 +665,12 @@ class Type final : public runtime::PipelineType {
   size_t params_size() const override { return sizeof(Params); }
   size_t event_count() const override { return 0; }
   bool has_update() const override { return true; }
+  uint32_t detail_levels() const override { return 3; }
+  size_t detail_offset() const override { return offsetof(Params, detail); }
+  const float *detail_pixels(int quality) const override {
+    static const float k[3][3] = {{256.0f, 256.0f, 16.0f}, {256.0f, 48.0f, 12.0f}, {32.0f, 16.0f, 0.0f}};  // low, medium, high
+    return k[quality < 0 ? 0 : quality > 2 ? 2 : quality];
+  }
   const std::vector<runtime::StageInfo> &stages() const override {
     static const std::vector<runtime::StageInfo> s = {{"bush_v1.grow", false}, {"bush_v1.animate", true}};
     return s;

@@ -73,9 +73,16 @@ struct Icosphere {
   std::vector<uint32_t> i;
 };
 
+// An icosahedron subdivided this many times; -1 gives an octahedron (the fewest faces that still
+// read as a lump, for the lowest level of detail).
 Icosphere icosphere(int subdivisions) {
   const float t = 1.618034f;
   Icosphere s;
+  if (subdivisions < 0) {
+    s.v = {v3(1, 0, 0), v3(-1, 0, 0), v3(0, 1, 0), v3(0, -1, 0), v3(0, 0, 1), v3(0, 0, -1)};
+    s.i = {2, 4, 0, 2, 0, 5, 2, 5, 1, 2, 1, 4, 3, 0, 4, 3, 5, 0, 3, 1, 5, 3, 4, 1};
+    return s;
+  }
   s.v = {v3(-1, t, 0), v3(1, t, 0), v3(-1, -t, 0), v3(1, -t, 0), v3(0, -1, t), v3(0, 1, t),
          v3(0, -1, -t), v3(0, 1, -t), v3(t, 0, -1), v3(t, 0, 1), v3(-t, 0, -1), v3(-t, 0, 1)};
   for (auto &p : s.v) p = normalize(p);
@@ -495,10 +502,10 @@ bool run(const bush_v1_spec &in, channels::bush_v1_model &out, std::string &erro
     if (detail == 2 && w.level == 2) continue;  // twigs vanish into the foliage at low detail
     bd.tube(w, kSides[detail][w.level], g.bark_light, g.bark_dark, seed + static_cast<uint32_t>(w.level));
   }
-  const Icosphere ico = icosphere(detail == 2 ? 0 : 1);
-  const size_t keep_den = detail == 0 ? 1 : (detail == 1 ? 3 : 2);
-  const size_t keep_num = detail == 0 ? 1 : (detail == 1 ? 2 : 1);
-  const float lod_grow = detail == 0 ? 1.0f : (detail == 1 ? 1.12f : 1.3f);
+  const Icosphere ico = icosphere(detail == 0 ? 1 : (detail == 1 ? 0 : -1));
+  const size_t keep_den = 1;
+  const size_t keep_num = 1;
+  const float lod_grow = detail == 2 ? 1.15f : 1.0f;
   const uint32_t season = in.season;
   const float bloom = g.bloom[season];
   const float ripeness = g.fruit_seasons[season];

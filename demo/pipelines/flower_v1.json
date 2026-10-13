@@ -19,5 +19,5 @@
     {"id": "grow", "system": "flower_grow_v1", "input": {"genome": "$species", "season": "$season", "seed": "$seed", "detail": "$detail"}},
     {"id": "animate", "system": "flower_animate_v1", "phase": "update", "input": {"bones": "@grow.bones", "wind_speed": "$wind_speed", "wind_heading": "$wind_heading", "gust_damping": "$gust_damping", "time": "$time", "seed": "$seed"}}
   ],
-  "draw": {"model": "grow", "pose": "animate"}
+  "draw": {"model": "grow", "pose": "animate", "detail_pixels": {"report": "perf/report-flower_v1-detail-20261013T002122Z.json", "high": [64, 24, 0], "medium": [256, 48, 8], "low": [256, 96, 16]}}
 }

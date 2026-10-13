@@ -17,7 +17,7 @@
 | `season` | enum | winter, spring, summer, fall | Leaves, flowers, berries ripening, snow | yes |
 | `fruit` | bool | | The shrub still carries its berries. Clear it when the player picks them; the shrub rebuilds bare and shares that build with every other picked shrub like it. It applies only to the 7 species whose fruit can be picked (`pickable`, see "Fruit"); for the rest it is disabled and ignored | yes, where it applies |
 | `seed` | u32 | 1 to 1000 | Which of the distinct shrubs | yes |
-| `detail` | enum | high, medium, low | Level of detail | yes |
+| `detail` | enum | high, medium, low | The finest level of detail the game allows; the runtime draws coarser levels by size on screen (`design/submit.md`, "Cost") | yes |
 | `wind_speed`, `wind_heading`, `gust_damping`, `time` | | | The local wind and the clock, as for trees | no: the pose only |
 
 ```c
@@ -50,7 +50,7 @@ species, age, season, fruit, seed, detail
 4. **Foliage.** Displaced icosphere clumps (or stretched tufts for `needles`) along the outer wood, capped at 220: spring leaves, summer, fall colour (two colours mixed) and `fall_drop`, an evergreen's `leaf_winter` or a deciduous shrub's last dead leaves (`winter_keep`). A share `bloom[season]` of the clumps carries a flower cluster (`blossom_color`, `blossom_size`).
 5. **Berries.** `fruit` clusters per clump of `fruit_cluster` berries, ripening from `fruit_unripe` to `fruit_ripe` by `fruit_seasons[season]`; holly keeps its berries through winter, even on bare twigs. A cluster hangs on the clump's surface, facing out from the shrub's middle, and is left off if another clump would bury it (three tries), so the berries drawn are the ones you can see. A fan shrub (saw palmetto) hangs its clusters from partway up its stalks. Pickable berries show only while the request's `fruit` is set; seed balls and capsules always show. Each berry is an octahedron; at medium and low detail, clusters have half as many, slightly larger berries.
 6. **Paint and snow.** Flat palette regions, and snow on upward surfaces in winter by `snow`.
-7. **Detail.** Stem, branch, and twig sides; icosphere subdivision; clumps kept (all, two thirds, half, grown to cover); twigs dropped at low detail.
+7. **Detail.** Stem, branch, and twig sides; the foliage clumps' facets (an icosahedron subdivided once, 80 faces; the icosahedron, 20; an octahedron 15% larger, 8); twigs dropped at low detail. Every level keeps every clump, so the shrub's outline stays where it was. Levels used to keep two thirds and then half of the clumps, grown to cover the gaps; keeping them all with fewer facets cut the difference from the finest at 64 px from 22% to 14% of its pixels at medium, with fewer triangles (`demo/perf/report-bush_v1-detail-20261013T002122Z.json`).
 
 ### `bush_animate`: the wind
 
@@ -107,9 +107,24 @@ Elderberry was the case that started this: with fruit on, a mature elderberry in
 | `grow` | species, age, season, fruit, seed, detail | (7 × 2 + 7) × 3 × 4 × 1000 × 3 = 756,000: `fruit` counts only where it applies |
 | `animate` | every parameter | every frame, per instance |
 
-The probe shows `fruit` and `detail` reach `animate` (through the bones) but never change its output: picking the berries doesn't move the wood, and the bones are the same at every level of detail.
+The probe shows `fruit` and `detail` reach `animate` (through the bones) but never change its output: picking the berries doesn't move the wood, and the bones are the same at every level of detail, so the runtime poses a shrub once and draws whichever level its size asks for with that pose (it checks that the poses match first).
+
+## Levels of detail
+
+From the detail sizes (`demo/perf/report-bush_v1-detail-20261013T002122Z.json`, 32 sampled shrubs; `design/quality.perf.md`, "Detail sizes"):
+
+| Level | Triangles (mean) | Drawn below, at high quality | medium | low |
+|---|---|---|---|---|
+| high | 9,599 | | | |
+| medium | 3,699 | 32 px | 256 px or more | 256 px or more |
+| low | 1,774 | 16 px | 48 px | 256 px or more |
+| far (the runtime's) | 1,021 | never | 12 px | 16 px |
+
+A size is the shrub's bounding sphere on screen, in a 1080-pixel-tall view; at high quality a level switches in where the median shrub differs from the finest on at most 10% of its pixels (20% at medium, 30% at low).
 
 ## Performance
+
+Since the levels of detail changed (2026-10-13), the quick plan has been rerun (`demo/perf/report-bush_v1-20261013T003143Z.json`): native matches WebAssembly on 100 of 100 sampled shrubs and their poses; 800 shrubs hold the budget at 0.5 ms p95 with 10 generations for 10 sets. The numbers below are from the last standard run, before; it hasn't been rerun.
 
 Native runtime, on an AMD Ryzen AI Max+ 395 with a Radeon 8060S (Vulkan), from the standard stress plan (`demo/perf/report-bush_v1-20261012T152753Z.json`, after the fruit research):
 

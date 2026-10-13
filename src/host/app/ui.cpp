@@ -36,6 +36,7 @@
 #include "pipeline/config.h"
 #include "pipeline/flow.h"
 #include "pipeline/live.h"
+#include "viewport/gpu.h"
 
 namespace app {
 
@@ -262,6 +263,7 @@ struct UiState {
     std::string scale_path, scale_for;
     double scale_read_at = -100;
     char scale_sizes[64] = "1,2,4,8,12,16";
+    bool scale_find = true;  // then grow the grid until the overview drops below 60 fps
   } plot_ui;
 };
 
@@ -1178,8 +1180,11 @@ void draw_plotter_performance(Services &sv, UiState::PlotUi &u, const std::strin
   ImGui::SetNextItemWidth(160);
   ImGui::InputText("grid sides", u.scale_sizes, sizeof u.scale_sizes);
   ImGui::SameLine();
+  ImGui::Checkbox("then find 60 fps", &u.scale_find);
+  ImGui::SameLine();
   ImGui::BeginDisabled(running);
-  if (ImGui::Button(running ? "Running..." : "Run the scale plan")) perf::start_plotter_scale(sv.paths, name, u.scale_sizes, 240, true);
+  if (ImGui::Button(running ? "Running..." : "Run the scale plan"))
+    perf::start_plotter_scale(sv.paths, name, u.scale_sizes, 240, true, u.scale_find ? 60.0 : 0.0);
   ImGui::EndDisabled();
   if (running) {
     const auto &out = status["output"];
@@ -1198,6 +1203,13 @@ void draw_plotter_performance(Services &sv, UiState::PlotUi &u, const std::strin
   if (h.is_object())
     ImGui::Text("%d trees visible (%d things drawn, %dx%d regions): %.1f fps, p95 frame %.1f ms", h.value("trees_visible", 0),
                 h.value("instances", 0), h.value("grid", 0), h.value("grid", 0), h.value("fps", 0.0), h.value("frame_ms_p95", 0.0));
+  const nlohmann::json most = u.scale.value("most_trees", nlohmann::json());
+  if (most.is_object()) {
+    const nlohmann::json vista = most.value("vista", nlohmann::json::object());
+    ImGui::Text("Most trees at %.0f fps (%dx%d regions): vista %d in view at %.1f fps; overview %d at %.1f fps",
+                most.value("target_fps", 0.0), most.value("grid", 0), most.value("grid", 0), vista.value("trees_visible", 0),
+                vista.value("fps", 0.0), most.value("trees_visible", 0), most.value("fps", 0.0));
+  }
   auto row = [](const std::string &label, const nlohmann::json &c) {
     ImGui::TableNextRow();
     ImGui::TableNextColumn();
@@ -1220,9 +1232,10 @@ void draw_plotter_performance(Services &sv, UiState::PlotUi &u, const std::strin
     ImGui::Text("%.1f M", c.value("triangles", 0.0) / 1e6);
   };
   auto header = [](const char *id) {
-    if (!ImGui::BeginTable(id, 9, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg | ImGuiTableFlags_SizingFixedFit)) return false;
+    if (!ImGui::BeginTable(id, 9, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg | ImGuiTableFlags_SizingStretchProp)) return false;
+    int col = 0;
     for (const char *c : {"scene", "fps", "p95 ms", "update", "prepare", "GPU ms", "drawn", "trees", "triangles"})
-      ImGui::TableSetupColumn(c);
+      ImGui::TableSetupColumn(c, ImGuiTableColumnFlags_WidthStretch, col++ == 0 ? 4.0f : 1.0f);
     ImGui::TableHeadersRow();
     return true;
   };
@@ -1233,6 +1246,29 @@ void draw_plotter_performance(Services &sv, UiState::PlotUi &u, const std::strin
         row(std::to_string(g) + "x" + std::to_string(g) + " " + it.key(), it.value());
     }
     ImGui::EndTable();
+  }
+  const nlohmann::json ladder = u.scale.value("ladder", nlohmann::json::array());
+  if (!ladder.empty()) {
+    ImGui::TextDisabled("The largest listed scene, with the runtime's cost decisions turned on one at a time:");
+    if (header("ladder")) {
+      for (const auto &e : ladder) row(e.value("camera", std::string()) + " " + e.value("step", std::string()), e);
+      ImGui::EndTable();
+    }
+    const nlohmann::json looks = u.scale.value("looks", nlohmann::json::object());
+    if (!looks.empty() && ImGui::BeginTable("looks", 5, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg | ImGuiTableFlags_SizingStretchProp)) {
+      for (const char *c : {"what shows that changed", "rate", "detail", "too small", "all"}) ImGui::TableSetupColumn(c);
+      ImGui::TableHeadersRow();
+      for (auto it = looks.begin(); it != looks.end(); ++it) {
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        ImGui::TextUnformatted(it.key().c_str());
+        for (const char *k : {"rate", "detail", "too_small", "all"}) {
+          ImGui::TableNextColumn();
+          ImGui::Text("%.2f%%", it.value().value(k, nlohmann::json::object()).value("object_pct", 0.0));
+        }
+      }
+      ImGui::EndTable();
+    }
   }
   const nlohmann::json ex = u.scale.value("experiments", nlohmann::json::array());
   if (!ex.empty()) {
@@ -2183,6 +2219,14 @@ int run_ui(Services &sv) {
   }
   SDL_SetGPUSwapchainParameters(device, window, SDL_GPU_SWAPCHAINCOMPOSITION_SDR, SDL_GPU_PRESENTMODE_VSYNC);
   core::log().add("ui", std::string("GPU driver: ") + SDL_GetGPUDeviceDriver(device));
+  // The viewport draws on the GPU from here on (screenshots and sheets too); without it, the CPU.
+  static viewport::GpuRenderer gpu_view;
+  if (std::string gerr; gpu_view.init(device, gerr)) {
+    viewport::set_gpu_renderer(&gpu_view);
+    core::log().add("ui", "viewport: drawn on the GPU");
+  } else {
+    core::log().add("ui", "viewport: drawn on the CPU (" + gerr + ")");
+  }
 
   IMGUI_CHECKVERSION();
   ImGui::CreateContext();
@@ -2361,7 +2405,7 @@ int run_ui(Services &sv) {
       const bool interacting = SDL_GetTicks() < st.interact_until ||
                                (is_live(st.selected) && sv.live->any_running()) ||
                                (st.selected.rfind("fracture:", 0) == 0 && st.fracture.playing);
-      const int rpx = interacting ? std::max(64, px / 2) : px;
+      const int rpx = interacting && !viewport::gpu_renderer() ? std::max(64, px / 2) : px;  // the GPU keeps up
       std::string key = render_key(st, rpx, rpx);
       if (key != st.rendered_key) {
         // A plotter's region draws its own lines; its collision has its own toggle, off at first.
@@ -2466,6 +2510,8 @@ int run_ui(Services &sv) {
   ImGui_ImplSDL3_Shutdown();
   ImGui_ImplSDLGPU3_Shutdown();
   ImGui::DestroyContext();
+  viewport::set_gpu_renderer(nullptr);
+  gpu_view.shutdown();
   SDL_ReleaseWindowFromGPUDevice(device, window);
   SDL_DestroyGPUDevice(device);
   SDL_DestroyWindow(window);

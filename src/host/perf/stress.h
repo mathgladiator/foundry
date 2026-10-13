@@ -30,10 +30,11 @@ int latest_video(const std::string &pipeline);
 nlohmann::json job_status(int job);
 
 // A plotter's scale plan (design/quality.perf.md, "Scale"): builds stress_plotter_<name> and runs it
-// with --plan scale in the background (sizes: grid sides, e.g. "1,2,4,8"; frames per measurement).
-// Returns its job, or 0 when one is already running (blocked_by is set to it).
+// with --plan scale in the background (sizes: grid sides, e.g. "1,2,4,8"; frames per measurement;
+// find_fps > 0 then grows the grid until the overview drops below that frame rate). Returns its
+// job, or 0 when one is already running (blocked_by is set to it).
 int start_plotter_scale(const forge::Paths &paths, const std::string &plotter, const std::string &sizes, int frames,
-                        bool report, int *blocked_by = nullptr);
+                        bool report, double find_fps = 0, int *blocked_by = nullptr);
 // The latest scale job of a plotter, running or done (0 if none).
 int latest_plotter_scale(const std::string &plotter);
 // The newest scale report of a plotter in the workspace's perf/ (null if none), and its path.

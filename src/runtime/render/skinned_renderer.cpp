@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <cstring>
 
+#include "scatter_cs_spirv.h"
 #include "skinned_ps_spirv.h"
 #include "skinned_vs_spirv.h"
 
@@ -92,13 +93,33 @@ bool SkinnedRenderer::init(SDL_GPUDevice *device, SDL_GPUTextureFormat color_for
     error = std::string("pipeline creation failed: ") + SDL_GetError();
     return false;
   }
+  SDL_GPUComputePipelineCreateInfo cs = {};
+  cs.code = scatter_cs_spirv;
+  cs.code_size = scatter_cs_spirv_size;
+  cs.entrypoint = "cs_main";
+  cs.format = SDL_GPU_SHADERFORMAT_SPIRV;
+  cs.num_readonly_storage_buffers = 2;
+  cs.num_readwrite_storage_buffers = 1;
+  cs.num_uniform_buffers = 1;
+  cs.threadcount_x = 64;
+  cs.threadcount_y = 1;
+  cs.threadcount_z = 1;
+  scatter_ = SDL_CreateGPUComputePipeline(device, &cs);
+  if (!scatter_) {
+    error = std::string("compute pipeline creation failed: ") + SDL_GetError();
+    return false;
+  }
   return true;
 }
 
 void SkinnedRenderer::shutdown() {
   drop(instances_, instance_capacity_);
   drop(bones_, bone_capacity_);
-  instance_capacity_ = bone_capacity_ = 0;
+  drop(rows_, rows_capacity_);
+  drop(slots_, slots_capacity_);
+  instance_capacity_ = bone_capacity_ = rows_capacity_ = slots_capacity_ = 0;
+  if (scatter_) SDL_ReleaseGPUComputePipeline(device_, scatter_);
+  scatter_ = nullptr;
   if (staging_) SDL_ReleaseGPUTransferBuffer(device_, staging_);
   staging_ = nullptr;
   staging_capacity_ = 0;
@@ -185,14 +206,30 @@ void SkinnedRenderer::grow(SDL_GPUBuffer *&buffer, uint32_t &capacity, SDL_GPUBu
   buffer = make(usage, capacity);
 }
 
-void SkinnedRenderer::stream(SDL_GPUCopyPass *copy, const std::vector<SkinnedInstance> &instances,
-                             const std::vector<float> &bone_rows) {
-  const uint32_t isize = static_cast<uint32_t>(instances.size() * sizeof(SkinnedInstance));
-  const uint32_t bsize = static_cast<uint32_t>(bone_rows.size() * sizeof(float));
-  if (isize == 0) return;
-  grow(instances_, instance_capacity_, SDL_GPU_BUFFERUSAGE_VERTEX, isize);
-  grow(bones_, bone_capacity_, SDL_GPU_BUFFERUSAGE_GRAPHICS_STORAGE_READ, std::max<uint32_t>(bsize, 64));
-  const uint32_t total = isize + std::max<uint32_t>(bsize, 64);
+uint32_t SkinnedRenderer::alloc_bones(uint32_t count) {
+  auto it = bone_free_.find(count);
+  if (it != bone_free_.end() && !it->second.empty()) {
+    const uint32_t offset = it->second.back();
+    it->second.pop_back();
+    return offset;
+  }
+  const uint32_t offset = bone_top_;
+  bone_top_ += count;
+  return offset;
+}
+
+void SkinnedRenderer::free_bones(uint32_t offset, uint32_t count) {
+  if (count) bone_free_[count].push_back(offset);
+}
+
+SkinnedRenderer::Frame SkinnedRenderer::begin_frame(uint32_t instances, uint32_t changed_bones) {
+  frame_instances_ = instances;
+  frame_bones_ = changed_bones;
+  Frame f;
+  const size_t isize = size_t(instances) * sizeof(SkinnedInstance), rsize = size_t(changed_bones) * 48,
+               ssize = size_t(changed_bones) * 4;
+  const uint32_t total = static_cast<uint32_t>(isize + rsize + ssize);
+  if (total == 0) return f;
   if (total > staging_capacity_) {
     if (staging_) SDL_ReleaseGPUTransferBuffer(device_, staging_);
     staging_capacity_ = total + total / 2;
@@ -203,17 +240,65 @@ void SkinnedRenderer::stream(SDL_GPUCopyPass *copy, const std::vector<SkinnedIns
   }
   // Cycling gives a fresh buffer while the GPU still reads last frame's.
   auto *dst = static_cast<uint8_t *>(SDL_MapGPUTransferBuffer(device_, staging_, true));
-  std::memcpy(dst, instances.data(), isize);
-  if (bsize) std::memcpy(dst + isize, bone_rows.data(), bsize);
+  mapped_ = true;
+  f.instances = reinterpret_cast<SkinnedInstance *>(dst);
+  f.rows = reinterpret_cast<float *>(dst + isize);
+  f.slots = reinterpret_cast<uint32_t *>(dst + isize + rsize);
+  return f;
+}
+
+void SkinnedRenderer::end_frame(SDL_GPUCopyPass *copy) {
+  // The bone buffer grows to the allocator's high-water mark, keeping every slot's bones.
+  const uint32_t need = std::max<uint32_t>(bone_top_, 1) * 48;
+  if (!bones_ || need > bone_capacity_) {
+    const uint32_t capacity = std::max<uint32_t>(need + need / 2, 1 << 16);
+    SDL_GPUBuffer *bigger = make(SDL_GPU_BUFFERUSAGE_GRAPHICS_STORAGE_READ | SDL_GPU_BUFFERUSAGE_COMPUTE_STORAGE_WRITE, capacity);
+    if (bones_) {
+      SDL_GPUBufferLocation from = {bones_, 0}, to = {bigger, 0};
+      SDL_CopyGPUBufferToBuffer(copy, &from, &to, bone_capacity_, false);
+      drop(bones_, bone_capacity_);
+    }
+    bones_ = bigger;
+    bone_capacity_ = capacity;
+  }
+  if (!mapped_) return;
   SDL_UnmapGPUTransferBuffer(device_, staging_);
-  SDL_GPUTransferBufferLocation src = {staging_, 0};
-  SDL_GPUBufferRegion r = {instances_, 0, isize};
-  SDL_UploadToGPUBuffer(copy, &src, &r, true);
-  if (bsize) {
-    SDL_GPUTransferBufferLocation src2 = {staging_, isize};
-    SDL_GPUBufferRegion r2 = {bones_, 0, bsize};
+  mapped_ = false;
+  const uint32_t isize = frame_instances_ * static_cast<uint32_t>(sizeof(SkinnedInstance)), rsize = frame_bones_ * 48,
+                 ssize = frame_bones_ * 4;
+  if (isize) {
+    grow(instances_, instance_capacity_, SDL_GPU_BUFFERUSAGE_VERTEX, isize);
+    SDL_GPUTransferBufferLocation src = {staging_, 0};
+    SDL_GPUBufferRegion r = {instances_, 0, isize};
+    SDL_UploadToGPUBuffer(copy, &src, &r, true);
+  }
+  if (frame_bones_) {
+    grow(rows_, rows_capacity_, SDL_GPU_BUFFERUSAGE_COMPUTE_STORAGE_READ, rsize);
+    grow(slots_, slots_capacity_, SDL_GPU_BUFFERUSAGE_COMPUTE_STORAGE_READ, ssize);
+    SDL_GPUTransferBufferLocation src = {staging_, isize};
+    SDL_GPUBufferRegion r = {rows_, 0, rsize};
+    SDL_UploadToGPUBuffer(copy, &src, &r, true);
+    SDL_GPUTransferBufferLocation src2 = {staging_, isize + rsize};
+    SDL_GPUBufferRegion r2 = {slots_, 0, ssize};
     SDL_UploadToGPUBuffer(copy, &src2, &r2, true);
   }
+}
+
+void SkinnedRenderer::scatter(SDL_GPUCommandBuffer *cmd) {
+  if (frame_bones_ == 0 || !bones_) return;
+  // Not cycled: the buffer keeps every slot's bones, so this pass writes into the one being drawn.
+  SDL_GPUStorageBufferReadWriteBinding rw = {};
+  rw.buffer = bones_;
+  rw.cycle = false;
+  SDL_GPUComputePass *pass = SDL_BeginGPUComputePass(cmd, nullptr, 0, &rw, 1);
+  SDL_BindGPUComputePipeline(pass, scatter_);
+  SDL_GPUBuffer *read[2] = {rows_, slots_};
+  SDL_BindGPUComputeStorageBuffers(pass, 0, read, 2);
+  const uint32_t count = frame_bones_;
+  SDL_PushGPUComputeUniformData(cmd, 0, &count, sizeof count);
+  SDL_DispatchGPUCompute(pass, (count + 63) / 64, 1, 1);
+  SDL_EndGPUComputePass(pass);
+  frame_bones_ = 0;
 }
 
 void SkinnedRenderer::draw(SDL_GPUCommandBuffer *cmd, SDL_GPURenderPass *pass, const std::vector<DrawRange> &ranges,

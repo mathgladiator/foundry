@@ -11,6 +11,7 @@ The API must be clean enough for a human programmer to use comfortably, not just
 - **Generated, not handwritten.** The API is generated from the pipeline JSON files (`flow.md`). Each pipeline gets its own typed functions and parameter structs, describing the pipeline's parameters rather than the channels inside it, so the API always matches what was approved.
 - **One header.** A game includes only `runtime.h`, which is mechanically assembled from fragment headers (`ORG.md`, "`src/library`").
 - **No system escapes the runtime.** Systems are private details of the runtime. A game cares about macro-level configuration (quality, camera, lights, the shader) and about setting each pipeline's parameters, nothing lower. No system name, system version, or channel type ever appears in the API (`ORG.md`, "Systems are private").
+- **The game says what; the runtime says how much.** The game decides every parameter of everything in its world. The runtime decides how much of it to compute and draw: each instance's level of detail, whether and how often it is posed, and whether it is too small to draw, from what the camera sees and the quality setting (`submit.md`, "Cost"). A pipeline's `detail` parameter is the finest level the game allows, not the level drawn.
 - **Few concepts.** A game deals with the runtime, pipelines, instances and their results, physics (active entities: players and creatures, by handle), the camera and lights, the shader, and, if it fills its world from biomes, regions.
 - **Everything goes through handles.** The game holds a handle for each instance and does everything through it, including destruction. Destruction must go through the runtime so that every resource is released properly: GPU buffers, cache references, open sounds. Handles stay safe after deletion: using a stale handle is a no-op that returns an error, never a crash.
 - **Calls between frames.** The game calls the API between frames, from one thread. The runtime parallelizes internally (`submit.md`, "Broadcasting updates").
@@ -195,6 +196,7 @@ The game also sets the shared context that instances render in:
 
 ```c
 foundry_set_camera(rt, view, projection);       /* float[16] each; also feeds the culler's projected-size test */
+foundry_set_viewport(rt, width, height);        /* the render target, in pixels: sizes on screen are judged in them */
 foundry_set_quality(rt, FOUNDRY_QUALITY_HIGH);
 foundry_set_sun(rt, direction, color);          /* float[3] each */
 
@@ -205,6 +207,18 @@ foundry_light_desc torch_desc = {
 };
 foundry_light torch = foundry_add_light(rt, &torch_desc);
 ```
+
+### Quality
+
+`foundry_set_quality` (or the descriptor's `quality`) sets how much the runtime spends, through the decisions in `submit.md`, "Cost". Built so far:
+
+| | Low | Medium | High |
+|---|---|---|---|
+| A coarser level of detail switches in where it differs from the finest on at most this share of the pixels that show the thing (each pipeline's measured sizes) | 30% | 20% | 10% |
+| Too small to draw, below | 10 px | 7 px | 4 px |
+| Posed every frame at and above, then every 2nd, 4th, 8th frame, and every 16th below the last | 240, 72, 24, 12 px | 200, 60, 20, 10 px | 160, 48, 16, 8 px |
+
+Sizes are the projected diameter of the instance's bounding sphere, in the pixels `foundry_set_viewport` gives.
 
 ## The shader
 

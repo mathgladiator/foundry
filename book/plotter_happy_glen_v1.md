@@ -102,17 +102,20 @@ Run it with `build/linux-release/stress/stress_plotter_happy_glen_v1 [--regions 
 
 ### Scale
 
-The scale plan (`plotter_perf`, or `--plan scale`; `design/quality.perf.md`, "Scale") grows grids of glens and measures the frame rate at 1920 x 1080 (`demo/perf/report-plotter_happy_glen_v1-scale-20261012T224722Z.json`):
+The scale plan (`plotter_perf`, or `--plan scale --find 60`; `design/quality.perf.md`, "Scale") grows grids of glens and measures the frame rate at 1920 x 1080 from three cameras: the overview from far above, a vista across the world from a corner at game height, and a game camera inside it (`demo/perf/report-plotter_happy_glen_v1-scale-20261013T005027Z.json`, high quality, with the runtime's cost decisions on):
 
-| Grid | Hectares | Things | Overview: fps (trees seen, triangles) | Game camera: fps (trees seen) |
-|---|---|---|---|---|
-| 1 x 1 | 0.12 | 134 | 4,972 (5, 0.8 M) | 3,741 (5) |
-| 4 x 4 | 1.95 | 2,177 | 538 (82, 11.6 M) | 1,071 (28) |
-| 8 x 8 | 7.80 | 8,888 | 147 (327, 47.4 M) | 319 (93) |
-| 12 x 12 | 17.6 | 20,094 | 69 (764, 106.7 M) | 130 (194) |
-| 16 x 16 | 31.2 | 35,613 | 39.8 (1,377, 188.7 M) | 73.6 (338) |
+| Grid | Hectares | Things | Overview: fps (trees seen, triangles) | Vista: fps (trees seen) | Game camera: fps (trees seen) |
+|---|---|---|---|---|---|
+| 1 x 1 | 0.12 | 134 | 5,896.2 (5, 0.5 M) | 6,052.5 (5) | 4,426.3 (5) |
+| 4 x 4 | 1.95 | 2,177 | 923.2 (82, 5.9 M) | 858.7 (83) | 1,659.0 (28) |
+| 8 x 8 | 7.80 | 8,888 | 447.5 (327, 14.0 M) | 353.7 (332) | 703.6 (93) |
+| 12 x 12 | 17.55 | 20,094 | 372.6 (764, 17.6 M) | 242.8 (775) | 446.6 (194) |
+| 16 x 16 | 31.19 | 35,613 | 295.4 (1,377, 23.1 M) | 183.5 (1,392) | 349.7 (338) |
+| 32 x 32 | 124.77 | 142,780 | 109.3 (4,829, 66.2 M) | 80.8 (5,103) | 232.7 (718) |
+| 44 x 44 | 235.90 | 269,743 | 90.7 (7,312, 82.9 M) | 61.1 (8,227) | 219.2 (690) |
+| 48 x 48 | 280.74 | 321,243 | 89.6 (8,102, 84.4 M) | 57.0 (9,188) | 197.5 (713) |
 
-With 1,377 trees in view (32,191 things drawn), the glen runs at 39.8 fps. Flowers are most of the cost: 62% of the triangles and 72% of the animation time. `CURRENT.FPS.md` breaks it down and proposes what to change.
+At 60 fps the vista holds 8,227 trees in view (44 x 44 glens, 269,743 things); it is limited by the GPU (110.6 M triangles, half of them trees and half shrubs). The 16 x 16 scene, 1,377 trees from the overview, went from 39.8 fps (`demo/perf/report-plotter_happy_glen_v1-scale-20261012T224722Z.json`, before the runtime made its cost decisions) to 295.4. `CURRENT.FPS.md` breaks down each decision's gain and what it costs in looks.
 
 ## QA
 

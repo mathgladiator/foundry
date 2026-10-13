@@ -15,7 +15,7 @@
 | `species` | config | 15 species | Everything that makes a daisy a daisy | yes |
 | `season` | enum | winter, spring, summer, fall | Buds, bloom, seed heads, dry stalks | yes |
 | `seed` | u32 | 1 to 1000 | Which of the distinct clumps of that species and season | yes |
-| `detail` | enum | high, medium, low | Level of detail | yes |
+| `detail` | enum | high, medium, low | The finest level of detail the game allows; the runtime draws coarser levels by size on screen (`design/submit.md`, "Cost") | yes |
 | `wind_speed` | f32 | 0 to 25 m/s | The local wind; 0 lets the clump sleep | no: the pose only |
 | `wind_heading` | f32 | 0 to 360° | Toward which the wind blows | no |
 | `gust_damping` | f32 | 0 to 1 | 0 is raw gusts, 1 a steady wind | no |
@@ -48,7 +48,7 @@ species, season, seed, detail
 
 1. **Stems.** `stems` stems spread over a disc of `clump_radius`, the first in the middle. Outer stems lean out by up to `stem_lean`, every stem bends by `stem_curve`, and heights vary by about ±15%. Each stem is a tapered tube on two wind bones (lower and upper half) under one root bone.
 2. **The season, per stem.** A share `bloom[season]` of the stems is in flower; the rest are buds when the next season blooms more, or spent seed heads after the peak. A `dormant` species dies back in winter to two in five stems, as dry stalks at 60% height, with seed heads for the forms that keep one.
-3. **Heads, by form** (`head`). Petals are two-sided ribbons that run from `petal` at the base to `petal_tip` at the tip, raised by `petal_cup` and curling by `petal_curl`; the head bows by `nod`.
+3. **Heads, by form** (`head`). Petals are ribbons (one sheet: the renderers draw both faces and turn the normal to the side that is seen) that run from `petal` at the base to `petal_tip` at the tip, raised by `petal_cup` and curling by `petal_curl`; the head bows by `nod`.
    - `ray`: a disc or cone (`center_size`, `center_height`) ringed by rays in 1 to 3 layers: daisy, sunflower, coneflower, desert marigold, edelweiss.
    - `cup`: broad petals cupped up: tulip, poppy.
    - `trumpet`: flat tepals around a flared tube: daffodil.
@@ -58,7 +58,7 @@ species, season, seed, detail
    - `cattail`: a velvet sausage under a thin spike, fluffing to `seed_head` in winter.
    - `crest`: a level beak (`center`) under a fan of orange petals and a blue tongue (`petal_tip`): bird of paradise.
 4. **Leaves.** Basal leaves around the foot, and leaves up each stem, by shape (`strap`, `lance`, `broad`, `needle`, `sword`), arching by `leaf_droop`; green, then `leaf_fall` unless `evergreen`. Basal leaves blend from the root bone to a stem's bone along their length, so they sway too.
-5. **Detail.** Petal and leaf segments 3, 2, 1; stem sides 5, 4, 3; florets and leaves kept 100%, 70%, 45%.
+5. **Detail.** Every level keeps every stem, leaf, petal, and floret, so switching levels never changes what is there; the shapes simplify. Petal and leaf segments 2, 1, and 0 (a petal is then one quad); stem sides 4, 3, 3; and at low detail a stem of two segments (its foot, the knee where its bones meet, its top). Leaves and petals used to be built twice, once per side, and lower levels dropped up to 55% of the leaves and florets; at the high level this halved the leaves' and petals' triangles with no change on screen.
 
 ### `flower_animate`: the wind
 
@@ -97,9 +97,24 @@ Heights sit a little above wild ones, and heads are enlarged (`head_size`), so s
 | `grow` | species, season, seed, detail | 15 × 4 × 1000 × 3 = 180,000 |
 | `animate` | every parameter | every frame, per instance |
 
-The probe shows `detail` reaches `animate` (through the bones) but never changes its output: the bones are the same at every level of detail, so poses could be shared across them.
+The probe shows `detail` reaches `animate` (through the bones) but never changes its output: the bones are the same at every level of detail, so the runtime poses the clump once and draws whichever level its size asks for with that pose (it checks that the poses match before it does).
+
+## Levels of detail
+
+From the detail sizes (`demo/perf/report-flower_v1-detail-20261013T002122Z.json`, 32 sampled clumps; `design/quality.perf.md`, "Detail sizes"):
+
+| Level | Triangles (mean) | Drawn below, at high quality | medium | low |
+|---|---|---|---|---|
+| high | 1,554 | | | |
+| medium | 1,225 | 64 px | 256 px or more | 256 px or more |
+| low | 860 | 24 px | 48 px | 96 px |
+| far (the runtime's) | 115 | never | 8 px | 16 px |
+
+A size is the clump's bounding sphere on screen, in a 1080-pixel-tall view. At high quality a level switches in where the median clump differs from the finest on at most 10% of its pixels (20% at medium, 30% at low). Below 4 pixels (high quality) a clump isn't drawn at all.
 
 ## Performance
+
+Since the clump was simplified (2026-10-13), the quick plan has been rerun (`demo/perf/report-flower_v1-20261013T003133Z.json`): native matches WebAssembly on 100 of 100 sampled clumps and their poses; growing a clump takes 0.56 ms (p50) and 3.1 ms (p99); 800 clumps hold the budget at 0.2 ms p95; generations 10 of 10. The numbers below are from before, from the standard stress plan; it hasn't been rerun.
 
 Native runtime, on an AMD Ryzen AI Max+ 395 with a Radeon 8060S (Vulkan), from the standard stress plan (`demo/perf/report-flower_v1-20261012T*.json`):
 
@@ -118,6 +133,7 @@ Native runtime, on an AMD Ryzen AI Max+ 395 with a Radeon 8060S (Vulkan), from t
 
 - **Contact sheets.** `pipeline_sheet` with one species per row and cols `season` frames each species to its own height (a sheet of every species at one scale makes small flowers specks next to the sunflower).
 - **The QA video.** `pipeline_video` enumerates species, season, and detail.
+- **Levels of detail.** `build/linux-release/stress/stress_flower_v1 --lod REPORT.json --snapshot DIR` measures where each level looks like the finest and writes each comparison's differences as PNGs; put its sizes in the pipeline's `draw.detail_pixels`.
 
 ## Known limits
 

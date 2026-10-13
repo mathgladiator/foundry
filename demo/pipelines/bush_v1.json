@@ -21,5 +21,5 @@
     {"id": "grow", "system": "bush_grow_v1", "input": {"genome": "$species", "age": "$age", "season": "$season", "fruit": "$fruit", "seed": "$seed", "detail": "$detail"}},
     {"id": "animate", "system": "bush_animate_v1", "phase": "update", "input": {"bones": "@grow.bones", "wind_speed": "$wind_speed", "wind_heading": "$wind_heading", "gust_damping": "$gust_damping", "time": "$time", "seed": "$seed"}}
   ],
-  "draw": {"model": "grow", "pose": "animate", "conformance": {"radius": "radius", "height": "height"}}
+  "draw": {"model": "grow", "pose": "animate", "conformance": {"radius": "radius", "height": "height"}, "detail_pixels": {"report": "perf/report-bush_v1-detail-20261013T002122Z.json", "high": [32, 16, 0], "medium": [256, 48, 12], "low": [256, 256, 16]}}
 }

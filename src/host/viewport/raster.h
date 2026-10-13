@@ -5,9 +5,8 @@
 // together with the yardsticks from style.md section 2: the asset's
 // conformance capsule, the 1.8 m hero capsule, the hex, and a ground grid.
 //
-// Rendering on the CPU keeps screenshots trivial for the agent (no GPU
-// readback) and works without a window. The GPU engine (design/submit.md)
-// replaces it in a later milestone.
+// The GPU renderer (gpu.h) draws the same look with SDL's GPU API when the
+// foundry has a window; this CPU renderer remains for headless runs.
 #pragma once
 
 #include "render/mesh.h"
@@ -54,8 +53,40 @@ struct Scene {
   bool silhouette = false;  // draw the mesh as a solid black shape (style.md section 3)
 };
 
-// Renders at width x height (supersampled internally).
+// Renders at width x height (supersampled internally): on the GPU when a GPU renderer is set
+// (gpu.h), otherwise on the CPU.
 Image render(const Scene &scene, int width, int height);
+// The CPU renderer alone.
+Image render_cpu(const Scene &scene, int width, int height);
+// While one is alive, render() on this thread draws on the CPU (to compare the two renderers).
+struct ForceCpu {
+  ForceCpu();
+  ~ForceCpu();
+};
+// Which renderer the last render() on this thread used: "gpu" or "cpu".
+const char *last_renderer();
+
+// Where a scene's camera stands for a render of width x height pixels, shared by both renderers:
+// a point projects to (cx + x * scale / z, cy - y * scale / z) with x, y, z its offsets from the eye
+// along right, up, and forward (or without the division by z when orthographic).
+struct Framing {
+  foundry::vec3 eye{0, 0, 0}, right{1, 0, 0}, up{0, 1, 0}, forward{0, 0, 1};
+  bool ortho = true;
+  float scale = 1;  // pixels per metre (orthographic), or the focal length in pixels
+  float cx = 0, cy = 0;
+  float asset_radius = 0;  // the asset's reach from its axis (places the hero capsule)
+  float radius = 1;        // the framed bounds' radius
+};
+Framing frame(const Scene &scene, int width, int height);
+
+// The overlay lines a scene draws over its mesh, in order: the grid, the hex, the hero and
+// conformance capsules, the scene's lines, and its collision. Each fades to `hidden` where the
+// mesh is in front of it.
+struct OverlaySegment {
+  foundry::vec3 a, b;
+  float r = 1, g = 1, bl = 1, alpha = 1, hidden = 0;
+};
+std::vector<OverlaySegment> overlay_segments(const Scene &scene, const Framing &f);
 
 View parse_view(const std::string &name);
 const char *view_name(View v);

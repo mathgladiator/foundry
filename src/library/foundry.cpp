@@ -39,7 +39,10 @@ foundry_runtime *foundry_runtime_create(const foundry_runtime_desc *desc) {
     delete rt;
     return nullptr;
   }
-  if (desc) rt->quality = desc->quality;
+  if (desc) {
+    rt->quality = desc->quality;
+    rt->world.set_quality(static_cast<int>(desc->quality));
+  }
   return rt;
 }
 
@@ -57,7 +60,12 @@ void foundry_set_camera(foundry_runtime *rt, const float view[16], const float p
   rt->world.set_camera(view, projection);
 }
 
-void foundry_set_quality(foundry_runtime *rt, foundry_quality quality) { rt->quality = quality; }
+void foundry_set_viewport(foundry_runtime *rt, uint32_t width, uint32_t height) { rt->world.set_viewport(width, height); }
+
+void foundry_set_quality(foundry_runtime *rt, foundry_quality quality) {
+  rt->quality = quality;
+  rt->world.set_quality(static_cast<int>(quality));
+}
 
 foundry_status foundry_set_transform(foundry_runtime *rt, foundry_instance instance, const float transform[16]) {
   return foundry_status_of(rt->world.set_transform(instance, transform));
@@ -89,12 +97,14 @@ void foundry_diag_counters_get(foundry_runtime *rt, foundry_diag_counters *out) 
           c.cache_hits, c.cache_misses, c.cache_evictions,
           c.generations, c.generation_failures,
           c.gpu_buffers_created, c.gpu_buffers_released, c.gpu_bytes,
-          c.draws, c.drawn, c.culled, c.triangles, c.bodies};
+          c.draws, c.drawn, c.culled, c.triangles, c.bodies,
+          c.too_small, {c.by_level[0], c.by_level[1], c.by_level[2], c.by_level[3]},
+          c.animated, c.unseen, c.rate_skipped, c.bones_uploaded, c.lod_generations};
 }
 
 void foundry_diag_frame_get(foundry_runtime *rt, foundry_diag_frame *out) {
   runtime::FrameTimes t = rt->world.frame_times();
-  *out = {t.update_ms, t.prepare_ms, t.draw_ms};
+  *out = {t.update_ms, t.prepare_ms, t.draw_ms, t.integrate_ms, t.classify_ms, t.animate_ms, t.results_ms};
 }
 
 uint32_t foundry_diag_stages(foundry_runtime *rt, foundry_diag_stage *out, uint32_t capacity) {
@@ -120,6 +130,10 @@ foundry_status foundry_diag_instance_get(foundry_runtime *rt, foundry_instance i
   out->sleeping = info.sleeping;
   out->settled = info.settled;
   out->failed = info.failed;
+  out->drawn = info.drawn;
+  out->level = info.level;
+  out->drawn_triangles = info.drawn_triangles;
+  out->pixels = info.pixels;
   out->triangles = info.triangles;
   out->bones = info.bones;
   out->height = info.height;
@@ -141,5 +155,11 @@ foundry_status foundry_diag_hash(foundry_runtime *rt, foundry_instance instance,
 uint64_t foundry_diag_bad_poses(foundry_runtime *rt) { return rt->world.bad_poses(); }
 
 void foundry_diag_flush(foundry_runtime *rt) { rt->world.flush(); }
+
+void foundry_diag_set_cost(foundry_runtime *rt, uint32_t flags) { rt->world.set_cost(flags & runtime::kCostAll); }
+
+foundry_status foundry_diag_force_level(foundry_runtime *rt, foundry_instance instance, int level) {
+  return foundry_status_of(rt->world.force_level(instance, level));
+}
 
 }  // extern "C"

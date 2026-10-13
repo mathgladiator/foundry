@@ -1,6 +1,7 @@
 #include "plot/tools.h"
 
 #include <chrono>
+#include <optional>
 #include <thread>
 
 #include "core/log.h"
@@ -152,6 +153,7 @@ void register_tools(mcp::Registry &registry, View &view) {
                              {"zoom", {{"type", "number"}}},
                              {"distance", {{"type", "number"}}},
                              {"collision", {{"type", "boolean"}}},
+                             {"cpu", {{"type", "boolean"}, {"description", "draw it on the CPU, to compare with the GPU"}}},
                              {"size", {{"type", "integer"}, {"description", "pixels (default 900)"}}}}),
                 [&view](const json &args) {
                   std::string error;
@@ -166,15 +168,21 @@ void register_tools(mcp::Registry &registry, View &view) {
                   cam.distance = args.value("distance", 0.0f);
                   const int size = std::clamp(args.value("size", 900), 128, 2048);
                   const auto r0 = std::chrono::steady_clock::now();
-                  viewport::Image img = assets::render_view(c, cam, overlays(args.value("collision", false)), false, size, size);
+                  viewport::Image img;
+                  {
+                    std::optional<viewport::ForceCpu> cpu;
+                    if (args.value("cpu", false)) cpu.emplace();
+                    img = assets::render_view(c, cam, overlays(args.value("collision", false)), false, size, size);
+                  }
+                  const std::string on = viewport::last_renderer();
                   core::log().add("plot", "rendered " + std::to_string(c.mesh ? c.mesh->indices.size() / 3 : 0) + " triangles at " +
-                                              std::to_string(size) + " px on the CPU in " +
+                                              std::to_string(size) + " px on the " + (on == "gpu" ? "GPU" : "CPU") + " in " +
                                               std::to_string(static_cast<int>(std::chrono::duration<double, std::milli>(
                                                   std::chrono::steady_clock::now() - r0).count())) + " ms");
                   auto png = viewport::encode_png(img);
                   Picture pic = view.picture();
                   mcp::Result r;
-                  json text = {{"triangles", c.mesh ? c.mesh->triangles() : 0}, {"metrics", pic.metrics}};
+                  json text = {{"triangles", c.mesh ? c.mesh->triangles() : 0}, {"renderer", on}, {"metrics", pic.metrics}};
                   if (!pic.error.empty()) text["error"] = pic.error;
                   r.content.push_back({"text", text.dump(), "", ""});
                   r.content.push_back({"image", "", core::base64(png.data(), png.size()), "image/png"});

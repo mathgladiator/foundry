@@ -52,13 +52,28 @@ This file is how the project is managed. It holds one current milestone, with TO
 5. **The QA video with `stump`** is 4,416 clips for every variation. I didn't export it; pinning `stump` to true gives a stump-only video. Do you want a full export before you approve?
 
 
+### The runtime owns cost (`CURRENT.FPS.md`)
+
+The game says what is in the world; the runtime says how much of it to compute and draw (`design/submit.md`, "Cost"; `design/api.md`, "Quality"). Asked for on 2026-10-12: a GPU renderer for the foundry, the most quality at the most performance, lighter flowers, all of `CURRENT.FPS.md`'s ideas ordered by gain for the least change in looks, and the most trees at 60 fps.
+
+- [ ] **Detail by size on screen.** The runtime picks each instance's level from its projected size, at switch sizes each pipeline measures (`stress_<pipeline> --lod`, the foundry's 10% rule at high quality) and compiles in (`draw.detail_pixels`), with hysteresis; coarser levels share the instance's pose once checked. A far level made by the runtime (the coarsest mesh, clustered). Too small not drawn.
+- [ ] **Levels that look alike.** Flower, bush, and tree levels keep every element and simplify shapes; flowers' leaves and petals are one sheet (half their triangles, no change on screen). Native matches WebAssembly.
+- [ ] **Posed when seen, as often as it shows.** Nothing out of view or too small is posed (events still play); small things are posed every 2nd to 16th frame.
+- [ ] **Retained poses.** A persistent bone slot per instance on the GPU; only changed poses go up, scattered by a compute pass.
+- [ ] **Measured.** The scale plan's ladder (each decision on in turn), its looks (what each costs on screen), and `--find 60` (the most trees at 60 fps); the plotter's inspector and `plotter_perf` show them. `CURRENT.FPS.md` reports it.
+- [ ] **The foundry draws on the GPU.** The viewport, screenshots, sheets, and `plotter_view` render through SDL's GPU API with the same look; the CPU renderer stays for headless runs.
+
+**Questions from the agent** (the runtime owns cost; built and in draft, nothing is committed)
+1. **How strict is "high quality"?** A coarser level switches in where the median configuration differs from the finest on at most 10% of its pixels (20% at medium, 30% at low). From the game camera this changes 1% of what shows; from a far overview, about 16%. Is the 10% rule (the one fixed assets use) the right bar for high?
+2. **Rocks keep the game's level.** Their pieces' break depends on the level, so the runtime can't share a pose across levels. Should the pieces' physics come from the finest level at every level (a change to `rock_body_v1`), so rocks can switch too?
+3. **Not built, measured as not needed yet:** impostors, wind on the GPU, and overlapping update with prepare. The next limit is the per-frame scan of every instance in the world (it grows with the world, not the view); culling and classifying by region would remove it. Should that be next?
+
 ## Not in this milestone
 
 To keep the milestone focused, these wait even though they are designed: trees and other nature, crafted things, buildings, humanoids, creatures, magic, auras, sound, shadows, the sleep and wake engine beyond what static meshes need, and recording and replay.
 
 # Future milestones
 
-- **The runtime owns cost** (`CURRENT.FPS.md`): a 1,000-tree glen runs at 39.8 fps today, CPU-bound on animating everything every frame and GPU-heavy from flowers at 4,131 triangles each. Proposed thesis change: the game sets a budget, and the runtime picks each instance's detail and animation rate from its size on screen, with a far tier (impostors, flowers as ground colour), poses kept on the GPU, and a standing 60 fps gate in the scale plan. Needs the human's approval as a design change.
 
 - **The rest of the plotter design** (`design/plotter.md`), after the first steps above: active entities (players and creatures, by handle, with collision masks) and sensors with contacts and distances; full instance results (event flags, sounds playing, sleep, ready) for every pipeline; footprints and collision descriptions on bushes, rocks, and flowers and on the conformance files; regrow kinds (succession); and more plotters, one per biome (a cypress swamp first, since its species exist).
 

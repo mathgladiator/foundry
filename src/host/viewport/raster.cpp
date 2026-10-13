@@ -1,5 +1,7 @@
 #include "viewport/raster.h"
 
+#include "viewport/gpu.h"
+
 #include <algorithm>
 #include <cmath>
 #include <limits>
@@ -95,34 +97,35 @@ void draw_line(Target &t, const Projector &pr, vec3 a, vec3 b, Rgb c, float alph
   }
 }
 
-void draw_circle(Target &t, const Projector &pr, vec3 centre, float r, Rgb c, float alpha, float hidden) {
+void add_circle(std::vector<OverlaySegment> &out, vec3 centre, float r, Rgb c, float alpha, float hidden) {
   const int n = 48;
   for (int i = 0; i < n; ++i) {
     float a0 = 2 * kPi * i / n, a1 = 2 * kPi * (i + 1) / n;
-    draw_line(t, pr, centre + vec3{r * std::cos(a0), 0, r * std::sin(a0)},
-              centre + vec3{r * std::cos(a1), 0, r * std::sin(a1)}, c, alpha, hidden);
+    out.push_back({centre + vec3{r * std::cos(a0), 0, r * std::sin(a0)}, centre + vec3{r * std::cos(a1), 0, r * std::sin(a1)},
+                   c.r, c.g, c.b, alpha, hidden});
   }
 }
 
 // A capsule standing on the ground at `base`: rings, four sides, and the caps' arcs. When it is wider
 // than it is tall (a rock, a shrub), the caps are squashed so it stays between the ground and h.
-void draw_capsule(Target &t, const Projector &pr, vec3 base, float r, float h, Rgb c, float alpha, float hidden) {
+void add_capsule(std::vector<OverlaySegment> &out, vec3 base, float r, float h, Rgb c, float alpha, float hidden) {
   const float rv = std::min(r, h * 0.5f);  // the caps' height
   float lo = rv, hi = h - rv;
-  draw_circle(t, pr, base + vec3{0, lo, 0}, r, c, alpha, hidden);
-  draw_circle(t, pr, base + vec3{0, hi, 0}, r, c, alpha, hidden);
+  auto seg = [&](vec3 a, vec3 b) { out.push_back({a, b, c.r, c.g, c.b, alpha, hidden}); };
+  add_circle(out, base + vec3{0, lo, 0}, r, c, alpha, hidden);
+  add_circle(out, base + vec3{0, hi, 0}, r, c, alpha, hidden);
   for (int k = 0; k < 4; ++k) {
     float a = kPi * 0.5f * k;
     vec3 d{std::cos(a), 0, std::sin(a)};
-    draw_line(t, pr, base + d * r + vec3{0, lo, 0}, base + d * r + vec3{0, hi, 0}, c, alpha, hidden);
+    seg(base + d * r + vec3{0, lo, 0}, base + d * r + vec3{0, hi, 0});
     const int n = 12;
     for (int i = 0; i < n; ++i) {
       float b0 = 0.5f * kPi * i / n, b1 = 0.5f * kPi * (i + 1) / n;
       // Top and bottom quarter arcs.
-      draw_line(t, pr, base + vec3{0, hi, 0} + d * (r * std::cos(b0)) + vec3{0, rv * std::sin(b0), 0},
-                base + vec3{0, hi, 0} + d * (r * std::cos(b1)) + vec3{0, rv * std::sin(b1), 0}, c, alpha, hidden);
-      draw_line(t, pr, base + vec3{0, lo, 0} + d * (r * std::cos(b0)) - vec3{0, rv * std::sin(b0), 0},
-                base + vec3{0, lo, 0} + d * (r * std::cos(b1)) - vec3{0, rv * std::sin(b1), 0}, c, alpha, hidden);
+      seg(base + vec3{0, hi, 0} + d * (r * std::cos(b0)) + vec3{0, rv * std::sin(b0), 0},
+          base + vec3{0, hi, 0} + d * (r * std::cos(b1)) + vec3{0, rv * std::sin(b1), 0});
+      seg(base + vec3{0, lo, 0} + d * (r * std::cos(b0)) - vec3{0, rv * std::sin(b0), 0},
+          base + vec3{0, lo, 0} + d * (r * std::cos(b1)) - vec3{0, rv * std::sin(b1), 0});
     }
   }
 }
@@ -232,10 +235,7 @@ const char *view_name(View v) {
   }
 }
 
-Image render(const Scene &scene, int width, int height) {
-  const int W = width * kSupersample, H = height * kSupersample;
-  Target t(W, H);
-
+Framing frame(const Scene &scene, int W, int H) {
   // Frame everything that will be drawn.
   Bounds bounds;
   float asset_radius = 0;
@@ -277,7 +277,9 @@ Image render(const Scene &scene, int width, int height) {
   vec3 ext = bounds.hi - bounds.lo;
   float radius = 0.5f * std::sqrt(dot(ext, ext)) + 0.05f;
 
-  Projector pr;
+  Framing pr;
+  pr.asset_radius = asset_radius;
+  pr.radius = radius;
   pr.cx = W * 0.5f;
   pr.cy = H * 0.5f;
   const float zoom = std::max(scene.camera.zoom, 0.05f);
@@ -342,6 +344,49 @@ Image render(const Scene &scene, int width, int height) {
     }
     pr.scale = zoom * 0.88f * std::min(W * 0.5f / std::max(half_w, 0.05f), H * 0.5f / std::max(half_h, 0.05f));
   }
+  return pr;
+}
+
+std::vector<OverlaySegment> overlay_segments(const Scene &scene, const Framing &f) {
+  std::vector<OverlaySegment> out;
+  if (scene.silhouette) return out;
+  if (scene.overlays.grid) {
+    float g = std::ceil(f.radius * 1.5f);
+    for (float v = -g; v <= g + 1e-3f; v += 0.5f) {
+      float a = std::fabs(std::fmod(v, 1.0f)) < 1e-3f ? 0.22f : 0.1f;
+      out.push_back({{v, 0, -g}, {v, 0, g}, 0.6f, 0.65f, 0.7f, a, 0.0f});
+      out.push_back({{-g, 0, v}, {g, 0, v}, 0.6f, 0.65f, 0.7f, a, 0.0f});
+    }
+  }
+  if (scene.overlays.hex) {
+    // Pointy-top hex, circumradius 1 m (style.md section 2).
+    for (int k = 0; k < 6; ++k) {
+      float a0 = kPi / 2 + kPi / 3 * k, a1 = kPi / 2 + kPi / 3 * (k + 1);
+      out.push_back({{std::cos(a0), 0, std::sin(a0)}, {std::cos(a1), 0, std::sin(a1)}, 0.95f, 0.8f, 0.35f, 0.9f, 0.3f});
+    }
+  }
+  if (scene.overlays.hero) add_capsule(out, {hero_x(f.asset_radius), 0, 0}, 0.35f, 1.8f, {0.55f, 0.85f, 1.0f}, 0.85f, 0.25f);
+  if (scene.has_conformance && scene.overlays.conformance)
+    add_capsule(out, {0, 0, 0}, scene.conformance_radius, scene.conformance_height, {0.45f, 1.0f, 0.55f}, 0.9f, 0.3f);
+  for (const Line &l : scene.lines) out.push_back({l.a, l.b, l.r, l.g, l.bl, l.alpha, l.alpha * 0.25f});
+  if (scene.overlays.collision)
+    for (const Line &l : scene.collision) out.push_back({l.a, l.b, l.r, l.g, l.bl, l.alpha, l.alpha * 0.35f});
+  return out;
+}
+
+Image render_cpu(const Scene &scene, int width, int height) {
+  const int W = width * kSupersample, H = height * kSupersample;
+  Target t(W, H);
+  const Framing fr = frame(scene, W, H);
+  Projector pr;
+  pr.eye = fr.eye;
+  pr.right = fr.right;
+  pr.up = fr.up;
+  pr.forward = fr.forward;
+  pr.ortho = fr.ortho;
+  pr.scale = fr.scale;
+  pr.cx = fr.cx;
+  pr.cy = fr.cy;
 
   // Background: a soft vertical gradient.
   for (int y = 0; y < H; ++y) {
@@ -352,31 +397,7 @@ Image render(const Scene &scene, int width, int height) {
 
   if (scene.mesh) raster_mesh(t, pr, *scene.mesh, scene.silhouette);
   ink(t, scene.silhouette);
-
-  if (!scene.silhouette) {
-    if (scene.overlays.grid) {
-      float g = std::ceil(radius * 1.5f);
-      for (float v = -g; v <= g + 1e-3f; v += 0.5f) {
-        float a = std::fabs(std::fmod(v, 1.0f)) < 1e-3f ? 0.22f : 0.1f;
-        draw_line(t, pr, {v, 0, -g}, {v, 0, g}, {0.6f, 0.65f, 0.7f}, a, 0.0f);
-        draw_line(t, pr, {-g, 0, v}, {g, 0, v}, {0.6f, 0.65f, 0.7f}, a, 0.0f);
-      }
-    }
-    if (scene.overlays.hex) {
-      // Pointy-top hex, circumradius 1 m (style.md section 2).
-      for (int k = 0; k < 6; ++k) {
-        float a0 = kPi / 2 + kPi / 3 * k, a1 = kPi / 2 + kPi / 3 * (k + 1);
-        draw_line(t, pr, {std::cos(a0), 0, std::sin(a0)}, {std::cos(a1), 0, std::sin(a1)}, {0.95f, 0.8f, 0.35f}, 0.9f, 0.3f);
-      }
-    }
-    if (scene.overlays.hero)
-      draw_capsule(t, pr, {hero_x(asset_radius), 0, 0}, 0.35f, 1.8f, {0.55f, 0.85f, 1.0f}, 0.85f, 0.25f);
-    if (scene.has_conformance && scene.overlays.conformance)
-      draw_capsule(t, pr, {0, 0, 0}, scene.conformance_radius, scene.conformance_height, {0.45f, 1.0f, 0.55f}, 0.9f, 0.3f);
-    for (const Line &l : scene.lines) draw_line(t, pr, l.a, l.b, {l.r, l.g, l.bl}, l.alpha, l.alpha * 0.25f);
-    if (scene.overlays.collision)
-      for (const Line &l : scene.collision) draw_line(t, pr, l.a, l.b, {l.r, l.g, l.bl}, l.alpha, l.alpha * 0.35f);
-  }
+  for (const OverlaySegment &l : overlay_segments(scene, fr)) draw_line(t, pr, l.a, l.b, {l.r, l.g, l.bl}, l.alpha, l.hidden);
 
   Image img;
   img.width = W;
@@ -390,6 +411,25 @@ Image render(const Scene &scene, int width, int height) {
     img.rgba[i * 4 + 3] = 255;
   }
   return downsample(img, kSupersample);
+}
+
+namespace {
+thread_local int t_force_cpu = 0;
+thread_local const char *t_last = "cpu";
+}  // namespace
+
+ForceCpu::ForceCpu() { ++t_force_cpu; }
+ForceCpu::~ForceCpu() { --t_force_cpu; }
+const char *last_renderer() { return t_last; }
+
+Image render(const Scene &scene, int width, int height) {
+  Image out;
+  if (GpuRenderer *gpu = gpu_renderer(); gpu && !t_force_cpu && gpu->render(scene, width, height, out)) {
+    t_last = "gpu";
+    return out;
+  }
+  t_last = "cpu";
+  return render_cpu(scene, width, height);
 }
 
 }  // namespace viewport

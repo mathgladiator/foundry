@@ -42,6 +42,18 @@ struct Config {
   uint16_t physics_layers[4] = {0, 0, 0, 0};
 };
 
+// What the runtime decides about cost (design/submit.md, "Cost"): each instance's level of detail
+// and animation rate from its size on screen, and what is too small to draw. The quality setting
+// picks the thresholds; diagnostics can turn each decision off to measure it.
+enum CostFlags : uint32_t {
+  kCostDetail = 1u << 0,     // pick each instance's level of detail from its size on screen
+  kCostTooSmall = 1u << 1,   // don't draw what is smaller than a few pixels
+  kCostUnseen = 1u << 2,     // don't animate what is out of view (events still play)
+  kCostRate = 1u << 3,       // animate small things less often
+  kCostRetain = 1u << 4,     // keep poses on the GPU, uploading only those that changed
+  kCostAll = 0x1fu,
+};
+
 struct Counters {
   uint64_t instances = 0, awake = 0, waiting = 0, failed = 0;
   uint64_t cache_entries = 0, cache_pending = 0, cache_bytes = 0, cache_gpu_bytes = 0;
@@ -50,10 +62,19 @@ struct Counters {
   uint64_t gpu_buffers_created = 0, gpu_buffers_released = 0, gpu_bytes = 0;
   uint64_t draws = 0, drawn = 0, culled = 0, triangles = 0;
   uint64_t bodies = 0;  // collision bodies the runtime has in the game's physics world
+  // The last frame's cost decisions.
+  uint64_t too_small = 0;              // in view, but too small to draw
+  uint64_t by_level[4] = {0, 0, 0, 0};  // drawn at each level of detail (finest first)
+  uint64_t animated = 0, unseen = 0, rate_skipped = 0;  // awake instances posed, and not posed (out of view, by rate)
+  uint64_t bones_uploaded = 0;          // bones whose pose changed and went to the GPU
+  uint64_t lod_generations = 0;         // of the generations, the runtime's coarser levels of detail
 };
 
 struct FrameTimes {
   double update_ms = 0, prepare_ms = 0, draw_ms = 0;
+  // Inside update: finished builds and switches, classification, choosing and posing, the rest
+  // (results, releases).
+  double integrate_ms = 0, classify_ms = 0, animate_ms = 0, results_ms = 0;
 };
 
 struct StageTotals {
@@ -65,6 +86,10 @@ struct StageTotals {
 
 struct InstanceInfo {
   bool ready = false, sleeping = false, settled = false, failed = false;
+  bool drawn = false;              // in the last prepared frame
+  uint32_t level = 0;              // the level of detail it was drawn at
+  uint32_t drawn_triangles = 0;    // at that level
+  float pixels = 0;                // its projected size, in pixels
   uint32_t triangles = 0, bones = 0;
   float height = 0, radius = 0;
   uint64_t build_key = 0;
@@ -92,6 +117,13 @@ class World {
   // The instances whose results changed in the last update.
   const std::vector<uint64_t> &changed() const { return changed_; }
   void set_camera(const float view[16], const float projection[16]);
+  void set_viewport(uint32_t width, uint32_t height);
+  void set_quality(int quality);  // 0 low, 1 medium, 2 high
+  void set_cost(uint32_t flags) { cost_ = flags; }
+  // Diagnostics: draw an instance at one level of detail (its pipeline's levels, then the far level),
+  // whatever its size; -1 lets its size pick again.
+  Status force_level(uint64_t handle, int level);
+  uint32_t cost() const { return cost_; }
 
   void update(float dt);
   void prepare(SDL_GPUCommandBuffer *cmd);
@@ -122,6 +154,11 @@ class World {
     std::shared_ptr<physics::Shapes> shapes;  // made on first use, if the build collides
     bool shapes_made = false;
     uint64_t order = 0;  // when it was created, for eviction
+    uint32_t dense = 0;  // a small index, for bucketing draws
+    bool lod = false;    // made for a coarser level of detail (the runtime's choice, not the game's)
+    // As a coarser level of detail: whether it poses like the finer build of that key (its bones
+    // and their motion are the same, so it can share that instance's pose).
+    std::vector<std::pair<uint64_t, bool>> poses_like;
   };
   struct Slot {
     uint32_t generation = 1;
@@ -139,11 +176,34 @@ class World {
     double posed_at = -1;          // the instance time of the last pose
     bool awake = true;
     std::string error;
+    Entry *entry = nullptr;        // current's cache entry (held by a reference, so it stays)
+    // Coarser levels of detail of the current build (by level; 0: not asked for) and their entries.
+    uint64_t lods[4] = {0, 0, 0, 0};
+    Entry *lod_entries[4] = {nullptr, nullptr, nullptr, nullptr};
+    uint8_t level = 0;             // the level its size asks for (with hysteresis)
+    uint8_t drawn_level = 0;       // the level it was drawn at last
+    bool in_view = false;          // inside the frustum (last classification)
+    bool near_view = false;        // inside it with a margin: what gets animated
+    bool drawn = false;
+    float pixels = 0;              // projected size of its bounding sphere, pixels
+    uint64_t posed_frame = 0;      // the world frame of the last pose
+    uint32_t bone_offset = 0, bone_count = 0;  // its slot in the renderer's bone buffer
+    bool pose_dirty = false;       // posed since its bones were last uploaded
+    bool touched = false;          // its result may have changed this frame (listed in touched_)
+    bool wants_lod = false;        // classification asked for a coarser build it doesn't have
+    int8_t lod_ok[4] = {-1, -1, -1, -1};  // whether each coarser build poses like its own (-1: not checked yet)
+    int8_t forced = -1;            // diagnostics: the level it is drawn at, whatever its size (-1: its size picks)
   };
   Slot *slot(uint64_t handle);
   const Slot *slot(uint64_t handle) const;
   void want(Slot &s);
+  Entry *acquire(const PipelineType *type, const std::vector<uint8_t> &params, uint64_t key, bool far = false);
   void unref(uint64_t key);
+  void drop_lods(Slot &s);
+  void bind_pose(Slot &s, const Entry &e);
+  void classify(bool request);
+  Entry *pick_lod(Slot &s, bool &unchecked);
+  bool poses_alike(Slot &s, Entry &coarse);
   void integrate();
   void release_idle(bool all);
   void evict(std::map<uint64_t, Entry>::iterator it);
@@ -173,12 +233,28 @@ class World {
   std::vector<Finished> finished_;
 
   float view_proj_[16] = {};
+  float eye_[3] = {0, 0, 0};
+  float p11_ = 1;            // the projection's vertical scale (1 / tan(fov / 2))
+  bool ortho_ = false;
   bool have_camera_ = false;
-  std::vector<SkinnedInstance> frame_instances_;
-  std::vector<float> frame_bones_;
+  uint64_t camera_serial_ = 0, classified_serial_ = ~0ull;
+  uint32_t viewport_h_ = 1080;
+  int quality_ = 2;
+  uint32_t cost_ = kCostAll;
+  uint64_t frame_ = 0;
   std::vector<DrawRange> frame_ranges_;
+  std::vector<uint32_t> free_dense_;
+  uint32_t next_dense_ = 0;
 
   std::vector<uint64_t> changed_;  // handles whose results changed in the last update
+  // Work lists, so a frame touches only what can change: slots waiting for a build, and slots
+  // whose result may have changed.
+  std::vector<uint64_t> waiting_;  // handles
+  std::vector<uint32_t> touched_;
+  void touch(Slot &s);
+  // Update-stage totals per pipeline type, resolved once (labels are looked up per type, not per call).
+  std::vector<std::pair<const PipelineType *, std::vector<StageTotals *>>> stage_slots_;
+  std::vector<StageTotals *> &update_stages(const PipelineType *type);
   Counters counters_;
   FrameTimes times_;
   std::map<std::string, StageTotals> stages_;

@@ -51,6 +51,14 @@ foundry_shader("${CMAKE_SOURCE_DIR}/src/runtime/shaders/cel.hlsl" vs_6_0 vs_main
 foundry_shader("${CMAKE_SOURCE_DIR}/src/runtime/shaders/cel.hlsl" ps_6_0 ps_main cel_ps_spirv)
 foundry_shader("${CMAKE_SOURCE_DIR}/src/runtime/shaders/skinned.hlsl" vs_6_0 vs_main skinned_vs_spirv)
 foundry_shader("${CMAKE_SOURCE_DIR}/src/runtime/shaders/skinned.hlsl" ps_6_0 ps_main skinned_ps_spirv)
+foundry_shader("${CMAKE_SOURCE_DIR}/src/runtime/shaders/scatter.hlsl" cs_6_0 cs_main scatter_cs_spirv)
+foundry_shader("${CMAKE_SOURCE_DIR}/src/host/viewport/shaders/viewport.hlsl" vs_6_0 mesh_vs viewport_mesh_vs_spirv)
+foundry_shader("${CMAKE_SOURCE_DIR}/src/host/viewport/shaders/viewport.hlsl" ps_6_0 mesh_ps viewport_mesh_ps_spirv)
+foundry_shader("${CMAKE_SOURCE_DIR}/src/host/viewport/shaders/viewport.hlsl" vs_6_0 full_vs viewport_full_vs_spirv)
+foundry_shader("${CMAKE_SOURCE_DIR}/src/host/viewport/shaders/viewport.hlsl" ps_6_0 ink_ps viewport_ink_ps_spirv)
+foundry_shader("${CMAKE_SOURCE_DIR}/src/host/viewport/shaders/viewport.hlsl" ps_6_0 down_ps viewport_down_ps_spirv)
+foundry_shader("${CMAKE_SOURCE_DIR}/src/host/viewport/shaders/viewport.hlsl" vs_6_0 line_vs viewport_line_vs_spirv)
+foundry_shader("${CMAKE_SOURCE_DIR}/src/host/viewport/shaders/viewport.hlsl" ps_6_0 line_ps viewport_line_ps_spirv)
 add_custom_target(shaders DEPENDS ${shader_headers})
 
 # The runtime (src/runtime): the engine that ships in games. Never depends on the host.
@@ -117,7 +125,9 @@ add_executable(foundry ${host_sources} "${CMAKE_SOURCE_DIR}/src/generated/json/r
 target_include_directories(foundry PRIVATE
   "${CMAKE_SOURCE_DIR}/src/host"
   "${CMAKE_SOURCE_DIR}/src/common"
-  "${CMAKE_SOURCE_DIR}/src/generated")
+  "${CMAKE_SOURCE_DIR}/src/generated"
+  "${shader_header_dir}")
+add_dependencies(foundry shaders)
 target_compile_definitions(foundry PRIVATE
   FOUNDRY_SOURCE_DIR="${CMAKE_SOURCE_DIR}"
   FOUNDRY_BUILD_DIR="${CMAKE_BINARY_DIR}")
