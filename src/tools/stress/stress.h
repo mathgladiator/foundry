@@ -55,6 +55,9 @@ typedef struct stress_pipeline {
   foundry_instance (*spawn)(foundry_runtime *rt, const stress_value *values, const float transform[16]);
   foundry_status (*set)(foundry_runtime *rt, foundry_instance instance, uint32_t param, stress_value value);
   foundry_status (*trigger)(foundry_runtime *rt, foundry_instance instance, uint32_t param);
+  /* A field pipeline's (design/plotter.md, "Fields"): spawns a field over cells; NULL otherwise. */
+  foundry_instance (*spawn_field)(foundry_runtime *rt, const stress_value *values, const float transform[16],
+                                  const foundry_field_cell *cells, uint32_t count);
 } stress_pipeline;
 
 int stress_main(int argc, char **argv, const stress_pipeline *const *pipelines, uint32_t count);

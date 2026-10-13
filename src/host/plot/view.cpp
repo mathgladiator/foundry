@@ -1,6 +1,7 @@
 #include "plot/view.h"
 
 #include <algorithm>
+#include <array>
 #include <chrono>
 #include <map>
 #include <cmath>
@@ -71,7 +72,90 @@ const std::vector<std::string> &View::presets() {
   return p;
 }
 
-nlohmann::json View::preset(const std::string &name, int R, uint32_t seed) {
+const std::vector<std::string> &View::terrains() {
+  static const std::vector<std::string> t = {"flat", "hills", "ridges", "terraces", "dunes", "mesas", "wild"};
+  return t;
+}
+
+View::Terrain View::terrain_of(const nlohmann::json &j) {
+  Terrain t;
+  if (!j.is_object()) return t;
+  t.style = j.value("style", t.style);
+  t.height_m = std::clamp(j.value("height_m", t.height_m), 0.0f, 60.0f);
+  t.scale_cells = std::clamp(j.value("scale_cells", t.scale_cells), 1.0f, 200.0f);
+  t.roughness = std::clamp(j.value("roughness", t.roughness), 0.0f, 1.0f);
+  t.jitter_m = std::clamp(j.value("jitter_m", t.jitter_m), 0.0f, 5.0f);
+  return t;
+}
+
+namespace {
+
+float lattice(int x, int z, uint32_t seed) {
+  uint32_t h = static_cast<uint32_t>(x) * 73856093u ^ static_cast<uint32_t>(z) * 83492791u ^ seed;
+  h ^= h >> 16;
+  h *= 0x7feb352du;
+  h ^= h >> 15;
+  h *= 0x846ca68bu;
+  h ^= h >> 16;
+  return static_cast<float>(h >> 8) / 16777216.0f;
+}
+
+float value_noise(float x, float z, uint32_t seed) {
+  const float fx = std::floor(x), fz = std::floor(z);
+  const int ix = static_cast<int>(fx), iz = static_cast<int>(fz);
+  auto smooth = [](float t) { return t * t * (3 - 2 * t); };
+  const float tx = smooth(x - fx), tz = smooth(z - fz);
+  const float a = lattice(ix, iz, seed) + (lattice(ix + 1, iz, seed) - lattice(ix, iz, seed)) * tx;
+  const float b = lattice(ix, iz + 1, seed) + (lattice(ix + 1, iz + 1, seed) - lattice(ix, iz + 1, seed)) * tx;
+  return a + (b - a) * tz;
+}
+
+// The terrain's height in [0, 1] at a point (metres), by style.
+float terrain01(const View::Terrain &t, float x, float z, uint32_t seed) {
+  const float f = 1.0f / (std::max(t.scale_cells, 1.0f) * 1.7320508f);
+  const int octaves = 1 + static_cast<int>(std::lround(t.roughness * 4));
+  const float gain = 0.3f + 0.35f * t.roughness;
+  auto fbm = [&](bool ridged) {
+    float sum = 0, amp = 1, norm = 0, freq = f;
+    for (int o = 0; o < octaves; ++o) {
+      float n = value_noise(x * freq, z * freq, seed + 977u * static_cast<uint32_t>(o));
+      if (ridged) {
+        n = 1.0f - std::fabs(2.0f * n - 1.0f);
+        n *= n;
+      }
+      sum += n * amp;
+      norm += amp;
+      amp *= gain;
+      freq *= 2.0f;
+    }
+    return sum / norm;
+  };
+  const std::string &s = t.style;
+  if (s == "ridges") return fbm(true);
+  if (s == "terraces") {
+    const float steps = 3.0f + std::round(t.roughness * 6.0f);
+    const float h = fbm(false) * steps;
+    const float k = std::floor(h), frac = h - k;
+    return (k + std::clamp((frac - 0.75f) * 4.0f, 0.0f, 1.0f)) / steps;  // flat steps with short risers
+  }
+  if (s == "dunes") {
+    const float warp = value_noise(x * f * 0.7f, z * f * 0.7f, seed + 31u) * 3.0f;
+    const float wave = x * f * 6.2831853f + warp;
+    const float crest = 0.5f + 0.5f * std::sin(wave);
+    return std::pow(crest, 1.0f + 2.0f * t.roughness) * (0.7f + 0.3f * fbm(false));
+  }
+  if (s == "mesas") {
+    const float n = fbm(false);
+    const float t0 = std::clamp((n - 0.46f) / 0.08f, 0.0f, 1.0f);
+    return t0 * t0 * (3 - 2 * t0) * 0.85f + 0.15f * n;
+  }
+  if (s == "wild") return 0.55f * fbm(true) + 0.45f * fbm(false);
+  return fbm(false);  // hills
+}
+
+}  // namespace
+
+nlohmann::json View::preset(const std::string &name, int R, uint32_t seed, const Terrain &terrain) {
   R = std::max(R, 1);
   nlohmann::json g = nlohmann::json::array();
   auto soil = [&](nlohmann::json r) {
@@ -128,6 +212,77 @@ nlohmann::json View::preset(const std::string &name, int R, uint32_t seed) {
         rise["height"] = 0.25f * static_cast<float>(4 - k);
         g.push_back(rise);
       }
+    }
+  }
+  // Terrain: each cell's height (and moisture) from noise, grouped into cell regions of equal value
+  // (5 cm steps) that set only those, above the ground; the pond stays flat, below its shore.
+  if (terrain.style != "flat" && (terrain.height_m > 0 || terrain.jitter_m > 0)) {
+    // Only the ground's own cells: terrain sets heights, it never adds cells.
+    auto ground_cell = [&](int q, int r) {
+      bool in = false;
+      for (const auto &reg : g) {
+        const std::string shape = reg.value("shape", std::string("hex"));
+        const int rq = reg.value("q", 0), rr = reg.value("r", 0), rad = reg.value("radius", 0);
+        bool hit = false;
+        if (shape == "hex") hit = hex_distance(q - rq, r - rr) <= rad;
+        else if (shape == "ring") hit = hex_distance(q - rq, r - rr) == rad;
+        else if (shape == "line") {
+          // The cells along the line, by cube rounding.
+          const int q2 = reg.value("q2", 0), r2 = reg.value("r2", 0), n = std::max(1, hex_distance(q2 - rq, r2 - rr));
+          for (int i = 0; i <= n && !hit; ++i) {
+            const float t = static_cast<float>(i) / static_cast<float>(n);
+            const float fq = rq + (q2 - rq) * t + 1e-4f, fr = rr + (r2 - rr) * t + 1e-4f, fs = -fq - fr;
+            int cq = static_cast<int>(std::lround(fq)), cr = static_cast<int>(std::lround(fr)), cs = static_cast<int>(std::lround(fs));
+            const float dq = std::fabs(cq - fq), dr = std::fabs(cr - fr), ds = std::fabs(cs - fs);
+            if (dq > dr && dq > ds) cq = -cr - cs;
+            else if (dr > ds) cr = -cq - cs;
+            hit = cq == q && cr == r;
+          }
+        }
+        if (hit) in = !reg.value("cut", false) && (in || true);
+        if (hit && reg.value("cut", false)) in = false;
+      }
+      return in;
+    };
+    const int ext = 2 * R + 4;
+    const bool pond = name == "pond" || name == "glen";
+    const int pq = R / 3, pr = -R / 4, prad = std::max(1, R / 4);
+    std::map<std::pair<int, int>, std::vector<int>> groups;  // (height cm/5, moisture %/5) -> q, r pairs
+    std::vector<std::array<int, 3>> pond_cells;               // q, r, height
+    int pond_floor = 1 << 30;
+    for (int q = -ext; q <= ext; ++q)
+      for (int r = -ext; r <= ext; ++r) {
+        if (hex_distance(q, r) > ext || !ground_cell(q, r)) continue;
+        const float x = cell_x(q, r), z = cell_z(r);
+        float h01 = terrain01(terrain, x, z, seed * 2654435761u + 17u);
+        float h = terrain.height_m * h01;
+        h += terrain.jitter_m * (2.0f * lattice(q, r, seed ^ 0x5bd1e995u) - 1.0f);
+        const int hq = static_cast<int>(std::lround(h / 0.05f));
+        if (pond && hex_distance(q - pq, r - pr) <= prad) {
+          pond_cells.push_back({q, r, hq});
+          pond_floor = std::min(pond_floor, hq);
+          continue;
+        }
+        const float wet = terrain.height_m > 0 ? std::clamp(0.8f - 0.5f * h01, 0.2f, 0.9f) : 0.55f;
+        const int mq = static_cast<int>(std::lround(wet / 0.05f));
+        auto &cells = groups[{hq, mq}];
+        cells.push_back(q);
+        cells.push_back(r);
+      }
+    for (const auto &[key, cells] : groups) {
+      nlohmann::json reg = {{"shape", "cells"}, {"cells", cells}, {"priority", 10}};
+      reg["height"] = static_cast<float>(key.first) * 0.05f;
+      reg["moisture"] = static_cast<float>(key.second) * 0.05f;
+      g.push_back(reg);
+    }
+    if (!pond_cells.empty()) {
+      nlohmann::json cells = nlohmann::json::array();
+      for (const auto &c : pond_cells) {
+        cells.push_back(c[0]);
+        cells.push_back(c[1]);
+      }
+      g.push_back({{"shape", "cells"}, {"cells", cells}, {"priority", 10},
+                   {"height", static_cast<float>(pond_floor) * 0.05f - 0.25f}, {"moisture", 1.0f}});
     }
   }
   return normalize(g);

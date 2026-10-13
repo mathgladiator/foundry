@@ -1,0 +1,8 @@
+{
+  "kind": "channel",
+  "name": "grass_v1_model",
+  "state": "draft",
+  "reason": "grass_tile_v1's output: what the runtime caches and draws for every cell that picks this tile. sway lets the renderer move blades in the wind without bones or a pose.",
+  "notes": [],
+  "created_at": "2026-10-13T03:00:00Z"
+}

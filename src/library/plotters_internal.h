@@ -19,12 +19,21 @@ struct Kind {
   foundry_instance (*spawn)(foundry_runtime *rt, uint32_t seed, bool regrown, const float transform[16]);
 };
 
+struct Field {
+  const char *label;  // "pipeline param...", e.g. "grass_v1 meadow"
+  // Spawns the field over these cells with the plotter's parameters and the world's seed.
+  foundry_instance (*spawn)(foundry_runtime *rt, uint32_t world_seed, const float transform[16], const foundry_field_cell *cells,
+                            uint32_t count);
+};
+
 struct Info {
   const char *name;
   const channels::plot_v1_config &(*config)();
   bool (*run)(const channels::plot_v1_request &in, channels::plot_v1_result &out, std::string &error);
   const Kind *kinds;
   uint32_t kind_count;
+  const Field *fields;  // design/plotter.md, "Fields"
+  uint32_t field_count;
 };
 
 uint32_t count();

@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <chrono>
 #include <cmath>
+#include <cstdlib>
 #include <cstring>
 
 namespace runtime {
@@ -53,6 +54,7 @@ World::World(const Config &config, std::string &error) : config_(config) {
   if (config.physics && !physics::check(config.physics, config.physics_version, error)) return;
   if (config.device) {
     if (!renderer_.init(config.device, config.color_format, config.depth_format, error)) return;
+    if (!field_renderer_.init(config.device, config.color_format, config.depth_format, error)) return;
     have_renderer_ = true;
   }
   ok_ = true;
@@ -62,9 +64,14 @@ World::~World() {
   builders_.reset();  // finish generation jobs before anything they touch goes away
   for (Slot &s : slots_)
     if (s.alive) set_bodies(s, nullptr);
-  for (auto &[key, e] : cache_)
-    if (e.uploaded) renderer_.release(e.gpu);
-  if (have_renderer_) renderer_.shutdown();
+  for (auto &[key, e] : cache_) {
+    if (e.uploaded && e.field) field_renderer_.release(e.fgpu);
+    else if (e.uploaded) renderer_.release(e.gpu);
+  }
+  if (have_renderer_) {
+    renderer_.shutdown();
+    field_renderer_.shutdown();
+  }
 }
 
 World::Slot *World::slot(uint64_t handle) {
@@ -204,6 +211,141 @@ uint64_t World::spawn(const PipelineType *type, const void *params, const float 
   return make_handle(index, s.generation);
 }
 
+namespace {
+constexpr uint64_t kFieldSalt = 0x7f4a7c159e3779b9ull;  // a field tile's key: its build key, salted (drawn its own way)
+constexpr uint32_t kChunkCells = 8;                    // a field's chunks: 8 x 8 cells
+const float kFieldPixels[3] = {96, 32, 10};             // levels' switch sizes for a field that measured none
+constexpr float kFieldTileRadius = 1.5f;                // a tile's size, for its size on screen (as the stress tool measures)
+
+uint32_t pack_tint(const float t[3]) {
+  auto byte = [](float v) { return static_cast<uint32_t>(std::clamp(v * 0.5f, 0.0f, 1.0f) * 255.0f + 0.5f); };
+  return byte(t[0]) | (byte(t[1]) << 8) | (byte(t[2]) << 16) | (255u << 24);
+}
+
+uint32_t cell_hash(int32_t q, int32_t r) {
+  uint32_t h = static_cast<uint32_t>(q) * 0x9E3779B1u ^ (static_cast<uint32_t>(r) + 0x7f4a7c15u) * 0x85EBCA77u;
+  h ^= h >> 15;
+  h *= 0x2C1B3C6Du;
+  h ^= h >> 12;
+  return h;
+}
+}  // namespace
+
+uint64_t World::spawn_field(const PipelineType *type, const void *params, const float transform[16], const FieldCell *cells,
+                            size_t count) {
+  if (!type->is_field()) return 0;
+  std::vector<FieldChoice> choices(count);
+  std::string err;
+  if (count && !type->field_cells(params, cells, count, choices.data(), err)) return 0;
+  uint32_t index;
+  if (!free_.empty()) {
+    index = free_.back();
+    free_.pop_back();
+  } else {
+    index = static_cast<uint32_t>(slots_.size());
+    slots_.emplace_back();
+  }
+  Slot &s = slots_[index];
+  s.alive = true;
+  s.type = type;
+  s.params.assign(static_cast<const uint8_t *>(params), static_cast<const uint8_t *>(params) + type->params_size());
+  for (int c = 0; c < 4; ++c)
+    for (int r = 0; r < 3; ++r) s.rows[r * 4 + c] = transform ? transform[c * 4 + r] : (c == r ? 1.0f : 0.0f);
+  s.time = 0;
+  s.fired.clear();
+  s.current = s.wanted = 0;
+  s.has_current = false;
+  s.pose.reset();
+  s.result = 0;
+  s.awake = false;  // nothing to pose: the wind moves it on the GPU
+  s.error.clear();
+  s.entry = nullptr;
+  s.drawn = false;
+  s.forced = -1;
+  s.field = std::make_unique<Field>();
+  Field &f = *s.field;
+  // Each present cell's tile, placed in the world, grouped by chunk and then by variant.
+  struct Placed {
+    uint64_t chunk;
+    uint32_t variant;
+    FieldInstance inst;
+  };
+  std::vector<Placed> placed;
+  placed.reserve(count);
+  const float *m = s.rows;
+  for (size_t i = 0; i < count; ++i) {
+    const FieldChoice &c = choices[i];
+    if (!c.present) continue;
+    const float x = 1.7320508f * (static_cast<float>(cells[i].q) + 0.5f * static_cast<float>(cells[i].r));
+    const float z = 1.5f * static_cast<float>(cells[i].r), y = cells[i].height;
+    Placed p;
+    p.inst.at[0] = m[0] * x + m[1] * y + m[2] * z + m[3];
+    p.inst.at[1] = m[4] * x + m[5] * y + m[6] * z + m[7];
+    p.inst.at[2] = m[8] * x + m[9] * y + m[10] * z + m[11];
+    p.inst.scale = c.scale;
+    p.inst.wind[0] = p.inst.wind[1] = 0;
+    p.inst.tint = pack_tint(c.tint);
+    p.inst.turn_phase = (c.turn % 6u) | (cell_hash(cells[i].q, cells[i].r) << 3);
+    const int32_t cq = cells[i].q >= 0 ? cells[i].q / static_cast<int32_t>(kChunkCells) : -((-cells[i].q - 1) / static_cast<int32_t>(kChunkCells)) - 1;
+    const int32_t cr = cells[i].r >= 0 ? cells[i].r / static_cast<int32_t>(kChunkCells) : -((-cells[i].r - 1) / static_cast<int32_t>(kChunkCells)) - 1;
+    p.chunk = (uint64_t(static_cast<uint32_t>(cq)) << 32) | static_cast<uint32_t>(cr);
+    p.variant = c.variant;
+    placed.push_back(p);
+  }
+  std::sort(placed.begin(), placed.end(), [](const Placed &a, const Placed &b) {
+    return a.chunk != b.chunk ? a.chunk < b.chunk : a.variant < b.variant;
+  });
+  f.tiles.reserve(placed.size());
+  for (size_t i = 0; i < placed.size(); ++i) {
+    if (i == 0 || placed[i].chunk != placed[i - 1].chunk) f.chunks.emplace_back();
+    Field::Chunk &ch = f.chunks.back();
+    if (ch.runs.empty() || placed[i].variant != ch.runs.back().variant || placed[i].chunk != placed[i - 1].chunk)
+      ch.runs.push_back({placed[i].variant, static_cast<uint32_t>(f.tiles.size()), 0});
+    ++ch.runs.back().count;
+    f.tiles.push_back(placed[i].inst);
+  }
+  // Each chunk's bounding sphere: its tiles' centres, plus a tile's reach and height.
+  for (Field::Chunk &ch : f.chunks) {
+    double sum[3] = {0, 0, 0};
+    uint32_t n = 0;
+    for (const auto &run : ch.runs)
+      for (uint32_t t = run.first; t < run.first + run.count; ++t, ++n)
+        for (int k = 0; k < 3; ++k) sum[k] += f.tiles[t].at[k];
+    for (int k = 0; k < 3; ++k) ch.c[k] = static_cast<float>(sum[k] / std::max(1u, n));
+    float r2 = 0;
+    for (const auto &run : ch.runs)
+      for (uint32_t t = run.first; t < run.first + run.count; ++t) {
+        const float dx = f.tiles[t].at[0] - ch.c[0], dy = f.tiles[t].at[1] - ch.c[1], dz = f.tiles[t].at[2] - ch.c[2];
+        r2 = std::max(r2, dx * dx + dy * dy + dz * dz);
+      }
+    ch.r = std::sqrt(r2) + 2.0f;
+  }
+  field_slots_.push_back(index);
+  return make_handle(index, s.generation);
+}
+
+// A field's tile build for a variant at a level: asked for once, kept until the field goes.
+World::Entry *World::field_tile(Slot &s, uint32_t variant, uint32_t level, bool request) {
+  Field &f = *s.field;
+  const uint32_t id = (variant << 4) | level;
+  auto it = f.builds.find(id);
+  if (it != f.builds.end()) return it->second.second;
+  if (!request) return nullptr;
+  std::vector<uint8_t> params(s.params.size());
+  s.type->field_tile_params(s.params.data(), variant, params.data());
+  if (s.type->detail_levels() > 1) std::memcpy(params.data() + s.type->detail_offset(), &level, sizeof level);
+  const uint64_t key = s.type->build_key(params.data()) ^ kFieldSalt;
+  Entry *e = acquire(s.type, params, key);
+  e->field = true;
+  f.builds[id] = {key, e};
+  return e;
+}
+
+void World::drop_field_builds(Slot &s) {
+  for (auto &[id, b] : s.field->builds) unref(b.first);
+  s.field->builds.clear();
+}
+
 void World::set_bodies(Slot &s, Entry *entry) {
   if (!config_.physics) return;
   physics::remove(config_.physics, s.bodies);
@@ -229,6 +371,12 @@ Status World::destroy(uint64_t handle) {
   if (s->wanted && s->wanted != s->current) unref(s->wanted);
   if (s->has_current) unref(s->current);
   drop_lods(*s);
+  if (s->field) {
+    drop_field_builds(*s);
+    s->field.reset();
+    const uint32_t index = static_cast<uint32_t>(s - slots_.data());
+    field_slots_.erase(std::remove(field_slots_.begin(), field_slots_.end(), index), field_slots_.end());
+  }
   if (have_renderer_) renderer_.free_bones(s->bone_offset, s->bone_count);
   s->bone_offset = s->bone_count = 0;
   s->entry = nullptr;
@@ -257,6 +405,10 @@ Status World::set_param(uint64_t handle, const PipelineType *type, size_t offset
   if (s->type != type) return Status::wrong_pipeline;
   if (offset + size > s->params.size()) return Status::bad_parameter;
   std::memcpy(s->params.data() + offset, value, size);
+  if (s->field) {
+    if (build) drop_field_builds(*s);  // its tiles are asked for again, with the new parameters
+    return Status::ok;
+  }
   if (build) {
     s->error.clear();
     want(*s);
@@ -264,6 +416,46 @@ Status World::set_param(uint64_t handle, const PipelineType *type, size_t offset
   s->awake = true;  // setting a parameter wakes the instance (api.md)
   touch(*s);
   return Status::ok;
+}
+
+Status World::set_named(uint64_t handle, const char *name, const char *value) {
+  Slot *s = slot(handle);
+  if (!s) return Status::stale_handle;
+  if (!name || !value) return Status::bad_parameter;
+  size_t count = 0;
+  const ParamInfo *table = s->type->param_table(count);
+  for (size_t i = 0; i < count; ++i) {
+    const ParamInfo &p = table[i];
+    if (std::strcmp(p.name, name) != 0) continue;
+    switch (p.kind) {
+      case ParamInfo::kEnum: {
+        uint32_t v = p.count;
+        for (uint32_t k = 0; k < p.count; ++k)
+          if (std::strcmp(p.values[k], value) == 0) v = k;
+        if (v == p.count) {
+          char *end = nullptr;
+          const unsigned long n = std::strtoul(value, &end, 10);
+          if (end == value || n >= p.count) return Status::bad_parameter;
+          v = static_cast<uint32_t>(n);
+        }
+        return set_param(handle, s->type, p.offset, &v, sizeof v, p.build);
+      }
+      case ParamInfo::kU32: {
+        const double d = std::clamp(std::strtod(value, nullptr), p.min, p.max);
+        const uint32_t v = static_cast<uint32_t>(d);
+        return set_param(handle, s->type, p.offset, &v, sizeof v, p.build);
+      }
+      case ParamInfo::kF32: {
+        const float v = static_cast<float>(std::clamp(std::strtod(value, nullptr), p.min, p.max));
+        return set_param(handle, s->type, p.offset, &v, sizeof v, p.build);
+      }
+      case ParamInfo::kBool: {
+        const bool v = std::strcmp(value, "true") == 0 || std::strcmp(value, "1") == 0;
+        return set_param(handle, s->type, p.offset, &v, sizeof v, p.build);
+      }
+    }
+  }
+  return Status::bad_parameter;
 }
 
 Status World::trigger(uint64_t handle, const PipelineType *type, size_t event) {
@@ -408,7 +600,8 @@ void World::integrate() {
 }
 
 void World::evict(std::map<uint64_t, Entry>::iterator it) {
-  if (it->second.uploaded) renderer_.release(it->second.gpu);
+  if (it->second.uploaded && it->second.field) field_renderer_.release(it->second.fgpu);
+  else if (it->second.uploaded) renderer_.release(it->second.gpu);
   free_dense_.push_back(it->second.dense);
   ++counters_.cache_evictions;
   cache_.erase(it);
@@ -640,12 +833,29 @@ void World::update(float dt) {
   }
   pool_->parallel_for(active.size(), 16, [&](size_t b, size_t e) {
     std::vector<float> c;
+    std::vector<uint8_t> local;
     for (size_t i = b; i < e; ++i) {
       Slot &s = *active[i];
       const Entry &entry = *s.entry;
       clocks(s, c);
+      // The wind's heading is the world's: in the instance's own frame, it is turned back by the
+      // instance's rotation, so a turned tree bends the same way as its neighbours.
+      const uint8_t *params = s.params.data();
+      const size_t wh = s.type->wind_heading_offset();
+      if (wh != SIZE_MAX) {
+        local = s.params;
+        float heading = 0;
+        std::memcpy(&heading, local.data() + wh, sizeof heading);
+        const float rad = heading * 0.017453293f, dx = std::sin(rad), dz = std::cos(rad);
+        const float *r = s.rows;  // world = rows * local: local = rows^T * world
+        const float lx = r[0] * dx + r[8] * dz, lz = r[2] * dx + r[10] * dz;
+        float h = std::atan2(lx, lz) * 57.29578f;
+        if (h < 0) h += 360.0f;
+        std::memcpy(local.data() + wh, &h, sizeof h);
+        params = local.data();
+      }
       std::string err;
-      if (!s.type->update(*entry.build, *s.pose, s.params.data(), c.data(), err)) {
+      if (!s.type->update(*entry.build, *s.pose, params, c.data(), err)) {
         s.error = err;
         s.awake = false;
         continue;
@@ -696,7 +906,8 @@ void World::prepare(SDL_GPUCommandBuffer *cmd) {
   if (copy) {
     for (auto &[key, e] : cache_) {
       if (e.pending || e.failed || e.uploaded || !e.build) continue;
-      e.gpu = renderer_.upload(copy, e.build->mesh);
+      if (e.field) e.fgpu = field_renderer_.upload(copy, e.build->mesh);
+      else e.gpu = renderer_.upload(copy, e.build->mesh);
       e.uploaded = true;
       e.build->mesh.clear();
     }
@@ -826,6 +1037,9 @@ void World::prepare(SDL_GPUCommandBuffer *cmd) {
       });
     }
     renderer_.end_frame(copy);
+  }
+  prepare_fields(copy);
+  if (copy) {
     SDL_EndGPUCopyPass(copy);
     renderer_.scatter(cmd);
   }
@@ -840,9 +1054,161 @@ void World::prepare(SDL_GPUCommandBuffer *cmd) {
   counters_.culled = culled;
   counters_.too_small = small;
   for (int l = 0; l < 4; ++l) counters_.by_level[l] = by_level[l];
-  counters_.triangles = triangles;
+  counters_.triangles = triangles + field_triangles_;
   counters_.bones_uploaded = copy ? dirty_bones : 0;
   times_.prepare_ms = ms_since(t0);
+}
+
+// Fields: each chunk in view picks its level by the size of a tile at its nearest point (with
+// hysteresis); its runs of tiles are drawn with that level's build of their variant (or the nearest
+// level that is ready), streamed as instances with the field's wind, one draw per tile build. The
+// choosing and the copying run across the update threads; builds not yet asked for are asked for
+// once, between them, and drawn from a later frame.
+void World::prepare_fields(SDL_GPUCopyPass *copy) {
+  field_ranges_.clear();
+  field_triangles_ = 0;
+  counters_.field_tiles = 0;
+  for (auto &n : counters_.field_tiles_by_level) n = 0;
+  if (field_slots_.empty()) return;
+  float planes[6][4];
+  const float *m = view_proj_;
+  auto row = [&](int r, int i) { return m[i * 4 + r]; };
+  for (int i = 0; i < 4; ++i) {
+    planes[0][i] = row(3, i) + row(0, i);
+    planes[1][i] = row(3, i) - row(0, i);
+    planes[2][i] = row(3, i) + row(1, i);
+    planes[3][i] = row(3, i) - row(1, i);
+    planes[4][i] = row(2, i);
+    planes[5][i] = row(3, i) - row(2, i);
+  }
+  for (auto &p : planes) {
+    const float len = std::sqrt(p[0] * p[0] + p[1] * p[1] + p[2] * p[2]);
+    for (float &v : p) v /= len;
+  }
+  const float scale_px = static_cast<float>(viewport_h_) * p11_;
+  struct Pick {
+    Entry *e;
+    uint32_t slot, first, count;
+    float wind[2];
+  };
+  struct Want {
+    uint32_t slot, variant, level;
+  };
+  struct Part {
+    std::vector<Pick> picks;
+    std::vector<Want> wants;
+    uint64_t tiles = 0, triangles = 0, by_level[4] = {0, 0, 0, 0};
+  };
+  constexpr size_t kGrain = 4;  // fields per task
+  std::vector<Part> parts((field_slots_.size() + kGrain - 1) / kGrain);
+  pool_->parallel_for(field_slots_.size(), kGrain, [&](size_t b, size_t e) {
+    Part &part = parts[b / kGrain];
+    for (size_t fi = b; fi < e; ++fi) {
+      const uint32_t index = field_slots_[fi];
+      Slot &s = slots_[index];
+      Field &f = *s.field;
+      f.drawn_tiles = f.drawn_triangles = 0;
+      float speed = 0, heading = 0;
+      s.type->field_wind(s.params.data(), speed, heading);
+      const float rad = heading * 3.14159265f / 180.0f;
+      const float wind[2] = {std::sin(rad) * speed / 10.0f, std::cos(rad) * speed / 10.0f};
+      const uint32_t levels = std::max<uint32_t>(1, std::min<uint32_t>(s.type->detail_levels(), 4));
+      const float *switch_px = s.type->detail_pixels(quality_);
+      if (!switch_px) switch_px = kFieldPixels;
+      // Read-only here: what isn't built yet is wanted, and asked for after.
+      auto built = [&](uint32_t variant, uint32_t level) -> Entry * {
+        auto it = f.builds.find((variant << 4) | level);
+        return it == f.builds.end() ? nullptr : it->second.second;
+      };
+      auto ready = [&](Entry *x) { return x && x->build && !x->failed && (!have_renderer_ || x->uploaded); };
+      for (Field::Chunk &ch : f.chunks) {
+        if (have_camera_) {
+          bool in = true;
+          for (const auto &p : planes)
+            if (p[0] * ch.c[0] + p[1] * ch.c[1] + p[2] * ch.c[2] + p[3] < -ch.r) {
+              in = false;
+              break;
+            }
+          if (!in) continue;
+        }
+        // A tile's size at the chunk's nearest point.
+        const float dx = ch.c[0] - eye_[0], dy = ch.c[1] - eye_[1], dz = ch.c[2] - eye_[2];
+        const float d = std::max(std::sqrt(dx * dx + dy * dy + dz * dz) - ch.r, 0.5f);
+        const float pixels = have_camera_ ? (ortho_ ? scale_px * kFieldTileRadius : scale_px * kFieldTileRadius / d) : 1e9f;
+        uint32_t level = std::min<uint32_t>(ch.level, levels - 1);
+        if (s.forced >= 0) {
+          level = std::min<uint32_t>(static_cast<uint32_t>(s.forced), levels - 1);
+        } else if (cost_ & kCostDetail) {
+          while (level + 1 < levels && level < 3 && pixels < switch_px[level]) ++level;
+          while (level > 0 && pixels > switch_px[level - 1] * kHysteresis) --level;
+        } else {
+          level = 0;
+        }
+        ch.level = static_cast<uint8_t>(level);
+        for (const Field::Run &run : ch.runs) {
+          Entry *x = built(run.variant, level);
+          if (!x) part.wants.push_back({index, run.variant, level});
+          uint32_t used = level;
+          if (!ready(x)) {  // the nearest level that is ready, coarser first
+            x = nullptr;
+            for (uint32_t k = 1; k < levels && !x; ++k) {
+              if (level + k < levels && ready(built(run.variant, level + k))) x = built(run.variant, level + k), used = level + k;
+              if (!x && level >= k && ready(built(run.variant, level - k))) x = built(run.variant, level - k), used = level - k;
+            }
+          }
+          if (!x) continue;
+          part.picks.push_back({x, index, run.first, run.count, {wind[0], wind[1]}});
+          f.drawn_tiles += run.count;
+          f.drawn_triangles += uint64_t(run.count) * x->build->triangles;
+          part.by_level[std::min<uint32_t>(used, 3)] += run.count;
+          f.level_drawn = used;
+        }
+      }
+      part.tiles += f.drawn_tiles;
+      part.triangles += f.drawn_triangles;
+    }
+  });
+  // Ask for what was wanted (each once), then gather the counts.
+  for (Part &part : parts) {
+    for (const Want &w : part.wants) field_tile(slots_[w.slot], w.variant, w.level, true);
+    counters_.field_tiles += part.tiles;
+    field_triangles_ += part.triangles;
+    for (int l = 0; l < 4; ++l) counters_.field_tiles_by_level[l] += part.by_level[l];
+  }
+  // One draw per tile build: count, place, and copy each pick's tiles with its wind.
+  std::vector<uint32_t> start(next_dense_ + 1, 0);
+  uint32_t total = 0;
+  for (const Part &part : parts)
+    for (const Pick &p : part.picks) {
+      start[p.e->dense + 1] += p.count;
+      total += p.count;
+    }
+  for (uint32_t d = 0; d < next_dense_; ++d) start[d + 1] += start[d];
+  if (!copy || total == 0) return;
+  std::vector<uint32_t> at(start.begin(), start.end() - 1);
+  std::vector<Entry *> by_dense(next_dense_, nullptr);
+  std::vector<std::pair<const Pick *, uint32_t>> placed;  // each pick and where its tiles go
+  for (const Part &part : parts)
+    for (const Pick &p : part.picks) {
+      placed.push_back({&p, at[p.e->dense]});
+      at[p.e->dense] += p.count;
+      by_dense[p.e->dense] = p.e;
+    }
+  FieldInstance *out = field_renderer_.begin_frame(total);
+  pool_->parallel_for(placed.size(), 64, [&](size_t b, size_t e) {
+    for (size_t i = b; i < e; ++i) {
+      const Pick &p = *placed[i].first;
+      FieldInstance *dst = out + placed[i].second;
+      std::memcpy(dst, slots_[p.slot].field->tiles.data() + p.first, size_t(p.count) * sizeof(FieldInstance));
+      for (uint32_t k = 0; k < p.count; ++k) {
+        dst[k].wind[0] = p.wind[0];
+        dst[k].wind[1] = p.wind[1];
+      }
+    }
+  });
+  field_renderer_.end_frame(copy);
+  for (uint32_t d = 0; d < next_dense_; ++d)
+    if (by_dense[d] && start[d + 1] > start[d]) field_ranges_.push_back({&by_dense[d]->fgpu, start[d], start[d + 1] - start[d]});
 }
 
 void World::draw(SDL_GPUCommandBuffer *cmd, SDL_GPURenderPass *pass) {
@@ -850,6 +1216,7 @@ void World::draw(SDL_GPUCommandBuffer *cmd, SDL_GPURenderPass *pass) {
   if (have_renderer_ && cmd && pass) {
     float identity[16] = {1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1};
     renderer_.draw(cmd, pass, frame_ranges_, have_camera_ ? view_proj_ : identity);
+    field_renderer_.draw(cmd, pass, field_ranges_, have_camera_ ? view_proj_ : identity, static_cast<float>(clock_));
   }
   times_.draw_ms = ms_since(t0);
 }
@@ -861,7 +1228,8 @@ Counters World::counters() const {
     c.bodies += s.bodies.size();
     ++c.instances;
     if (s.awake) ++c.awake;
-    if (!s.has_current) ++c.waiting;
+    if (s.field) ++c.fields;
+    else if (!s.has_current) ++c.waiting;
     if (!s.error.empty()) ++c.failed;
   }
   for (const auto &[key, e] : cache_) {
@@ -891,6 +1259,13 @@ Status World::info(uint64_t handle, InstanceInfo &out) const {
   out.sleeping = !s->awake;
   out.failed = !s->error.empty();
   out.error = s->error;
+  if (s->field) {
+    out.ready = true;
+    out.drawn = s->field->drawn_tiles > 0;
+    out.level = s->field->level_drawn;
+    out.drawn_triangles = static_cast<uint32_t>(std::min<uint64_t>(s->field->drawn_triangles, 0xffffffffu));
+    return Status::ok;
+  }
   out.build_key = s->current;
   out.drawn = s->drawn;
   out.level = s->drawn_level;

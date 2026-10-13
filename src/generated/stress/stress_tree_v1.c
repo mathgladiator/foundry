@@ -72,7 +72,7 @@ static foundry_status trigger(foundry_runtime *rt, foundry_instance i, uint32_t 
 static const char *const systems[] = {"tree_rig_v1", "tree_mesh_v1", "tree_colorize_v1", "tree_animate_v1"};
 
 /* Linked by the plotters' region runs too, which build this file with STRESS_NO_MAIN. */
-const stress_pipeline stress_binding_tree_v1 = {"tree_v1", "draft", params, 13, systems, 4, spawn, set, trigger};
+const stress_pipeline stress_binding_tree_v1 = {"tree_v1", "draft", params, 13, systems, 4, spawn, set, trigger, NULL};
 
 #ifndef STRESS_NO_MAIN
 int main(int argc, char **argv) {

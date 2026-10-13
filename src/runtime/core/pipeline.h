@@ -7,6 +7,7 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <climits>
 #include <memory>
 #include <string>
 #include <vector>
@@ -22,6 +23,7 @@ struct DrawMesh {
   std::vector<uint32_t> indices;
   std::vector<uint32_t> bone_a, bone_b;  // empty for a rigid mesh
   std::vector<float> bone_w;
+  std::vector<float> sway;  // a field tile's: how far each vertex moves in a 10 m/s wind (empty: none)
   void clear() { *this = DrawMesh{}; }
 };
 
@@ -72,6 +74,34 @@ struct PoseState {
   std::vector<double> stage_ms;  // the last update, per update stage
 };
 
+// A field (design/plotter.md, "Fields"): a pipeline whose one instance covers many hex cells,
+// each showing one of a few shared tiles. A cell is what the field's per-cell stage reads...
+struct FieldCell {
+  int32_t q = 0, r = 0;
+  uint32_t ground = 0;
+  float moisture = 0.5f;
+  float height = 0;  // the cell's ground height, metres (where its tile stands)
+};
+// ...and its choice is what the cell shows (the cell stage's output, by the field convention).
+struct FieldChoice {
+  bool present = false;
+  uint32_t variant = 0, turn = 0;  // turn: sixths of a turn about +Y
+  float scale = 1;
+  float tint[3] = {1, 1, 1};
+};
+
+// A parameter, by name (diagnostics: the foundry sets shared values such as wind by name).
+struct ParamInfo {
+  enum Kind : uint32_t { kEnum = 0, kU32 = 1, kF32 = 2, kBool = 3 };
+  const char *name;
+  uint32_t kind;
+  size_t offset;
+  bool build;                  // changing it builds something new
+  const char *const *values;   // kEnum: the values' names
+  uint32_t count;
+  double min, max;             // kU32, kF32
+};
+
 struct StageInfo {
   std::string label;  // pipeline.stage, e.g. tree_v1.rig
   bool update = false;
@@ -107,6 +137,32 @@ class PipelineType {
   // Runs the update stages for one instance.
   virtual bool update(const Build &build, PoseState &state, const void *params, const float *clocks,
                       std::string &error) const = 0;
+  // Fields (the pipeline's draw.field): whether it is one; its cell stage run over cells with the
+  // field's parameters; the parameters of the tile a variant names (the cell's own parameters
+  // set to fixed values, so every cell choosing it shares one build); and its wind.
+  // The f32 parameter named wind_heading, in degrees toward which the wind blows from +Z toward
+  // +X: the game gives it in the world; the runtime hands update stages the instance's own frame.
+  // SIZE_MAX: none.
+  virtual size_t wind_heading_offset() const { return SIZE_MAX; }
+  // The parameters, by name.
+  virtual const ParamInfo *param_table(size_t &count) const {
+    count = 0;
+    return nullptr;
+  }
+  virtual bool is_field() const { return false; }
+  virtual bool field_cells(const void *params, const FieldCell *cells, size_t count, FieldChoice *out,
+                           std::string &error) const {
+    (void)params, (void)cells, (void)count, (void)out;
+    error = "not a field";
+    return false;
+  }
+  virtual void field_tile_params(const void *params, uint32_t variant, void *out) const {
+    (void)params, (void)variant, (void)out;
+  }
+  virtual void field_wind(const void *params, float &speed, float &heading) const {
+    (void)params;
+    speed = heading = 0;
+  }
   // The packed pose output, hashed (diagnostics).
   virtual uint64_t pose_hash(const PoseState &state) const = 0;
 };

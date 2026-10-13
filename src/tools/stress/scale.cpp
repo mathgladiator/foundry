@@ -47,14 +47,9 @@ struct Placed {
 struct Scene {
   std::vector<foundry_region> regions;
   std::vector<Placed> placed;
+  std::vector<foundry_instance> fields;  // the plotter's fields (grass), one per region
   float half_extent = 0;
 };
-
-int find_param(const stress_pipeline *p, const char *name) {
-  for (uint32_t i = 0; i < p->param_count; ++i)
-    if (std::strcmp(p->params[i].name, name) == 0) return static_cast<int>(i);
-  return -1;
-}
 
 void wait_built(Ctx &ctx, double max_s) {
   for (int k = 0; k < static_cast<int>(max_s * 60); ++k) {
@@ -179,6 +174,9 @@ json to_json(const Measure &m, const Seen &s, const stress_pipeline *const *pipe
           {"not_animated_unseen", m.counters.unseen},
           {"not_animated_rate", m.counters.rate_skipped},
           {"bones_uploaded", m.counters.bones_uploaded},
+          {"field_tiles", m.counters.field_tiles},
+          {"field_tiles_by_level", {m.counters.field_tiles_by_level[0], m.counters.field_tiles_by_level[1],
+                                    m.counters.field_tiles_by_level[2], m.counters.field_tiles_by_level[3]}},
           {"trees_visible", s.trees},
           {"update_stages", m.stages},
           {"by_pipeline", by}};
@@ -186,11 +184,11 @@ json to_json(const Measure &m, const Seen &s, const stress_pipeline *const *pipe
 
 std::string line(const std::string &what, const Measure &m, const Seen &s) {
   return fmt("%-44s %6.1f fps (p95 frame %5.2f ms)  update %5.2f  prepare %5.2f  draw %4.2f  gpu %5.2f ms  "
-             "%6llu drawn (%llu trees)  %5.1f M triangles  %llu draws  %llu animated  [update: integrate %.2f classify %.2f "
+             "%6llu drawn (%llu trees)  %6llu grass tiles  %5.1f M triangles  %llu draws  %llu animated  [update: integrate %.2f classify %.2f "
              "animate %.2f results %.2f]",
              what.c_str(), m.fps, m.total.p95, m.update.mean, m.prepare.mean, m.draw.mean, m.gpu.mean,
-             (unsigned long long)m.counters.drawn, (unsigned long long)s.trees, m.counters.triangles / 1e6,
-             (unsigned long long)m.counters.draws, (unsigned long long)m.counters.animated, m.integrate.mean,
+             (unsigned long long)m.counters.drawn, (unsigned long long)s.trees, (unsigned long long)m.counters.field_tiles,
+             m.counters.triangles / 1e6, (unsigned long long)m.counters.draws, (unsigned long long)m.counters.animated, m.integrate.mean,
              m.classify.mean, m.animate.mean, m.results.mean);
 }
 
@@ -199,7 +197,7 @@ std::string line(const std::string &what, const Measure &m, const Seen &s) {
 int scale_main(int argc, char **argv, foundry_plotter plotter, const char *name, const stress_pipeline *const *pipelines,
                uint32_t count) {
   std::string workspace = FOUNDRY_WORKSPACE, gpu_mode = "auto", preset = "glen", sizes_arg = "1,2,4,8,12,16";
-  bool write_report = true, experiments = true;
+  bool write_report = true, experiments = true, fields = true, only_fields = false;
   int R = 12, frames = 240, max_side = 64, find_step = 4;
   double find_fps = 0;
   std::string snapshot_dir, quality = "high";
@@ -215,6 +213,8 @@ int scale_main(int argc, char **argv, foundry_plotter plotter, const char *name,
     else if (a == "--frames") frames = std::max(20, std::atoi(next().c_str()));
     else if (a == "--preset") preset = next();
     else if (a == "--no-experiments") experiments = false;
+    else if (a == "--no-fields") fields = false;
+    else if (a == "--only-fields") only_fields = true;  // grass and nothing else
     else if (a == "--snapshot") snapshot_dir = next();
     else if (a == "--find") find_fps = std::atof(next().c_str());
     else if (a == "--find-step") find_step = std::max(1, std::atoi(next().c_str()));
@@ -223,7 +223,7 @@ int scale_main(int argc, char **argv, foundry_plotter plotter, const char *name,
     else {
       std::cerr << "usage: stress_plotter_<name> --plan scale [--sizes 1,2,4,8 (grid sides)] [--radius cells]\n"
                    "       [--frames N] [--preset glen|hex] [--no-experiments] [--snapshot dir] [--gpu auto|none|required]\n"
-                   "       [--find FPS [--find-step 4] [--max-side 64]] [--quality low|medium|high] [--no-report]\n";
+                   "       [--find FPS [--find-step 4] [--max-side 64]] [--quality low|medium|high] [--no-fields | --only-fields] [--no-report]\n";
       return 2;
     }
   }
@@ -312,7 +312,7 @@ int scale_main(int argc, char **argv, foundry_plotter plotter, const char *name,
       const foundry_region region = foundry_region_create(ctx.rt, &d);
       scene.regions.push_back(region);
       std::vector<foundry_placement> out(4096);
-      uint32_t volume = 1;
+      uint32_t volume = only_fields ? 0 : 1;
       while (volume > 0) {
         const double g0 = now_ms();
         const uint32_t n = foundry_region_grow(ctx.rt, region, FOUNDRY_GROW_SEED, nullptr, 0, nullptr, out.data(),
@@ -330,6 +330,13 @@ int scale_main(int argc, char **argv, foundry_plotter plotter, const char *name,
         }
       }
     }
+    // The plotter's fields (grass) over every region's cells.
+    if (fields)
+      for (foundry_region region : scene.regions) {
+        std::vector<foundry_instance> f(foundry_plotter_field_count(plotter));
+        foundry_region_spawn_fields(ctx.rt, region, f.data(), static_cast<uint32_t>(f.size()));
+        scene.fields.insert(scene.fields.end(), f.begin(), f.end());
+      }
     wait_built(ctx, 300);
     const double ready_s = (now_ms() - t0) / 1000.0;
     Memory mem = memory();
@@ -470,6 +477,7 @@ int scale_main(int argc, char **argv, foundry_plotter plotter, const char *name,
     }
 
     for (const Placed &p : scene.placed) foundry_destroy(ctx.rt, p.handle);
+    for (foundry_instance f : scene.fields) foundry_destroy(ctx.rt, f);
     for (foundry_region r : scene.regions) foundry_region_destroy(ctx.rt, r);
     for (int i = 0; i < 160; ++i) ctx.frame(false);
     foundry_diag_flush(ctx.rt);
@@ -515,7 +523,7 @@ int scale_main(int argc, char **argv, foundry_plotter plotter, const char *name,
                  {"machine", machine(ctx.use_gpu ? ctx.gpu.name : "", ctx.use_gpu ? ctx.gpu.driver : "")},
                  {"settings", {{"sizes", sides}, {"radius", R}, {"preset", preset}, {"frames", frames},
                                {"width", ctx.plan.width}, {"height", ctx.plan.height}, {"gpu", ctx.use_gpu},
-                               {"quality", quality}, {"find_fps", find_fps}}},
+                               {"quality", quality}, {"find_fps", find_fps}, {"fields", fields}, {"only_fields", only_fields}}},
                  {"headline", headline},
                  {"most_trees", found},
                  {"sizes", sizes_out},

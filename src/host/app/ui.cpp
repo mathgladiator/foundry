@@ -21,6 +21,7 @@
 
 #include "app/capture.h"
 #include "app/services.h"
+#include "plot/live.h"
 #include "plot/tools.h"
 #include "assets/view.h"
 #include "core/jobs.h"
@@ -178,6 +179,13 @@ struct UiState {
   std::string rendered_key;
   viewport::Image pending;
   bool has_pending = false;
+  // A plotter's region, live in the native runtime (plot/live.h): on by default; orbit, or fly
+  // while the right mouse button is held (WASD, Space and C, Shift for speed).
+  bool plot_live = true;
+  std::string live_pending;  // the ground last seen, and when it changed
+  double live_pending_at = 0;
+  bool fly = false;
+  float fly_eye[3] = {0, 2, 0}, fly_yaw = 0, fly_pitch = 0;
   char note[1024] = {};
   char reject_reason[512] = {};
   std::string message;
@@ -251,6 +259,8 @@ struct UiState {
   // The plotter inspector's controls (design/plotter.md, "In the foundry").
   struct PlotUi {
     int preset = 0, radius = 12, max = 40, seed = 1;
+    int terrain = 1;  // hills
+    float terrain_height = 6, terrain_scale = 14, terrain_rough = 0.5f, terrain_jitter = 0.1f;
     float clear_radius = 5, fell_fraction = 0.4f;
     bool verify = false, collision = false;
     std::string message;
@@ -1204,7 +1214,17 @@ void draw_plotter_performance(Services &sv, UiState::PlotUi &u, const std::strin
     ImGui::Text("%d trees visible (%d things drawn, %dx%d regions): %.1f fps, p95 frame %.1f ms", h.value("trees_visible", 0),
                 h.value("instances", 0), h.value("grid", 0), h.value("grid", 0), h.value("fps", 0.0), h.value("frame_ms_p95", 0.0));
   const nlohmann::json most = u.scale.value("most_trees", nlohmann::json());
-  if (most.is_object()) {
+  const bool only_fields = u.scale.value("settings", nlohmann::json::object()).value("only_fields", false);
+  if (most.is_object() && only_fields) {
+    // Grass alone: what held is grass cells, not trees.
+    for (const auto &sz : u.scale.value("sizes", nlohmann::json::array()))
+      if (sz.value("grid", 0) == most.value("grid", -1)) {
+        const nlohmann::json v = sz["cameras"].value("vista", nlohmann::json::object());
+        ImGui::Text("Grass alone: most at %.0f fps (%dx%d regions): %llu grass cells in the vista at %.1f fps",
+                    most.value("target_fps", 0.0), most.value("grid", 0), most.value("grid", 0),
+                    (unsigned long long)v.value("field_tiles", 0ull), v.value("fps", 0.0));
+      }
+  } else if (most.is_object()) {
     const nlohmann::json vista = most.value("vista", nlohmann::json::object());
     ImGui::Text("Most trees at %.0f fps (%dx%d regions): vista %d in view at %.1f fps; overview %d at %.1f fps",
                 most.value("target_fps", 0.0), most.value("grid", 0), most.value("grid", 0), vista.value("trees_visible", 0),
@@ -1323,11 +1343,35 @@ void draw_plotter(Services &sv, UiState &st, const workspace::Item &item) {
   }
   ImGui::SameLine();
   ImGui::SetNextItemWidth(120);
-  ImGui::SliderInt("radius (cells)", &u.radius, 1, 40);
+  ImGui::SliderInt("radius (cells)", &u.radius, 1, 150);
+  // Terrain: from flat to wild, applied with the shape (live, the region regrows on it).
+  const auto &terrains = plot::View::terrains();
+  ImGui::SetNextItemWidth(120);
+  if (ImGui::BeginCombo("terrain", terrains[u.terrain].c_str())) {
+    for (int i = 0; i < static_cast<int>(terrains.size()); ++i)
+      if (ImGui::Selectable(terrains[i].c_str(), i == u.terrain)) u.terrain = i;
+    ImGui::EndCombo();
+  }
   ImGui::SameLine();
+  ImGui::SetNextItemWidth(120);
+  ImGui::SliderFloat("height (m)", &u.terrain_height, 0.0f, 40.0f, "%.1f");
+  ImGui::SetNextItemWidth(120);
+  ImGui::SliderFloat("hill size (cells)", &u.terrain_scale, 2.0f, 100.0f, "%.0f");
+  ImGui::SameLine();
+  ImGui::SetNextItemWidth(120);
+  ImGui::SliderFloat("roughness", &u.terrain_rough, 0.0f, 1.0f, "%.2f");
+  ImGui::SameLine();
+  ImGui::SetNextItemWidth(100);
+  ImGui::SliderFloat("jitter (m)", &u.terrain_jitter, 0.0f, 2.0f, "%.2f");
   if (ImGui::Button("Use shape")) {
+    plot::View::Terrain t;
+    t.style = terrains[u.terrain];
+    t.height_m = u.terrain_height;
+    t.scale_cells = u.terrain_scale;
+    t.roughness = u.terrain_rough;
+    t.jitter_m = u.terrain_jitter;
     nlohmann::json out;
-    if (!view.set_regions(plot::View::preset(presets[u.preset], u.radius, view.seed()), out, error)) u.message = error;
+    if (!view.set_regions(plot::View::preset(presets[u.preset], u.radius, view.seed(), t), out, error)) u.message = error;
     else u.message = "ground: " + out.dump();
   }
   ImGui::SetNextItemWidth(120);
@@ -1369,7 +1413,7 @@ void draw_plotter(Services &sv, UiState &st, const workspace::Item &item) {
     ImGui::SetNextItemWidth(160);
     ImGui::InputInt("r", &u.r);
     ImGui::SetNextItemWidth(160);
-    ImGui::SliderInt(u.shape == 3 ? "to q (line)" : "radius", &u.rad, u.shape == 3 ? -40 : 0, 40);
+    ImGui::SliderInt(u.shape == 3 ? "to q (line)" : "radius", &u.rad, u.shape == 3 ? -150 : 0, 150);
     ImGui::SetNextItemWidth(160);
     ImGui::InputInt("priority", &u.priority);
     ImGui::SetNextItemWidth(100);
@@ -2195,6 +2239,118 @@ void draw_viewport_controls(UiState &st) {
   }
 }
 
+plot::Live &live_plot() {
+  static plot::Live live;
+  return live;
+}
+
+// While the live view runs, frames aren't held to the display's refresh, so its frame rate is real.
+void set_unlimited(SDL_GPUDevice *device, SDL_Window *window, bool on) {
+  SDL_GPUPresentMode mode = SDL_GPU_PRESENTMODE_VSYNC;
+  if (on && SDL_WindowSupportsGPUPresentMode(device, window, SDL_GPU_PRESENTMODE_IMMEDIATE)) mode = SDL_GPU_PRESENTMODE_IMMEDIATE;
+  else if (on && SDL_WindowSupportsGPUPresentMode(device, window, SDL_GPU_PRESENTMODE_MAILBOX)) mode = SDL_GPU_PRESENTMODE_MAILBOX;
+  SDL_SetGPUSwapchainParameters(device, window, SDL_GPU_SWAPCHAINCOMPOSITION_SDR, mode);
+}
+
+void stop_live_plot(SDL_GPUDevice *device, SDL_Window *window) {
+  live_plot().stop();
+  set_unlimited(device, window, false);
+}
+
+// The plotter's region in the native runtime: grown to full when the ground or seed changes,
+// simulated and drawn every frame, with its frame rate and the runtime's numbers above it.
+void draw_live_plot(Services &sv, UiState &st, SDL_GPUDevice *device, SDL_Window *window) {
+  plot::Live &live = live_plot();
+  const std::string name = st.selected.substr(8);
+  std::string err;
+  if (sv.plot->name() != name && !sv.plot->show(name, err)) {
+    ImGui::TextColored({0.95f, 0.45f, 0.4f, 1}, "%s", err.c_str());
+    return;
+  }
+  const nlohmann::json regions = sv.plot->regions();
+  const std::string key = name + "|" + regions.dump() + "|" + std::to_string(sv.plot->seed());
+  bool restart = false;
+  if (live.running()) {
+    ImGui::SameLine();
+    restart = ImGui::SmallButton("Regrow");
+  }
+  // Regrow once the ground has stopped changing for a moment (a dragged slider changes it every frame).
+  if (key != st.live_pending) {
+    st.live_pending = key;
+    st.live_pending_at = ImGui::GetTime();
+  }
+  const bool settled = ImGui::GetTime() - st.live_pending_at > 0.35;
+  if (!live.running() || (live.key() != key && settled) || restart) {
+    if (!live.start(device, name, regions, sv.plot->seed(), err)) {
+      ImGui::TextColored({0.95f, 0.45f, 0.4f, 1}, "%s", err.c_str());
+      return;
+    }
+    live.set_key(key);
+    set_unlimited(device, window, true);
+    core::log().add("plot", name + ": live in the native runtime, " + std::to_string(live.count()) +
+                                " things and fields grown in " + std::to_string(static_cast<int>(live.stats().grow_ms)) + " ms");
+  }
+  live.share(sv.plot->shared());  // the inspector's season and wind
+  const plot::LiveStats ls = live.stats();
+  ImGui::Text("%.0f fps   update %.2f ms   prepare %.2f ms   %llu of %llu drawn (%llu trees)   %llu grass tiles   %.1f M triangles   "
+              "%llu posed%s",
+              ls.fps, ls.update_ms, ls.prepare_ms, (unsigned long long)ls.drawn, (unsigned long long)ls.instances,
+              (unsigned long long)ls.trees, (unsigned long long)ls.field_tiles, ls.triangles / 1e6, (unsigned long long)ls.animated,
+              ls.builds_pending ? "   building..." : "");
+  ImGui::TextDisabled("Drag to orbit, wheel to zoom; hold the right button to fly (WASD, Space and C, Shift faster).");
+  ImGuiIO &io = ImGui::GetIO();
+  const ImVec2 avail = ImGui::GetContentRegionAvail();
+  const int w = std::max(64, static_cast<int>(avail.x)), h = std::max(64, static_cast<int>(avail.y));
+  // The camera: an orbit about the region's middle, or flying.
+  const float yaw = st.camera.yaw, pitch = std::clamp(st.camera.pitch, 0.05f, 1.4f);
+  const float dist = live.extent() * 1.7f / std::max(st.camera.zoom, 0.05f);
+  float target[3] = {0, 2, 0};
+  float eye[3] = {target[0] + dist * std::sin(yaw) * std::cos(pitch), target[1] + dist * std::sin(pitch),
+                  target[2] + dist * std::cos(yaw) * std::cos(pitch)};
+  if (st.fly) {
+    std::memcpy(eye, st.fly_eye, sizeof eye);
+    target[0] = eye[0] + std::sin(st.fly_yaw) * std::cos(st.fly_pitch);
+    target[1] = eye[1] + std::sin(st.fly_pitch);
+    target[2] = eye[2] - std::cos(st.fly_yaw) * std::cos(st.fly_pitch);
+  }
+  SDL_GPUCommandBuffer *cmd = SDL_AcquireGPUCommandBuffer(device);
+  SDL_GPUTexture *tex = live.frame(cmd, w, h, eye, target, std::clamp(static_cast<double>(io.DeltaTime), 0.0, 0.1));
+  SDL_SubmitGPUCommandBuffer(cmd);
+  if (!tex) return;
+  ImGui::Image(reinterpret_cast<ImTextureID>(tex), ImVec2(static_cast<float>(w), static_cast<float>(h)));
+  if (!ImGui::IsItemHovered() && !(st.fly && ImGui::IsMouseDown(ImGuiMouseButton_Right))) return;
+  if (ImGui::IsMouseDown(ImGuiMouseButton_Right)) {
+    if (!st.fly) {  // start flying from where the orbit stands, looking where it looked
+      std::memcpy(st.fly_eye, eye, sizeof eye);
+      const float d[3] = {target[0] - eye[0], target[1] - eye[1], target[2] - eye[2]};
+      st.fly_yaw = std::atan2(d[0], -d[2]);
+      st.fly_pitch = std::atan2(d[1], std::sqrt(d[0] * d[0] + d[2] * d[2]));
+      st.fly = true;
+    }
+    st.fly_yaw += io.MouseDelta.x * 0.004f;
+    st.fly_pitch = std::clamp(st.fly_pitch - io.MouseDelta.y * 0.004f, -1.5f, 1.5f);
+    float speed = 15.0f * (io.KeyShift ? 6.0f : 1.0f) * io.DeltaTime;
+    const float fwd[3] = {std::sin(st.fly_yaw) * std::cos(st.fly_pitch), std::sin(st.fly_pitch),
+                          -std::cos(st.fly_yaw) * std::cos(st.fly_pitch)};
+    const float right[3] = {std::cos(st.fly_yaw), 0, std::sin(st.fly_yaw)};
+    auto move = [&](const float *d, float k) {
+      for (int i = 0; i < 3; ++i) st.fly_eye[i] += d[i] * k;
+    };
+    if (ImGui::IsKeyDown(ImGuiKey_W)) move(fwd, speed);
+    if (ImGui::IsKeyDown(ImGuiKey_S)) move(fwd, -speed);
+    if (ImGui::IsKeyDown(ImGuiKey_D)) move(right, speed);
+    if (ImGui::IsKeyDown(ImGuiKey_A)) move(right, -speed);
+    if (ImGui::IsKeyDown(ImGuiKey_Space)) st.fly_eye[1] += speed;
+    if (ImGui::IsKeyDown(ImGuiKey_C)) st.fly_eye[1] -= speed;
+    st.fly_eye[1] = std::max(st.fly_eye[1], 0.3f);
+  } else if (ImGui::IsMouseDragging(ImGuiMouseButton_Left)) {
+    st.fly = false;
+    st.camera.yaw -= io.MouseDelta.x * 0.01f;
+    st.camera.pitch = std::clamp(st.camera.pitch + io.MouseDelta.y * 0.01f, 0.05f, 1.4f);
+  }
+  if (io.MouseWheel != 0 && !st.fly) st.camera.zoom = std::clamp(st.camera.zoom * std::pow(1.1f, io.MouseWheel), 0.05f, 30.0f);
+}
+
 }  // namespace
 
 int run_ui(Services &sv) {
@@ -2394,6 +2550,16 @@ int run_ui(Services &sv) {
     } else {
     update_references(sv, st);
     load_reference(sv, st);
+    if (is_plot(st.selected)) {
+      ImGui::Checkbox("Live (native runtime)", &st.plot_live);
+      if (ImGui::IsItemHovered())
+        ImGui::SetTooltip("The region simulated and drawn by the native runtime a game links, every frame.\n"
+                          "Off: the picture composed from WebAssembly.");
+    }
+    if (is_plot(st.selected) && st.plot_live) {
+      draw_live_plot(sv, st, device, window);
+    } else {
+    if (live_plot().running()) stop_live_plot(device, window);
     draw_viewport_controls(st);
     ImVec2 avail = ImGui::GetContentRegionAvail();
     int side = std::max(64, static_cast<int>(std::min(avail.x, avail.y)));
@@ -2437,7 +2603,9 @@ int run_ui(Services &sv) {
         }
       }
     }
+    }  // static or live
     }  // the view tab
+    if (!is_plot(st.selected) && live_plot().running()) stop_live_plot(device, window);
     ImGui::End();
 
     ImGui::SetNextWindowPos({vp->WorkPos.x, vp->WorkPos.y + H - bottom});
@@ -2510,6 +2678,7 @@ int run_ui(Services &sv) {
   ImGui_ImplSDL3_Shutdown();
   ImGui_ImplSDLGPU3_Shutdown();
   ImGui::DestroyContext();
+  live_plot().stop();
   viewport::set_gpu_renderer(nullptr);
   gpu_view.shutdown();
   SDL_ReleaseWindowFromGPUDevice(device, window);

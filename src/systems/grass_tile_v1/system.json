@@ -1,0 +1,11 @@
+{
+  "name": "grass_tile",
+  "version": 1,
+  "kind": "system",
+  "doc": "Grows one tile of grass: a pointy-top hex cell (circumradius 1 m) of blades over its soil, leaning and bending, base to tip from green to the season's dryness, some with seed heads, by level of detail (blades, fewer and wider blades, crossed tufts, a mat); or, after the grass variants, a flat plate of water, rock, sand, path, or bare soil. Each vertex carries how far it sways in the wind, for the renderer.",
+  "input": "grass_v1_spec",
+  "output": "grass_v1_model",
+  "state": "draft",
+  "notes": [],
+  "created_at": "2026-10-13T03:00:00Z"
+}

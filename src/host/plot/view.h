@@ -38,6 +38,17 @@ struct Picture {
   std::string error;
 };
 
+// Terrain over a ground (heights and moisture, from noise over the cells): a style (flat, hills,
+// ridges, terraces, dunes, mesas, wild), its height, the size of its features, how rough it is,
+// and a random height per cell on top. Valleys come out wetter; a pond stays flat, below its shore.
+struct Terrain {
+  std::string style = "flat";
+  float height_m = 0;      // from the lowest cell to the highest
+  float scale_cells = 12;  // the size of a hill
+  float roughness = 0.5f;  // 0 smooth to 1 broken
+  float jitter_m = 0;      // each cell's own height, up and down
+};
+
 class View {
  public:
   View(forge::Paths paths, pipeline::Runner &runner, wasm::Runner &wasm) : paths_(std::move(paths)), runner_(runner), wasm_(wasm) {}
@@ -51,8 +62,11 @@ class View {
   // The ground: prioritized hex regions (plot_v1_region values), replaced whole. Occupants on lost cells are removed.
   bool set_regions(const nlohmann::json &regions, nlohmann::json &out, std::string &error);
   nlohmann::json regions() const;
-  // A ready-made ground: hex, ring, strip, union, pond, path, slope, ragged, single, or glen.
-  static nlohmann::json preset(const std::string &name, int radius, uint32_t seed);
+  using Terrain = plot::Terrain;
+  static const std::vector<std::string> &terrains();
+  static Terrain terrain_of(const nlohmann::json &j);  // {style, height_m, scale_cells, roughness, jitter_m}
+  // A ready-made ground: hex, ring, strip, union, pond, path, slope, ragged, single, or glen, with a terrain.
+  static nlohmann::json preset(const std::string &name, int radius, uint32_t seed, const Terrain &terrain = Terrain());
   static const std::vector<std::string> &presets();
   void set_seed(uint32_t seed);
   uint32_t seed() const;

@@ -310,4 +310,45 @@ uint32_t foundry_plotter_kind_count(foundry_plotter plotter) {
   return info ? info->kind_count : 0;
 }
 
+uint32_t foundry_region_spawn_fields(foundry_runtime *rt, foundry_region region, foundry_instance *out, uint32_t max) {
+  regions::Region *r = regions::find(rt, region);
+  if (!r) return 0;
+  const plotters::Info *info = plotters::info(r->plotter);
+  if (!info || info->field_count == 0) return 0;
+  // The region's resolved cells, with their ground, moisture, and height.
+  channels::plot_v1_result res;
+  std::string error;
+  if (!info->run(regions::request(*r, channels::plot_v1_request::kModeSeed, 0, true), res, error)) return 0;
+  std::vector<foundry_field_cell> cells;
+  cells.reserve(res.cells.size());
+  for (const auto &c : res.cells)
+    cells.push_back({c.q, c.r, static_cast<foundry_ground>(c.ground), c.moisture, c.height});
+  for (uint32_t f = 0; f < info->field_count; ++f) {
+    const foundry_instance h = info->fields[f].spawn(rt, r->seed, r->transform, cells.data(), static_cast<uint32_t>(cells.size()));
+    if (out && f < max) out[f] = h;
+  }
+  return info->field_count;
+}
+
+const char *foundry_plotter_field_name(foundry_plotter plotter, uint32_t field) {
+  const plotters::Info *info = plotters::info(plotter);
+  return info && field < info->field_count ? info->fields[field].label : "";
+}
+
+uint32_t foundry_plotter_field_count(foundry_plotter plotter) {
+  const plotters::Info *info = plotters::info(plotter);
+  return info ? info->field_count : 0;
+}
+
+foundry_plotter foundry_plotter_find(const char *name) {
+  for (uint32_t i = 0; i < plotters::count(); ++i)
+    if (name && std::strcmp(plotters::info(i)->name, name) == 0) return i;
+  return FOUNDRY_NO_PLOTTER;
+}
+
+const char *foundry_plotter_name(foundry_plotter plotter) {
+  const plotters::Info *info = plotters::info(plotter);
+  return info ? info->name : "";
+}
+
 }  // extern "C"

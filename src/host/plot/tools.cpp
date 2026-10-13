@@ -75,7 +75,10 @@ void register_tools(mcp::Registry &registry, View &view) {
                              {"radius", {{"type", "integer"}, {"description", "cells (default 12)"}}},
                              {"regions", {{"type", "array"}}},
                              {"seed", {{"type", "integer"}}},
-                             {"shared", {{"type", "object"}}}}),
+                             {"shared", {{"type", "object"}}},
+                             {"terrain", {{"type", "object"},
+                                          {"description", "with preset: {style: flat|hills|ridges|terraces|dunes|mesas|wild, "
+                                                          "height_m, scale_cells, roughness 0..1, jitter_m}"}}}}),
                 [&view](const json &args) {
                   std::string error;
                   if (!ensure(view, args, error)) return mcp::Result::error(error);
@@ -85,7 +88,8 @@ void register_tools(mcp::Registry &registry, View &view) {
                   json regions;
                   if (args.contains("regions")) regions = args["regions"];
                   else if (args.contains("preset"))
-                    regions = View::preset(args["preset"].get<std::string>(), args.value("radius", 12), view.seed());
+                    regions = View::preset(args["preset"].get<std::string>(), args.value("radius", 12), view.seed(),
+                                           View::terrain_of(args.value("terrain", json::object())));
                   if (!regions.is_null()) {
                     json r;
                     if (!view.set_regions(regions, r, error)) return mcp::Result::error(error);

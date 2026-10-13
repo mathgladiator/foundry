@@ -1,0 +1,56 @@
+{
+  "created_at": "2026-10-13T03:00:00Z",
+  "doc": "A temperate hay meadow: soft mixed grasses to the knee, a little clumped, bending in the wind, fescue and timothy heads in summer. Green in spring, gold by late summer, straw in winter.",
+  "notes": [],
+  "reference": [],
+  "state": "draft",
+  "value": {
+    "bald": 0.04,
+    "base_color": [
+      0.2,
+      0.36,
+      0.12
+    ],
+    "bend": 0.9,
+    "blade_width": 0.055,
+    "blades": 260,
+    "clump": 0.35,
+    "dry": [
+      0.85,
+      0.05,
+      0.25,
+      0.6
+    ],
+    "dry_color": [
+      0.78,
+      0.68,
+      0.36
+    ],
+    "height": 0.42,
+    "height_jitter": 0.45,
+    "latin": "Festuca, Phleum, Poa",
+    "lean": 0.6,
+    "lush": 0.5,
+    "name": "Meadow grass",
+    "patch_cells": 7.0,
+    "season_height": [
+      0.55,
+      0.75,
+      1.0,
+      0.9
+    ],
+    "seed_color": [
+      0.74,
+      0.66,
+      0.42
+    ],
+    "seed_heads": 0.12,
+    "sway": 0.12,
+    "tip_color": [
+      0.48,
+      0.7,
+      0.24
+    ],
+    "variants": 4
+  }
+}

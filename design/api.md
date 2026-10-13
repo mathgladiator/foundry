@@ -164,6 +164,23 @@ These are built (`src/library/region.h`, `region.cpp`), with each plotter's conf
 - **The game decides every input.** The foundry is a factory. Overrides such as a spell's blizzard are the game's: it sets the season on the instances the spell covers and restores them afterwards, and there is no region-wide setter.
 - **Collision lives in the runtime's Jolt world** (see "Physics"). The region's footprints are only for placement.
 
+### Fields
+
+Grass covers rather than being placed (`plotter.md`, "Fields"). A plotter's fields are spawned over a region's cells, one instance per field, and the game owns them like any other instance. A field pipeline can also be spawned directly over cells the game lists:
+
+```c
+foundry_instance fields[4];
+uint32_t n = foundry_region_spawn_fields(rt, glen, fields, 4);  /* the plotter's grass, over every cell */
+foundry_grass_v1_params p;
+foundry_grass_v1_default_params(&p);
+p.species = FOUNDRY_GRASS_V1_SPECIES_PRAIRIE;
+foundry_field_cell cells[] = {{0, 0, FOUNDRY_GROUND_SOIL, 0.6f, 0.0f}, {1, 0, FOUNDRY_GROUND_SOIL, 0.6f, 0.0f}};
+foundry_instance lawn = foundry_grass_v1_spawn_field(rt, &p, transform, cells, 2);
+foundry_grass_v1_set_wind_speed(rt, lawn, 8.0f);  /* the whole field sways harder */
+```
+
+Built (`region.h`; each field pipeline's `foundry_<pipeline>_spawn_field`). A field's parameters other than the cell's own (species, season, wind) apply to the whole field. Setting a build parameter rebuilds its few tiles, not its cells. A field doesn't move with `foundry_set_transform`: its tiles are placed when it is spawned.
+
 ## Instance results
 
 Each update leaves every instance a **result**, generated per pipeline like its parameters. A result holds current values, not one-shot events: the game diffs it against the last one it read to find rising and falling edges, and decides what to do with them (wait a second on its own timer, then turn a felled tree into a stump).
@@ -207,6 +224,10 @@ foundry_light_desc torch_desc = {
 };
 foundry_light torch = foundry_add_light(rt, &torch_desc);
 ```
+
+### Wind
+
+A pipeline's `wind_heading` is the world's: degrees toward which the wind blows, from +Z toward +X. The runtime turns it into each instance's own frame before posing it, so a meadow of instances turned every which way bends one way. A field's tiles sway in it on the GPU.
 
 ### Quality
 

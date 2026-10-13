@@ -320,5 +320,13 @@
       "season": "summer",
       "wind_speed": 3
     }
-  }
+  },
+  "fields": [
+    {
+      "pipeline": "grass_v1",
+      "params": {
+        "species": "meadow"
+      }
+    }
+  ]
 }

@@ -68,6 +68,22 @@ The game says what is in the world; the runtime says how much of it to compute a
 2. **Rocks keep the game's level.** Their pieces' break depends on the level, so the runtime can't share a pose across levels. Should the pieces' physics come from the finest level at every level (a change to `rock_body_v1`), so rocks can switch too?
 3. **Not built, measured as not needed yet:** impostors, wind on the GPU, and overlapping update with prepare. The next limit is the per-frame scan of every instance in the world (it grows with the world, not the view); culling and classifying by region would remove it. Should that be next?
 
+### Fields, grass, and the live plotter (`design/plotter.md`, "Fields")
+
+Asked for on 2026-10-13: the plotter's view should show the full simulation with its frame rate; radius up to 150; and grass as a lean, state-free functor over a region's cells that a plotter iterates without an instance per blade, stress-tested hard.
+
+- [ ] **The live plotter.** The plotter's viewport runs the region in the native runtime (grown to full, with its fields), uncapped, with its frame rate and what it drew and posed; orbit and fly. The radius goes to 150.
+- [ ] **Fields.** A pipeline with `draw.field` covers cells: its cell stage is a pure functor of a cell's integers, ground, moisture, and seed; its tile stage grows one shared cell's worth. The runtime spawns a field as one instance, runs the functor natively, draws by chunk at measured levels, and sways in the vertex shader. Plotters list `fields`; `foundry_region_spawn_fields` spawns them.
+- [ ] **`grass_v1`.** Five species (meadow, lawn, prairie, sedge, dune), plates for the other grounds, skirts for steps, four levels measured as a field. Native matches WebAssembly. Its book.
+- [ ] **Terrain and wind.** The plotter's ground takes a terrain (flat, hills, ridges, terraces, dunes, mesas, wild; height, hill size, roughness, jitter). The inspector's season and wind reach the live view. Wind headings are the world's, so turned trees bend alike. Grass doesn't colour the ground.
+- [ ] **Stressed.** The scale plan spawns fields, and `--only-fields` measures grass alone; `CURRENT.FPS.md` reports the most grass at 60 fps.
+
+**Questions from the agent** (fields, grass, and the live plotter; built and in draft, nothing is committed)
+1. **New channels to approve:** `grass_v1_genome`, `grass_v1_spec`, `grass_v1_model` (with `sway`, a new draw convention: how far a vertex moves in a 10 m/s wind), `grass_v1_cell`, and `grass_v1_choice` (the field convention: present, variant, turn, scale, tint). Each has its reason in its manifest.
+2. **Cell coordinates as unsigned parameters.** Pipelines have no signed parameter type, so `cell_q` and `cell_r` are u32 and a field passes a negative coordinate's bits (the cell stage reads them as i32). Should parameters get an i32 type instead?
+3. **Reference photos** for the five grasses aren't gathered yet. Should I find CC0 photos before you judge them?
+4. **Next, by the measurements:** a cheaper far tier for trees and shrubs (impostors), and drawing far grass chunks as one mesh each. See `CURRENT.FPS.md`.
+
 ## Not in this milestone
 
 To keep the milestone focused, these wait even though they are designed: trees and other nature, crafted things, buildings, humanoids, creatures, magic, auras, sound, shadows, the sleep and wake engine beyond what static meshes need, and recording and replay.

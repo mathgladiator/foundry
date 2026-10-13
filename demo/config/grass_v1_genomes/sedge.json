@@ -1,0 +1,56 @@
+{
+  "created_at": "2026-10-13T03:00:00Z",
+  "doc": "Tussock sedge of swamps and wet meadows: dense arching clumps, dark green, standing in water at the edges.",
+  "notes": [],
+  "reference": [],
+  "state": "draft",
+  "value": {
+    "bald": 0.15,
+    "base_color": [
+      0.14,
+      0.28,
+      0.12
+    ],
+    "bend": 1.2,
+    "blade_width": 0.045,
+    "blades": 180,
+    "clump": 0.9,
+    "dry": [
+      0.8,
+      0.1,
+      0.05,
+      0.45
+    ],
+    "dry_color": [
+      0.62,
+      0.52,
+      0.3
+    ],
+    "height": 0.7,
+    "height_jitter": 0.3,
+    "latin": "Carex stricta",
+    "lean": 0.55,
+    "lush": 0.7,
+    "name": "Tussock sedge",
+    "patch_cells": 4.0,
+    "season_height": [
+      0.6,
+      0.7,
+      1.0,
+      0.95
+    ],
+    "seed_color": [
+      0.4,
+      0.32,
+      0.2
+    ],
+    "seed_heads": 0.05,
+    "sway": 0.18,
+    "tip_color": [
+      0.36,
+      0.52,
+      0.22
+    ],
+    "variants": 4
+  }
+}

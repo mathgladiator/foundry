@@ -271,6 +271,23 @@ class Type final : public runtime::PipelineType {
     static const float k[3][3] = {{0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}};  // low, medium, high
     return k[quality < 0 ? 0 : quality > 2 ? 2 : quality];
   }
+  const runtime::ParamInfo *param_table(size_t &count) const override {
+    static const char *const v_material[] = {"basalt", "granite", "limestone", "marble", "obsidian", "riverstone", "sandstone", "slate"};
+    static const char *const v_size[] = {"small", "medium", "large", "huge"};
+    static const char *const v_moss[] = {"none", "light", "heavy"};
+    static const char *const v_season[] = {"winter", "spring", "summer", "fall"};
+    static const char *const v_detail[] = {"high", "medium", "low"};
+    static const runtime::ParamInfo t[] = {
+      {"material", runtime::ParamInfo::kEnum, offsetof(Params, material), true, v_material, 8u, 0.0, 0.0},
+      {"size", runtime::ParamInfo::kEnum, offsetof(Params, size), true, v_size, 4u, 0.0, 0.0},
+      {"moss", runtime::ParamInfo::kEnum, offsetof(Params, moss), true, v_moss, 3u, 0.0, 0.0},
+      {"season", runtime::ParamInfo::kEnum, offsetof(Params, season), true, v_season, 4u, 0.0, 0.0},
+      {"seed", runtime::ParamInfo::kU32, offsetof(Params, seed), true, nullptr, 0u, 1.0, 1000.0},
+      {"detail", runtime::ParamInfo::kEnum, offsetof(Params, detail), true, v_detail, 3u, 0.0, 0.0},
+      {"break_heading", runtime::ParamInfo::kF32, offsetof(Params, break_heading), false, nullptr, 0u, 0.0, 360.0}};
+    count = 7;
+    return t;
+  }
   const std::vector<runtime::StageInfo> &stages() const override {
     static const std::vector<runtime::StageInfo> s = {{"rock_v1.body", false}, {"rock_v1.animate", true}};
     return s;

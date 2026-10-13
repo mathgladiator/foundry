@@ -23,6 +23,8 @@ typedef struct foundry_diag_counters {
   uint64_t animated, unseen, rate_skipped;  /* awake instances posed; not posed: out of view, by rate */
   uint64_t bones_uploaded;                  /* bones whose changed pose went to the GPU */
   uint64_t lod_generations;                 /* of the generations, the runtime's coarser levels of detail */
+  uint64_t fields, field_tiles;             /* fields, and their tiles drawn in the last frame */
+  uint64_t field_tiles_by_level[4];         /* those tiles, by level of detail */
 } foundry_diag_counters;
 
 typedef struct foundry_diag_frame {
@@ -76,6 +78,10 @@ void foundry_diag_set_cost(foundry_runtime *rt, uint32_t flags);
  * then the runtime's far level (one past the coarsest); -1 lets its size pick again. Needs
  * FOUNDRY_DIAG_COST_DETAIL on. */
 foundry_status foundry_diag_force_level(foundry_runtime *rt, foundry_instance instance, int level);
+/* Sets a parameter by its name, from text: an enum's value name (or index), a number, or true or
+ * false, clamped to the parameter's range. FOUNDRY_STATUS_BAD_PARAMETER if the instance's pipeline
+ * has no such parameter. The foundry uses it to share values (season, wind) across a region. */
+foundry_status foundry_diag_set_param(foundry_runtime *rt, foundry_instance instance, const char *name, const char *value);
 /* Releases every unused build now, without waiting for the release timer. */
 void foundry_diag_flush(foundry_runtime *rt);
 

@@ -1,0 +1,43 @@
+{
+  "family": "grass",
+  "version": 1,
+  "feature": "model",
+  "doc": "A finished tile of grass, centred on a pointy-top hex cell of circumradius 1 m, ready to draw: instanced across a field and swayed by the wind in the vertex shader.",
+  "fields": [
+    {
+      "name": "height",
+      "type": "f32",
+      "doc": "The tile's top, metres."
+    },
+    {
+      "name": "radius",
+      "type": "f32",
+      "doc": "The tile's reach from its centre, metres."
+    },
+    {
+      "name": "positions",
+      "type": "vec3[]",
+      "doc": "Vertices, in the cell's space."
+    },
+    {
+      "name": "normals",
+      "type": "vec3[]",
+      "doc": "Per vertex."
+    },
+    {
+      "name": "colors",
+      "type": "u32[]",
+      "doc": "Per vertex, packed RGBA (red in the lowest byte); alpha 255 on grass (the cell's tint applies), 0 on the ground (it doesn't)."
+    },
+    {
+      "name": "indices",
+      "type": "u32[]",
+      "doc": "A triangle list."
+    },
+    {
+      "name": "sway",
+      "type": "f32[]",
+      "doc": "Per vertex: how far it moves in a 10 m/s wind, metres (0 at the ground)."
+    }
+  ]
+}

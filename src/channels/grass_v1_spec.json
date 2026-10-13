@@ -1,0 +1,40 @@
+{
+  "family": "grass",
+  "version": 1,
+  "feature": "spec",
+  "doc": "One tile of grass to grow: a hex cell's worth of blades of a species in a season, one of its variants (or one of the plain ground plates after them), at the level of detail the runtime picked.",
+  "fields": [
+    {
+      "name": "genome",
+      "type": "grass_v1_genome",
+      "doc": "The species."
+    },
+    {
+      "name": "season",
+      "type": "u32",
+      "doc": "The time of year.",
+      "enum": [
+        "winter",
+        "spring",
+        "summer",
+        "fall"
+      ]
+    },
+    {
+      "name": "variant",
+      "type": "u32",
+      "doc": "Which tile: below the genome's variants, a grass tile; after them, a plate for water, rock, sand, path, then bare soil; past those it wraps."
+    },
+    {
+      "name": "detail",
+      "type": "u32",
+      "doc": "Level of detail, chosen by the runtime from size on screen: blades, fewer wider blades, tufts, then a mat.",
+      "enum": [
+        "high",
+        "medium",
+        "low",
+        "mat"
+      ]
+    }
+  ]
+}

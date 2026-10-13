@@ -2222,6 +2222,27 @@ class Type final : public runtime::PipelineType {
     static const float k[3][3] = {{256.0f, 256.0f, 256.0f}, {256.0f, 256.0f, 12.0f}, {32.0f, 16.0f, 0.0f}};  // low, medium, high
     return k[quality < 0 ? 0 : quality > 2 ? 2 : quality];
   }
+  const runtime::ParamInfo *param_table(size_t &count) const override {
+    static const char *const v_species[] = {"acacia", "apple", "baldcypress", "baobab", "birch", "bristlecone", "cedar", "cherry", "coconut", "cypress", "dragonwood", "ebony", "elm", "hickory", "jacaranda", "larch", "lignumvitae", "liveoak", "mahogany", "mango", "mangrove", "maple", "mesquite", "oak", "olive", "osage", "pine", "redwood", "spruce", "teak", "tupelo", "willow"};
+    static const char *const v_age[] = {"sapling", "young", "mature", "ancient"};
+    static const char *const v_season[] = {"winter", "spring", "summer", "fall"};
+    static const char *const v_detail[] = {"high", "medium", "low"};
+    static const runtime::ParamInfo t[] = {
+      {"species", runtime::ParamInfo::kEnum, offsetof(Params, species), true, v_species, 32u, 0.0, 0.0},
+      {"age", runtime::ParamInfo::kEnum, offsetof(Params, age), true, v_age, 4u, 0.0, 0.0},
+      {"season", runtime::ParamInfo::kEnum, offsetof(Params, season), true, v_season, 4u, 0.0, 0.0},
+      {"fruit", runtime::ParamInfo::kBool, offsetof(Params, fruit), true, nullptr, 0u, 0.0, 1e+30},
+      {"stump", runtime::ParamInfo::kBool, offsetof(Params, stump), true, nullptr, 0u, 0.0, 1e+30},
+      {"seed", runtime::ParamInfo::kU32, offsetof(Params, seed), true, nullptr, 0u, 1.0, 1000.0},
+      {"detail", runtime::ParamInfo::kEnum, offsetof(Params, detail), true, v_detail, 3u, 0.0, 0.0},
+      {"wind_speed", runtime::ParamInfo::kF32, offsetof(Params, wind_speed), false, nullptr, 0u, 0.0, 25.0},
+      {"wind_heading", runtime::ParamInfo::kF32, offsetof(Params, wind_heading), false, nullptr, 0u, 0.0, 360.0},
+      {"gust_damping", runtime::ParamInfo::kF32, offsetof(Params, gust_damping), false, nullptr, 0u, 0.0, 1.0},
+      {"break_heading", runtime::ParamInfo::kF32, offsetof(Params, break_heading), false, nullptr, 0u, 0.0, 360.0}};
+    count = 11;
+    return t;
+  }
+  size_t wind_heading_offset() const override { return offsetof(Params, wind_heading); }
   const std::vector<runtime::StageInfo> &stages() const override {
     static const std::vector<runtime::StageInfo> s = {{"tree_v1.rig", false}, {"tree_v1.mesh", false}, {"tree_v1.colorize", false}, {"tree_v1.animate", true}};
     return s;

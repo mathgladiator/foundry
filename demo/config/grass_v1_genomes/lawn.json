@@ -1,0 +1,56 @@
+{
+  "created_at": "2026-10-13T03:00:00Z",
+  "doc": "A cut lawn: short, dense, even blades of rye and bent, green all year where it is kept.",
+  "notes": [],
+  "reference": [],
+  "state": "draft",
+  "value": {
+    "bald": 0.0,
+    "base_color": [
+      0.18,
+      0.38,
+      0.12
+    ],
+    "bend": 0.3,
+    "blade_width": 0.045,
+    "blades": 320,
+    "clump": 0.05,
+    "dry": [
+      0.35,
+      0.0,
+      0.1,
+      0.2
+    ],
+    "dry_color": [
+      0.6,
+      0.6,
+      0.32
+    ],
+    "height": 0.09,
+    "height_jitter": 0.25,
+    "latin": "Lolium, Agrostis",
+    "lean": 0.25,
+    "lush": 0.3,
+    "name": "Lawn",
+    "patch_cells": 10.0,
+    "season_height": [
+      0.8,
+      1.0,
+      1.0,
+      1.0
+    ],
+    "seed_color": [
+      0.6,
+      0.6,
+      0.4
+    ],
+    "seed_heads": 0.0,
+    "sway": 0.03,
+    "tip_color": [
+      0.36,
+      0.62,
+      0.2
+    ],
+    "variants": 4
+  }
+}

@@ -1,6 +1,6 @@
 # The happy glen (`plotter happy_glen_v1`)
 
-`happy_glen_v1` is the first plotter (`design/plotter.md`): it fills any region of hex cells with a happy, gentle green place. Oaks, apple trees, and the odd willow stand in loose groves that thicken toward the border, so the middle stays open and sunny. Hazel, bramble, and elderberry gather under the trees and along the edges, bluebells and foxgloves grow in the shade, daisies and poppies fill the open grass, and a few river stones lie about.
+`happy_glen_v1` is the first plotter (`design/plotter.md`): it fills any region of hex cells with a happy, gentle green place. Oaks, apple trees, and the odd willow stand in loose groves that thicken toward the border, so the middle stays open and sunny. Hazel, bramble, and elderberry gather under the trees and along the edges, bluebells and foxgloves grow in the shade, daisies and poppies fill the open grass, and a few river stones lie about. Under it all, a field of meadow grass covers every cell (`fields`, `book/grass_v1.md`): grass on the soil, and plates for the pond and the path.
 
 - **The plotter:** `demo/plotters/happy_glen_v1.json` (draft)
 - **Plot system:** `plot_scatter_v1` (draft, `src/systems/plot_scatter_v1/`), on the `plot_v1_*` channels (drafts)
@@ -115,7 +115,18 @@ The scale plan (`plotter_perf`, or `--plan scale --find 60`; `design/quality.per
 | 44 x 44 | 235.90 | 269,743 | 90.7 (7,312, 82.9 M) | 61.1 (8,227) | 219.2 (690) |
 | 48 x 48 | 280.74 | 321,243 | 89.6 (8,102, 84.4 M) | 57.0 (9,188) | 197.5 (713) |
 
-At 60 fps the vista holds 8,227 trees in view (44 x 44 glens, 269,743 things); it is limited by the GPU (110.6 M triangles, half of them trees and half shrubs). The 16 x 16 scene, 1,377 trees from the overview, went from 39.8 fps (`demo/perf/report-plotter_happy_glen_v1-scale-20261012T224722Z.json`, before the runtime made its cost decisions) to 295.4. `CURRENT.FPS.md` breaks down each decision's gain and what it costs in looks.
+At 60 fps the vista holds 8,227 trees in view (44 x 44 glens, 269,743 things); it is limited by the GPU (110.6 M triangles, half of them trees and half shrubs).
+
+**With its grass** (the glen's field of meadow grass on every cell; `book/grass_v1.md`), from `demo/perf/report-plotter_happy_glen_v1-scale-20261013T023041Z.json`:
+
+| Grid | Things | Field cells (all of them) | Overview: fps (trees seen) | Vista: fps (trees seen) | Game camera: fps |
+|---|---|---|---|---|---|
+| 4 x 4 | 2,177 | 7,504 | 769.0 (82) | 707.2 (83) | 1,413.5 |
+| 16 x 16 | 35,613 | 120,064 | 207.9 (1,377) | 147.1 (1,392) | 293.9 |
+| 28 x 28 | 109,213 | 367,696 | 83.1 (3,872) | 68.8 (4,030) | 190.8 |
+| 32 x 32 | 142,780 | 480,256 | 68.0 (4,829) | 57.0 (5,103) | 179.2 |
+
+With grass, 60 fps holds to 28 x 28 glens: 4,030 trees in the vista over 339,414 grass cells in view. The 16 x 16 scene, 1,377 trees from the overview, went from 39.8 fps (`demo/perf/report-plotter_happy_glen_v1-scale-20261012T224722Z.json`, before the runtime made its cost decisions) to 295.4. `CURRENT.FPS.md` breaks down each decision's gain and what it costs in looks.
 
 ## QA
 

@@ -119,10 +119,18 @@ int run_lod(Ctx &ctx, const LodOptions &o) {
     std::vector<foundry_instance> inst(levels);
     Config c = configs[ci];
     c[detail].u = 0;  // the game asks for the finest; the runtime draws each at its forced level
+    // A field pipeline is measured as a field: a patch of 37 cells (a hex of radius 3), each showing
+    // the tile its cell chooses, sized as one tile (its radius, 1.5 m, as the runtime judges fields).
+    std::vector<foundry_field_cell> patch;
+    if (pl.spawn_field)
+      for (int q = -3; q <= 3; ++q)
+        for (int rr = -3; rr <= 3; ++rr)
+          if (std::abs(q) + std::abs(rr) + std::abs(q + rr) <= 6) patch.push_back({q, rr, FOUNDRY_GROUND_SOIL, 0.55f, 0.0f});
     for (uint32_t l = 0; l < levels; ++l) {
       float t[16];
       translation(5000.0f * static_cast<float>(l), 0, 0, t);
-      inst[l] = ctx.spawn(c, t);
+      inst[l] = pl.spawn_field ? pl.spawn_field(ctx.rt, c.data(), t, patch.data(), static_cast<uint32_t>(patch.size()))
+                               : ctx.spawn(c, t);
       foundry_diag_force_level(ctx.rt, inst[l], static_cast<int>(l));
     }
     float r = 0, cy = 0;
@@ -138,8 +146,8 @@ int run_lod(Ctx &ctx, const LodOptions &o) {
           continue;
         }
         if (l == 0) {
-          r = info.radius;
-          cy = info.height * 0.5f;
+          r = pl.spawn_field ? 1.5f : info.radius;
+          cy = pl.spawn_field ? 0.3f : info.height * 0.5f;
         }
         const float ox = 5000.0f * static_cast<float>(l);
         const float eye[3] = {ox, cy + 2 * r, 4 * r + 2}, target[3] = {ox, cy, 0};
@@ -147,7 +155,7 @@ int run_lod(Ctx &ctx, const LodOptions &o) {
         ctx.frame(true);
         foundry_diag_instance_get(ctx.rt, inst[l], &info);
         ready = ready && info.drawn && info.level == l;
-        if (info.drawn) tris[l] = info.drawn_triangles;
+        if (info.drawn) tris[l] = pl.spawn_field ? info.drawn_triangles / static_cast<uint32_t>(patch.size()) : info.drawn_triangles;
       }
       if (ready) break;
       SDL_Delay(2);
@@ -176,7 +184,7 @@ int run_lod(Ctx &ctx, const LodOptions &o) {
           const bool keep = !o.snapshot_dir.empty() && ci < 4;
           const Diff df = image_diff(px[0], px[l], keep ? &mask : nullptr);
           dis[l][si] += 0.5 * df.object;
-          if (keep && v == views[1])
+          if (keep && &v == &views[1])
             stbi_write_png(fmt("%s/lod-%zu-%dpx-level%u.png", o.snapshot_dir.c_str(), ci, static_cast<int>(sizes[si]), l).c_str(),
                            static_cast<int>(ctx.plan.width / ss), static_cast<int>(ctx.plan.height / ss), 4, mask.data(),
                            static_cast<int>(ctx.plan.width / ss * 4));

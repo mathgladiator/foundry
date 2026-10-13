@@ -52,6 +52,8 @@ foundry_shader("${CMAKE_SOURCE_DIR}/src/runtime/shaders/cel.hlsl" ps_6_0 ps_main
 foundry_shader("${CMAKE_SOURCE_DIR}/src/runtime/shaders/skinned.hlsl" vs_6_0 vs_main skinned_vs_spirv)
 foundry_shader("${CMAKE_SOURCE_DIR}/src/runtime/shaders/skinned.hlsl" ps_6_0 ps_main skinned_ps_spirv)
 foundry_shader("${CMAKE_SOURCE_DIR}/src/runtime/shaders/scatter.hlsl" cs_6_0 cs_main scatter_cs_spirv)
+foundry_shader("${CMAKE_SOURCE_DIR}/src/runtime/shaders/field.hlsl" vs_6_0 vs_main field_vs_spirv)
+foundry_shader("${CMAKE_SOURCE_DIR}/src/runtime/shaders/field.hlsl" ps_6_0 ps_main field_ps_spirv)
 foundry_shader("${CMAKE_SOURCE_DIR}/src/host/viewport/shaders/viewport.hlsl" vs_6_0 mesh_vs viewport_mesh_vs_spirv)
 foundry_shader("${CMAKE_SOURCE_DIR}/src/host/viewport/shaders/viewport.hlsl" ps_6_0 mesh_ps viewport_mesh_ps_spirv)
 foundry_shader("${CMAKE_SOURCE_DIR}/src/host/viewport/shaders/viewport.hlsl" vs_6_0 full_vs viewport_full_vs_spirv)
@@ -133,7 +135,7 @@ target_compile_definitions(foundry PRIVATE
   FOUNDRY_BUILD_DIR="${CMAKE_BINARY_DIR}")
 target_compile_options(foundry PRIVATE -Wall -Wextra)
 target_link_libraries(foundry PRIVATE
-  foundry_runtime imgui SDL3::SDL3 httplib::httplib nlohmann_json::nlohmann_json header_libs wasmtime_c meshoptimizer Jolt)
+  foundry_library foundry_runtime imgui SDL3::SDL3 httplib::httplib nlohmann_json::nlohmann_json header_libs wasmtime_c meshoptimizer Jolt)
 
 # Tests.
 enable_testing()

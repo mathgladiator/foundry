@@ -1,0 +1,56 @@
+{
+  "created_at": "2026-10-13T03:00:00Z",
+  "doc": "Marram dune grass: sparse, stiff, pale blue-green blades in tufts on sand, rolled and wiry, leaning with the sea wind.",
+  "notes": [],
+  "reference": [],
+  "state": "draft",
+  "value": {
+    "bald": 0.35,
+    "base_color": [
+      0.4,
+      0.48,
+      0.34
+    ],
+    "bend": 0.35,
+    "blade_width": 0.035,
+    "blades": 80,
+    "clump": 0.85,
+    "dry": [
+      0.6,
+      0.15,
+      0.25,
+      0.45
+    ],
+    "dry_color": [
+      0.8,
+      0.74,
+      0.52
+    ],
+    "height": 0.75,
+    "height_jitter": 0.35,
+    "latin": "Ammophila arenaria",
+    "lean": 0.4,
+    "lush": 0.2,
+    "name": "Dune grass",
+    "patch_cells": 3.0,
+    "season_height": [
+      0.85,
+      0.9,
+      1.0,
+      1.0
+    ],
+    "seed_color": [
+      0.78,
+      0.7,
+      0.5
+    ],
+    "seed_heads": 0.1,
+    "sway": 0.12,
+    "tip_color": [
+      0.62,
+      0.7,
+      0.52
+    ],
+    "variants": 4
+  }
+}

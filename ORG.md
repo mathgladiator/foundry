@@ -64,7 +64,7 @@ The slices so far:
 | `app` | The entry point, the Dear ImGui workspace UI, and window capture |
 | `perf` | The performance phase: GPU benchmarks of meshes, using the runtime's instanced renderer; running pipelines' stress binaries (`perf_stress`) and QA video exports (`pipeline_video`) as background jobs |
 | `physics` | The foundry's toy Jolt Physics world (`toy.h`): checks a build's collision (Jolt makes its shapes, the world adds and removes them, they stay inside the conformance) and turns it into wireframe lines for the viewport |
-| `plot` | Plotters (`plotter.h`: load, check, measure footprints, compile the biome config), the region the workspace shows (`view.h`: its ground, occupants, growth, clearing, and composed picture), and their MCP tools |
+| `plot` | Plotters (`plotter.h`: load, check, measure footprints, compile the biome config), the region the workspace shows (`view.h`: its ground, occupants, growth, clearing, and composed picture), the same region live in the native runtime (`live.h`: the host links `src/library`, finds the plotter by name, and draws it on the workspace's GPU), and their MCP tools |
 | `pipeline` | Runs pipelines in WebAssembly: parameter bindings, a cache of each stage's output keyed by system build and input, the live instance the workspace shows (its clock and background rebuilds), CPU skinning for the viewport, contact sheets, config tables (`config.h`: generic; no pipeline is known to the host), and the flow analysis and probe (`flow.h`) |
 
 Each slice registers its own MCP tools in a `tools.cpp`.
@@ -102,6 +102,7 @@ So far it holds:
 - `src/runtime/core/`: the runtime's world (`world.h`): instances and their timelines, the shared cache of builds, generation on background threads, the update broadcast on a thread pool, sleep, culling, the cost decisions (`design/submit.md`, "Cost": level of detail by size on screen, too small, posed when seen and as often as it shows), and diagnostics; and the interface a pipeline implements (`pipeline.h`), which generated code fills in.
 - `src/runtime/shaders/skinned.hlsl` and `src/runtime/render/skinned_renderer.*`: skinned, instanced drawing, with each instance's bones in a slot of a persistent storage buffer, the changed ones scattered there by a compute pass (`src/runtime/shaders/scatter.hlsl`).
 - `src/runtime/render/simplify.*`: the far level of detail, a build's coarsest mesh clustered on a grid.
+- `src/runtime/render/field_renderer.*` and `src/runtime/shaders/field.hlsl`: fields' tiles (`design/plotter.md`, "Fields"), instanced, turned, tinted, and swayed by the wind in the vertex shader.
 - `src/runtime/shaders/cel.hlsl`: the first cut of the mega shader, compiled to SPIR-V by DXC at build time and embedded in the binary (`build/*/shaders/`). DXC comes from `tools/bootstrap.sh`; `SDL_shadercross` will add Metal and Direct3D 12 later.
 - `src/runtime/render/`: the engine's in-memory mesh (`runtime::Mesh`) and the instanced cel renderer on SDL3's GPU API, built as the `foundry_runtime` library.
 

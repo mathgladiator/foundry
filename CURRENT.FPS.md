@@ -2,9 +2,35 @@
 
 **At 60 fps, 8,227 trees in view.** A vista across a 44 x 44 grid of happy glens (269,743 things on 236 hectares), from a corner of the world at game height, holds 61.1 fps at 1920 x 1080 with 8,227 trees in view and 21,420 things drawn. Above the same world, the overview holds 90.7 fps with 7,312 trees in view. At 48 x 48 the vista drops to 57.0 fps. The machine is an AMD Ryzen AI Max+ 395 with its Radeon 8060S (Vulkan).
 
+**With grass on every cell,** the same vista holds 4,030 trees at 68.8 fps; grass alone holds 1.76 million grass cells in view at 76.6 fps (see "Grass" below).
+
 **The 1,000-tree view.** The scene from the first report (16 x 16 glens, 1,377 trees in view from the overview) went from **39.8 fps to 295.4 fps**. Its game camera went from 73.6 to 349.7 fps.
 
 Every number here comes from `demo/perf/report-plotter_happy_glen_v1-scale-20261013T005027Z.json`, except where another report is named. To reproduce it, run `build/linux-release/stress/stress_plotter_happy_glen_v1 --plan scale --find 60`, call `plotter_perf` with `find: 60`, or press **Run the scale plan** in the plotter's inspector.
+
+## Grass: a field, and the most of it at 60 fps
+
+The glen now has grass on every cell: one **field** instance per region, not an instance per blade (`design/plotter.md`, "Fields"; `book/grass_v1.md`).
+- **The functor:** a pure function of each cell's integers, ground and the world's seed picks one of a few shared tiles.
+- **Drawing:** chunks of 8 x 8 cells pick their level by size on screen, and the wind sways the blades in the vertex shader.
+
+From `demo/perf/report-plotter_happy_glen_v1-scale-20261013T023041Z.json` (the glen with grass) and `demo/perf/report-plotter_happy_glen_v1-scale-20261013T023137Z.json` (grass alone, `--only-fields`):
+
+| | Grid | Grass cells in view | Trees in view | fps |
+|---|---|---|---|---|
+| **Grass alone, vista** | 64 x 64 (499 ha) | **1,755,284** | | **76.6** |
+| Grass alone, vista | 72 x 72 (632 ha) | 2,219,613 | | 59.8 |
+| **Glen with grass, vista** | 28 x 28 (95.5 ha) | 339,414 | **4,030** | **68.8** |
+| Glen with grass, vista | 32 x 32 | 442,292 | 5,103 | 57.0 |
+| Glen with grass, overview | 16 x 16 | 110,079 | 1,377 | 207.9 |
+
+- **Grass costs a third of the frame.** Grass on every cell of the 1,377-tree world takes the overview from 295 to 208 fps, and the game camera from 350 to 294 fps. The 60 fps vista goes from 8,227 trees on bare sky to 4,030 trees on a meadow.
+- **Without measured levels, grass would cost 7 times as much.** The ladder on the glen with grass, with every decision off, draws grass at its finest everywhere: 204.6M triangles and 40.5 fps from the overview. With every decision on, it is 27.5M triangles at 194 fps.
+- **Grass changes more of the picture when its level changes.** From the game camera, the decisions visibly change 7.8% of what shows (1.1% without grass). Almost all of it is grass levels drawing different blades in different places: the same texture, which a pixel-by-pixel comparison counts as change.
+- **A grass cell is 32 bytes.** A field keeps each cell as instance data, never as an instance, so grass alone at 64 x 64 holds 1.9M cells in 308 MB RSS.
+- **The far limit is the GPU, then copying.** At 72 x 72, grass alone draws 88.8M triangles: every far cell at its low level, 37 triangles. Preparing copies every visible cell's 32 bytes each frame: 8.6 ms there, on the update threads. At 64 x 64 it is 6.6 ms; on one thread it was 15.1 ms (a run without a report, before this was spread over the threads). The next steps are drawing far chunks as one mesh each, and keeping tiles in GPU memory with indirect draws.
+
+The foundry's plotter view now shows this simulation live: the region in the native runtime, with its grass, at its real frame rate. At radius 150 (22,384 things and 68,000 grass cells), it grows in under a second and runs at 95 fps inside the foundry's window.
 
 ## The thesis change
 
@@ -94,6 +120,9 @@ The workspace's viewport, screenshots, contact sheets and `plotter_view` now ren
 - **Composing a region still runs its pipelines in WebAssembly** (about 0.85 s for 871 things), once per change.
 
 ## What's next, ranked the same way
+
+These were ranked before grass. Grass adds two of its own: drawing far grass chunks as one mesh each, and keeping field tiles in GPU memory, drawn indirectly, so preparing doesn't copy every visible cell each frame.
+
 
 1. **Cull and classify by region.** Each plotter region gets bounds; a region out of view, or far beyond the posing sizes, is skipped whole. This removes the per-frame scan that grows with the world. No cost in looks.
 2. **A cheaper far tier for trees and shrubs.** Impostors, or a stricter cluster, so a 20 px tree costs hundreds of triangles, not thousands. This is the vista's limit. At high quality the far level doesn't pass the 10% rule yet; a better far level would.

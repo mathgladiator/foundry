@@ -132,6 +132,26 @@ uint32_t foundry_region_find(foundry_runtime *rt, foundry_region region, const f
 /* How many things stand in the region. */
 uint32_t foundry_region_count(foundry_runtime *rt, foundry_region region);
 
+/* One cell of a field (design/plotter.md, "Fields"): a pipeline instance that covers many cells, each
+ * showing the tile the pipeline's per-cell stage chooses. Spawned by a region's plotter
+ * (foundry_region_spawn_fields), or directly with a field pipeline's foundry_<pipeline>_spawn_field. */
+typedef struct foundry_field_cell {
+  int32_t q, r;          /* axial; the centre is at x = sqrt(3) (q + r/2), z = 1.5 r */
+  foundry_ground ground;
+  float moisture;        /* 0 dry to 1 wet */
+  float height;          /* the ground's height at the centre, metres */
+} foundry_field_cell;
+/* Spawns the plotter's fields over the region's cells, one instance per field (grass, say), in the
+ * region's space. Writes up to max handles into out; returns how many fields the plotter has. The
+ * game owns them like any instance; spawn them again after foundry_region_set_regions. */
+uint32_t foundry_region_spawn_fields(foundry_runtime *rt, foundry_region region, foundry_instance *out, uint32_t max);
+/* A plotter's fields, as "pipeline param..." (e.g. "grass_v1 meadow"), and how many it has. */
+const char *foundry_plotter_field_name(foundry_plotter plotter, uint32_t field);
+uint32_t foundry_plotter_field_count(foundry_plotter plotter);
+/* An approved plotter by its name (e.g. "happy_glen_v1"), or FOUNDRY_NO_PLOTTER; and a plotter's name. */
+#define FOUNDRY_NO_PLOTTER ((foundry_plotter)0xffffffffu)
+foundry_plotter foundry_plotter_find(const char *name);
+const char *foundry_plotter_name(foundry_plotter plotter);
 /* A plotter's kind, as "pipeline param..." (e.g. "tree_v1 oak"), and how many kinds it has. */
 const char *foundry_plotter_kind_name(foundry_plotter plotter, uint32_t kind);
 uint32_t foundry_plotter_kind_count(foundry_plotter plotter);

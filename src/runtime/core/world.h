@@ -17,6 +17,7 @@
 
 #include "core/pipeline.h"
 #include "core/threads.h"
+#include "render/field_renderer.h"
 #include "render/skinned_renderer.h"
 
 namespace runtime {
@@ -68,6 +69,8 @@ struct Counters {
   uint64_t animated = 0, unseen = 0, rate_skipped = 0;  // awake instances posed, and not posed (out of view, by rate)
   uint64_t bones_uploaded = 0;          // bones whose pose changed and went to the GPU
   uint64_t lod_generations = 0;         // of the generations, the runtime's coarser levels of detail
+  uint64_t fields = 0, field_tiles = 0;  // fields, and the tiles of theirs drawn in the last frame
+  uint64_t field_tiles_by_level[4] = {0, 0, 0, 0};
 };
 
 struct FrameTimes {
@@ -103,11 +106,18 @@ class World {
   bool ok() const { return ok_; }
 
   uint64_t spawn(const PipelineType *type, const void *params, const float transform[16]);
+  // A field (design/plotter.md, "Fields"): one instance over many hex cells, each showing the tile
+  // its cell chooses (the pipeline's cell stage, run here for every cell), drawn instanced by chunk.
+  uint64_t spawn_field(const PipelineType *type, const void *params, const float transform[16], const FieldCell *cells,
+                       size_t count);
   Status destroy(uint64_t handle);
   Status set_transform(uint64_t handle, const float transform[16]);
   Status set_param(uint64_t handle, const PipelineType *type, size_t offset, const void *value, size_t size,
                    bool build);
   Status trigger(uint64_t handle, const PipelineType *type, size_t event);
+  // Diagnostics: sets a parameter by its name, from text (an enum's value name, a number, true or
+  // false), clamped to its range. bad_parameter if the pipeline has no such parameter.
+  Status set_named(uint64_t handle, const char *name, const char *value);
   Status sleeping(uint64_t handle, bool &out) const;
   // The instance's update result (design/api.md, "Instance results"), as current values: bit i
   // is event i's flag (it fired and its animation is over: the pose has settled since), and
@@ -156,10 +166,13 @@ class World {
     uint64_t order = 0;  // when it was created, for eviction
     uint32_t dense = 0;  // a small index, for bucketing draws
     bool lod = false;    // made for a coarser level of detail (the runtime's choice, not the game's)
+    bool field = false;  // a field's tile: drawn by the field renderer
+    FieldMesh fgpu;
     // As a coarser level of detail: whether it poses like the finer build of that key (its bones
     // and their motion are the same, so it can share that instance's pose).
     std::vector<std::pair<uint64_t, bool>> poses_like;
   };
+  struct Field;
   struct Slot {
     uint32_t generation = 1;
     bool alive = false;
@@ -193,7 +206,29 @@ class World {
     bool wants_lod = false;        // classification asked for a coarser build it doesn't have
     int8_t lod_ok[4] = {-1, -1, -1, -1};  // whether each coarser build poses like its own (-1: not checked yet)
     int8_t forced = -1;            // diagnostics: the level it is drawn at, whatever its size (-1: its size picks)
+    std::unique_ptr<Field> field;  // a field's cells and chunks (null: an ordinary instance)
   };
+  // A field: its tiles by chunk (8 x 8 cells), each chunk's tiles in runs of one variant, and the
+  // tile builds it uses, by variant and level.
+  struct Field {
+    std::vector<FieldInstance> tiles;
+    struct Run {
+      uint32_t variant, first, count;
+    };
+    struct Chunk {
+      float c[3] = {0, 0, 0};
+      float r = 0;
+      std::vector<Run> runs;
+      uint8_t level = 0;
+    };
+    std::vector<Chunk> chunks;
+    std::map<uint32_t, std::pair<uint64_t, Entry *>> builds;  // (variant << 4 | level) -> key, entry
+    uint64_t drawn_tiles = 0, drawn_triangles = 0;
+    uint32_t level_drawn = 0;  // a level its tiles were drawn at in the last frame (diagnostics)
+  };
+  Entry *field_tile(Slot &s, uint32_t variant, uint32_t level, bool request);
+  void drop_field_builds(Slot &s);
+  void prepare_fields(SDL_GPUCopyPass *copy);
   Slot *slot(uint64_t handle);
   const Slot *slot(uint64_t handle) const;
   void want(Slot &s);
@@ -243,6 +278,10 @@ class World {
   uint32_t cost_ = kCostAll;
   uint64_t frame_ = 0;
   std::vector<DrawRange> frame_ranges_;
+  FieldRenderer field_renderer_;
+  std::vector<FieldRange> field_ranges_;
+  std::vector<uint32_t> field_slots_;  // the slots that are fields
+  uint64_t field_triangles_ = 0;       // drawn by fields in the last frame
   std::vector<uint32_t> free_dense_;
   uint32_t next_dense_ = 0;
 

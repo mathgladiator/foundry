@@ -91,6 +91,8 @@ Every frame, before posing anything, the runtime classifies each instance: wheth
 - **Posed as often as it shows.** A small instance is posed less often: every frame at 160 pixels and above (high quality), every 2nd frame from 48, every 4th from 16, every 8th from 8, and every 16th below. Instances take turns, so the work is even across frames, and one that missed too many frames is posed at once.
 - **Retained poses.** Each instance keeps a slot in a persistent bone buffer on the GPU. Only poses that changed, and are drawn, go up each frame: packed into one upload, then scattered into their slots by a compute pass. A sleeping or rarely posed instance costs nothing to prepare beyond its 64-byte instance record.
 
+- **Fields.** A field (`plotter.md`, "Fields") is one instance over many cells. It is never posed; the wind moves its tiles in the vertex shader. It is culled and given a level per chunk of 8 x 8 cells, by a tile's size at the chunk's nearest point. Its levels never cull to nothing, since the field is the ground. The tiles of the chunks in view are streamed as 32-byte instances, one draw per tile build.
+
 The update and prepare phases touch only what can change: classification and the choice of who is posed run across the update threads, builds waiting to switch in and results that may have changed are kept on lists, and draws are bucketed by build with a counting sort.
 
 ## Platform target

@@ -128,6 +128,9 @@ class Pipeline:
         self.draw = self.j.get("draw", {})
         self.model = self.draw.get("model")
         self.pose = self.draw.get("pose")
+        # A field (design/plotter.md, "Fields"): the per-cell stage, and which parameters are the
+        # cell's (q, r, ground, moisture, seed), the tile's variant, and the wind.
+        self.field = self.draw.get("field")
         if self.model not in self.by_id:
             sys.exit(f"{self.src}: draw.model names no stage")
         # Build parameters: anything a build stage reads; the rest only move the pose.
@@ -215,6 +218,14 @@ class Pipeline:
         o.append(f"/* Returns FOUNDRY_NO_INSTANCE if a parameter is out of range. */\n")
         o.append(f"foundry_instance {self.C}_spawn(foundry_runtime *rt, const {self.C}_params *params,\n"
                  f"                                  const float transform[16]);\n")
+        if self.field:
+            fd = self.field
+            o.append(f"/* A field (design/plotter.md, \"Fields\"): one instance covering these cells, each showing the tile\n"
+                     f" * the pipeline's {fd['cell']} stage chooses for it. params' {fd['q']}, {fd['r']}, {fd['ground']}, {fd['moisture']},\n"
+                     f" * and {fd['variant']} are each cell's own and ignored here; {fd['seed']} is the world's. */\n")
+            o.append(f"foundry_instance {self.C}_spawn_field(foundry_runtime *rt, const {self.C}_params *params,\n"
+                     f"                                        const float transform[16], const foundry_field_cell *cells,\n"
+                     f"                                        uint32_t count);\n")
         for p in self.values:
             o.append(f"foundry_status {self.C}_set_{p['name']}(foundry_runtime *rt, foundry_instance instance, "
                      f"{self.ctype(p)} value);\n")
@@ -323,6 +334,94 @@ class Pipeline:
         else:
             out.append(f"{indent}{target} = {self.scalar_cpp(typ, binding, None, target)};\n")
 
+    def param_table(self):
+        """The parameters by name (runtime::ParamInfo), for setting them by name."""
+        o = []
+        rows = []
+        for p in self.values:
+            n = p["name"]
+            if p["type"] in ("enum", "config"):
+                names = ", ".join(c_string(v) for v in p["values"])
+                o.append(f"    static const char *const v_{n}[] = {{{names}}};\n")
+                rows.append(f"{{{c_string(n)}, runtime::ParamInfo::kEnum, offsetof(Params, {n}), {'true' if p['build'] else 'false'}, "
+                            f"v_{n}, {len(p['values'])}u, 0.0, 0.0}}")
+            else:
+                kind = {"u32": "kU32", "f32": "kF32", "bool": "kBool"}[p["type"]]
+                lo, hi = float(p.get("min", 0)), float(p.get("max", 4294967295 if p["type"] == "u32" else 1e30))
+                rows.append(f"{{{c_string(n)}, runtime::ParamInfo::{kind}, offsetof(Params, {n}), {'true' if p['build'] else 'false'}, "
+                            f"nullptr, 0u, {lo!r}, {hi!r}}}")
+        head = ["  const runtime::ParamInfo *param_table(size_t &count) const override {\n"]
+        tail = [f"    static const runtime::ParamInfo t[] = {{\n      " + ",\n      ".join(rows) + "};\n",
+                f"    count = {len(rows)};\n    return t;\n  }}\n"]
+        return head + o + tail
+
+    def field_hooks(self):
+        """The PipelineType overrides of a field pipeline (runtime/core/pipeline.h, FieldCell)."""
+        fd = self.field
+        for k in ("cell", "variant", "q", "r", "ground", "moisture", "seed"):
+            if k not in fd:
+                sys.exit(f"{self.src}: draw.field needs {k}")
+        st = self.by_id.get(fd["cell"])
+        if not st or st["update"]:
+            sys.exit(f"{self.src}: draw.field.cell names no build stage")
+        outf = {f["name"]: f for f in self.channels[st["out"]]["fields"]}
+        for need in ("present", "variant", "turn", "scale", "tint"):
+            if need not in outf:
+                sys.exit(f"{self.src}: the field's cell stage ({st['out']}) needs a {need} field")
+        pnames = {p["name"]: p for p in self.params}
+        for k in ("variant", "q", "r", "ground", "moisture", "seed"):
+            if fd[k] not in pnames:
+                sys.exit(f"{self.src}: draw.field.{k} names no parameter")
+        # Where each per-cell parameter lands in the cell stage's input.
+        per_cell = {fd["q"]: "cells[i].q", fd["r"]: "cells[i].r", fd["ground"]: "cells[i].ground", fd["moisture"]: "cells[i].moisture"}
+        targets = []
+
+        def walk(b, path):
+            if isinstance(b, dict):
+                for k, v in b.items():
+                    walk(v, f"{path}.{k}")
+            elif isinstance(b, str) and b.startswith("$") and b[1:] in per_cell:
+                targets.append((path, per_cell[b[1:]]))
+        walk(st["input"], "cell_in")
+        o = ["  bool is_field() const override { return true; }\n"]
+        o.append("  bool field_cells(const void *params, const runtime::FieldCell *cells, size_t count, runtime::FieldChoice *out,\n"
+                 "                   std::string &error) const override {\n")
+        o.append("    const Params &p = *static_cast<const Params *>(params);\n")
+        o.append(f"    channels::{st['in']} cell_in;\n")
+        body = []
+        self.bind_cpp(st["input"], st["in"], "cell_in", body, "    ", "build")
+        o.extend(body)
+        o.append(f"    channels::{st['out']} cell_out;\n")
+        o.append("    for (size_t i = 0; i < count; ++i) {\n")
+        for path, expr in targets:
+            o.append(f"      {path} = static_cast<decltype({path})>({expr});\n")
+        o.append(f"      if (!{st['system']}::run(cell_in, cell_out, error)) {{\n        error = \"{st['id']} ({st['system']}): \" + error;\n"
+                 "        return false;\n      }\n")
+        o.append("      runtime::FieldChoice &c = out[i];\n      c.present = cell_out.present;\n      c.variant = cell_out.variant;\n"
+                 "      c.turn = cell_out.turn;\n      c.scale = cell_out.scale;\n"
+                 "      c.tint[0] = cell_out.tint.x;\n      c.tint[1] = cell_out.tint.y;\n      c.tint[2] = cell_out.tint.z;\n    }\n")
+        o.append("    return true;\n  }\n")
+        o.append("  void field_tile_params(const void *params, uint32_t variant, void *out) const override {\n")
+        o.append("    Params t = *static_cast<const Params *>(params);\n")
+        o.append(f"    t.{fd['variant']} = variant;\n")
+        for k in ("q", "r", "ground", "moisture", "seed"):
+            q = pnames[fd[k]]
+            d = self.default(q)
+            if q["type"] in ("enum", "config"):
+                o.append(f"    t.{q['name']} = static_cast<{self.ctype(q)}>({d});\n")
+            elif q["type"] == "u32":
+                o.append(f"    t.{q['name']} = {d}u;\n")
+            else:
+                o.append(f"    t.{q['name']} = {f32(d)};\n")
+        o.append("    std::memcpy(out, &t, sizeof t);\n  }\n")
+        ws, wh = fd.get("wind_speed"), fd.get("wind_heading")
+        if ws and wh:
+            o.append("  void field_wind(const void *params, float &speed, float &heading) const override {\n"
+                     "    const Params &p = *static_cast<const Params *>(params);\n"
+                     f"    speed = p.{ws};\n    heading = p.{wh};\n  }}\n")
+        o.append("\n")
+        return o
+
     def executor(self):
         ch = self.channels
         model = self.by_id[self.model]
@@ -419,6 +518,14 @@ class Pipeline:
                 o.append("  const float *detail_pixels(int quality) const override {\n")
                 o.append(f"    static const float k[3][3] = {{{', '.join(rows)}}};  // low, medium, high\n")
                 o.append("    return k[quality < 0 ? 0 : quality > 2 ? 2 : quality];\n  }\n")
+        o.extend(self.param_table())
+        wh = next((p for p in self.params if p["name"] == "wind_heading" and p["type"] == "f32"), None)
+        if wh and not self.field:
+            # The wind's heading is the world's (design/submit.md, "Cost"): the runtime turns it into the
+            # instance's frame before posing, so every instance bends the same way whatever its yaw.
+            o.append("  size_t wind_heading_offset() const override { return offsetof(Params, wind_heading); }\n")
+        if self.field:
+            o.extend(self.field_hooks())
         o.append("  const std::vector<runtime::StageInfo> &stages() const override {\n    static const std::vector<runtime::StageInfo> s = {")
         o.append(", ".join(f"{{\"{self.name}.{st['id']}\", {'true' if st['update'] else 'false'}}}" for st in self.stages))
         o.append("};\n    return s;\n  }\n\n")
@@ -470,7 +577,7 @@ class Pipeline:
         for need in ("positions", "indices"):
             if need not in mf:
                 sys.exit(f"{self.src}: the draw model ({mo}) needs a {need} field")
-        for f in ("positions", "normals", "colors", "indices", "bone_a", "bone_b", "bone_w"):
+        for f in ("positions", "normals", "colors", "indices", "bone_a", "bone_b", "bone_w", "sway"):
             if f in mf:
                 o.append(f"    b->mesh.{f} = std::move({self.model}_out.{f});\n")
         if "collision" in mf:
@@ -549,7 +656,10 @@ class Pipeline:
         o.append("  bool update(const runtime::Build &build, runtime::PoseState &state, const void *params, const float *clocks,\n"
                  "              std::string &error) const override {\n")
         o.append("    const Params &p = *static_cast<const Params *>(params);\n    (void)p;\n    (void)clocks;\n    (void)build;\n")
-        o.append("    State &s = static_cast<State &>(state);\n")
+        if updates:
+            o.append("    State &s = static_cast<State &>(state);\n")
+        else:
+            o.append("    (void)state;\n    (void)error;\n")
         for i, st in enumerate(updates):
             sid = st["id"]
             inp = st["input"]
@@ -590,7 +700,9 @@ class Pipeline:
             elif p["type"] == "bool":
                 continue
             elif p["type"] == "u32":
-                o.append(f"  if (p.{n} < {int(p.get('min', 0))}u || p.{n} > {int(p.get('max', 4294967295))}u) return false;\n")
+                lo = int(p.get('min', 0))
+                lo_test = f"p.{n} < {lo}u || " if lo > 0 else ""
+                o.append(f"  if ({lo_test}p.{n} > {int(p.get('max', 4294967295))}u) return false;\n")
             else:
                 lo, hi = p.get("min"), p.get("max")
                 cond = f"!std::isfinite(p.{n})"
@@ -615,6 +727,18 @@ class Pipeline:
         o.append(f"foundry_instance {self.C}_spawn(foundry_runtime *rt, const Params *params, const float transform[16]) {{\n"
                  "  if (!rt || !params || !valid(*params)) return FOUNDRY_NO_INSTANCE;\n"
                  "  return rt->world.spawn(&kType, params, transform);\n}\n\n")
+        if self.field:
+            fd = self.field
+            o.append(f"foundry_instance {self.C}_spawn_field(foundry_runtime *rt, const Params *params, const float transform[16],\n"
+                     f"                                        const foundry_field_cell *cells, uint32_t count) {{\n"
+                     "  if (!rt || !params || (count && !cells)) return FOUNDRY_NO_INSTANCE;\n"
+                     "  Params p;\n  kType.field_tile_params(params, 0, &p);  // the cell's own parameters at fixed values\n"
+                     "  if (!valid(p)) return FOUNDRY_NO_INSTANCE;\n"
+                     f"  p.{fd['seed']} = params->{fd['seed']};\n"
+                     "  std::vector<runtime::FieldCell> fc(count);\n"
+                     "  for (uint32_t i = 0; i < count; ++i)\n"
+                     "    fc[i] = {cells[i].q, cells[i].r, static_cast<uint32_t>(cells[i].ground), cells[i].moisture, cells[i].height};\n"
+                     "  return rt->world.spawn_field(&kType, &p, transform, fc.data(), fc.size());\n}\n\n")
         for p in self.values:
             n = p["name"]
             o.append(f"foundry_status {self.C}_set_{n}(foundry_runtime *rt, foundry_instance instance, {self.ctype(p)} value) {{\n")
@@ -706,11 +830,30 @@ class Pipeline:
         for p in self.events:
             o.append(f"    case {idx[p['name']]}: return {self.C}_start_{self.event_name(p)}(rt, i);\n")
         o.append("  }\n  return FOUNDRY_STATUS_BAD_PARAMETER;\n}\n\n")
+        field_thunk = "NULL"
+        if self.field:
+            field_thunk = "spawn_field"
+            o.append("static foundry_instance spawn_field(foundry_runtime *rt, const stress_value *v, const float transform[16],\n"
+                     "                                    const foundry_field_cell *cells, uint32_t count) {\n")
+            o.append(f"  {self.C}_params p;\n  {self.C}_default_params(&p);\n")
+            for p in self.params:
+                if p["type"] in ("time", "event"):
+                    continue
+                i = idx[p["name"]]
+                if p["type"] in ("enum", "config"):
+                    o.append(f"  p.{p['name']} = ({self.ctype(p)})v[{i}].u;\n")
+                elif p["type"] == "bool":
+                    o.append(f"  p.{p['name']} = v[{i}].u != 0;\n")
+                elif p["type"] == "u32":
+                    o.append(f"  p.{p['name']} = v[{i}].u;\n")
+                else:
+                    o.append(f"  p.{p['name']} = v[{i}].f;\n")
+            o.append(f"  return {self.C}_spawn_field(rt, &p, transform, cells, count);\n}}\n\n")
         systems = ", ".join(c_string(s["system"]) for s in self.stages)
         o.append(f"static const char *const systems[] = {{{systems}}};\n\n")
         o.append(f"/* Linked by the plotters' region runs too, which build this file with STRESS_NO_MAIN. */\n"
                  f"const stress_pipeline stress_binding_{self.name} = {{{c_string(self.name)}, {c_string(self.j.get('state', 'draft'))}, "
-                 f"params, {len(self.params)}, systems, {len(self.stages)}, spawn, set, trigger}};\n\n")
+                 f"params, {len(self.params)}, systems, {len(self.stages)}, spawn, set, trigger, {field_thunk}}};\n\n")
         o.append("#ifndef STRESS_NO_MAIN\nint main(int argc, char **argv) {\n"
                  f"  const stress_pipeline *pipelines[] = {{&stress_binding_{self.name}}};\n"
                  "  return stress_main(argc, argv, pipelines, 1);\n}\n#endif\n")
@@ -778,6 +921,16 @@ class PlotterGen:
             out_layers.append(lo)
         self.config = {"grove_scale_cells": cfg.get("grove_scale_cells", 8.0), "grove_octaves": cfg.get("grove_octaves", 2),
                        "layers": out_layers}
+        # Fields (design/plotter.md, "Fields"): pipelines that cover the region's cells, one instance each.
+        self.fields = []
+        for fdef in self.j.get("fields", []):
+            pipe = self.pipes.get(fdef["pipeline"])
+            if not pipe:
+                sys.exit(f"{self.src}: no pipeline {fdef['pipeline']}")
+            if not pipe.field:
+                sys.exit(f"{self.src}: {pipe.name} is not a field (its draw has no field)")
+            label = fdef["pipeline"] + "".join(" " + v for _, v in sorted(fdef.get("params", {}).items()) if isinstance(v, str))
+            self.fields.append({"pipe": pipe, "params": fdef.get("params", {}), "label": label})
         self.C = upper(self.name)
 
     # The pipeline generator's channel-value writers, shared.
@@ -838,6 +991,21 @@ class PlotterGen:
             if any(q["name"] == "seed" for q in pipe.params):
                 o.append(f"  p.seed = 1u + (seed % {self.distinct}u);\n")
             o.append(f"  return {pipe.C}_spawn(rt, &p, t);\n}}\n\n")
+        for i, fl in enumerate(self.fields):
+            pipe = fl["pipe"]
+            o.append(f"foundry_instance field_{self.name}_{i}(foundry_runtime *rt, uint32_t world_seed, const float t[16],\n"
+                     f"                                    const foundry_field_cell *cells, uint32_t count) {{\n")
+            o.append(f"  {pipe.C}_params p;\n  {pipe.C}_default_params(&p);\n")
+            for name, v in sorted(fl["params"].items()):
+                o.append("  " + self.assign(pipe, name, v) + "\n")
+            o.append(f"  p.{pipe.field['seed']} = world_seed;\n")
+            o.append(f"  return {pipe.C}_spawn_field(rt, &p, t, cells, count);\n}}\n\n")
+        o.append(f"const plotters::Field fields_{self.name}[] = {{\n")
+        for i, fl in enumerate(self.fields):
+            o.append(f"    {{{c_string(fl['label'])}, field_{self.name}_{i}}},\n")
+        if not self.fields:
+            o.append("    {nullptr, nullptr},\n")
+        o.append("};\n\n")
         o.append(f"const plotters::Kind kinds_{self.name}[] = {{\n")
         for k in self.kinds:
             o.append(f"    {{{c_string(k['label'])}, spawn_{self.name}_{k['id']}}},\n")
@@ -846,12 +1014,12 @@ class PlotterGen:
 
 
 def plotters_files(plotters):
-    h = [banner("plotters/*.json", True),
+    h = [banner("the workspace's plotters/", True),
          "/* The approved plotters (design/plotter.md): pass one in foundry_region_desc. */\n"]
     for i, p in enumerate(plotters):
         h.append(f"#define FOUNDRY_PLOTTER_{p.C} ((foundry_plotter){i})\n")
     h.append(f"#define FOUNDRY_PLOTTER_COUNT {len(plotters)}u\n")
-    c = [banner("plotters/*.json"),
+    c = [banner("the workspace's plotters/"),
          "// The compiled plotters: each one's config, its plot system called natively, and its kinds.\n"
          "#include <string>\n\n#include \"plotters_internal.h\"\n\n"]
     used = []
@@ -865,9 +1033,10 @@ def plotters_files(plotters):
         c.append(p.source(i))
     c.append("namespace plotters {\n\nnamespace {\nconst Info kInfos[] = {\n")
     for p in plotters:
-        c.append(f"    {{{c_string(p.name)}, config_{p.name}, {p.system}::run, kinds_{p.name}, {len(p.kinds)}u}},\n")
+        c.append(f"    {{{c_string(p.name)}, config_{p.name}, {p.system}::run, kinds_{p.name}, {len(p.kinds)}u, fields_{p.name}, "
+                 f"{len(p.fields)}u}},\n")
     if not plotters:
-        c.append("    {nullptr, nullptr, nullptr, nullptr, 0u},\n")
+        c.append("    {nullptr, nullptr, nullptr, nullptr, 0u, nullptr, 0u},\n")
     c.append("};\n}  // namespace\n\n")
     c.append(f"uint32_t count() {{ return {len(plotters)}u; }}\n\n"
              "const Info *info(foundry_plotter plotter) { return plotter < count() ? &kInfos[plotter] : nullptr; }\n\n"

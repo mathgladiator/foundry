@@ -1,0 +1,33 @@
+{
+  "family": "grass",
+  "version": 1,
+  "feature": "choice",
+  "doc": "What a cell of a field shows: whether it has anything, which tile, turned how, scaled and tinted how.",
+  "fields": [
+    {
+      "name": "present",
+      "type": "bool",
+      "doc": "Whether the cell shows a tile at all."
+    },
+    {
+      "name": "variant",
+      "type": "u32",
+      "doc": "Which tile (grass_v1_spec's variant)."
+    },
+    {
+      "name": "turn",
+      "type": "u32",
+      "doc": "Sixths of a turn about +Y (the hex looks the same turned)."
+    },
+    {
+      "name": "scale",
+      "type": "f32",
+      "doc": "Height scale for the tile's blades."
+    },
+    {
+      "name": "tint",
+      "type": "vec3",
+      "doc": "A colour the tile's colours are multiplied by."
+    }
+  ]
+}

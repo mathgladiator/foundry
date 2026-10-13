@@ -99,7 +99,8 @@ void foundry_diag_counters_get(foundry_runtime *rt, foundry_diag_counters *out) 
           c.gpu_buffers_created, c.gpu_buffers_released, c.gpu_bytes,
           c.draws, c.drawn, c.culled, c.triangles, c.bodies,
           c.too_small, {c.by_level[0], c.by_level[1], c.by_level[2], c.by_level[3]},
-          c.animated, c.unseen, c.rate_skipped, c.bones_uploaded, c.lod_generations};
+          c.animated, c.unseen, c.rate_skipped, c.bones_uploaded, c.lod_generations, c.fields, c.field_tiles,
+          {c.field_tiles_by_level[0], c.field_tiles_by_level[1], c.field_tiles_by_level[2], c.field_tiles_by_level[3]}};
 }
 
 void foundry_diag_frame_get(foundry_runtime *rt, foundry_diag_frame *out) {
@@ -157,6 +158,10 @@ uint64_t foundry_diag_bad_poses(foundry_runtime *rt) { return rt->world.bad_pose
 void foundry_diag_flush(foundry_runtime *rt) { rt->world.flush(); }
 
 void foundry_diag_set_cost(foundry_runtime *rt, uint32_t flags) { rt->world.set_cost(flags & runtime::kCostAll); }
+
+foundry_status foundry_diag_set_param(foundry_runtime *rt, foundry_instance instance, const char *name, const char *value) {
+  return foundry_status_of(rt->world.set_named(instance, name, value));
+}
 
 foundry_status foundry_diag_force_level(foundry_runtime *rt, foundry_instance instance, int level) {
   return foundry_status_of(rt->world.force_level(instance, level));
