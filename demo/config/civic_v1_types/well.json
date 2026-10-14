@@ -1,0 +1,53 @@
+{
+  "created_at": "2026-10-13T23:30:00Z",
+  "doc": "A village well: a round stone wall under a little roof on posts, its bucket on a rope.",
+  "notes": [],
+  "state": "draft",
+  "value": {
+    "name": "well",
+    "kind": "well",
+    "size": "centre",
+    "walls": "stone",
+    "wall_color": [
+      0.62,
+      0.6,
+      0.56
+    ],
+    "trim_color": [
+      0.7,
+      0.68,
+      0.64
+    ],
+    "base_color": [
+      0.42,
+      0.4,
+      0.38
+    ],
+    "roof": "shingle",
+    "roof_color": [
+      0.4,
+      0.3,
+      0.2
+    ],
+    "metal_color": [
+      0.3,
+      0.3,
+      0.32
+    ],
+    "accent": [
+      0.5,
+      0.4,
+      0.3
+    ],
+    "roof_pitch": 40,
+    "wall_height": 2.5,
+    "spire": false,
+    "bell": false,
+    "clock": false,
+    "columns": false,
+    "dome": false,
+    "banners": false,
+    "lamps": false,
+    "symbol": "none"
+  }
+}

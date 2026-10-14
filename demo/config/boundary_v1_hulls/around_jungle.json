@@ -1,0 +1,27 @@
+{
+  "created_at": "2026-10-14T13:00:00Z",
+  "doc": "Any region in a jungle, a cliff to the north.",
+  "notes": [],
+  "state": "draft",
+  "value": {
+    "name": "around_jungle",
+    "cells": [],
+    "edges": [],
+    "heights": [],
+    "rises": [],
+    "radius": 20,
+    "sectors": [
+      5,
+      2,
+      5,
+      5
+    ],
+    "sector_rises": [
+      0.5,
+      1.0,
+      0.5,
+      0.5
+    ],
+    "rise": 0.4
+  }
+}

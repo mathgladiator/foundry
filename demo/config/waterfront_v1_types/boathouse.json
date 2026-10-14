@@ -1,0 +1,35 @@
+{
+  "created_at": "2026-10-13T19:30:00Z",
+  "doc": "A boathouse: a shed across the shore on posts, its gable open to the water, a boat inside.",
+  "notes": [],
+  "state": "draft",
+  "value": {
+    "name": "boathouse",
+    "kind": "boathouse",
+    "wood_color": [
+      0.42,
+      0.3,
+      0.2
+    ],
+    "wall_color": [
+      0.55,
+      0.38,
+      0.24
+    ],
+    "roof_color": [
+      0.34,
+      0.3,
+      0.28
+    ],
+    "accent": [
+      0.7,
+      0.22,
+      0.18
+    ],
+    "boats": 1,
+    "crane": false,
+    "nets": false,
+    "barrels": false,
+    "lamp": false
+  }
+}

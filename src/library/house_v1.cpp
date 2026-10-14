@@ -37,8 +37,8 @@ double ms_since(std::chrono::steady_clock::time_point t0) {
 void config_type_alchemist(channels::house_v1_type &g) {
   g.name = std::string("alchemist");
   g.kind = 1;
-  g.footprint = 0;
-  g.footprint_alt = 2;
+  g.footprint = 2;
+  g.footprint_alt = 3;
   g.walls = 3;
   g.wall_color = foundry::vec3{0x1.0000000000000p-1f, 0x1.0a3d700000000p-1f, 0x1.eb851e0000000p-2f};
   g.trim_color = foundry::vec3{0x1.0a3d700000000p-2f, 0x1.3333340000000p-2f, 0x1.eb851e0000000p-3f};
@@ -83,8 +83,8 @@ void config_type_alchemist(channels::house_v1_type &g) {
 void config_type_bakery(channels::house_v1_type &g) {
   g.name = std::string("bakery");
   g.kind = 1;
-  g.footprint = 0;
-  g.footprint_alt = 2;
+  g.footprint = 1;
+  g.footprint_alt = 3;
   g.walls = 4;
   g.wall_color = foundry::vec3{0x1.70a3d80000000p-1f, 0x1.ae147a0000000p-2f, 0x1.3333340000000p-2f};
   g.trim_color = foundry::vec3{0x1.c28f5c0000000p-1f, 0x1.ae147a0000000p-1f, 0x1.851eb80000000p-1f};
@@ -129,8 +129,8 @@ void config_type_bakery(channels::house_v1_type &g) {
 void config_type_carpenter(channels::house_v1_type &g) {
   g.name = std::string("carpenter");
   g.kind = 2;
-  g.footprint = 3;
-  g.footprint_alt = 1;
+  g.footprint = 0;
+  g.footprint_alt = 2;
   g.walls = 1;
   g.wall_color = foundry::vec3{0x1.70a3d80000000p-1f, 0x1.1eb8520000000p-1f, 0x1.70a3d80000000p-2f};
   g.trim_color = foundry::vec3{0x1.ae147a0000000p-2f, 0x1.3333340000000p-2f, 0x1.70a3d80000000p-3f};
@@ -175,8 +175,8 @@ void config_type_carpenter(channels::house_v1_type &g) {
 void config_type_cottage(channels::house_v1_type &g) {
   g.name = std::string("cottage");
   g.kind = 0;
-  g.footprint = 0;
-  g.footprint_alt = 1;
+  g.footprint = 2;
+  g.footprint_alt = 0;
   g.walls = 0;
   g.wall_color = foundry::vec3{0x1.d70a3e0000000p-1f, 0x1.c28f5c0000000p-1f, 0x1.8f5c280000000p-1f};
   g.trim_color = foundry::vec3{0x1.70a3d80000000p-2f, 0x1.0000000000000p-2f, 0x1.5c28f60000000p-3f};
@@ -221,8 +221,8 @@ void config_type_cottage(channels::house_v1_type &g) {
 void config_type_farmhouse(channels::house_v1_type &g) {
   g.name = std::string("farmhouse");
   g.kind = 0;
-  g.footprint = 3;
-  g.footprint_alt = 4;
+  g.footprint = 0;
+  g.footprint_alt = 2;
   g.walls = 2;
   g.wall_color = foundry::vec3{0x1.19999a0000000p-1f, 0x1.99999a0000000p-2f, 0x1.0a3d700000000p-2f};
   g.trim_color = foundry::vec3{0x1.99999a0000000p-2f, 0x1.28f5c20000000p-2f, 0x1.851eb80000000p-3f};
@@ -267,8 +267,8 @@ void config_type_farmhouse(channels::house_v1_type &g) {
 void config_type_general_store(channels::house_v1_type &g) {
   g.name = std::string("general_store");
   g.kind = 1;
-  g.footprint = 2;
-  g.footprint_alt = 3;
+  g.footprint = 1;
+  g.footprint_alt = 4;
   g.walls = 1;
   g.wall_color = foundry::vec3{0x1.51eb860000000p-1f, 0x1.0000000000000p-1f, 0x1.47ae140000000p-2f};
   g.trim_color = foundry::vec3{0x1.851eb80000000p-2f, 0x1.147ae20000000p-2f, 0x1.5c28f60000000p-3f};
@@ -313,8 +313,8 @@ void config_type_general_store(channels::house_v1_type &g) {
 void config_type_inn(channels::house_v1_type &g) {
   g.name = std::string("inn");
   g.kind = 1;
-  g.footprint = 5;
-  g.footprint_alt = 4;
+  g.footprint = 0;
+  g.footprint_alt = 1;
   g.walls = 0;
   g.wall_color = foundry::vec3{0x1.e666660000000p-1f, 0x1.cccccc0000000p-1f, 0x1.8f5c280000000p-1f};
   g.trim_color = foundry::vec3{0x1.70a3d80000000p-2f, 0x1.0000000000000p-2f, 0x1.5c28f60000000p-3f};
@@ -359,8 +359,8 @@ void config_type_inn(channels::house_v1_type &g) {
 void config_type_mill(channels::house_v1_type &g) {
   g.name = std::string("mill");
   g.kind = 2;
-  g.footprint = 3;
-  g.footprint_alt = 4;
+  g.footprint = 0;
+  g.footprint_alt = 2;
   g.walls = 3;
   g.wall_color = foundry::vec3{0x1.8f5c280000000p-1f, 0x1.7ae1480000000p-1f, 0x1.51eb860000000p-1f};
   g.trim_color = foundry::vec3{0x1.ae147a0000000p-2f, 0x1.47ae140000000p-2f, 0x1.c28f5c0000000p-3f};
@@ -405,8 +405,8 @@ void config_type_mill(channels::house_v1_type &g) {
 void config_type_smithy(channels::house_v1_type &g) {
   g.name = std::string("smithy");
   g.kind = 2;
-  g.footprint = 2;
-  g.footprint_alt = 3;
+  g.footprint = 0;
+  g.footprint_alt = 4;
   g.walls = 3;
   g.wall_color = foundry::vec3{0x1.3333340000000p-1f, 0x1.28f5c20000000p-1f, 0x1.147ae20000000p-1f};
   g.trim_color = foundry::vec3{0x1.3333340000000p-2f, 0x1.0a3d700000000p-2f, 0x1.c28f5c0000000p-3f};
@@ -451,8 +451,8 @@ void config_type_smithy(channels::house_v1_type &g) {
 void config_type_tailor(channels::house_v1_type &g) {
   g.name = std::string("tailor");
   g.kind = 1;
-  g.footprint = 1;
-  g.footprint_alt = 0;
+  g.footprint = 3;
+  g.footprint_alt = 1;
   g.walls = 0;
   g.wall_color = foundry::vec3{0x1.c28f5c0000000p-1f, 0x1.a3d70a0000000p-1f, 0x1.d70a3e0000000p-1f};
   g.trim_color = foundry::vec3{0x1.3333340000000p-2f, 0x1.c28f5c0000000p-3f, 0x1.3333340000000p-2f};
@@ -509,6 +509,462 @@ void config_type(uint32_t i, channels::house_v1_type &g) {
   }
 }
 
+// palette: compiled in from config/house_v1_palettes/.
+void config_palette_autumn(channels::house_v1_palette &g) {
+  g.name = std::string("autumn");
+  g.roof = foundry::vec3{0x1.3d70a40000000p-1f, 0x1.3333340000000p-2f, 0x1.47ae140000000p-3f};
+  g.roof_mix = 0x1.6666660000000p-1f;
+  g.wall = foundry::vec3{0x1.b851ec0000000p-1f, 0x1.5c28f60000000p-1f, 0x1.ae147a0000000p-2f};
+  g.wall_mix = 0x1.3333340000000p-1f;
+  g.trim = foundry::vec3{0x1.0000000000000p-1f, 0x1.0000000000000p-1f, 0x1.0000000000000p-1f};
+  g.trim_mix = 0.0f;
+  g.door = foundry::vec3{0x1.99999a0000000p-3f, 0x1.70a3d80000000p-2f, 0x1.c28f5c0000000p-3f};
+  g.door_mix = 0x1.cccccc0000000p-1f;
+  g.shutter = foundry::vec3{0x1.3d70a40000000p-1f, 0x1.70a3d80000000p-2f, 0x1.1eb8520000000p-3f};
+  g.shutter_mix = 0x1.99999a0000000p-1f;
+  g.accent = foundry::vec3{0x1.99999a0000000p-1f, 0x1.d70a3e0000000p-2f, 0x1.eb851e0000000p-4f};
+  g.accent_mix = 0x1.cccccc0000000p-1f;
+  g.sign = foundry::vec3{0x1.0000000000000p-1f, 0x1.0000000000000p-1f, 0x1.0000000000000p-1f};
+  g.sign_mix = 0.0f;
+}
+
+void config_palette_black(channels::house_v1_palette &g) {
+  g.name = std::string("black");
+  g.roof = foundry::vec3{0x1.eb851e0000000p-4f, 0x1.eb851e0000000p-4f, 0x1.0a3d700000000p-3f};
+  g.roof_mix = 0x1.b333340000000p-1f;
+  g.wall = foundry::vec3{0x1.0000000000000p-1f, 0x1.0000000000000p-1f, 0x1.0000000000000p-1f};
+  g.wall_mix = 0.0f;
+  g.trim = foundry::vec3{0x1.0000000000000p-1f, 0x1.0000000000000p-1f, 0x1.0000000000000p-1f};
+  g.trim_mix = 0.0f;
+  g.door = foundry::vec3{0x1.5810620000000p-4f, 0x1.5810620000000p-4f, 0x1.74bc6a0000000p-4f};
+  g.door_mix = 0x1.cccccc0000000p-1f;
+  g.shutter = foundry::vec3{0x1.eb851e0000000p-4f, 0x1.eb851e0000000p-4f, 0x1.0a3d700000000p-3f};
+  g.shutter_mix = 0x1.cccccc0000000p-1f;
+  g.accent = foundry::vec3{0x1.eb851e0000000p-4f, 0x1.eb851e0000000p-4f, 0x1.0a3d700000000p-3f};
+  g.accent_mix = 0x1.0000000000000p+0f;
+  g.sign = foundry::vec3{0x1.eb851e0000000p-4f, 0x1.eb851e0000000p-4f, 0x1.0a3d700000000p-3f};
+  g.sign_mix = 0x1.3333340000000p-1f;
+}
+
+void config_palette_blue(channels::house_v1_palette &g) {
+  g.name = std::string("blue");
+  g.roof = foundry::vec3{0x1.70a3d80000000p-3f, 0x1.5c28f60000000p-2f, 0x1.8f5c280000000p-1f};
+  g.roof_mix = 0x1.b333340000000p-1f;
+  g.wall = foundry::vec3{0x1.0000000000000p-1f, 0x1.0000000000000p-1f, 0x1.0000000000000p-1f};
+  g.wall_mix = 0.0f;
+  g.trim = foundry::vec3{0x1.0000000000000p-1f, 0x1.0000000000000p-1f, 0x1.0000000000000p-1f};
+  g.trim_mix = 0.0f;
+  g.door = foundry::vec3{0x1.020c4a0000000p-3f, 0x1.e76c8c0000000p-3f, 0x1.178d500000000p-1f};
+  g.door_mix = 0x1.cccccc0000000p-1f;
+  g.shutter = foundry::vec3{0x1.70a3d80000000p-3f, 0x1.5c28f60000000p-2f, 0x1.8f5c280000000p-1f};
+  g.shutter_mix = 0x1.cccccc0000000p-1f;
+  g.accent = foundry::vec3{0x1.70a3d80000000p-3f, 0x1.5c28f60000000p-2f, 0x1.8f5c280000000p-1f};
+  g.accent_mix = 0x1.0000000000000p+0f;
+  g.sign = foundry::vec3{0x1.70a3d80000000p-3f, 0x1.5c28f60000000p-2f, 0x1.8f5c280000000p-1f};
+  g.sign_mix = 0x1.3333340000000p-1f;
+}
+
+void config_palette_green(channels::house_v1_palette &g) {
+  g.name = std::string("green");
+  g.roof = foundry::vec3{0x1.99999a0000000p-3f, 0x1.28f5c20000000p-1f, 0x1.c28f5c0000000p-3f};
+  g.roof_mix = 0x1.b333340000000p-1f;
+  g.wall = foundry::vec3{0x1.0000000000000p-1f, 0x1.0000000000000p-1f, 0x1.0000000000000p-1f};
+  g.wall_mix = 0.0f;
+  g.trim = foundry::vec3{0x1.0000000000000p-1f, 0x1.0000000000000p-1f, 0x1.0000000000000p-1f};
+  g.trim_mix = 0.0f;
+  g.door = foundry::vec3{0x1.1eb8520000000p-3f, 0x1.9fbe760000000p-2f, 0x1.3b645a0000000p-3f};
+  g.door_mix = 0x1.cccccc0000000p-1f;
+  g.shutter = foundry::vec3{0x1.99999a0000000p-3f, 0x1.28f5c20000000p-1f, 0x1.c28f5c0000000p-3f};
+  g.shutter_mix = 0x1.cccccc0000000p-1f;
+  g.accent = foundry::vec3{0x1.99999a0000000p-3f, 0x1.28f5c20000000p-1f, 0x1.c28f5c0000000p-3f};
+  g.accent_mix = 0x1.0000000000000p+0f;
+  g.sign = foundry::vec3{0x1.99999a0000000p-3f, 0x1.28f5c20000000p-1f, 0x1.c28f5c0000000p-3f};
+  g.sign_mix = 0x1.3333340000000p-1f;
+}
+
+void config_palette_natural(channels::house_v1_palette &g) {
+  g.name = std::string("natural");
+  g.roof = foundry::vec3{0x1.0000000000000p-1f, 0x1.0000000000000p-1f, 0x1.0000000000000p-1f};
+  g.roof_mix = 0.0f;
+  g.wall = foundry::vec3{0x1.0000000000000p-1f, 0x1.0000000000000p-1f, 0x1.0000000000000p-1f};
+  g.wall_mix = 0.0f;
+  g.trim = foundry::vec3{0x1.0000000000000p-1f, 0x1.0000000000000p-1f, 0x1.0000000000000p-1f};
+  g.trim_mix = 0.0f;
+  g.door = foundry::vec3{0x1.0000000000000p-1f, 0x1.0000000000000p-1f, 0x1.0000000000000p-1f};
+  g.door_mix = 0.0f;
+  g.shutter = foundry::vec3{0x1.0000000000000p-1f, 0x1.0000000000000p-1f, 0x1.0000000000000p-1f};
+  g.shutter_mix = 0.0f;
+  g.accent = foundry::vec3{0x1.0000000000000p-1f, 0x1.0000000000000p-1f, 0x1.0000000000000p-1f};
+  g.accent_mix = 0.0f;
+  g.sign = foundry::vec3{0x1.0000000000000p-1f, 0x1.0000000000000p-1f, 0x1.0000000000000p-1f};
+  g.sign_mix = 0.0f;
+}
+
+void config_palette_northern(channels::house_v1_palette &g) {
+  g.name = std::string("northern");
+  g.roof = foundry::vec3{0x1.3333340000000p-2f, 0x1.70a3d80000000p-2f, 0x1.eb851e0000000p-3f};
+  g.roof_mix = 0x1.6666660000000p-1f;
+  g.wall = foundry::vec3{0x1.1eb8520000000p-2f, 0x1.c28f5c0000000p-3f, 0x1.5c28f60000000p-3f};
+  g.wall_mix = 0x1.99999a0000000p-1f;
+  g.trim = foundry::vec3{0x1.3d70a40000000p-1f, 0x1.47ae140000000p-3f, 0x1.eb851e0000000p-4f};
+  g.trim_mix = 0x1.99999a0000000p-1f;
+  g.door = foundry::vec3{0x1.3d70a40000000p-1f, 0x1.47ae140000000p-3f, 0x1.eb851e0000000p-4f};
+  g.door_mix = 0x1.cccccc0000000p-1f;
+  g.shutter = foundry::vec3{0x1.b333340000000p-1f, 0x1.a3d70a0000000p-1f, 0x1.7ae1480000000p-1f};
+  g.shutter_mix = 0x1.99999a0000000p-1f;
+  g.accent = foundry::vec3{0x1.0000000000000p-1f, 0x1.0000000000000p-1f, 0x1.0000000000000p-1f};
+  g.accent_mix = 0.0f;
+  g.sign = foundry::vec3{0x1.0000000000000p-1f, 0x1.0000000000000p-1f, 0x1.0000000000000p-1f};
+  g.sign_mix = 0.0f;
+}
+
+void config_palette_orange(channels::house_v1_palette &g) {
+  g.name = std::string("orange");
+  g.roof = foundry::vec3{0x1.d70a3e0000000p-1f, 0x1.0000000000000p-1f, 0x1.eb851e0000000p-4f};
+  g.roof_mix = 0x1.b333340000000p-1f;
+  g.wall = foundry::vec3{0x1.0000000000000p-1f, 0x1.0000000000000p-1f, 0x1.0000000000000p-1f};
+  g.wall_mix = 0.0f;
+  g.trim = foundry::vec3{0x1.0000000000000p-1f, 0x1.0000000000000p-1f, 0x1.0000000000000p-1f};
+  g.trim_mix = 0.0f;
+  g.door = foundry::vec3{0x1.49ba5e0000000p-1f, 0x1.6666660000000p-2f, 0x1.5810620000000p-4f};
+  g.door_mix = 0x1.cccccc0000000p-1f;
+  g.shutter = foundry::vec3{0x1.d70a3e0000000p-1f, 0x1.0000000000000p-1f, 0x1.eb851e0000000p-4f};
+  g.shutter_mix = 0x1.cccccc0000000p-1f;
+  g.accent = foundry::vec3{0x1.d70a3e0000000p-1f, 0x1.0000000000000p-1f, 0x1.eb851e0000000p-4f};
+  g.accent_mix = 0x1.0000000000000p+0f;
+  g.sign = foundry::vec3{0x1.d70a3e0000000p-1f, 0x1.0000000000000p-1f, 0x1.eb851e0000000p-4f};
+  g.sign_mix = 0x1.3333340000000p-1f;
+}
+
+void config_palette_purple(channels::house_v1_palette &g) {
+  g.name = std::string("purple");
+  g.roof = foundry::vec3{0x1.0000000000000p-1f, 0x1.eb851e0000000p-3f, 0x1.51eb860000000p-1f};
+  g.roof_mix = 0x1.b333340000000p-1f;
+  g.wall = foundry::vec3{0x1.0000000000000p-1f, 0x1.0000000000000p-1f, 0x1.0000000000000p-1f};
+  g.wall_mix = 0.0f;
+  g.trim = foundry::vec3{0x1.0000000000000p-1f, 0x1.0000000000000p-1f, 0x1.0000000000000p-1f};
+  g.trim_mix = 0.0f;
+  g.door = foundry::vec3{0x1.6666660000000p-2f, 0x1.5810620000000p-3f, 0x1.d916880000000p-2f};
+  g.door_mix = 0x1.cccccc0000000p-1f;
+  g.shutter = foundry::vec3{0x1.0000000000000p-1f, 0x1.eb851e0000000p-3f, 0x1.51eb860000000p-1f};
+  g.shutter_mix = 0x1.cccccc0000000p-1f;
+  g.accent = foundry::vec3{0x1.0000000000000p-1f, 0x1.eb851e0000000p-3f, 0x1.51eb860000000p-1f};
+  g.accent_mix = 0x1.0000000000000p+0f;
+  g.sign = foundry::vec3{0x1.0000000000000p-1f, 0x1.eb851e0000000p-3f, 0x1.51eb860000000p-1f};
+  g.sign_mix = 0x1.3333340000000p-1f;
+}
+
+void config_palette_red(channels::house_v1_palette &g) {
+  g.name = std::string("red");
+  g.roof = foundry::vec3{0x1.8f5c280000000p-1f, 0x1.47ae140000000p-3f, 0x1.1eb8520000000p-3f};
+  g.roof_mix = 0x1.b333340000000p-1f;
+  g.wall = foundry::vec3{0x1.0000000000000p-1f, 0x1.0000000000000p-1f, 0x1.0000000000000p-1f};
+  g.wall_mix = 0.0f;
+  g.trim = foundry::vec3{0x1.0000000000000p-1f, 0x1.0000000000000p-1f, 0x1.0000000000000p-1f};
+  g.trim_mix = 0.0f;
+  g.door = foundry::vec3{0x1.178d500000000p-1f, 0x1.cac0840000000p-4f, 0x1.9168720000000p-4f};
+  g.door_mix = 0x1.cccccc0000000p-1f;
+  g.shutter = foundry::vec3{0x1.8f5c280000000p-1f, 0x1.47ae140000000p-3f, 0x1.1eb8520000000p-3f};
+  g.shutter_mix = 0x1.cccccc0000000p-1f;
+  g.accent = foundry::vec3{0x1.8f5c280000000p-1f, 0x1.47ae140000000p-3f, 0x1.1eb8520000000p-3f};
+  g.accent_mix = 0x1.0000000000000p+0f;
+  g.sign = foundry::vec3{0x1.8f5c280000000p-1f, 0x1.47ae140000000p-3f, 0x1.1eb8520000000p-3f};
+  g.sign_mix = 0x1.3333340000000p-1f;
+}
+
+void config_palette_white(channels::house_v1_palette &g) {
+  g.name = std::string("white");
+  g.roof = foundry::vec3{0x1.e147ae0000000p-1f, 0x1.e147ae0000000p-1f, 0x1.d70a3e0000000p-1f};
+  g.roof_mix = 0x1.b333340000000p-1f;
+  g.wall = foundry::vec3{0x1.0000000000000p-1f, 0x1.0000000000000p-1f, 0x1.0000000000000p-1f};
+  g.wall_mix = 0.0f;
+  g.trim = foundry::vec3{0x1.0000000000000p-1f, 0x1.0000000000000p-1f, 0x1.0000000000000p-1f};
+  g.trim_mix = 0.0f;
+  g.door = foundry::vec3{0x1.50e5600000000p-1f, 0x1.50e5600000000p-1f, 0x1.49ba5e0000000p-1f};
+  g.door_mix = 0x1.cccccc0000000p-1f;
+  g.shutter = foundry::vec3{0x1.e147ae0000000p-1f, 0x1.e147ae0000000p-1f, 0x1.d70a3e0000000p-1f};
+  g.shutter_mix = 0x1.cccccc0000000p-1f;
+  g.accent = foundry::vec3{0x1.e147ae0000000p-1f, 0x1.e147ae0000000p-1f, 0x1.d70a3e0000000p-1f};
+  g.accent_mix = 0x1.0000000000000p+0f;
+  g.sign = foundry::vec3{0x1.e147ae0000000p-1f, 0x1.e147ae0000000p-1f, 0x1.d70a3e0000000p-1f};
+  g.sign_mix = 0x1.3333340000000p-1f;
+}
+
+void config_palette_whitewash(channels::house_v1_palette &g) {
+  g.name = std::string("whitewash");
+  g.roof = foundry::vec3{0x1.70a3d80000000p-1f, 0x1.51eb860000000p-1f, 0x1.3333340000000p-1f};
+  g.roof_mix = 0x1.0000000000000p-1f;
+  g.wall = foundry::vec3{0x1.eb851e0000000p-1f, 0x1.eb851e0000000p-1f, 0x1.e147ae0000000p-1f};
+  g.wall_mix = 0x1.cccccc0000000p-1f;
+  g.trim = foundry::vec3{0x1.0000000000000p-1f, 0x1.0000000000000p-1f, 0x1.0000000000000p-1f};
+  g.trim_mix = 0.0f;
+  g.door = foundry::vec3{0x1.47ae140000000p-3f, 0x1.5c28f60000000p-2f, 0x1.3d70a40000000p-1f};
+  g.door_mix = 0x1.0000000000000p+0f;
+  g.shutter = foundry::vec3{0x1.c28f5c0000000p-3f, 0x1.c28f5c0000000p-2f, 0x1.70a3d80000000p-1f};
+  g.shutter_mix = 0x1.0000000000000p+0f;
+  g.accent = foundry::vec3{0x1.99999a0000000p-3f, 0x1.ae147a0000000p-2f, 0x1.6666660000000p-1f};
+  g.accent_mix = 0x1.99999a0000000p-1f;
+  g.sign = foundry::vec3{0x1.0000000000000p-1f, 0x1.0000000000000p-1f, 0x1.0000000000000p-1f};
+  g.sign_mix = 0.0f;
+}
+
+void config_palette_yellow(channels::house_v1_palette &g) {
+  g.name = std::string("yellow");
+  g.roof = foundry::vec3{0x1.e666660000000p-1f, 0x1.99999a0000000p-1f, 0x1.70a3d80000000p-3f};
+  g.roof_mix = 0x1.b333340000000p-1f;
+  g.wall = foundry::vec3{0x1.0000000000000p-1f, 0x1.0000000000000p-1f, 0x1.0000000000000p-1f};
+  g.wall_mix = 0.0f;
+  g.trim = foundry::vec3{0x1.0000000000000p-1f, 0x1.0000000000000p-1f, 0x1.0000000000000p-1f};
+  g.trim_mix = 0.0f;
+  g.door = foundry::vec3{0x1.547ae20000000p-1f, 0x1.1eb8520000000p-1f, 0x1.020c4a0000000p-3f};
+  g.door_mix = 0x1.cccccc0000000p-1f;
+  g.shutter = foundry::vec3{0x1.e666660000000p-1f, 0x1.99999a0000000p-1f, 0x1.70a3d80000000p-3f};
+  g.shutter_mix = 0x1.cccccc0000000p-1f;
+  g.accent = foundry::vec3{0x1.e666660000000p-1f, 0x1.99999a0000000p-1f, 0x1.70a3d80000000p-3f};
+  g.accent_mix = 0x1.0000000000000p+0f;
+  g.sign = foundry::vec3{0x1.e666660000000p-1f, 0x1.99999a0000000p-1f, 0x1.70a3d80000000p-3f};
+  g.sign_mix = 0x1.3333340000000p-1f;
+}
+
+void config_palette(uint32_t i, channels::house_v1_palette &g) {
+  switch (i) {
+    case 0: config_palette_autumn(g); return;
+    case 1: config_palette_black(g); return;
+    case 2: config_palette_blue(g); return;
+    case 3: config_palette_green(g); return;
+    case 4: config_palette_natural(g); return;
+    case 5: config_palette_northern(g); return;
+    case 6: config_palette_orange(g); return;
+    case 7: config_palette_purple(g); return;
+    case 8: config_palette_red(g); return;
+    case 9: config_palette_white(g); return;
+    case 10: config_palette_whitewash(g); return;
+    case 11: config_palette_yellow(g); return;
+  }
+}
+
+// theme: compiled in from config/village_v1_themes/.
+void config_theme_desert(channels::village_v1_theme &g) {
+  g.name = std::string("desert");
+  g.roof = 5;
+  g.plan = 1;
+  g.walls = 8;
+  g.windows = 3;
+  g.foundation = 3;
+  g.ornament = 6;
+  g.wall_color = foundry::vec3{0x1.b851ec0000000p-1f, 0x1.70a3d80000000p-1f, 0x1.0a3d700000000p-1f};
+  g.trim_color = foundry::vec3{0x1.19999a0000000p-1f, 0x1.99999a0000000p-2f, 0x1.0a3d700000000p-2f};
+  g.roof_color = foundry::vec3{0x1.ae147a0000000p-1f, 0x1.6666660000000p-1f, 0x1.0000000000000p-1f};
+  g.accent = foundry::vec3{0x1.99999a0000000p-3f, 0x1.cccccc0000000p-2f, 0x1.6666660000000p-1f};
+  g.mix = 0x1.cccccc0000000p-1f;
+  g.moss = 0.0f;
+  g.smoke_hole = false;
+  g.hearth_fire = 1u;
+  g.torch_fire = 10u;
+  g.blaze_fire = 4u;
+  g.road_lane = std::string("sand_lane");
+  g.road_high = std::string("sand_lane");
+  g.road_square = std::string("sand_lane");
+  g.wall_kind = std::string("adobe_wall");
+  g.fence_kind = std::string("reed");
+  g.gate_type = std::string("town_gate");
+}
+
+void config_theme_druidic(channels::village_v1_theme &g) {
+  g.name = std::string("druidic");
+  g.roof = 3;
+  g.plan = 2;
+  g.walls = 6;
+  g.windows = 2;
+  g.foundation = 3;
+  g.ornament = 2;
+  g.wall_color = foundry::vec3{0x1.70a3d80000000p-1f, 0x1.47ae140000000p-1f, 0x1.0000000000000p-1f};
+  g.trim_color = foundry::vec3{0x1.99999a0000000p-2f, 0x1.3333340000000p-2f, 0x1.99999a0000000p-3f};
+  g.roof_color = foundry::vec3{0x1.1eb8520000000p-1f, 0x1.eb851e0000000p-2f, 0x1.3333340000000p-2f};
+  g.accent = foundry::vec3{0x1.cccccc0000000p-2f, 0x1.b333340000000p-1f, 0x1.cccccc0000000p-2f};
+  g.mix = 0x1.b333340000000p-1f;
+  g.moss = 0x1.0000000000000p-1f;
+  g.smoke_hole = true;
+  g.hearth_fire = 5u;
+  g.torch_fire = 5u;
+  g.blaze_fire = 4u;
+  g.road_lane = std::string("moss_path");
+  g.road_high = std::string("moss_path");
+  g.road_square = std::string("square");
+  g.wall_kind = std::string("stone_circle");
+  g.fence_kind = std::string("living_willow");
+  g.gate_type = std::string("wooden_gate");
+}
+
+void config_theme_dwarven(channels::village_v1_theme &g) {
+  g.name = std::string("dwarven");
+  g.roof = 5;
+  g.plan = 1;
+  g.walls = 4;
+  g.windows = 4;
+  g.foundation = 0;
+  g.ornament = 6;
+  g.wall_color = foundry::vec3{0x1.c28f5c0000000p-2f, 0x1.ae147a0000000p-2f, 0x1.ae147a0000000p-2f};
+  g.trim_color = foundry::vec3{0x1.3d70a40000000p-1f, 0x1.0000000000000p-1f, 0x1.1eb8520000000p-2f};
+  g.roof_color = foundry::vec3{0x1.70a3d80000000p-2f, 0x1.6666660000000p-2f, 0x1.70a3d80000000p-2f};
+  g.accent = foundry::vec3{0x1.99999a0000000p-1f, 0x1.3333340000000p-1f, 0x1.99999a0000000p-3f};
+  g.mix = 0x1.b333340000000p-1f;
+  g.moss = 0x1.99999a0000000p-5f;
+  g.smoke_hole = false;
+  g.hearth_fire = 11u;
+  g.torch_fire = 8u;
+  g.blaze_fire = 4u;
+  g.road_lane = std::string("street");
+  g.road_high = std::string("high_street");
+  g.road_square = std::string("square");
+  g.wall_kind = std::string("dwarf_rampart");
+  g.fence_kind = std::string("low_wall");
+  g.gate_type = std::string("gatehouse");
+}
+
+void config_theme_elven(channels::village_v1_theme &g) {
+  g.name = std::string("elven");
+  g.roof = 7;
+  g.plan = 0;
+  g.walls = 10;
+  g.windows = 2;
+  g.foundation = 0;
+  g.ornament = 4;
+  g.wall_color = foundry::vec3{0x1.cccccc0000000p-1f, 0x1.c7ae140000000p-1f, 0x1.b333340000000p-1f};
+  g.trim_color = foundry::vec3{0x1.3d70a40000000p-1f, 0x1.51eb860000000p-1f, 0x1.6666660000000p-1f};
+  g.roof_color = foundry::vec3{0x1.3333340000000p-2f, 0x1.cccccc0000000p-2f, 0x1.0000000000000p-1f};
+  g.accent = foundry::vec3{0x1.19999a0000000p-1f, 0x1.99999a0000000p-1f, 0x1.0000000000000p+0f};
+  g.mix = 0x1.b333340000000p-1f;
+  g.moss = 0x1.3333340000000p-3f;
+  g.smoke_hole = false;
+  g.hearth_fire = 6u;
+  g.torch_fire = 6u;
+  g.blaze_fire = 4u;
+  g.road_lane = std::string("elven_way");
+  g.road_high = std::string("elven_way");
+  g.road_square = std::string("elven_way");
+  g.wall_kind = std::string("living_wall");
+  g.fence_kind = std::string("living_willow");
+  g.gate_type = std::string("tower_gate");
+}
+
+void config_theme_heartland(channels::village_v1_theme &g) {
+  g.name = std::string("heartland");
+  g.roof = 0;
+  g.plan = 0;
+  g.walls = 0;
+  g.windows = 0;
+  g.foundation = 0;
+  g.ornament = 0;
+  g.wall_color = foundry::vec3{0x1.99999a0000000p-1f, 0x1.8000000000000p-1f, 0x1.4ccccc0000000p-1f};
+  g.trim_color = foundry::vec3{0x1.99999a0000000p-2f, 0x1.3333340000000p-2f, 0x1.99999a0000000p-3f};
+  g.roof_color = foundry::vec3{0x1.0000000000000p-1f, 0x1.6666660000000p-2f, 0x1.0000000000000p-2f};
+  g.accent = foundry::vec3{0x1.6666660000000p-1f, 0x1.3333340000000p-3f, 0x1.3333340000000p-3f};
+  g.mix = 0.0f;
+  g.moss = 0.0f;
+  g.smoke_hole = false;
+  g.hearth_fire = 1u;
+  g.torch_fire = 2u;
+  g.blaze_fire = 4u;
+  g.road_lane = std::string("lane");
+  g.road_high = std::string("high_street");
+  g.road_square = std::string("square");
+  g.wall_kind = std::string("town_wall");
+  g.fence_kind = std::string("picket");
+  g.gate_type = std::string("town_gate");
+}
+
+void config_theme_marsh(channels::village_v1_theme &g) {
+  g.name = std::string("marsh");
+  g.roof = 3;
+  g.plan = 0;
+  g.walls = 2;
+  g.windows = 1;
+  g.foundation = 1;
+  g.ornament = 5;
+  g.wall_color = foundry::vec3{0x1.0000000000000p-1f, 0x1.ae147a0000000p-2f, 0x1.3333340000000p-2f};
+  g.trim_color = foundry::vec3{0x1.70a3d80000000p-2f, 0x1.1eb8520000000p-2f, 0x1.99999a0000000p-3f};
+  g.roof_color = foundry::vec3{0x1.70a3d80000000p-1f, 0x1.47ae140000000p-1f, 0x1.99999a0000000p-2f};
+  g.accent = foundry::vec3{0x1.0000000000000p-1f, 0x1.99999a0000000p-1f, 0x1.6666660000000p-1f};
+  g.mix = 0x1.6666660000000p-1f;
+  g.moss = 0x1.3333340000000p-2f;
+  g.smoke_hole = true;
+  g.hearth_fire = 9u;
+  g.torch_fire = 12u;
+  g.blaze_fire = 4u;
+  g.road_lane = std::string("boardwalk");
+  g.road_high = std::string("boardwalk");
+  g.road_square = std::string("boardwalk");
+  g.wall_kind = std::string("palisade");
+  g.fence_kind = std::string("reed");
+  g.gate_type = std::string("wooden_gate");
+}
+
+void config_theme_nordic(channels::village_v1_theme &g) {
+  g.name = std::string("nordic");
+  g.roof = 6;
+  g.plan = 1;
+  g.walls = 3;
+  g.windows = 1;
+  g.foundation = 0;
+  g.ornament = 3;
+  g.wall_color = foundry::vec3{0x1.d70a3e0000000p-2f, 0x1.47ae140000000p-2f, 0x1.99999a0000000p-3f};
+  g.trim_color = foundry::vec3{0x1.47ae140000000p-2f, 0x1.c28f5c0000000p-3f, 0x1.1eb8520000000p-3f};
+  g.roof_color = foundry::vec3{0x1.70a3d80000000p-2f, 0x1.0000000000000p-1f, 0x1.eb851e0000000p-3f};
+  g.accent = foundry::vec3{0x1.8000000000000p-1f, 0x1.70a3d80000000p-3f, 0x1.eb851e0000000p-4f};
+  g.mix = 0x1.99999a0000000p-1f;
+  g.moss = 0x1.99999a0000000p-3f;
+  g.smoke_hole = true;
+  g.hearth_fire = 9u;
+  g.torch_fire = 2u;
+  g.blaze_fire = 4u;
+  g.road_lane = std::string("lane");
+  g.road_high = std::string("street");
+  g.road_square = std::string("square");
+  g.wall_kind = std::string("palisade");
+  g.fence_kind = std::string("split_rail");
+  g.gate_type = std::string("gatehouse");
+}
+
+void config_theme_stone_dome(channels::village_v1_theme &g) {
+  g.name = std::string("stone_dome");
+  g.roof = 4;
+  g.plan = 2;
+  g.walls = 7;
+  g.windows = 4;
+  g.foundation = 3;
+  g.ornament = 0;
+  g.wall_color = foundry::vec3{0x1.3333340000000p-1f, 0x1.23d70a0000000p-1f, 0x1.0a3d700000000p-1f};
+  g.trim_color = foundry::vec3{0x1.cccccc0000000p-2f, 0x1.ae147a0000000p-2f, 0x1.851eb80000000p-2f};
+  g.roof_color = foundry::vec3{0x1.28f5c20000000p-1f, 0x1.19999a0000000p-1f, 0x1.0000000000000p-1f};
+  g.accent = foundry::vec3{0x1.8000000000000p-1f, 0x1.3333340000000p-1f, 0x1.3333340000000p-2f};
+  g.mix = 0x1.cccccc0000000p-1f;
+  g.moss = 0x1.6666660000000p-2f;
+  g.smoke_hole = true;
+  g.hearth_fire = 9u;
+  g.torch_fire = 2u;
+  g.blaze_fire = 4u;
+  g.road_lane = std::string("lane");
+  g.road_high = std::string("drystone_way");
+  g.road_square = std::string("drystone_way");
+  g.wall_kind = std::string("drystone_wall");
+  g.fence_kind = std::string("stone_slab");
+  g.gate_type = std::string("wooden_gate");
+}
+
+void config_theme(uint32_t i, channels::village_v1_theme &g) {
+  switch (i) {
+    case 0: config_theme_desert(g); return;
+    case 1: config_theme_druidic(g); return;
+    case 2: config_theme_dwarven(g); return;
+    case 3: config_theme_elven(g); return;
+    case 4: config_theme_heartland(g); return;
+    case 5: config_theme_marsh(g); return;
+    case 6: config_theme_nordic(g); return;
+    case 7: config_theme_stone_dome(g); return;
+  }
+}
+
 struct Built final : runtime::Build {
   decltype(channels::house_v1_model::bones) build_bones;
 };
@@ -530,26 +986,32 @@ class Type final : public runtime::PipelineType {
   uint32_t detail_levels() const override { return 3; }
   size_t detail_offset() const override { return offsetof(Params, detail); }
   const float *detail_pixels(int quality) const override {
-    static const float k[3][3] = {{256.0f, 256.0f, 256.0f}, {256.0f, 256.0f, 24.0f}, {256.0f, 256.0f, 8.0f}};  // low, medium, high
+    static const float k[3][3] = {{256.0f, 256.0f, 256.0f}, {256.0f, 256.0f, 256.0f}, {256.0f, 256.0f, 8.0f}};  // low, medium, high
     return k[quality < 0 ? 0 : quality > 2 ? 2 : quality];
   }
   const runtime::ParamInfo *param_table(size_t &count) const override {
     static const char *const v_type[] = {"alchemist", "bakery", "carpenter", "cottage", "farmhouse", "general_store", "inn", "mill", "smithy", "tailor"};
-    static const char *const v_stage[] = {"construction", "basic", "deluxe", "premium"};
+    static const char *const v_palette[] = {"autumn", "black", "blue", "green", "natural", "northern", "orange", "purple", "red", "white", "whitewash", "yellow"};
+    static const char *const v_theme[] = {"desert", "druidic", "dwarven", "elven", "heartland", "marsh", "nordic", "stone_dome"};
+    static const char *const v_stage[] = {"construction", "basic", "deluxe", "premium", "ruin"};
     static const char *const v_season[] = {"winter", "spring", "summer", "fall"};
+    static const char *const v_household[] = {"solo", "family", "extended"};
     static const char *const v_footprint[] = {"usual", "alternate"};
     static const char *const v_detail[] = {"high", "medium", "low"};
     static const runtime::ParamInfo t[] = {
       {"type", runtime::ParamInfo::kEnum, offsetof(Params, type), true, v_type, 10u, 0.0, 0.0},
-      {"stage", runtime::ParamInfo::kEnum, offsetof(Params, stage), true, v_stage, 4u, 0.0, 0.0},
+      {"palette", runtime::ParamInfo::kEnum, offsetof(Params, palette), true, v_palette, 12u, 0.0, 0.0},
+      {"theme", runtime::ParamInfo::kEnum, offsetof(Params, theme), true, v_theme, 8u, 0.0, 0.0},
+      {"stage", runtime::ParamInfo::kEnum, offsetof(Params, stage), true, v_stage, 5u, 0.0, 0.0},
       {"season", runtime::ParamInfo::kEnum, offsetof(Params, season), true, v_season, 4u, 0.0, 0.0},
+      {"household", runtime::ParamInfo::kEnum, offsetof(Params, household), true, v_household, 3u, 0.0, 0.0},
       {"footprint", runtime::ParamInfo::kEnum, offsetof(Params, footprint), true, v_footprint, 2u, 0.0, 0.0},
       {"seed", runtime::ParamInfo::kU32, offsetof(Params, seed), true, nullptr, 0u, 1.0, 1000.0},
       {"detail", runtime::ParamInfo::kEnum, offsetof(Params, detail), true, v_detail, 3u, 0.0, 0.0},
       {"wind_speed", runtime::ParamInfo::kF32, offsetof(Params, wind_speed), false, nullptr, 0u, 0.0, 25.0},
       {"wind_heading", runtime::ParamInfo::kF32, offsetof(Params, wind_heading), false, nullptr, 0u, 0.0, 360.0},
       {"gust_damping", runtime::ParamInfo::kF32, offsetof(Params, gust_damping), false, nullptr, 0u, 0.0, 1.0}};
-    count = 9;
+    count = 12;
     return t;
   }
   size_t wind_heading_offset() const override { return offsetof(Params, wind_heading); }
@@ -562,8 +1024,11 @@ class Type final : public runtime::PipelineType {
     const Params &p = *static_cast<const Params *>(params);
     uint64_t h = runtime::fnv64("house_v1", 8);
     key_add(h, p.type);
+    key_add(h, p.palette);
+    key_add(h, p.theme);
     key_add(h, p.stage);
     key_add(h, p.season);
+    key_add(h, p.household);
     key_add(h, p.footprint);
     key_add(h, p.seed);
     key_add(h, p.detail);
@@ -571,18 +1036,27 @@ class Type final : public runtime::PipelineType {
   }
 
   std::shared_ptr<runtime::Build> build(const void *params, std::string &error) const override {
+    return build_impl(params, nullptr, error);
+  }
+
+  std::shared_ptr<runtime::Build> build_impl(const void *params, const std::vector<uint8_t> *payload,
+                                             std::string &error) const {
     const Params &p = *static_cast<const Params *>(params);
+    (void)payload;
     auto b = std::make_shared<Built>();
     const float *clocks = nullptr;
     (void)clocks;
     // build: house_build_v1
     channels::house_v1_spec build_in;
     config_type(static_cast<uint32_t>(p.type), build_in.type);
+    config_palette(static_cast<uint32_t>(p.palette), build_in.palette);
     build_in.stage = static_cast<uint32_t>(p.stage);
     build_in.season = static_cast<uint32_t>(p.season);
+    build_in.household = static_cast<uint32_t>(p.household);
     build_in.footprint = static_cast<uint32_t>(p.footprint);
     build_in.seed = p.seed;
     build_in.detail = static_cast<uint32_t>(p.detail);
+    config_theme(static_cast<uint32_t>(p.theme), build_in.theme);
     channels::house_v1_model build_out;
     {
       const auto t0 = std::chrono::steady_clock::now();
@@ -630,6 +1104,18 @@ class Type final : public runtime::PipelineType {
     }
     b->footprint_radius = build_out.footprint_radius;
     b->footprint_cells = build_out.footprint_cells;
+    {
+      const auto &fp = build_out.fire_points;
+      const auto &fc = build_out.fire_configs;
+      const auto &fl = build_out.fire_lit;
+      for (size_t i = 0; i < fp.size() && i < fc.size(); ++i) {
+        runtime::FirePoint f;
+        f.pos[0] = fp[i].x; f.pos[1] = fp[i].y; f.pos[2] = fp[i].z;
+        f.config = fc[i];
+        f.lit = i < fl.size() ? fl[i] : runtime::FirePoint::kAlways;
+        b->fires.push_back(f);
+      }
+    }
     const auto &m = b->mesh;
     b->triangles = static_cast<uint32_t>(m.indices.size() / 3);
     uint32_t bones = 1;
@@ -649,6 +1135,7 @@ class Type final : public runtime::PipelineType {
     }
     b->height = top;
     b->radius = std::sqrt(r2);
+    runtime::terrain_bounds(*b);
     if (!finite) b->problem = "a vertex is not finite";
     else if (m.indices.empty()) b->problem = "the mesh has no triangles";
     else if (*std::max_element(m.indices.begin(), m.indices.end()) >= m.positions.size()) b->problem = "an index is out of range";
@@ -707,8 +1194,11 @@ const Type kType;
 
 bool valid(const Params &p) {
   if (static_cast<uint32_t>(p.type) >= 10u) return false;
-  if (static_cast<uint32_t>(p.stage) >= 4u) return false;
+  if (static_cast<uint32_t>(p.palette) >= 12u) return false;
+  if (static_cast<uint32_t>(p.theme) >= 8u) return false;
+  if (static_cast<uint32_t>(p.stage) >= 5u) return false;
   if (static_cast<uint32_t>(p.season) >= 4u) return false;
+  if (static_cast<uint32_t>(p.household) >= 3u) return false;
   if (static_cast<uint32_t>(p.footprint) >= 2u) return false;
   if (p.seed < 1u || p.seed > 1000u) return false;
   if (static_cast<uint32_t>(p.detail) >= 3u) return false;
@@ -726,8 +1216,11 @@ void foundry_house_v1_default_params(Params *params) {
   Params p;
   std::memset(&p, 0, sizeof p);
   p.type = static_cast<foundry_house_v1_type>(3);
+  p.palette = static_cast<foundry_house_v1_palette>(4);
+  p.theme = static_cast<foundry_house_v1_theme>(4);
   p.stage = static_cast<foundry_house_v1_stage>(2);
   p.season = static_cast<foundry_house_v1_season>(2);
+  p.household = static_cast<foundry_house_v1_household>(1);
   p.footprint = static_cast<foundry_house_v1_footprint>(0);
   p.seed = 1u;
   p.detail = static_cast<foundry_house_v1_detail>(0);
@@ -750,6 +1243,22 @@ foundry_status foundry_house_v1_set_type(foundry_runtime *rt, foundry_instance i
   return foundry_status_of(rt->world.set_param(instance, &kType, offsetof(Params, type), &value, sizeof value, true));
 }
 
+foundry_status foundry_house_v1_set_palette(foundry_runtime *rt, foundry_instance instance, foundry_house_v1_palette value) {
+  Params check;
+  foundry_house_v1_default_params(&check);
+  check.palette = value;
+  if (!valid(check)) return FOUNDRY_STATUS_BAD_PARAMETER;
+  return foundry_status_of(rt->world.set_param(instance, &kType, offsetof(Params, palette), &value, sizeof value, true));
+}
+
+foundry_status foundry_house_v1_set_theme(foundry_runtime *rt, foundry_instance instance, foundry_house_v1_theme value) {
+  Params check;
+  foundry_house_v1_default_params(&check);
+  check.theme = value;
+  if (!valid(check)) return FOUNDRY_STATUS_BAD_PARAMETER;
+  return foundry_status_of(rt->world.set_param(instance, &kType, offsetof(Params, theme), &value, sizeof value, true));
+}
+
 foundry_status foundry_house_v1_set_stage(foundry_runtime *rt, foundry_instance instance, foundry_house_v1_stage value) {
   Params check;
   foundry_house_v1_default_params(&check);
@@ -764,6 +1273,14 @@ foundry_status foundry_house_v1_set_season(foundry_runtime *rt, foundry_instance
   check.season = value;
   if (!valid(check)) return FOUNDRY_STATUS_BAD_PARAMETER;
   return foundry_status_of(rt->world.set_param(instance, &kType, offsetof(Params, season), &value, sizeof value, true));
+}
+
+foundry_status foundry_house_v1_set_household(foundry_runtime *rt, foundry_instance instance, foundry_house_v1_household value) {
+  Params check;
+  foundry_house_v1_default_params(&check);
+  check.household = value;
+  if (!valid(check)) return FOUNDRY_STATUS_BAD_PARAMETER;
+  return foundry_status_of(rt->world.set_param(instance, &kType, offsetof(Params, household), &value, sizeof value, true));
 }
 
 foundry_status foundry_house_v1_set_footprint(foundry_runtime *rt, foundry_instance instance, foundry_house_v1_footprint value) {
@@ -812,6 +1329,62 @@ foundry_status foundry_house_v1_set_gust_damping(foundry_runtime *rt, foundry_in
   check.gust_damping = value;
   if (!valid(check)) return FOUNDRY_STATUS_BAD_PARAMETER;
   return foundry_status_of(rt->world.set_param(instance, &kType, offsetof(Params, gust_damping), &value, sizeof value, false));
+}
+
+int foundry_house_v1_type_find(const char *name) {
+  static const char *const names[] = {"alchemist", "bakery", "carpenter", "cottage", "farmhouse", "general_store", "inn", "mill", "smithy", "tailor"};
+  for (int i = 0; name && i < 10; ++i)
+    if (std::strcmp(names[i], name) == 0) return i;
+  return -1;
+}
+
+int foundry_house_v1_palette_find(const char *name) {
+  static const char *const names[] = {"autumn", "black", "blue", "green", "natural", "northern", "orange", "purple", "red", "white", "whitewash", "yellow"};
+  for (int i = 0; name && i < 12; ++i)
+    if (std::strcmp(names[i], name) == 0) return i;
+  return -1;
+}
+
+int foundry_house_v1_theme_find(const char *name) {
+  static const char *const names[] = {"desert", "druidic", "dwarven", "elven", "heartland", "marsh", "nordic", "stone_dome"};
+  for (int i = 0; name && i < 8; ++i)
+    if (std::strcmp(names[i], name) == 0) return i;
+  return -1;
+}
+
+int foundry_house_v1_stage_find(const char *name) {
+  static const char *const names[] = {"construction", "basic", "deluxe", "premium", "ruin"};
+  for (int i = 0; name && i < 5; ++i)
+    if (std::strcmp(names[i], name) == 0) return i;
+  return -1;
+}
+
+int foundry_house_v1_season_find(const char *name) {
+  static const char *const names[] = {"winter", "spring", "summer", "fall"};
+  for (int i = 0; name && i < 4; ++i)
+    if (std::strcmp(names[i], name) == 0) return i;
+  return -1;
+}
+
+int foundry_house_v1_household_find(const char *name) {
+  static const char *const names[] = {"solo", "family", "extended"};
+  for (int i = 0; name && i < 3; ++i)
+    if (std::strcmp(names[i], name) == 0) return i;
+  return -1;
+}
+
+int foundry_house_v1_footprint_find(const char *name) {
+  static const char *const names[] = {"usual", "alternate"};
+  for (int i = 0; name && i < 2; ++i)
+    if (std::strcmp(names[i], name) == 0) return i;
+  return -1;
+}
+
+int foundry_house_v1_detail_find(const char *name) {
+  static const char *const names[] = {"high", "medium", "low"};
+  for (int i = 0; name && i < 3; ++i)
+    if (std::strcmp(names[i], name) == 0) return i;
+  return -1;
 }
 
 foundry_status foundry_house_v1_start_door(foundry_runtime *rt, foundry_instance instance) {

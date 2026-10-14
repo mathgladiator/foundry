@@ -159,6 +159,12 @@ void register_tools(mcp::Registry &registry, View &view) {
                              {"zoom", {{"type", "number"}}},
                              {"distance", {{"type", "number"}}},
                              {"collision", {{"type", "boolean"}}},
+                             {"frame", {{"type", "number"}, {"description", "metres to frame (default: the region, even with its boundary's world around it)"}}},
+                             {"eye", {{"type", "array"}, {"description", "stand here (x, y, z metres) instead of orbiting: a player's view"}}},
+                             {"heading", {{"type", "number"}, {"description", "with eye: degrees from north (-z) toward east (+x)"}}},
+                             {"elevation", {{"type", "number"}, {"description", "with eye: degrees above the horizon"}}},
+                             {"fov", {{"type", "number"}, {"description", "with eye: vertical field of view, degrees (63)"}}},
+                             {"boundary", {{"type", "object"}, {"description", "the plotter's boundary (design/boundary.md): {show, values: {hull, biome, detail, view_distance...}}"}}},
                              {"cpu", {{"type", "boolean"}, {"description", "draw it on the CPU, to compare with the GPU"}}},
                              {"observatory", {{"type", "string"},
                                               {"description", "under this observatory's sky, or none; default: what the plotter's "
@@ -167,14 +173,26 @@ void register_tools(mcp::Registry &registry, View &view) {
                 [&view](const json &args) {
                   std::string error;
                   if (!ensure(view, args, error)) return mcp::Result::error(error);
+                  if (args.contains("boundary")) view.set_boundary(args["boundary"]);
                   assets::ViewContent c;
                   if (!content(view, c, 120000)) return mcp::Result::error("the region's picture isn't ready");
+                  c.own_ground = view.picture().frame_m > 0;  // a boundary's world: no sky ground disc over it
                   viewport::Camera cam;
                   cam.view = viewport::parse_view(args.value("view", "orbit"));
                   cam.yaw = args.value("yaw", 0.7f);
                   cam.pitch = args.value("pitch", 0.55f);
                   cam.zoom = args.value("zoom", 1.0f);
                   cam.distance = args.value("distance", 0.0f);
+                  cam.frame = args.value("frame", view.picture().frame_m);
+                  if (args.contains("eye") && args["eye"].is_array() && args["eye"].size() == 3) {
+                    // Standing in the region (a player's view of its boundary): heading from north (-z)
+                    // toward east (+x) and elevation, in degrees.
+                    cam.free = true;
+                    for (int k = 0; k < 3; ++k) cam.eye[k] = args["eye"][k].get<float>();
+                    cam.azimuth = args.value("heading", 0.0f) * 0.0174533f;
+                    cam.elevation = args.value("elevation", 0.0f) * 0.0174533f;
+                    cam.fov = args.value("fov", 63.0f) * 0.0174533f;
+                  }
                   const int size = std::clamp(args.value("size", 900), 128, 2048);
                   const auto r0 = std::chrono::steady_clock::now();
                   viewport::Image img;

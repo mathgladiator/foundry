@@ -1,6 +1,8 @@
+#include <algorithm>
 #include <cstring>
 #include <string>
 
+#include "fires.h"
 #include "internal.h"
 #include "runtime_diag.h"
 
@@ -39,6 +41,7 @@ foundry_runtime *foundry_runtime_create(const foundry_runtime_desc *desc) {
     delete rt;
     return nullptr;
   }
+  rt->world.set_fire_configs(fires::configs());
   if (desc) {
     rt->quality = desc->quality;
     rt->world.set_quality(static_cast<int>(desc->quality));
@@ -65,6 +68,44 @@ void foundry_set_viewport(foundry_runtime *rt, uint32_t width, uint32_t height) 
 void foundry_set_quality(foundry_runtime *rt, foundry_quality quality) {
   rt->quality = quality;
   rt->world.set_quality(static_cast<int>(quality));
+}
+
+void foundry_look_default(foundry_look *look) {
+  if (!look) return;
+  const runtime::Look d;
+  look->vision = FOUNDRY_VISION_TYPICAL;
+  look->contrast = d.contrast;
+  look->saturation = d.saturation;
+  look->edges = d.edges;
+  look->effect = FOUNDRY_LOOK_EFFECT_NONE;
+  for (int i = 0; i < 3; ++i) look->tint[i] = d.tint[i];
+  look->strength = d.strength;
+}
+
+void foundry_set_look(foundry_runtime *rt, const foundry_look *look) {
+  runtime::Look l;
+  if (look) {
+    l.vision = std::clamp(static_cast<int>(look->vision), 0, 3);
+    l.contrast = std::clamp(look->contrast, 0.0f, 1.0f);
+    l.saturation = std::clamp(look->saturation, 0.0f, 3.0f);
+    l.edges = std::clamp(look->edges, 0.0f, 1.0f);
+    l.effect = std::clamp(static_cast<int>(look->effect), 0, 2);
+    for (int i = 0; i < 3; ++i) l.tint[i] = std::clamp(look->tint[i], 0.0f, 1.0f);
+    l.strength = std::clamp(look->strength, 0.0f, 1.0f);
+  }
+  rt->world.set_look(l);
+}
+
+void foundry_get_look(foundry_runtime *rt, foundry_look *look) {
+  if (!look) return;
+  const runtime::Look &l = rt->world.look();
+  look->vision = static_cast<foundry_vision>(l.vision);
+  look->contrast = l.contrast;
+  look->saturation = l.saturation;
+  look->edges = l.edges;
+  look->effect = static_cast<foundry_look_effect>(l.effect);
+  for (int i = 0; i < 3; ++i) look->tint[i] = l.tint[i];
+  look->strength = l.strength;
 }
 
 foundry_status foundry_set_transform(foundry_runtime *rt, foundry_instance instance, const float transform[16]) {
@@ -100,7 +141,8 @@ void foundry_diag_counters_get(foundry_runtime *rt, foundry_diag_counters *out) 
           c.draws, c.drawn, c.culled, c.triangles, c.bodies,
           c.too_small, {c.by_level[0], c.by_level[1], c.by_level[2], c.by_level[3]},
           c.animated, c.unseen, c.rate_skipped, c.bones_uploaded, c.lod_generations, c.fields, c.field_tiles,
-          {c.field_tiles_by_level[0], c.field_tiles_by_level[1], c.field_tiles_by_level[2], c.field_tiles_by_level[3]}};
+          {c.field_tiles_by_level[0], c.field_tiles_by_level[1], c.field_tiles_by_level[2], c.field_tiles_by_level[3]},
+          c.terrains, c.terrain_nodes, c.terrain_triangles};
 }
 
 void foundry_diag_frame_get(foundry_runtime *rt, foundry_diag_frame *out) {

@@ -1,0 +1,83 @@
+{
+  "family": "boundary",
+  "version": 1,
+  "feature": "rim",
+  "doc": "A boundary's rim (design/boundary.md): the hull resolved into a closed loop of cells, and the line the world beyond grows from, sampled every metre counterclockwise as seen from above, each sample with its height, outward direction, how much of each edge it is (blended along the rim), and its rise.",
+  "fields": [
+    {
+      "name": "cells",
+      "type": "i32[]",
+      "doc": "The resolved hull's cells, as q, r pairs, in order counterclockwise as seen from above (gaps filled, duplicates dropped)."
+    },
+    {
+      "name": "cell_edges",
+      "type": "u32[]",
+      "doc": "Each resolved cell's edge (1 ledge to 7 marsh; never auto)."
+    },
+    {
+      "name": "cell_heights",
+      "type": "f32[]",
+      "doc": "Each resolved cell's ground height, metres."
+    },
+    {
+      "name": "points",
+      "type": "vec3[]",
+      "doc": "The rim's samples, metres: x, the ground height, z, about 1 m apart along the smoothed line through the cells' centres."
+    },
+    {
+      "name": "outward",
+      "type": "vec3[]",
+      "doc": "Each sample's outward direction (horizontal, unit)."
+    },
+    {
+      "name": "weights",
+      "type": "f32[]",
+      "doc": "Each sample's share of each edge, 7 per sample (ledge, ridge, mountain, forest, jungle, sea, marsh), summing to 1."
+    },
+    {
+      "name": "rises",
+      "type": "f32[]",
+      "doc": "Each sample's rise, 0 to 1."
+    },
+    {
+      "name": "opening_points",
+      "type": "vec3[]",
+      "doc": "Where roads and rivers cross the rim, metres."
+    },
+    {
+      "name": "opening_dirs",
+      "type": "vec3[]",
+      "doc": "Each opening's way out (horizontal, unit)."
+    },
+    {
+      "name": "opening_kinds",
+      "type": "u32[]",
+      "doc": "Each opening's kind: 0 road, 1 lane, 2 river in, 3 river out."
+    },
+    {
+      "name": "opening_widths",
+      "type": "f32[]",
+      "doc": "Each opening's width, metres."
+    },
+    {
+      "name": "centre",
+      "type": "vec3",
+      "doc": "The middle of the playable region (the rim's centroid), metres."
+    },
+    {
+      "name": "extent",
+      "type": "f32",
+      "doc": "The farthest rim sample from the centre, metres."
+    },
+    {
+      "name": "length",
+      "type": "f32",
+      "doc": "The rim's length, metres."
+    },
+    {
+      "name": "seed",
+      "type": "u32",
+      "doc": "The world's seed."
+    }
+  ]
+}

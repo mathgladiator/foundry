@@ -1,0 +1,51 @@
+{
+  "created_at": "2026-10-13T17:00:00Z",
+  "doc": "A coastal village: whitewashed walls, blue doors and shutters, pale roofs.",
+  "notes": [],
+  "state": "draft",
+  "value": {
+    "name": "whitewash",
+    "roof": [
+      0.72,
+      0.66,
+      0.6
+    ],
+    "roof_mix": 0.5,
+    "wall": [
+      0.96,
+      0.96,
+      0.94
+    ],
+    "wall_mix": 0.9,
+    "trim": [
+      0.5,
+      0.5,
+      0.5
+    ],
+    "trim_mix": 0.0,
+    "door": [
+      0.16,
+      0.34,
+      0.62
+    ],
+    "door_mix": 1.0,
+    "shutter": [
+      0.22,
+      0.44,
+      0.72
+    ],
+    "shutter_mix": 1.0,
+    "accent": [
+      0.2,
+      0.42,
+      0.7
+    ],
+    "accent_mix": 0.8,
+    "sign": [
+      0.5,
+      0.5,
+      0.5
+    ],
+    "sign_mix": 0.0
+  }
+}

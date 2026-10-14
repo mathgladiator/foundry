@@ -1,0 +1,168 @@
+{
+  "kind": "pipeline",
+  "name": "waterfront_v1",
+  "state": "draft",
+  "doc": "A waterfront building (design/planner.md, Waterfronts): the game asks for a type (a pier, a boathouse, a quay warehouse, a fishery), a size, how far below the ground the water lies, and the season; build makes it on its part-land, part-water lot with its boats, crane, and nets, and the house animator rocks the boats and sways the nets and the crane's jib.",
+  "notes": [],
+  "created_at": "2026-10-13T19:30:00Z",
+  "params": [
+    {
+      "name": "type",
+      "type": "config",
+      "table": "waterfront_v1_types",
+      "default": "pier",
+      "doc": "A type: one entry from config/waterfront_v1_types/."
+    },
+    {
+      "name": "theme",
+      "type": "config",
+      "table": "village_v1_themes",
+      "default": "heartland",
+      "doc": "The village's theme from config/village_v1_themes/: its colours, moss, and fires."
+    },
+    {
+      "name": "condition",
+      "type": "enum",
+      "values": [
+        "intact",
+        "ruin"
+      ],
+      "default": "intact",
+      "doc": "Intact, or a ruin: broken down, its boats and lamp gone, overgrown."
+    },
+    {
+      "name": "size",
+      "type": "enum",
+      "values": [
+        "small",
+        "medium",
+        "large"
+      ],
+      "default": "medium",
+      "doc": "Its lot: small (rect3x4), medium (rect4x5), or large (rect5x6); the back two rows are land, the rest water."
+    },
+    {
+      "name": "drop",
+      "type": "f32",
+      "min": 0,
+      "max": 4,
+      "default": 0.8,
+      "unit": "m",
+      "doc": "How far below the lot's ground the water lies (a planner gives it)."
+    },
+    {
+      "name": "season",
+      "type": "enum",
+      "values": [
+        "winter",
+        "spring",
+        "summer",
+        "fall"
+      ],
+      "default": "summer"
+    },
+    {
+      "name": "seed",
+      "type": "u32",
+      "min": 1,
+      "max": 1000,
+      "default": 1,
+      "doc": "Which of the distinct buildings."
+    },
+    {
+      "name": "detail",
+      "type": "enum",
+      "values": [
+        "high",
+        "medium",
+        "low"
+      ],
+      "default": "high",
+      "doc": "Level of detail; the runtime picks it from distance and quality."
+    },
+    {
+      "name": "wind_speed",
+      "type": "f32",
+      "min": 0,
+      "max": 25,
+      "default": 6,
+      "unit": "m/s"
+    },
+    {
+      "name": "wind_heading",
+      "type": "f32",
+      "min": 0,
+      "max": 360,
+      "default": 90,
+      "unit": "deg",
+      "doc": "Toward which the wind blows, from +Z toward +X."
+    },
+    {
+      "name": "gust_damping",
+      "type": "f32",
+      "min": 0,
+      "max": 1,
+      "default": 0.3
+    },
+    {
+      "name": "time",
+      "type": "time",
+      "default": 0,
+      "unit": "s"
+    }
+  ],
+  "stages": [
+    {
+      "id": "build",
+      "system": "waterfront_build_v1",
+      "input": {
+        "type": "$type",
+        "size": "$size",
+        "drop": "$drop",
+        "season": "$season",
+        "seed": "$seed",
+        "detail": "$detail",
+        "theme": "$theme",
+        "condition": "$condition"
+      }
+    },
+    {
+      "id": "animate",
+      "system": "house_animate_v1",
+      "phase": "update",
+      "input": {
+        "bones": "@build.bones",
+        "wind_speed": "$wind_speed",
+        "wind_heading": "$wind_heading",
+        "gust_damping": "$gust_damping",
+        "time": "$time",
+        "door_time": -1,
+        "seed": "$seed"
+      }
+    }
+  ],
+  "draw": {
+    "model": "build",
+    "pose": "animate",
+    "frame_m": 14,
+    "conformance": {
+      "radius": "radius",
+      "height": "height",
+      "box": {
+        "min": "lot_min",
+        "max": "lot_max"
+      }
+    },
+    "footprint": {
+      "radius": "footprint_radius",
+      "cells": "footprint_cells",
+      "lot": "cells",
+      "wet": "wet"
+    },
+    "fires": {
+      "points": "fire_points",
+      "configs": "fire_configs",
+      "lit": "fire_lit"
+    }
+  }
+}

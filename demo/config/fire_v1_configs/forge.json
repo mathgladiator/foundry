@@ -1,0 +1,42 @@
+{
+  "created_at": "2026-10-14T04:30:00Z",
+  "doc": "A forge's bed of coals: a glow, few flames, sparks.",
+  "notes": [],
+  "state": "draft",
+  "value": {
+    "name": "forge",
+    "id": 3,
+    "kind": "ember",
+    "core_color": [
+      1.0,
+      0.45,
+      0.1
+    ],
+    "tip_color": [
+      1.0,
+      0.2,
+      0.02
+    ],
+    "size": 0.5,
+    "height": 0.25,
+    "rate": 25,
+    "flicker": 0.3,
+    "sparks": 12,
+    "smoke_color": [
+      0.35,
+      0.33,
+      0.32
+    ],
+    "smoke_rate": 5,
+    "smoke_size": 0.4,
+    "smoke_life": 6,
+    "smoke_rise": 1.2,
+    "light_color": [
+      1.0,
+      0.5,
+      0.2
+    ],
+    "light_radius": 6,
+    "light_strength": 1.5
+  }
+}

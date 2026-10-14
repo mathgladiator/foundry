@@ -292,6 +292,7 @@ LightBinding SkyRenderer::classic_light() {
   set4(u.key, 1.04f, 0.98f, 0.88f, 0.84f);
   set4(u.ambient, 0.50f * 1.05f, 0.52f * 1.05f, 0.72f * 1.05f, 0.02f);
   set4(u.eye, 0, 0, 0, 1);
+  look_.uniform(u.look);
   b.samplers[0] = {lit_, nearest_};
   b.samplers[1] = {clear_, repeat_};
   return b;
@@ -307,6 +308,7 @@ LightBinding SkyRenderer::light(const sky::Frame &f, const sky::State &s, const 
   set4(u.ambient, f.ambient, 0.02f);
   set4(u.fog, f.fog, f.fog_density);
   set4(u.eye, eye, f.exposure);
+  look_.uniform(u.look);
   const bool shadowed = shadow && shadow_;
   if (shadowed) {
     std::memcpy(u.shadow_vp, shadow->view_proj, sizeof u.shadow_vp);
@@ -326,6 +328,7 @@ LightBinding SkyRenderer::light(const sky::Frame &f, const sky::State &s, const 
 SkyUniform SkyRenderer::sky_uniform(const sky::Frame &f, const sky::State &s, const SkyCamera &cam, double time) const {
   SkyUniform u;
   std::memset(&u, 0, sizeof u);
+  look_.uniform(u.look);
   const sky::Observatory &o = *observatory_;
   for (int i = 0; i < 3; ++i) {
     u.ray_x[i] = cam.right[i] * cam.tan_x;

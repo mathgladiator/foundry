@@ -1,0 +1,35 @@
+{
+  "created_at": "2026-10-13T19:30:00Z",
+  "doc": "A quay warehouse: a big stone-footed shed with doors to the quay, a crane over the water, a cargo boat alongside.",
+  "notes": [],
+  "state": "draft",
+  "value": {
+    "name": "warehouse",
+    "kind": "warehouse",
+    "wood_color": [
+      0.46,
+      0.34,
+      0.22
+    ],
+    "wall_color": [
+      0.72,
+      0.66,
+      0.56
+    ],
+    "roof_color": [
+      0.62,
+      0.32,
+      0.22
+    ],
+    "accent": [
+      0.3,
+      0.35,
+      0.5
+    ],
+    "boats": 1,
+    "crane": true,
+    "nets": false,
+    "barrels": true,
+    "lamp": true
+  }
+}

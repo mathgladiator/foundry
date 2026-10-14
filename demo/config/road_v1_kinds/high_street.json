@@ -1,0 +1,39 @@
+{
+  "created_at": "2026-10-13T19:00:00Z",
+  "doc": "A high street: flagstones, lamps, sign posts at its junctions, planters by the shopfronts and in the halves the plan gives it.",
+  "notes": [],
+  "state": "draft",
+  "value": {
+    "name": "high_street",
+    "surface": "flagstone",
+    "surface_color": [
+      0.68,
+      0.65,
+      0.58
+    ],
+    "detail_color": [
+      0.36,
+      0.33,
+      0.3
+    ],
+    "paved": 1.0,
+    "verge": "kerb",
+    "ruts": false,
+    "half": "planter",
+    "half_color": [
+      0.7,
+      0.3,
+      0.25
+    ],
+    "lamps": 0.08,
+    "lamp_color": [
+      1.0,
+      0.82,
+      0.45
+    ],
+    "signs": true,
+    "clutter": 0.1,
+    "planters": 0.15,
+    "quay": false
+  }
+}

@@ -15,18 +15,16 @@ struct house_v1_type {
   static constexpr uint32_t kKindHome = 0;
   static constexpr uint32_t kKindStore = 1;
   static constexpr uint32_t kKindWorkshop = 2;
-  static constexpr uint32_t kFootprintFlower7 = 0;
-  static constexpr uint32_t kFootprintRect3x2 = 1;
-  static constexpr uint32_t kFootprintRect3x3 = 2;
-  static constexpr uint32_t kFootprintRect4x3 = 3;
-  static constexpr uint32_t kFootprintRect5x4 = 4;
-  static constexpr uint32_t kFootprintFlower19 = 5;
-  static constexpr uint32_t kFootprintAltFlower7 = 0;
-  static constexpr uint32_t kFootprintAltRect3x2 = 1;
-  static constexpr uint32_t kFootprintAltRect3x3 = 2;
-  static constexpr uint32_t kFootprintAltRect4x3 = 3;
-  static constexpr uint32_t kFootprintAltRect5x4 = 4;
-  static constexpr uint32_t kFootprintAltFlower19 = 5;
+  static constexpr uint32_t kFootprintWide = 0;
+  static constexpr uint32_t kFootprintDeep = 1;
+  static constexpr uint32_t kFootprintRound = 2;
+  static constexpr uint32_t kFootprintLong = 3;
+  static constexpr uint32_t kFootprintBroad = 4;
+  static constexpr uint32_t kFootprintAltWide = 0;
+  static constexpr uint32_t kFootprintAltDeep = 1;
+  static constexpr uint32_t kFootprintAltRound = 2;
+  static constexpr uint32_t kFootprintAltLong = 3;
+  static constexpr uint32_t kFootprintAltBroad = 4;
   static constexpr uint32_t kWallsTimber = 0;
   static constexpr uint32_t kWallsPlank = 1;
   static constexpr uint32_t kWallsLog = 2;
@@ -58,9 +56,9 @@ struct house_v1_type {
   std::string name;
   // What it is to the village: a home, a store, or a workshop.
   uint32_t kind = 0;
-  // Its usual footprint (design/systems.md, Village houses): flower7 (a cell and its six neighbours), rectWxH (H rows of W cells, brick-laid, so the plot is nearly rectangular), or flower19.
+  // Its usual lot shape (design/systems.md, Village houses): wide (a broad front, its ridge along the street), deep (a narrow front and a long lot, its gable to the street), round (a hex flower, a house standing in its garden), long (a burgage: a narrow front and a very long lot, the house at the back of a long yard), or broad (a shopfront: a very wide front on a shallow lot). The household picks the size.
   uint32_t footprint = 0;
-  // Its other footprint, for variety along a street.
+  // Its other lot shape, for variety along a street.
   uint32_t footprint_alt = 0;
   // What its walls are made of.
   uint32_t walls = 0;

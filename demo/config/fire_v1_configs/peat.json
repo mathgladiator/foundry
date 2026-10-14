@@ -1,0 +1,42 @@
+{
+  "created_at": "2026-10-14T04:30:00Z",
+  "doc": "A peat or turf fire: low flames under heavy, pale smoke.",
+  "notes": [],
+  "state": "draft",
+  "value": {
+    "name": "peat",
+    "id": 9,
+    "kind": "flame",
+    "core_color": [
+      1.0,
+      0.5,
+      0.15
+    ],
+    "tip_color": [
+      0.85,
+      0.22,
+      0.05
+    ],
+    "size": 0.35,
+    "height": 0.3,
+    "rate": 20,
+    "flicker": 0.35,
+    "sparks": 1,
+    "smoke_color": [
+      0.62,
+      0.6,
+      0.56
+    ],
+    "smoke_rate": 7,
+    "smoke_size": 0.45,
+    "smoke_life": 9,
+    "smoke_rise": 0.7,
+    "light_color": [
+      1.0,
+      0.55,
+      0.3
+    ],
+    "light_radius": 5,
+    "light_strength": 0.9
+  }
+}

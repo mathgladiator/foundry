@@ -1,0 +1,21 @@
+{
+  "created_at": "2026-10-14T13:00:00Z",
+  "doc": "Forest all round any region (by direction), the land rising behind it.",
+  "notes": [],
+  "state": "draft",
+  "value": {
+    "name": "around_forest",
+    "cells": [],
+    "edges": [],
+    "heights": [],
+    "rises": [],
+    "radius": 20,
+    "sectors": [
+      4
+    ],
+    "sector_rises": [
+      0.4
+    ],
+    "rise": 0.4
+  }
+}

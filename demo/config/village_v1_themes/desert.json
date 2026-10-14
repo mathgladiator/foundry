@@ -1,0 +1,47 @@
+{
+  "created_at": "2026-10-14T04:30:00Z",
+  "doc": "An oasis town: adobe walls, flat roofs and domes, arched windows, oil lamps, palm-leaf awnings.",
+  "notes": [],
+  "state": "draft",
+  "value": {
+    "name": "desert",
+    "roof": "flat",
+    "plan": "rect",
+    "walls": "adobe",
+    "windows": "arched",
+    "foundation": "none",
+    "ornament": "lanterns",
+    "wall_color": [
+      0.86,
+      0.72,
+      0.52
+    ],
+    "trim_color": [
+      0.55,
+      0.4,
+      0.26
+    ],
+    "roof_color": [
+      0.84,
+      0.7,
+      0.5
+    ],
+    "accent": [
+      0.2,
+      0.45,
+      0.7
+    ],
+    "mix": 0.9,
+    "moss": 0.0,
+    "smoke_hole": false,
+    "hearth_fire": 1,
+    "torch_fire": 10,
+    "blaze_fire": 4,
+    "road_lane": "sand_lane",
+    "road_high": "sand_lane",
+    "road_square": "sand_lane",
+    "wall_kind": "adobe_wall",
+    "fence_kind": "reed",
+    "gate_type": "town_gate"
+  }
+}

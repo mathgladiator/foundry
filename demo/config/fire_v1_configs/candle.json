@@ -1,0 +1,42 @@
+{
+  "created_at": "2026-10-14T04:30:00Z",
+  "doc": "A candle or a shrine's lamp: a small, steady flame.",
+  "notes": [],
+  "state": "draft",
+  "value": {
+    "name": "candle",
+    "id": 7,
+    "kind": "flame",
+    "core_color": [
+      1.0,
+      0.85,
+      0.5
+    ],
+    "tip_color": [
+      1.0,
+      0.5,
+      0.15
+    ],
+    "size": 0.03,
+    "height": 0.08,
+    "rate": 10,
+    "flicker": 0.25,
+    "sparks": 0,
+    "smoke_color": [
+      0.4,
+      0.4,
+      0.4
+    ],
+    "smoke_rate": 0.3,
+    "smoke_size": 0.05,
+    "smoke_life": 1.5,
+    "smoke_rise": 0.3,
+    "light_color": [
+      1.0,
+      0.8,
+      0.5
+    ],
+    "light_radius": 2,
+    "light_strength": 0.5
+  }
+}

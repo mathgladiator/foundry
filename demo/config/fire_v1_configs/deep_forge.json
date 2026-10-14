@@ -1,0 +1,42 @@
+{
+  "created_at": "2026-10-14T04:30:00Z",
+  "doc": "A dwarven forge: white-hot coals, a fountain of sparks.",
+  "notes": [],
+  "state": "draft",
+  "value": {
+    "name": "deep_forge",
+    "id": 11,
+    "kind": "ember",
+    "core_color": [
+      1.0,
+      0.85,
+      0.5
+    ],
+    "tip_color": [
+      1.0,
+      0.35,
+      0.05
+    ],
+    "size": 0.7,
+    "height": 0.4,
+    "rate": 50,
+    "flicker": 0.4,
+    "sparks": 40,
+    "smoke_color": [
+      0.3,
+      0.28,
+      0.27
+    ],
+    "smoke_rate": 7,
+    "smoke_size": 0.5,
+    "smoke_life": 7,
+    "smoke_rise": 1.5,
+    "light_color": [
+      1.0,
+      0.6,
+      0.3
+    ],
+    "light_radius": 9,
+    "light_strength": 2.0
+  }
+}

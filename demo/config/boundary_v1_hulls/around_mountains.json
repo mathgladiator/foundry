@@ -1,0 +1,21 @@
+{
+  "created_at": "2026-10-14T13:00:00Z",
+  "doc": "Any region ringed by mountains.",
+  "notes": [],
+  "state": "draft",
+  "value": {
+    "name": "around_mountains",
+    "cells": [],
+    "edges": [],
+    "heights": [],
+    "rises": [],
+    "radius": 20,
+    "sectors": [
+      3
+    ],
+    "sector_rises": [
+      0.9
+    ],
+    "rise": 0.4
+  }
+}

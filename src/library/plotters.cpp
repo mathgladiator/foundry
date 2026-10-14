@@ -451,6 +451,47 @@ const plotters::Field fields_happy_glen_v1[] = {
     {"grass_v1 meadow", field_happy_glen_v1_0},
 };
 
+foundry_instance boundary_happy_glen_v1(foundry_runtime *rt, uint32_t world_seed, const float t[16],
+                                    const foundry_hull_cell *cells, uint32_t count) {
+  foundry_boundary_v1_params p;
+  foundry_boundary_v1_default_params(&p);
+  p.biome = FOUNDRY_BOUNDARY_V1_BIOME_TEMPERATE;
+  p.detail = FOUNDRY_BOUNDARY_V1_DETAIL_HIGH;
+  p.hull = FOUNDRY_BOUNDARY_V1_HULL_AROUND_VALLEY;
+  p.view_distance = 0x1.7700000000000p+11f;
+  p.seed = 1u + (world_seed % 1000000u);
+  return foundry_boundary_v1_spawn_hull(rt, &p, t, cells, count);
+}
+
+foundry_instance figure_happy_glen_v1(foundry_runtime *rt, const foundry_figure *f, const float t[16]) {
+  if (f->kind == 0u) {
+    foundry_tree_v1_params p;
+    foundry_tree_v1_default_params(&p);
+    const int s = foundry_tree_v1_species_find(f->species);
+    if (s < 0) return FOUNDRY_NO_INSTANCE;
+    p.species = static_cast<foundry_tree_v1_species>(s);
+    p.age = static_cast<foundry_tree_v1_age>(f->age < 4u ? f->age : 3u);
+    p.seed = 1u + (f->seed % 4u);
+    return foundry_tree_v1_spawn(rt, &p, t);
+  }
+  if (f->kind == 1u) {
+    foundry_bush_v1_params p;
+    foundry_bush_v1_default_params(&p);
+    const int s = foundry_bush_v1_species_find(f->species);
+    if (s < 0) return FOUNDRY_NO_INSTANCE;
+    p.species = static_cast<foundry_bush_v1_species>(s);
+    p.age = static_cast<foundry_bush_v1_age>(f->age < 3u ? f->age : 2u);
+    p.seed = 1u + (f->seed % 4u);
+    return foundry_bush_v1_spawn(rt, &p, t);
+  }
+  (void)rt;
+  (void)f;
+  (void)t;
+  return FOUNDRY_NO_INSTANCE;
+}
+
+const plotters::Boundary boundary_info_happy_glen_v1 = {"boundary_v1 temperate high around_valley", boundary_happy_glen_v1, figure_happy_glen_v1};
+
 const plotters::Kind kinds_happy_glen_v1[] = {
     {"tree_v1 oak", spawn_happy_glen_v1_0},
     {"tree_v1 apple", spawn_happy_glen_v1_1},
@@ -473,7 +514,7 @@ namespace plotters {
 
 namespace {
 const Info kInfos[] = {
-    {"happy_glen_v1", config_happy_glen_v1, plot_scatter_v1::run, kinds_happy_glen_v1, 13u, fields_happy_glen_v1, 1u},
+    {"happy_glen_v1", config_happy_glen_v1, plot_scatter_v1::run, kinds_happy_glen_v1, 13u, fields_happy_glen_v1, 1u, &boundary_info_happy_glen_v1},
 };
 }  // namespace
 

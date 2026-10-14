@@ -244,6 +244,9 @@ bool GpuRenderer::init(SDL_GPUDevice *device, std::string &error) {
     shutdown();
     return false;
   }
+  // Fire's sprites, onto the inked image with the mesh's depth (the runtime's own renderer).
+  std::string fire_error;
+  fire_ok_ = fire_renderer_.init(device, SDL_GPU_TEXTUREFORMAT_R8G8B8A8_UNORM, SDL_GPU_TEXTUREFORMAT_D32_FLOAT, fire_error);
   return true;
 }
 
@@ -253,6 +256,8 @@ void GpuRenderer::shutdown() {
   for (Mesh &m : meshes_) release(m);
   meshes_.clear();
   release_targets();
+  fire_renderer_.shutdown();
+  fire_ok_ = false;
   for (SDL_GPUGraphicsPipeline *p : {mesh_, ink_, down_, lines_, sky_, shadow_})
     if (p) SDL_ReleaseGPUGraphicsPipeline(device_, p);
   mesh_ = ink_ = down_ = lines_ = sky_ = shadow_ = nullptr;
@@ -471,7 +476,8 @@ bool GpuRenderer::render(const Scene &scene, int width, int height, Image &out) 
   cam.forward[0] = fr.forward.x;
   cam.forward[1] = fr.forward.y;
   cam.forward[2] = fr.forward.z;
-  const float look[4] = {scene.silhouette ? 1.0f : 0.0f, sky ? 1.0f : 0.0f, 0, 0};
+  float look[16] = {scene.silhouette ? 1.0f : 0.0f, sky ? 1.0f : 0.0f, 0, 0};
+  viewport::look().uniform(look + 4);
 
   Mesh *gm = ground ? mesh_for(*ground) : nullptr;
   Mesh *g = mesh ? mesh_for(*mesh) : nullptr;
@@ -524,9 +530,26 @@ bool GpuRenderer::render(const Scene &scene, int width, int height, Image &out) 
     }
   }
   const float eye3[3] = {fr.eye.x, fr.eye.y, fr.eye.z};
-  const runtime::LightBinding light =
+  runtime::LightBinding light =
       sky ? sky_renderer_.light(sky_frame, scene.sky->state, eye3, scene.sky->time, shadowed ? &shadow : nullptr)
           : sky_renderer_.classic_light();
+  // The fires' light on the mesh.
+  const size_t fires = std::min<size_t>(scene.fire_lights.size(), runtime::LightUniform::kFireLights);
+  light.uniform.fire_count[0] = static_cast<float>(fires);
+  for (size_t i = 0; i < fires; ++i) {
+    const runtime::fire::Light &l = scene.fire_lights[i];
+    for (int k = 0; k < 3; ++k) {
+      light.uniform.fire_pos[i][k] = l.pos[k];
+      light.uniform.fire_col[i][k] = l.color[k] * l.strength;
+    }
+    light.uniform.fire_pos[i][3] = l.radius;
+  }
+  const bool fire = fire_ok_ && !scene.sprites.empty() && !scene.silhouette;
+  if (fire) {
+    SDL_GPUCopyPass *copy = SDL_BeginGPUCopyPass(cmd);
+    fire_renderer_.upload(copy, scene.sprites);
+    SDL_EndGPUCopyPass(copy);
+  }
   {  // the mesh
     SDL_GPUColorTargetInfo ct[3] = {};
     for (int i = 0; i < 3; ++i) {
@@ -541,7 +564,7 @@ bool GpuRenderer::render(const Scene &scene, int width, int height, Image &out) 
     dt.texture = t_.zbuf;
     dt.clear_depth = 1;
     dt.load_op = SDL_GPU_LOADOP_CLEAR;
-    dt.store_op = SDL_GPU_STOREOP_DONT_CARE;
+    dt.store_op = fire ? SDL_GPU_STOREOP_STORE : SDL_GPU_STOREOP_DONT_CARE;
     SDL_GPURenderPass *pass = SDL_BeginGPURenderPass(cmd, ct, 3, &dt);
     if (g || gm) {
       SDL_BindGPUGraphicsPipeline(pass, mesh_);
@@ -550,7 +573,9 @@ bool GpuRenderer::render(const Scene &scene, int width, int height, Image &out) 
       SDL_PushGPUFragmentUniformData(cmd, 1, &light.uniform, sizeof light.uniform);
       SDL_BindGPUFragmentSamplers(pass, 0, light.samplers, 2);
       if (gm) {  // the ground, as backdrop
-        const float backdrop[4] = {look[0], look[1], 1, 0};
+        float backdrop[16];
+        std::copy(look, look + 16, backdrop);
+        backdrop[2] = 1;
         SDL_PushGPUFragmentUniformData(cmd, 0, backdrop, sizeof backdrop);
         draw_mesh(pass, gm);
         SDL_PushGPUFragmentUniformData(cmd, 0, look, sizeof look);
@@ -594,6 +619,27 @@ bool GpuRenderer::render(const Scene &scene, int width, int height, Image &out) 
   {  // ink and background, then down to the final size
     const SDL_GPUTextureSamplerBinding ink[3] = {{t_.color, nearest_}, {t_.albedo, nearest_}, {t_.depth, nearest_}};
     fullscreen(t_.inked, ink_, ink, 3, true);
+    if (fire) {  // the fire's sprites over the inked image, behind what stands in front of them
+      SDL_GPUColorTargetInfo ct = {};
+      ct.texture = t_.inked;
+      ct.load_op = SDL_GPU_LOADOP_LOAD;
+      ct.store_op = SDL_GPU_STOREOP_STORE;
+      SDL_GPUDepthStencilTargetInfo dt = {};
+      dt.texture = t_.zbuf;
+      dt.load_op = SDL_GPU_LOADOP_LOAD;
+      dt.store_op = SDL_GPU_STOREOP_DONT_CARE;
+      SDL_GPURenderPass *pass = SDL_BeginGPURenderPass(cmd, &ct, 1, &dt);
+      // The camera's right and up as a view matrix's rows (the fire renderer reads them there).
+      float view[16] = {};
+      view[0] = fr.right.x;
+      view[4] = fr.right.y;
+      view[8] = fr.right.z;
+      view[1] = fr.up.x;
+      view[5] = fr.up.y;
+      view[9] = fr.up.z;
+      fire_renderer_.draw(cmd, pass, cam.clip, view, light);
+      SDL_EndGPURenderPass(pass);
+    }
     const SDL_GPUTextureSamplerBinding down[1] = {{t_.inked, linear_}};
     fullscreen(t_.final, down_, down, 1, false);
   }

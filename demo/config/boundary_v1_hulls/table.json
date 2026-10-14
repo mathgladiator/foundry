@@ -1,0 +1,35 @@
+{
+  "channel": "boundary_v1_hull",
+  "doc": "Boundary hulls (design/boundary.md): predefined shapes to see a boundary by (cells around a region with their edges), and sector presets that give any region's ring its edges by direction (a plotter's boundary). A game gives its own.",
+  "label": "hull",
+  "editor": {
+    "groups": [
+      {
+        "label": "Shape",
+        "fields": [
+          "name",
+          "cells",
+          "radius",
+          "shape"
+        ]
+      },
+      {
+        "label": "Edges",
+        "fields": [
+          "edges",
+          "heights",
+          "rises",
+          "rise"
+        ]
+      },
+      {
+        "label": "By direction",
+        "fields": [
+          "sectors",
+          "sector_rises"
+        ]
+      }
+    ],
+    "colors": []
+  }
+}

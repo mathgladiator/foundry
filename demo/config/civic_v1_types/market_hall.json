@@ -1,0 +1,53 @@
+{
+  "created_at": "2026-10-13T23:30:00Z",
+  "doc": "A market hall: a timbered upper hall on stone arcades over the stalls, a cupola with a clock.",
+  "notes": [],
+  "state": "draft",
+  "value": {
+    "name": "market_hall",
+    "kind": "market_hall",
+    "size": "large",
+    "walls": "timber",
+    "wall_color": [
+      0.92,
+      0.88,
+      0.76
+    ],
+    "trim_color": [
+      0.38,
+      0.27,
+      0.17
+    ],
+    "base_color": [
+      0.62,
+      0.6,
+      0.56
+    ],
+    "roof": "tile",
+    "roof_color": [
+      0.62,
+      0.32,
+      0.22
+    ],
+    "metal_color": [
+      0.55,
+      0.42,
+      0.25
+    ],
+    "accent": [
+      0.75,
+      0.25,
+      0.2
+    ],
+    "roof_pitch": 40,
+    "wall_height": 4.0,
+    "spire": false,
+    "bell": false,
+    "clock": true,
+    "columns": false,
+    "dome": false,
+    "banners": false,
+    "lamps": false,
+    "symbol": "wheel"
+  }
+}

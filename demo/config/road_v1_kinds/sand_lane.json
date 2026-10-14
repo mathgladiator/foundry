@@ -1,0 +1,39 @@
+{
+  "created_at": "2026-10-14T04:30:00Z",
+  "doc": "A desert lane: packed sand, palm-leaf awnings, oil lamps.",
+  "notes": [],
+  "state": "draft",
+  "value": {
+    "name": "sand_lane",
+    "surface": "sand",
+    "surface_color": [
+      0.86,
+      0.74,
+      0.52
+    ],
+    "detail_color": [
+      0.74,
+      0.6,
+      0.4
+    ],
+    "paved": 0.85,
+    "verge": "grass",
+    "ruts": true,
+    "half": "stall",
+    "half_color": [
+      0.75,
+      0.42,
+      0.2
+    ],
+    "lamps": 0.05,
+    "lamp_color": [
+      1.0,
+      0.85,
+      0.45
+    ],
+    "signs": false,
+    "clutter": 0.15,
+    "planters": 0.0,
+    "quay": false
+  }
+}

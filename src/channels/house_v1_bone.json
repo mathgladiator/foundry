@@ -17,19 +17,20 @@
     {
       "name": "axis",
       "type": "vec3",
-      "doc": "A unit axis: what it spins or hinges about; for sway, the way the part hangs or streams; for rise, up."
+      "doc": "A unit axis: what it spins or hinges about; for sway, the line it hangs from (a sign's bracket, a banner's pole, a washing line, an awning's edge, a tent flap's seam), which it turns about, so it never comes away; for rise, up."
     },
     {
       "name": "motion",
       "type": "u32",
-      "doc": "fixed (the root), sway (bends in the wind: a sign, a banner, laundry, an awning, the tent), spin (a wheel, sails, a weathervane), rise (a smoke puff rising, swelling, and fading, on a loop), hinge (the door, by door_time), flicker (a glow or flame pulsing).",
+      "doc": "fixed (the root), sway (swings about the line it hangs from, pushed by the wind across it: a sign, a banner, laundry, an awning's valance, the tent's flap), spin (a wheel, sails, a weathervane), rise (a smoke puff rising, swelling, and fading, on a loop), hinge (the door, by door_time), flicker (a glow or flame pulsing). Drift: it moves downwind in the gusts, by up to reach metres (a crop's wind group: its vertices blend toward it by height, so every plant on it bends from its own root).",
       "enum": [
         "fixed",
         "sway",
         "spin",
         "rise",
         "hinge",
-        "flicker"
+        "flicker",
+        "drift"
       ]
     },
     {
@@ -40,7 +41,7 @@
     {
       "name": "reach",
       "type": "f32",
-      "doc": "Hinge: the open angle, radians; rise: how high a puff goes, metres; flicker: how much it pulses (0 to 1); sway: the most it bends, radians."
+      "doc": "Hinge: the open angle, radians; rise: how high a puff goes, metres; flicker: how much it pulses (0 to 1); sway: the most it swings, radians."
     },
     {
       "name": "drag",

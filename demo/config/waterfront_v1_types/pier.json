@@ -1,0 +1,35 @@
+{
+  "created_at": "2026-10-13T19:30:00Z",
+  "doc": "A fishing pier: a plank deck on posts out over the water, rowing boats tied along it, a lamp at its end.",
+  "notes": [],
+  "state": "draft",
+  "value": {
+    "name": "pier",
+    "kind": "pier",
+    "wood_color": [
+      0.5,
+      0.38,
+      0.25
+    ],
+    "wall_color": [
+      0.8,
+      0.74,
+      0.62
+    ],
+    "roof_color": [
+      0.4,
+      0.3,
+      0.24
+    ],
+    "accent": [
+      0.25,
+      0.45,
+      0.62
+    ],
+    "boats": 4,
+    "crane": false,
+    "nets": false,
+    "barrels": true,
+    "lamp": true
+  }
+}

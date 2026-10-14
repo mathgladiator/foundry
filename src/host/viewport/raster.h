@@ -11,6 +11,8 @@
 
 #include <memory>
 
+#include "fire/fire.h"
+#include "render/look.h"
 #include "render/mesh.h"
 #include "sky/sky.h"
 #include "viewport/image.h"
@@ -70,10 +72,23 @@ struct Scene {
   std::vector<Line> lines;      // always drawn, and included in the framing (a region's hexes)
   bool has_conformance = false;
   float conformance_radius = 0, conformance_height = 0;
+  bool has_box = false;  // a box conformance (a building's lot), drawn with the capsule
+  foundry::vec3 box_min{0, 0, 0}, box_max{0, 0, 0};
   Overlays overlays;
   Camera camera;
   bool silhouette = false;  // draw the mesh as a solid black shape (style.md section 3)
+  // Fire (design/submit.md, "Fire"): the fire system's sprites, drawn after the ink, and its lights
+  // on the mesh (the GPU's; the CPU draws the sprites only).
+  std::vector<runtime::fire::Sprite> sprites;
+  std::vector<runtime::fire::Light> fire_lights;
 };
+
+// The look every render uses (render/look.h; design/submit.md, "The look"): the game's grade for
+// accessibility and effects, applied after the ink, before overlay lines; its edges add ink between
+// colours. Thread-safe; look_version bumps on every change.
+void set_look(const runtime::Look &look);
+runtime::Look look();
+int look_version();
 
 // Renders at width x height (supersampled internally): on the GPU when a GPU renderer is set
 // (gpu.h), otherwise on the CPU.

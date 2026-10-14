@@ -1,0 +1,1003 @@
+{
+ "build": {
+  "commit": "8e18118+dirty",
+  "dt": 0.016666666666666666,
+  "gpu": "rendered off screen",
+  "resolution": [
+   1920,
+   1080
+  ]
+ },
+ "compared_with": "report-house_v1-20261013T165434Z",
+ "failures": [
+  {
+   "check": "settle",
+   "config": {
+    "detail": "low",
+    "footprint": "alternate",
+    "gust_damping": 0.28863781690597534,
+    "household": "family",
+    "palette": "blue",
+    "season": "spring",
+    "seed": 381,
+    "stage": "premium",
+    "type": "mill",
+    "wind_heading": 32.25611114501953,
+    "wind_speed": 5.733431816101074
+   },
+   "detail": "an event never settled",
+   "journal": 1815,
+   "phase": "diversity"
+  },
+  {
+   "check": "settle",
+   "config": {
+    "detail": "medium",
+    "footprint": "alternate",
+    "gust_damping": 0.6776570081710815,
+    "household": "extended",
+    "palette": "natural",
+    "season": "summer",
+    "seed": 863,
+    "stage": "basic",
+    "type": "inn",
+    "wind_heading": 26.588838577270508,
+    "wind_speed": 24.788419723510742
+   },
+   "detail": "an event never settled",
+   "journal": 1815,
+   "phase": "diversity"
+  },
+  {
+   "check": "settle",
+   "config": {
+    "detail": "high",
+    "footprint": "alternate",
+    "gust_damping": 0.6865021586418152,
+    "household": "family",
+    "palette": "northern",
+    "season": "summer",
+    "seed": 953,
+    "stage": "premium",
+    "type": "cottage",
+    "wind_heading": 33.40266418457031,
+    "wind_speed": 8.768509864807129
+   },
+   "detail": "an event never settled",
+   "journal": 1815,
+   "phase": "diversity"
+  },
+  {
+   "check": "settle",
+   "config": {
+    "detail": "high",
+    "footprint": "usual",
+    "gust_damping": 0.8469100594520569,
+    "household": "solo",
+    "palette": "orange",
+    "season": "summer",
+    "seed": 96,
+    "stage": "premium",
+    "type": "mill",
+    "wind_heading": 77.97431945800781,
+    "wind_speed": 17.884540557861328
+   },
+   "detail": "an event never settled",
+   "journal": 1815,
+   "phase": "diversity"
+  },
+  {
+   "check": "settle",
+   "config": {
+    "detail": "low",
+    "footprint": "alternate",
+    "gust_damping": 0.04437750577926636,
+    "household": "solo",
+    "palette": "black",
+    "season": "summer",
+    "seed": 217,
+    "stage": "basic",
+    "type": "general_store",
+    "wind_heading": 247.4160919189453,
+    "wind_speed": 10.966914176940918
+   },
+   "detail": "an event never settled",
+   "journal": 1815,
+   "phase": "diversity"
+  },
+  {
+   "check": "settle",
+   "config": {
+    "detail": "high",
+    "footprint": "alternate",
+    "gust_damping": 0.6442357301712036,
+    "household": "family",
+    "palette": "northern",
+    "season": "fall",
+    "seed": 710,
+    "stage": "deluxe",
+    "type": "smithy",
+    "wind_heading": 116.40274810791016,
+    "wind_speed": 0.635458767414093
+   },
+   "detail": "an event never settled",
+   "journal": 1815,
+   "phase": "diversity"
+  },
+  {
+   "check": "settle",
+   "config": {
+    "detail": "low",
+    "footprint": "usual",
+    "gust_damping": 1.0,
+    "household": "family",
+    "palette": "red",
+    "season": "winter",
+    "seed": 346,
+    "stage": "construction",
+    "type": "farmhouse",
+    "wind_heading": 195.7184600830078,
+    "wind_speed": 18.547313690185547
+   },
+   "detail": "an event never settled",
+   "journal": 1815,
+   "phase": "diversity"
+  },
+  {
+   "check": "settle",
+   "config": {
+    "detail": "low",
+    "footprint": "alternate",
+    "gust_damping": 0.043071165680885315,
+    "household": "solo",
+    "palette": "green",
+    "season": "summer",
+    "seed": 580,
+    "stage": "basic",
+    "type": "cottage",
+    "wind_heading": 331.91485595703125,
+    "wind_speed": 11.963386535644531
+   },
+   "detail": "an event never settled",
+   "journal": 1815,
+   "phase": "diversity"
+  },
+  {
+   "check": "settle",
+   "config": {
+    "detail": "medium",
+    "footprint": "usual",
+    "gust_damping": 0.6926941871643066,
+    "household": "solo",
+    "palette": "northern",
+    "season": "winter",
+    "seed": 380,
+    "stage": "basic",
+    "type": "tailor",
+    "wind_heading": 112.26607513427734,
+    "wind_speed": 0.18566332757472992
+   },
+   "detail": "an event never settled",
+   "journal": 1815,
+   "phase": "diversity"
+  },
+  {
+   "check": "settle",
+   "config": {
+    "detail": "medium",
+    "footprint": "alternate",
+    "gust_damping": 0.5730212926864624,
+    "household": "extended",
+    "palette": "purple",
+    "season": "spring",
+    "seed": 787,
+    "stage": "premium",
+    "type": "general_store",
+    "wind_heading": 289.12542724609375,
+    "wind_speed": 11.017572402954102
+   },
+   "detail": "an event never settled",
+   "journal": 1815,
+   "phase": "diversity"
+  },
+  {
+   "check": "settle",
+   "config": {
+    "detail": "high",
+    "footprint": "alternate",
+    "gust_damping": 0.2801455855369568,
+    "household": "family",
+    "palette": "autumn",
+    "season": "spring",
+    "seed": 379,
+    "stage": "construction",
+    "type": "farmhouse",
+    "wind_heading": 14.784835815429688,
+    "wind_speed": 23.058303833007813
+   },
+   "detail": "an event never settled",
+   "journal": 1815,
+   "phase": "diversity"
+  },
+  {
+   "check": "settle",
+   "config": {
+    "detail": "low",
+    "footprint": "alternate",
+    "gust_damping": 0.39082732796669006,
+    "household": "family",
+    "palette": "black",
+    "season": "winter",
+    "seed": 540,
+    "stage": "basic",
+    "type": "smithy",
+    "wind_heading": 323.8775634765625,
+    "wind_speed": 9.534457206726074
+   },
+   "detail": "an event never settled",
+   "journal": 1815,
+   "phase": "diversity"
+  },
+  {
+   "check": "settle",
+   "config": {
+    "detail": "medium",
+    "footprint": "usual",
+    "gust_damping": 0.9760149121284485,
+    "household": "solo",
+    "palette": "red",
+    "season": "winter",
+    "seed": 987,
+    "stage": "deluxe",
+    "type": "tailor",
+    "wind_heading": 247.54415893554688,
+    "wind_speed": 17.680255889892578
+   },
+   "detail": "an event never settled",
+   "journal": 1815,
+   "phase": "diversity"
+  },
+  {
+   "check": "settle",
+   "config": {
+    "detail": "medium",
+    "footprint": "alternate",
+    "gust_damping": 0.8242212533950806,
+    "household": "family",
+    "palette": "blue",
+    "season": "summer",
+    "seed": 375,
+    "stage": "deluxe",
+    "type": "inn",
+    "wind_heading": 5.361555099487305,
+    "wind_speed": 0.2262193262577057
+   },
+   "detail": "an event never settled",
+   "journal": 1815,
+   "phase": "diversity"
+  },
+  {
+   "check": "settle",
+   "config": {
+    "detail": "high",
+    "footprint": "alternate",
+    "gust_damping": 0.10770982503890991,
+    "household": "extended",
+    "palette": "autumn",
+    "season": "fall",
+    "seed": 478,
+    "stage": "construction",
+    "type": "carpenter",
+    "wind_heading": 116.20006561279297,
+    "wind_speed": 23.7630615234375
+   },
+   "detail": "an event never settled",
+   "journal": 1815,
+   "phase": "diversity"
+  },
+  {
+   "check": "settle",
+   "config": {
+    "detail": "high",
+    "footprint": "usual",
+    "gust_damping": 0.29693159461021423,
+    "household": "family",
+    "palette": "northern",
+    "season": "fall",
+    "seed": 685,
+    "stage": "premium",
+    "type": "bakery",
+    "wind_heading": 71.71388244628906,
+    "wind_speed": 23.38459014892578
+   },
+   "detail": "an event never settled",
+   "journal": 1815,
+   "phase": "diversity"
+  },
+  {
+   "check": "settle",
+   "config": {
+    "detail": "low",
+    "footprint": "alternate",
+    "gust_damping": 0.18233433365821838,
+    "household": "solo",
+    "palette": "red",
+    "season": "summer",
+    "seed": 323,
+    "stage": "premium",
+    "type": "alchemist",
+    "wind_heading": 29.826374053955078,
+    "wind_speed": 15.853589057922363
+   },
+   "detail": "an event never settled",
+   "journal": 1815,
+   "phase": "diversity"
+  },
+  {
+   "check": "settle",
+   "config": {
+    "detail": "medium",
+    "footprint": "alternate",
+    "gust_damping": 0.05776429548859596,
+    "household": "solo",
+    "palette": "red",
+    "season": "summer",
+    "seed": 950,
+    "stage": "basic",
+    "type": "bakery",
+    "wind_heading": 3.39107608795166,
+    "wind_speed": 17.39090347290039
+   },
+   "detail": "door_time: instances never settled",
+   "journal": 4101,
+   "phase": "events"
+  },
+  {
+   "check": "same as alone",
+   "config": {
+    "detail": "medium",
+    "footprint": "alternate",
+    "gust_damping": 0.05776429548859596,
+    "household": "solo",
+    "palette": "red",
+    "season": "summer",
+    "seed": 950,
+    "stage": "basic",
+    "type": "bakery",
+    "wind_heading": 3.39107608795166,
+    "wind_speed": 17.39090347290039
+   },
+   "detail": "door_time: firing in bulk changed an instance's result",
+   "journal": 4101,
+   "phase": "events"
+  },
+  {
+   "check": "same as alone",
+   "config": {
+    "detail": "high",
+    "footprint": "alternate",
+    "gust_damping": 0.7705122828483582,
+    "household": "family",
+    "palette": "green",
+    "season": "fall",
+    "seed": 404,
+    "stage": "construction",
+    "type": "farmhouse",
+    "wind_heading": 8.864545822143555,
+    "wind_speed": 19.353031158447266
+   },
+   "detail": "door_time: firing in bulk changed an instance's result",
+   "journal": 4101,
+   "phase": "events"
+  }
+ ],
+ "finished": "2026-10-13T21:15:38Z",
+ "machine": {
+  "cores": 32,
+  "cpu": "AMD RYZEN AI MAX+ 395 w/ Radeon 8060S",
+  "fingerprint": "deb7535b5a90a4bb",
+  "gpu": "Radeon 8060S Graphics (RADV GFX1151)",
+  "gpu_driver": "vulkan",
+  "memory_gb": 125.0,
+  "os": "Linux 6.18.44+rex+5-amd64"
+ },
+ "pass": false,
+ "phases": [
+  {
+   "data": {
+    "configs": 100,
+    "deterministic": {
+     "of": 20,
+     "same": 20
+    },
+    "failed": 0,
+    "frames": {
+     "draw_ms": {
+      "max": 0.143,
+      "mean": 0.029,
+      "n": 1200,
+      "p50": 0.03,
+      "p95": 0.039,
+      "p99": 0.051
+     },
+     "gpu_wait_ms": {
+      "max": 0.557,
+      "mean": 0.009,
+      "n": 1200,
+      "p50": 0.002,
+      "p95": 0.021,
+      "p99": 0.167
+     },
+     "prepare_ms": {
+      "max": 1.682,
+      "mean": 0.043,
+      "n": 1200,
+      "p50": 0.037,
+      "p95": 0.077,
+      "p99": 0.171
+     },
+     "total_ms": {
+      "max": 1.924,
+      "mean": 0.146,
+      "n": 1200,
+      "p50": 0.135,
+      "p95": 0.247,
+      "p99": 0.447
+     },
+     "update_ms": {
+      "max": 0.115,
+      "mean": 0.046,
+      "n": 1200,
+      "p50": 0.048,
+      "p95": 0.057,
+      "p99": 0.074
+     }
+    },
+    "generation_ms": {
+     "max": 4.626,
+     "mean": 2.078,
+     "n": 100,
+     "p50": 2.009,
+     "p95": 3.63,
+     "p99": 4.566
+    },
+    "generation_worst": {
+     "detail": "high",
+     "footprint": "alternate",
+     "gust_damping": 0.8503355979919434,
+     "household": "extended",
+     "palette": "whitewash",
+     "season": "fall",
+     "seed": 244,
+     "stage": "deluxe",
+     "type": "cottage",
+     "wind_heading": 318.5610656738281,
+     "wind_speed": 15.5684814453125
+    },
+    "reference": {
+     "matched": 100,
+     "of": 100
+    },
+    "seconds": 20.0,
+    "stages": [
+     {
+      "calls": 73713,
+      "max_ms": 0.061405,
+      "mean_ms": 0.000691011409113736,
+      "stage": "house_v1.animate",
+      "update": true
+     },
+     {
+      "calls": 198,
+      "max_ms": 2.12096,
+      "mean_ms": 0.8505001464646467,
+      "stage": "house_v1.build",
+      "update": false
+     }
+    ],
+    "threads": {
+     "of": 10,
+     "same": 10
+    },
+    "triangles": {
+     "max": 8186.0,
+     "mean": 2058.11,
+     "n": 100,
+     "p50": 1690.0,
+     "p95": 5286.0,
+     "p99": 7962.0
+    },
+    "unsettled": 17,
+    "wall_seconds": 0.21323346209526062
+   },
+   "kind": "diversity",
+   "pass": false,
+   "summary": "100 configs  20 s  FAIL  native = wasm 100/100  gen p50 2.0 ms p99 4.6 ms (high alternate extended whitewash fall deluxe cottage)  frame p95 0.25 ms"
+  },
+  {
+   "data": {
+    "budget_ms": 16.666666666666668,
+    "camera": "overview",
+    "capacity": 800,
+    "capacity_is_lower_bound": true,
+    "capacity_p95_ms": 0.5904631614685059,
+    "expected_generations": 10,
+    "generations": 10,
+    "hit_rate": 0.9875,
+    "kb_per_instance": 0.8630857142857192,
+    "ms_per_instance": 0.0005232173913043476,
+    "samples": [
+     {
+      "bodies": 450,
+      "cache_entries": 17,
+      "cache_gpu_mb": 1.4802474975585938,
+      "count": 100,
+      "culled": 0,
+      "detail_generations": 85,
+      "drawn": 100,
+      "draws": 10,
+      "frames": {
+       "draw_ms": {
+        "max": 0.011,
+        "mean": 0.004,
+        "n": 217,
+        "p50": 0.003,
+        "p95": 0.005,
+        "p99": 0.006
+       },
+       "gpu_frame_ms": {
+        "max": 0.266,
+        "mean": 0.192,
+        "n": 24,
+        "p50": 0.19,
+        "p95": 0.258,
+        "p99": 0.266
+       },
+       "gpu_wait_ms": {
+        "max": 0.5,
+        "mean": 0.026,
+        "n": 217,
+        "p50": 0.016,
+        "p95": 0.053,
+        "p99": 0.296
+       },
+       "prepare_ms": {
+        "max": 0.048,
+        "mean": 0.035,
+        "n": 217,
+        "p50": 0.035,
+        "p95": 0.042,
+        "p99": 0.047
+       },
+       "total_ms": {
+        "max": 0.599,
+        "mean": 0.123,
+        "n": 217,
+        "p50": 0.113,
+        "p95": 0.155,
+        "p99": 0.395
+       },
+       "update_ms": {
+        "max": 0.064,
+        "mean": 0.045,
+        "n": 217,
+        "p50": 0.046,
+        "p95": 0.052,
+        "p99": 0.058
+       }
+      },
+      "generations": 10,
+      "memory": {
+       "heap_mb": 55.04,
+       "hwm_mb": 88.82,
+       "private_dirty_mb": 29.37,
+       "rss_anon_mb": 29.37,
+       "rss_mb": 88.82
+      },
+      "p95_ms": 0.15542006492614746,
+      "triangles": 169140
+     },
+     {
+      "bodies": 900,
+      "cache_entries": 17,
+      "cache_gpu_mb": 1.4802474975585938,
+      "count": 200,
+      "culled": 0,
+      "detail_generations": 85,
+      "drawn": 200,
+      "draws": 10,
+      "frames": {
+       "draw_ms": {
+        "max": 0.015,
+        "mean": 0.004,
+        "n": 217,
+        "p50": 0.003,
+        "p95": 0.007,
+        "p99": 0.01
+       },
+       "gpu_frame_ms": {
+        "max": 0.311,
+        "mean": 0.3,
+        "n": 24,
+        "p50": 0.305,
+        "p95": 0.311,
+        "p99": 0.311
+       },
+       "gpu_wait_ms": {
+        "max": 0.632,
+        "mean": 0.059,
+        "n": 217,
+        "p50": 0.06,
+        "p95": 0.106,
+        "p99": 0.402
+       },
+       "prepare_ms": {
+        "max": 0.064,
+        "mean": 0.04,
+        "n": 217,
+        "p50": 0.039,
+        "p95": 0.047,
+        "p99": 0.052
+       },
+       "total_ms": {
+        "max": 0.746,
+        "mean": 0.174,
+        "n": 217,
+        "p50": 0.171,
+        "p95": 0.221,
+        "p99": 0.637
+       },
+       "update_ms": {
+        "max": 0.176,
+        "mean": 0.055,
+        "n": 217,
+        "p50": 0.055,
+        "p95": 0.062,
+        "p99": 0.072
+       }
+      },
+      "generations": 10,
+      "memory": {
+       "heap_mb": 55.33,
+       "hwm_mb": 88.86,
+       "private_dirty_mb": 29.41,
+       "rss_anon_mb": 29.41,
+       "rss_mb": 88.86
+      },
+      "p95_ms": 0.22116303443908691,
+      "triangles": 338280
+     },
+     {
+      "bodies": 1800,
+      "cache_entries": 17,
+      "cache_gpu_mb": 1.4802474975585938,
+      "count": 400,
+      "culled": 0,
+      "detail_generations": 85,
+      "drawn": 400,
+      "draws": 10,
+      "frames": {
+       "draw_ms": {
+        "max": 0.011,
+        "mean": 0.005,
+        "n": 217,
+        "p50": 0.004,
+        "p95": 0.009,
+        "p99": 0.011
+       },
+       "gpu_frame_ms": {
+        "max": 0.559,
+        "mean": 0.5,
+        "n": 24,
+        "p50": 0.503,
+        "p95": 0.538,
+        "p99": 0.559
+       },
+       "gpu_wait_ms": {
+        "max": 0.71,
+        "mean": 0.096,
+        "n": 217,
+        "p50": 0.102,
+        "p95": 0.182,
+        "p99": 0.563
+       },
+       "prepare_ms": {
+        "max": 0.145,
+        "mean": 0.079,
+        "n": 217,
+        "p50": 0.078,
+        "p95": 0.096,
+        "p99": 0.103
+       },
+       "total_ms": {
+        "max": 0.874,
+        "mean": 0.28,
+        "n": 217,
+        "p50": 0.28,
+        "p95": 0.348,
+        "p99": 0.78
+       },
+       "update_ms": {
+        "max": 0.147,
+        "mean": 0.084,
+        "n": 217,
+        "p50": 0.083,
+        "p95": 0.097,
+        "p99": 0.112
+       }
+      },
+      "generations": 10,
+      "memory": {
+       "heap_mb": 55.88,
+       "hwm_mb": 88.94,
+       "private_dirty_mb": 29.49,
+       "rss_anon_mb": 29.49,
+       "rss_mb": 88.94
+      },
+      "p95_ms": 0.34832119941711426,
+      "triangles": 676560
+     },
+     {
+      "bodies": 3600,
+      "cache_entries": 17,
+      "cache_gpu_mb": 1.4802474975585938,
+      "count": 800,
+      "culled": 2,
+      "detail_generations": 85,
+      "drawn": 798,
+      "draws": 10,
+      "frames": {
+       "draw_ms": {
+        "max": 0.011,
+        "mean": 0.004,
+        "n": 217,
+        "p50": 0.004,
+        "p95": 0.005,
+        "p99": 0.006
+       },
+       "gpu_frame_ms": {
+        "max": 1.121,
+        "mean": 0.908,
+        "n": 24,
+        "p50": 0.897,
+        "p95": 1.071,
+        "p99": 1.121
+       },
+       "gpu_wait_ms": {
+        "max": 1.167,
+        "mean": 0.205,
+        "n": 217,
+        "p50": 0.227,
+        "p95": 0.326,
+        "p99": 0.968
+       },
+       "prepare_ms": {
+        "max": 0.152,
+        "mean": 0.107,
+        "n": 217,
+        "p50": 0.106,
+        "p95": 0.122,
+        "p99": 0.128
+       },
+       "total_ms": {
+        "max": 1.424,
+        "mean": 0.463,
+        "n": 217,
+        "p50": 0.481,
+        "p95": 0.59,
+        "p99": 1.229
+       },
+       "update_ms": {
+        "max": 0.192,
+        "mean": 0.131,
+        "n": 217,
+        "p50": 0.13,
+        "p95": 0.146,
+        "p99": 0.16
+       }
+      },
+      "generations": 10,
+      "memory": {
+       "heap_mb": 57.02,
+       "hwm_mb": 89.41,
+       "private_dirty_mb": 29.95,
+       "rss_anon_mb": 29.95,
+       "rss_mb": 89.41
+      },
+      "p95_ms": 0.5904631614685059,
+      "triangles": 1351688
+     }
+    ],
+    "sets": 10,
+    "superlinear": false,
+    "wall_seconds": 0.35212710905075073
+   },
+   "kind": "forest",
+   "pass": true,
+   "summary": "10 sets  100..800  PASS  budget 16.7 ms holds to at least 800 (p95 0.6 ms)  generations 10/10  hits 98.8%"
+  },
+  {
+   "data": {
+    "budget_ms": 16.666666666666668,
+    "capacity_in_budget": 100,
+    "results": [
+     {
+      "count": 100,
+      "during": {
+       "draw_ms": {
+        "max": 0.033,
+        "mean": 0.005,
+        "n": 811,
+        "p50": 0.004,
+        "p95": 0.007,
+        "p99": 0.014
+       },
+       "gpu_frame_ms": {
+        "max": 0.798,
+        "mean": 0.168,
+        "n": 90,
+        "p50": 0.143,
+        "p95": 0.222,
+        "p99": 0.562
+       },
+       "gpu_wait_ms": {
+        "max": 1.096,
+        "mean": 0.008,
+        "n": 811,
+        "p50": 0.001,
+        "p95": 0.004,
+        "p99": 0.226
+       },
+       "prepare_ms": {
+        "max": 0.199,
+        "mean": 0.063,
+        "n": 811,
+        "p50": 0.062,
+        "p95": 0.077,
+        "p99": 0.093
+       },
+       "total_ms": {
+        "max": 1.283,
+        "mean": 0.188,
+        "n": 811,
+        "p50": 0.177,
+        "p95": 0.249,
+        "p99": 0.392
+       },
+       "update_ms": {
+        "max": 0.202,
+        "mean": 0.097,
+        "n": 811,
+        "p50": 0.096,
+        "p95": 0.115,
+        "p99": 0.144
+       }
+      },
+      "event": "door_time",
+      "heap_remainder_mb": 0.14166259765625,
+      "memory_after": {
+       "heap_mb": 55.51,
+       "hwm_mb": 88.2,
+       "private_dirty_mb": 28.75,
+       "rss_anon_mb": 28.75,
+       "rss_mb": 88.2
+      },
+      "memory_before": {
+       "heap_mb": 55.37,
+       "hwm_mb": 88.05,
+       "private_dirty_mb": 28.2,
+       "rss_anon_mb": 28.2,
+       "rss_mb": 87.65
+      },
+      "peak_rss_over_mb": 1.8359375,
+      "same_as_alone": {
+       "of": 3,
+       "same": 1
+      },
+      "settle_seconds": -1.0,
+      "spike_first_ms": 0.21143507957458496,
+      "spike_max_ms": 1.283156156539917,
+      "stagger_seconds": 0.0,
+      "steady": {
+       "draw_ms": {
+        "max": 0.004,
+        "mean": 0.004,
+        "n": 61,
+        "p50": 0.004,
+        "p95": 0.004,
+        "p99": 0.004
+       },
+       "gpu_wait_ms": {
+        "max": 0.323,
+        "mean": 0.007,
+        "n": 61,
+        "p50": 0.001,
+        "p95": 0.002,
+        "p99": 0.003
+       },
+       "prepare_ms": {
+        "max": 0.073,
+        "mean": 0.061,
+        "n": 61,
+        "p50": 0.061,
+        "p95": 0.068,
+        "p99": 0.071
+       },
+       "total_ms": {
+        "max": 0.554,
+        "mean": 0.179,
+        "n": 61,
+        "p50": 0.173,
+        "p95": 0.188,
+        "p99": 0.2
+       },
+       "update_ms": {
+        "max": 0.151,
+        "mean": 0.093,
+        "n": 61,
+        "p50": 0.092,
+        "p95": 0.103,
+        "p99": 0.106
+       }
+      },
+      "unsettled": 90,
+      "update_us_per_instance_active": 0.9650966148723634,
+      "update_us_per_instance_idle": 0.9289195081967212
+     }
+    ],
+    "wall_seconds": 0.24256860399246216
+   },
+   "kind": "events",
+   "pass": false,
+   "summary": "door_time  100  spike 1.3 ms over 0.2 ms  90 unsettled  memory back within 0.1 MB  FAIL"
+  }
+ ],
+ "pipeline": "house_v1",
+ "plan": {
+  "doc": "About a minute: the agent's default after a change (design/quality.perf.md).",
+  "name": "quick",
+  "phases": [
+   {
+    "configs": 100,
+    "kind": "diversity",
+    "seconds": 20
+   },
+   {
+    "counts": [
+     100,
+     200,
+     400,
+     800
+    ],
+    "kind": "forest",
+    "seconds": 4,
+    "sets": 10
+   },
+   {
+    "counts": [
+     100
+    ],
+    "kind": "events",
+    "seconds": 15,
+    "sets": 10
+   }
+  ],
+  "seed": 7
+ },
+ "plan_name": "quick",
+ "run_dir": "perf/runs/house_v1-20261013T211537Z",
+ "seed": 7,
+ "started": "2026-10-13T21:15:37Z",
+ "state": "draft",
+ "summary": [
+  "stress_house_v1 (draft)  plan quick  seed 7  Linux 6.18.44+rex+5-amd64  AMD RYZEN AI MAX+ 395 w/ Radeon 8060S  Radeon 8060S Graphics (RADV GFX1151) (vulkan)  build 8e18118+dirty",
+  "diversity  100 configs  20 s  FAIL  native = wasm 100/100  gen p50 2.0 ms p99 4.6 ms (high alternate extended whitewash fall deluxe cottage)  frame p95 0.25 ms",
+  "forest     10 sets  100..800  PASS  budget 16.7 ms holds to at least 800 (p95 0.6 ms)  generations 10/10  hits 98.8%",
+  "events     door_time  100  spike 1.3 ms over 0.2 ms  90 unsettled  memory back within 0.1 MB  FAIL",
+  "vs report-house_v1-20261013T165434Z: generation p50 +21%, diversity frame p95 +20%, forest p95 at 800 +58%, capacity +0%, events spike +154%"
+ ],
+ "systems": [
+  "house_build_v1",
+  "house_animate_v1"
+ ]
+}

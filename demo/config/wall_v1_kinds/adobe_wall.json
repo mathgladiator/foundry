@@ -1,0 +1,44 @@
+{
+  "created_at": "2026-10-14T04:30:00Z",
+  "doc": "A desert town's wall: smooth mud brick, crenellated, square towers.",
+  "notes": [],
+  "state": "draft",
+  "value": {
+    "name": "adobe_wall",
+    "material": "brick",
+    "color": [
+      0.8,
+      0.64,
+      0.46
+    ],
+    "trim_color": [
+      0.72,
+      0.56,
+      0.4
+    ],
+    "height": 4.5,
+    "thickness": 1.6,
+    "batter": 0.25,
+    "footing": 0.8,
+    "crenellated": true,
+    "walkway": true,
+    "buttresses": false,
+    "tower": "square",
+    "tower_radius": 2.0,
+    "tower_height": 2.5,
+    "tower_roof": "none",
+    "roof_color": [
+      0.32,
+      0.34,
+      0.4
+    ],
+    "banners": true,
+    "accent": [
+      0.2,
+      0.42,
+      0.62
+    ],
+    "tower_every_m": 30.0,
+    "tower_turn_deg": 25.0
+  }
+}

@@ -1,0 +1,88 @@
+{
+  "family": "terrain",
+  "version": 1,
+  "feature": "model",
+  "doc": "A terrain's model (design/terrain.md): the ground drawn as hexbound fans and walls, its water, its collision, guides, bridge mounts, and the ground itself for the runtime's queries.",
+  "fields": [
+    {
+      "name": "height",
+      "type": "f32",
+      "doc": "The highest point, metres."
+    },
+    {
+      "name": "radius",
+      "type": "f32",
+      "doc": "The reach from the origin, metres."
+    },
+    {
+      "name": "cell_count",
+      "type": "u32",
+      "doc": "Cells."
+    },
+    {
+      "name": "positions",
+      "type": "vec3[]",
+      "doc": "Vertex positions, metres."
+    },
+    {
+      "name": "normals",
+      "type": "vec3[]",
+      "doc": "Vertex normals."
+    },
+    {
+      "name": "indices",
+      "type": "u32[]",
+      "doc": "Triangles."
+    },
+    {
+      "name": "colors",
+      "type": "u32[]",
+      "doc": "Vertex colours, packed RGBA."
+    },
+    {
+      "name": "collision",
+      "type": "physics_v1_body[]",
+      "doc": "The ground as convex columns (solid), and walls round the shape."
+    },
+    {
+      "name": "guide_lines",
+      "type": "vec3[]",
+      "doc": "Guides: the sides by edge, openings, flats, roads, rivers, and bridge mounts, segment pairs."
+    },
+    {
+      "name": "guide_colors",
+      "type": "u32[]",
+      "doc": "Each guide segment's colour, packed RGBA."
+    },
+    {
+      "name": "mount_positions",
+      "type": "vec3[]",
+      "doc": "Bridge mounts, metres."
+    },
+    {
+      "name": "mount_yaws",
+      "type": "f32[]",
+      "doc": "Each mount's facing across the water, degrees."
+    },
+    {
+      "name": "mount_widths",
+      "type": "f32[]",
+      "doc": "Each mount's width, metres."
+    },
+    {
+      "name": "hull",
+      "type": "boundary_v1_hull",
+      "doc": "The boundary's hull (the ground's)."
+    },
+    {
+      "name": "nature",
+      "type": "plot_v1_regions",
+      "doc": "The plotter's ground (the ground's)."
+    },
+    {
+      "name": "ground",
+      "type": "terrain_v1_ground",
+      "doc": "The ground, for the runtime's queries."
+    }
+  ]
+}

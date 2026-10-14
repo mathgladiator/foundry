@@ -1,0 +1,8 @@
+{
+  "kind": "channel",
+  "name": "road_v1_model",
+  "state": "draft",
+  "reason": "road_build_v1's output (approved 2026-10-13; patched the same day: its flow and viewer guides).",
+  "notes": [],
+  "created_at": "2026-10-13T19:00:00Z"
+}

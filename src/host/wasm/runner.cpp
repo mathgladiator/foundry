@@ -15,7 +15,7 @@ namespace wasm {
 
 namespace {
 
-constexpr uint64_t kFuel = 20'000'000'000ull;           // instructions, roughly
+constexpr uint64_t kFuel = 60'000'000'000ull;           // instructions, roughly (a boundary at a 12 km view distance needs over 20 billion)
 constexpr int64_t kMemoryLimit = 1024ll * 1024 * 1024;  // bytes per instance
 
 std::string error_text(wasmtime_error_t *error, wasm_trap_t *trap) {

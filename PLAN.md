@@ -123,12 +123,55 @@ Its six channels were approved on 2026-10-13.
   - `house_build_v1`: the lot, stages, walls and roofs by material, door, windows, signs and symbols, features, yard things, seasons, collision, the doorway, and the marker;
   - `house_animate_v1`: sway in the trees' gusts, spin, smoke, the door, and glows;
   - the `house_v1_*` channels.
-- [ ] **Ten types** in `config/house_v1_types/`: cottage, farmhouse, inn, general store, bakery, smithy, carpenter, tailor, alchemist, and mill. Each has a usual and an alternate footprint among `flower7`, `rect3x2`, `rect3x3`, `rect4x3`, `rect5x4`, and `flower19`.
+- [ ] **Ten types** in `config/house_v1_types/`: cottage, farmhouse, inn, general store, bakery, smithy, carpenter, tailor, alchemist, and mill. Each has a usual and an alternate lot shape (wide, deep, or round).
 - [ ] **Checked and measured.**
-  - All 160 type × footprint × stage × season (summer and winter) builds match their WebAssembly builds and stay inside their round footprints, with collision Jolt takes inside the conformance.
+  - All 480 type × household × lot shape × stage × season (summer and winter) builds match their WebAssembly builds and stay inside their round footprints, with collision Jolt takes inside the conformance.
   - Detail sizes are measured.
-  - The quick stress plan holds 800 houses at 0.30 ms p95. It fails its event checks (question 2 below).
+  - The quick stress plan holds 800 houses at 0.37 ms p95. It fails its event checks (question 2 below).
   - The book is written.
+
+Asked for next, on 2026-10-13: houses about twice as big, so a hero could believably live, work, and lie down in one; sizes for a solo NPC, a family, and a multi-generation family; cloth (the tent's flap, the awning) that stays attached; and a design for a planner of settlements, from small villages to sprawling keeps and cities.
+
+- [ ] **Households.** `house_v1`'s spec gains `household` (solo, family, extended), which sizes the lot: 19 to 20 cells for one person, 30 to 37 for a family, 48 to 61 for several generations, each wide (`rect5x4`, `rect6x5`, `rect8x6`), deep (`rect4x5`, `rect5x6`, `rect6x8`), or round (`flower19`, `flower37`, `flower61`). A deep house turns its gable to the street; an extended household's house has a second storey from deluxe on; construction pitches a tent per generation, each long enough to lie down in.
+- [ ] **Cloth stays on.** Sway turns a part about the line it hangs from (a bracket, a pole, a washing line, an awning's edge, a tent flap's seam), pushed by the wind across that line, so nothing comes away.
+- [ ] **The planner's design.** `design/planner.md`: a planner lays out a settlement as a plan map (its shape and every cell's height, streets, squares, plots for buildings with their size classes and frontages, mounts for fixtures and decorations, and a navigation mesh proving every plot is reachable from every entrance) for the game to fill; scenarios from a hamlet to a city, with ranges for plot sizes and the game's rules. A design only; nothing is built.
+
+Asked for next, later on 2026-10-13: planners in the workspace to look at before reviewing the design; more footprints, every one outlined on the ground, a camera that frames the largest so sizes compare, and a box conformance for each lot; palettes for houses as config (players' colours, village themes); and a game-wide look for accessibility and effects (colour vision, contrast, lines between colours, greyscale, a tint).
+
+- [ ] **Planners in the workspace.** `plan_settle_v1` and eight planners (hamlet, street village, green village, round village, market town, walled town, hill keep, river town) under **Planners**, filled with `house_v1` and stand-ins, with the tier, seed, plot count, rules, report, navigation mesh, and Play; `planner_get`, `planner_set`, `planner_plan`, `planner_view` (`book/planners.md`).
+- [ ] **More lots, shown to scale.** Long (a burgage: `rect3x8`, `rect4x9`, `rect5x11`) and broad (a shopfront: `rect7x4`, `rect9x5`, `rect10x6`) lots beside wide, deep, and round; every lot outlined on the ground; a fixed 20 m framing (`draw.frame_m`); the lot's box as a second conformance, checked against the collision.
+- [ ] **House palettes.** `house_v1_palette` and the `palette` parameter: per part, a colour and a mix over the type's; natural, eight players' colours, and three village themes in `config/house_v1_palettes/`.
+- [ ] **The look.** `foundry_set_look`: colour vision (daltonizing), contrast, saturation, edges, and an effect (greyscale, or a duotone tint) at a strength, applied last by every runtime shader; the viewport's **Look** button and `look_set` apply it to every view (`design/submit.md`, "The look").
+
+Asked for next, later still on 2026-10-13 (feedback on the first planners): no mounts, only open land that passes to a plotter, which fills the gaps with nature; the settlement's own shape rather than a hex, so villages can string along a road or ring an open body; entrances and walls as special tiles; roads as governed plots with their own system and config of road kinds (market squares, stalls along a road, fences); and water, rivers, and waterfronts as plots, with a system for waterfront buildings.
+
+- [ ] **Plans as plots.** A plan is the settlement's shape (no hex) and its plots: buildings, road segments (each cell with its neighbours and role), waterfronts, and water; walls and gates are tiles; everything else is open and goes to a plotter as the plan's nature ground. Mounts are gone (`plan_v1_mount` deleted).
+- [ ] **Roads.** `road_v1` and `config/road_v1_kinds/` (lane, street, high street, market, square, alley, bridge, quay, gate): one cell from its kind and its neighbour mask, with verges, fences, stalls, planters, crates, lamps, a market cross or well, quays, and bridges by rule (`book/road_v1.md`).
+- [ ] **Waterfronts.** `waterfront_v1` and `config/waterfront_v1_types/` (pier, boathouse, warehouse, fishery) on part-land, part-water lots; the planner places them along rivers and lakes, behind a quay or ring lane, and a lake village gathers round its lake (`book/waterfront_v1.md`).
+- [ ] **Nature in the planner view.** A plotter (`happy_glen_v1` by default) grows the plan's open land and an apron round it.
+
+Asked for next, late on 2026-10-13 (feedback on roads and the plan): fix the road viewer; walls and gates only as marked cells in a plan (a visual detail in the view, no geometry); no stand-ins or other details that don't speak to the plan; a road's flow, so a plain road can be upgraded and every road piece keeps movement open (an edge piece in at most half a cell, its orientation in the plan), so a market is built up that way; a square's centre as a building its road rings; roads only for what stands at their edges, with room for fences; fence and wall systems that lay a line of points straight across hexes, chunked and optimized; civic buildings as their own system; a keep's wall inside the town's, so a keep is a small village and a castle can sprawl; a castle system for its parts; and a gate system that works with every wall.
+
+- [ ] **The road viewer.** A road cell is shown among its six neighbours (each outlined by what it is), with arrows along its flow, its half, and its fence edges (`draw.guides.lines`); the inspector edits a mask edge by edge; each item opens at its own framing.
+- [ ] **Roads keep their flow.** `road_v1` builds only what stands at its edges: a half's edge piece (a stall, a bench, crates, a planter, a cart) in at most half a cell, never closing its flow; planters and crates in strips along buildings; lamp and sign posts; fence edges kept clear. No fences, no centres (`book/road_v1.md`).
+- [ ] **Plans as a draft.** Walls and gates are tiles and lines; a square's centre is a building plot; road cells carry their halves, flows, and fence edges; a market is built up in halves checked against every entrance's reach; navigation follows the flow. The view builds nothing of its own: no stand-ins, flat outlined wall tiles (`book/planners.md`).
+- [ ] **Civic buildings.** `civic_v1` and `config/civic_v1_types/`: church, chapel, temple, court, town hall, guild hall, library, bank, mage's tower, market hall, and the centres (well, market cross, fountain, maypole, statue, shrine) (`book/civic_v1.md`).
+- [ ] **Castles.** `castle_v1` and `config/castle_v1_parts/` (keep, great hall, chapel, barracks, stables, kitchen, storehouse, tower); a keep's ward in a hill keep and a new `castle_v1` planner, the keep at the ward's middle with a bailey round it and the parts round the bailey (`book/castle_v1.md`).
+- [ ] **Walls, fences, and gates on lines.** `line_chunk_v1` lays a line of points (straightening hex zigzags, openings for gates, towers spaced, standard modules shared, steps down slopes, chunks); `wall_v1`, `fence_v1`, and `gate_v1` build the pieces, a gate with the wall's own kind; the plan gives its walls, the keep's wall, and road fences as lines (`book/wall_v1.md`, `book/fence_v1.md`, `book/gate_v1.md`).
+
+Asked for next, on 2026-10-14 (feedback on doors, fences, and walls): mark where the doors are as part of house and civic footprints, so the planner keeps the road in front of a door a strict path (no stall in front of a door); fences and walls that follow lines through a hexagon's opposite vertices and fill the gaps as one continuous system, given as line segments so they form topologies with joins that fit, not zigzags; example lines to see the wall and fence systems by; and walls that fit tightly round the plan, like a metaball of it.
+
+- [ ] **Doors.** House, civic, and castle footprints report their doors' cells (a house's door stands at its footprint's door cell); a lot is placed only where a door meets a road; that road cell is a strict way (road_v1's `doors`: no half, nothing against the door).
+- [ ] **Walls and fences on the lattice.** `line_v1_network` (nodes on a diagonal sublattice, links through opposite corners, gate nodes and links, towers) replaces the line request, pieces, and layout; `wall_v1` and `fence_v1` build a whole network (or a chunk) as one model with joins for ends, bends, T, Y, X, and stars; a wall reports its openings, where `gate_v1` stands; 11 example networks in `config/line_v1_networks/` (`book/wall_v1.md`, `book/fence_v1.md`).
+- [ ] **Walls hug the plan; fences enclose yards.** A wall is the union of lattice hexagons round the lobes of a metaball of what's built, with gates where roads cross it; a share of plots get fenced yards, each its lattice hexagon, sharing fences with their neighbours (`book/planners.md`).
+
+Asked for next, later on 2026-10-14 (themes, ruins, fire, and crops): a ruin version of every village system (castle, fence, gate, house, road, waterfront); civic buildings in three construction steps (planning, half, finished) and castles in those and a ruin; more exotic features at the top grandeur; a theme that controls the architecture of houses, castles, civic buildings, and waterfronts, with wall, fence, and road materials to suit the themes (a druidic village, a stone-dome village); fire control points on every building (x, y, z, fire config id) and a runtime fire system with particles, flames, and smoke that respects the wind, its configs controlling colour and the rest, with what it means for the mega shader; and a crop system: a footprint like a building's, behaving like a bulk flower, about 12 crops, wind computed a configurable number of times and the plants instanced on it.
+
+- [ ] **Themes.** `village_v1_theme` (8 themes in `config/village_v1_themes/`) sets roof form, plan, walls, windows, foundation, ornaments, colours, moss, and fires for `house_v1`, `civic_v1`, `castle_v1`, and `waterfront_v1` (`theme.h` in each); new road (moss stones, sand, boardwalk, elven way), wall (a henge of trilithons, drystone, living willow, adobe, a dwarven rampart; dome towers), and fence (living willow, stone slabs, reeds) kinds; seven themed planners (`design/planner.md`, "Themes").
+- [ ] **Ruins and construction steps.** Houses' `ruin` stage; civic buildings' and castles' `stage` (planning, half, finished, ruin); waterfronts', roads', walls', fences', and gates' `condition` (`condition.h` in each); `ruined_keep_v1` (`design/planner.md`, "Ruins and building").
+- [ ] **Wondrous.** Civic buildings' fourth grandeur: twin domed towers crowned with crystals, flying buttresses and a rose window, braziers and a gilded figure, a ring of crystals circling a mage's tower, a gilded dome over a well (`book/civic_v1.md`).
+- [ ] **Fire.** Fire points on building models (`draw.fires`); `fire_v1_config` (12 fires in `config/fire_v1_configs/`, compiled in); the runtime's fire system (`src/runtime/fire/`: a CPU particle system, smoke drifting with the world's wind, sprites drawn after everything solid) and the nearest fires' light in the mega shader; `foundry_set_wind`, `foundry_set_burning`; fires in every foundry view (`design/submit.md`, "Fire").
+- [ ] **Crops.** `crop_v1` (16 crops in `config/crop_v1_types/`): a field on a lot, its plants on a few drift bones; field plots in the planners (`book/crop_v1.md`).
 
 **Questions from the agent** (village buildings; built and in draft, nothing is committed)
 1. **Buildings were under "Not in this milestone"**, and `design/systems.md` designs a kit of pieces (walls, floors, stairs) for houses, forts, and dungeons. `house_v1` is a different, whole-house pipeline for village exteriors, beside that kit rather than replacing it. Is that the split you want?
@@ -138,6 +181,101 @@ Its six channels were approved on 2026-10-13.
 
    Should events get their own end, apart from sleeping? For example, an event parameter could declare how long it lasts (the door's 4.4 s), the runtime could raise its over flag then, and the stress plan could check that instead.
 3. **The game can't read a house's doorway, marker, or cells.** They are in the model, but the C API's instance results carry only event flags. Should instance results (`api.md`, "Instance results") carry such model facts, by name, for any pipeline?
+4. **Draft channels patched for households and lots.** `house_v1_spec` gained `household` and `palette`; `house_v1_type`'s footprints became lot shapes (wide, deep, round, long, broad); `house_v1_model`'s footprint names changed (15 lots), its round footprints now go to 127 cells, and it gained `lot_min`, `lot_max`, `guide_cells`, and `guide_tones`; `house_v1_bone`'s sway axis now means the line a part hangs from. They are uncommitted drafts, so I patched them in place under the approvals of 2026-10-13. Is that right, or do you want to approve the changes again?
+5. **Bigger houses cost more.** The largest premium house is 11,854 triangles (it was 5,162). With the long and broad lots, generation is 2.0 ms at p50 (it was 1.37), and 800 houses take 0.6 ms a frame at p95 (`perf/report-house_v1-20261013T211537Z.json`). Are extended households' premium houses within budget, or should their high level drop detail?
+6. **The planner runs on assumptions** (listed at the end of `design/planner.md`, reshaped by your feedback: only plots are reserved, the rest is open for a plotter). The ones that most shape it now:
+   - a plan is laid out once at its final size, and growth opens it by tiers rather than planning more later;
+   - the planner sets the heights inside its shape, and its open land eases toward the natural ground for the plotter;
+   - plots are flat pads, and a road cell is flat at its own height;
+   - roads follow hex lines, cell to cell;
+   - the navigation guarantee ends at each plot's frontage.
+
+   Which of them would you change before it moves into a milestone? You can try them in the workspace.
+7. **Planners are outside the milestone.** I built them because you asked to see them; they aren't in the runtime or the C API, and have no stress plan. Should they become a milestone of their own (the API, compiled planners, a stress plan, merged navigation polygons, the city), or stay a foundry preview for now?
+8. **The hill keep terraces hard:** its 16 m hill cuts steps into every pad and road, and its alleys climb at up to 26%. Should hill towns terrace whole blocks (a few big steps) instead of each plot and road?
+9. **Lines between colours in the game.** The look's edges need a pass that sees neighbouring pixels. The foundry's viewport has one (its ink pass); the runtime draws into the game's render pass and has none. Should the runtime offer a finishing pass the game can run (ink, edges, and the look), or leave edges to the game?
+10. **A system that wants the look** (a model built with more contrast for a high-contrast setting) would take it as a pipeline parameter the game sets, like the wind. None needs it yet; is that the mechanism you want?
+11. **Everything borrows the house's motion.** Roads, waterfronts, civic buildings, castles, fences, and gates use `house_v1_bone` and `house_animate_v1`, as approved. Gates now want motions it doesn't have: doors held open, a portcullis rising and falling, a drawbridge lowering; and boats want to bob on a swell. Should that become a shared motion family (`motion_v1_bone`, with a lift and a held open-or-shut), rather than more house motions?
+12. **One instance per road cell.** A market town's roads are about a thousand `road_v1` instances. They draw within budget (800 at 0.17 ms p95), and walls and fences are already one instance per chunk of about 40 links. Drawing a road plot as one instance, as grass fields are, would be cheaper. Worth doing before planners reach the runtime?
+13. **A plan across two biomes.** In the foundry one plotter grows the whole plan. In a game, each biome's plotter would grow the part of the plan's nature ground inside its own region. Is that the split you want, or should the plan say which biome each open cell belongs to?
+
+14. **A game's own network.** `wall_v1` and `fence_v1` take their network as a config parameter: the foundry passes a planner's network inline, but the C API can only name a compiled example. A game giving its own network (a player's fence, a ruined wall) needs an array parameter type in the generated API (`design/planner.md`, "The API"). Should pipelines get array parameters, or should networks go through a separate call?
+15. **Signs and lamps are thin.** A sign post stands at one junction cell in four (a two-wide high street's every cell has three ways or more, and signs everywhere were noise), and lamps are one roll per cell (6 to 8% on streets). Should the plan mark junctions and lamp places instead, so they read as planned?
+16. **Halves in a bailey.** A keep's bailey is a square, so it gets benches in halves like a village square (`halves_square`, 0.15 in the keep planners). Should a bailey have its own road class and kind (a castle's yard: hitching posts, a well, practice dummies)?
+17. **The hill keep's walk.** Its keep's ward on the hilltop is reached by one road switching back at a cart's grade, so its longest walk is 689 m. Should a keep on a hill have a steeper walkers' stair as well (an alley class that only walkers use)?
+
+18. **Three directions only.** A line through opposite vertices runs at 30, 90, or 150 degrees, so a wall or fence along any other direction zigzags. I made walls and yards lattice hexagons (straight sides, 120 degree corners), which follow a town's lobes but not every bay in its edge. Lines through opposite edge midpoints (0, 60, 120 degrees, cell centre to cell centre) would give twelve directions, so a fence could also run straight along a street. Do you want that second family, or keep walls and fences to the vertex lines?
+19. **Yards have no gates.** A yard's fence stops at its lot and at roads, so it is open toward its street. Should a yard's fence close across its front with a gate at the door?
+20. **Doors on waterfronts.** Waterfronts' doors aren't marked yet; their backs face a cart road. Should they get door cells too?
+
+21. **Draft channels patched beyond the list you approved.** Within this request I also added `dome` to `wall_v1_kind`'s tower roofs (the stone-dome wall), a `drift` motion to `house_v1_bone` (crops' wind groups), and a third meaning to the models' `fire_lit` (2: smoke only, for chimneys). They are uncommitted drafts, patched in place. Is that right, or do you want to approve them again?
+22. **Fire lights are banded, unshadowed, and eight.** The mega shader takes the eight strongest, nearest fires each frame, in the cel bands, without shadows (`design/submit.md`'s lights budget says four per object and three shadowed). Is eight a frame, unshadowed, what you want, or should fires take part in the per-object light budget?
+23. **Fire is CPU particles.** At most 60,000 particles; the runtime only emits from instances near the view. A burning town of a few hundred blazes stays within that, but the stress plans don't burn anything yet. Should the stress plan gain a fire phase (set every instance burning), and should particles move to the GPU (analytic flames, simulated smoke) once a game burns cities?
+24. **Chimneys' smoke moved to the fire system.** Houses, castles, and civic buildings no longer animate smoke puffs as bones; their chimneys are smoke-only fire points. That is lighter on bones but means a game without the fire system shows no smoke. Is that the split you want?
+25. **Crop fields and curving lanes.** A field needs half its front row on a road, so round and lake villages (and the themes built on them) place none. Should fields front a lane with less frontage, or sit behind a farm's lot with only a cart track?
+26. **Wondrous at the centre.** On a centre lot a wondrous centre adds a gilded dome, a crystal finial, a gilded figure, or an eternal flame; a wondrous hall's twin towers only on its own lot. Should the planners give any building wondrous (only `elven_glade_v1` does, by wealth)?
+
+### Boundaries (`design/boundary.md`; `book/boundary_v1.md`)
+
+Asked for on 2026-10-14: a boundary system that walls a region of hexes in so the player can't escape while it looks like a natural, larger world. The game gives a counterclockwise hull of cells, each with its type (a ledge to look out from, a ridge's cliff, forest or jungle too dense to pass, a mountain behind); quadtrees and invented geometry and images give a sense of the world beyond; the engine interpolates transitions smoothly; the cells seed the world, spreading into the view distance to make mountains; and the inspector takes predefined shapes to see how it plays out.
+
+- [ ] **Hulls and edges.** `boundary_v1_hull`: cells with edges (ledge, ridge, mountain, forest, jungle, sea, marsh, or auto by direction), heights, and rises; gaps filled with hex lines; 10 predefined shapes and 7 sector presets. `boundary_rim_v1` blends edges along the rim.
+- [ ] **The invented world.** `boundary_terrain_v1`: each edge's land near the rim, the far land climbing toward peaks by the rise, seeds that spread farther the farther from the rim; a quadtree of terrain nodes with skirts, morph targets, and painted images; the rim's dressing; walls and floors. 7 biomes. Native matches WebAssembly.
+- [ ] **The runtime draws it.** `draw.terrain`: a cut through the quadtree by distance each frame, vertices morphing to their parent's surface, images in one atlas, strata on steep rock, haze under the classic light. `foundry_boundary_v1_spawn_hull`, `foundry_region_hull`, `foundry_region_spawn_boundary`.
+- [ ] **In the foundry.** The pipeline view of every shape, and standing inside one (`pipeline_view`'s `eye`); a plotter's `boundary`, in its picture and live (Play walks against its walls), with the inspector's Boundary section.
+- [ ] **Measured.** `--plan terrain`; the book with numbers from runs.
+- [ ] **Play starts in the middle** (asked for on 2026-10-14). On a map (a plotter's region, live or static; a plan; a boundary's world), Play starts at the middle in the first place the capsule fits: open ground with nothing overhead, flat enough to stand on, touching nothing (`Walker::find_spawn`; `tests/walker_test.cpp`).
+
+**Questions from the agent** (boundaries; built and in draft, nothing is committed)
+1. **Host and tool changes outside the pipeline.** To build and see it I raised the WebAssembly fuel guard from 20 to 60 billion (a boundary at a 12 km view distance takes 23.7 billion), made the stress tool's waits hold on the wall clock as well as in simulated time (a boundary build takes a good part of a second, and frames take microseconds), added `perf/plans/terrain.json`, split `light.hlsli`'s `shade` into `shade_lit` and the look, and added `FOUNDRY_DUMP_MISMATCH` (it found that `face()` emitted vertices in argument order, which GCC and Clang evaluate differently). Are those all right?
+2. **One draft channel patched after approval:** `boundary_v1_model`'s images now say their alpha marks steep rock (the runtime lays strata there by height). Is that right?
+3. **The foundry's picture isn't the runtime's.** The foundry draws one cut from the region's middle, retessellated and vertex-coloured, with no morph; the runtime textures and morphs per frame. Live in a plotter shows the real thing. Should the foundry's viewport learn textured meshes, so a pipeline view of a boundary is the runtime's own?
+4. **Static dressing.** Its trees and reeds don't sway, and the terrain casts no shadows. Should the dressing take wind bones (as crops do) or the field's GPU sway, and should the terrain cast into the shadow map?
+5. **Beyond the view distance** is only haze. Should a panorama (a ring of distant ranges as one image) close the horizon, so the view distance can be shorter and builds lighter?
+6. **A game's hull from a region.** `foundry_region_hull` gives the ring around a region with auto edges; a game sets edges cell by cell or lets the boundary's sectors choose by direction. Is that the split you want, or should a region's cells carry their edge as an attribute (`plot_v1_region`)?
+
+### Terrains, and the boundary's figures (`design/terrain.md`; `book/terrain_v1.md`)
+
+Asked for on 2026-10-14:
+- **The boundary's near trees** (its first 100 metres or so) are control figures the game fills from its own systems, so the boundary owns what is far away and the game fills in the details.
+- **Parametric hulls:** a shape whose sides take aspects you can swap.
+- **A terrain builder:**
+  - **Its inputs:** a shape with its edges given, the hexbound document as its ground model, entrances and exits on the edges, and water flowing in and out.
+  - **What it builds:** roads planned and checked on a navigation mesh, flat-ish cells a city planner can use (optional), and bridge mount points.
+  - **Its view:** a plotter to fill it, which can be turned off.
+  - **The boundary:** given a matching shape, so the two connect.
+
+- [ ] **Figures.** Within `figure_range` (100 m) the boundary's trees and bushes are figures (`boundary_v1_figure`: kind, species, age, height, turn, seed; species by biome) with no canopy there, and rows of figures out to the range. `foundry_instance_figures`, `foundry_region_spawn_figures` (the live plotter fills them natively), and the foundry's views fill them with tree_v1 and bush_v1 (`draw.figures`).
+- [ ] **Shapes and openings.** `terrain_v1_shape` (hexagon, rectangle, triangle, L, polygon; turned and wobbled; each side's aspect; openings for roads, lanes, and rivers in and out), shared by the terrain and the boundary (`shape.h`); a hull may name a shape; a hull cell may carry an opening, which the boundary carries outward (a graded road or a river channel through a cut). The inspector's **edit** edits a config entry in place, side by side.
+- [ ] **The terrain builder.** `terrain_v1` (`terrain_relief_v1`, `terrain_mesh_v1`):
+  - **The ground:** hexbound columns of spans in 1/8 m. Relief from the sides inward; optional flats levelled within a tolerance; rivers from inlet to outlet (or to a lake); outcrops and cave mouths.
+  - **Roads:** joining every road opening and flat, graded to 3/8 m a cell. Bridges with their mounts.
+  - **Navigation:** a navigation mesh, with its report that every opening and flat is reached.
+  - **Hand-offs:** the boundary's hull, and the plotter's nature ground.
+  - **Drawing:** the 13-point fans, fused corners, walls, and water.
+  - **Presets:** 7 shapes and 4 flats. Native matches WebAssembly.
+- [ ] **Composed views.** A pipeline's view composes what its draw asks for (`draw.nature`, `draw.surround`, `draw.figures`): the terrain inside its boundary with a plotter's fill and the boundary's figures, each turned off in the inspector's Around it; `pipeline_view` takes `compose` and `on_ground`.
+- [ ] **In the runtime.** The terrain spawns natively; `ground.h` reads its cells, heights, roads, bridges, navigation mesh, and hull (`foundry_ground_*`); `foundry_<pipeline>_<param>_find` names enum values; `tests/ground_test.cpp` spawns the river valley, hands its hull to a boundary, and fills its figures.
+- [ ] **Measured.** `--plan terrain` for `terrain_v1`; both books with numbers from runs.
+
+**Questions from the agent** (terrains and figures; built and in draft, nothing is committed)
+1. **A channel patched after approval, and a C struct changed.**
+   - `terrain_v1_mesh_spec`'s `season` gained its enum names, as `boundary_v1_terrain_spec`'s has.
+   - `foundry_hull_cell` gained `opening` and `opening_width`, so a game's hull can carry a road or river out.
+
+   Are those all right?
+2. **Changes outside the pipelines.**
+   - **Composer:** the generic composer (`draw.nature`, `draw.surround`, `draw.figures`). Its plotter fill grows through `plot::grow`, moved out of the planner view; it now builds each distinct placement once.
+   - **Facts:** a nested channel's scalars become facts (`ground.openings_unreached`).
+   - **`pipeline_view`:** gains `compose` and `on_ground`.
+   - **The config editor:** edits nested structs and lists of structs, and a pipeline's config parameter in place.
+   - **The generator:** binds a list of config parameters (the two flats) and writes enum lookups by name.
+
+   Are those all right?
+3. **Collision is convex columns.** `physics_v1_shape` has no triangle mesh, and it is committed, so the ground collides as one convex prism per span (4,016 shapes for the river valley). Should `physics_v1_shape` fork to add a triangle mesh (every pipeline's collision depends on it), or are columns right for hex ground?
+4. **Bridges are mounts only.** The terrain reports each bridge's two mounts and width, but nothing stands a bridge on them. Should `road_v1`'s bridge kind take a span, or should a bridge pipeline (spans of 2 to 20 m, by the road's kind) come next?
+5. **Flats at different levels.** Where two flats meet at different levels, the road between them can't keep its grade (0.36 a cell in the river valley with its town and village), and the report says so. Should the builder ramp the later flat toward the earlier one, refuse overlapping flats, or leave it to the planner?
+6. **How many figures.** At 100 m the river valley's boundary leaves 736 figures, which the live plotter spawns as real trees, and the foundry builds them at low detail (85 distinct builds). Is 100 m the right default, or should figures thin with distance, with the boundary drawing its own trees from, say, 50 m?
 
 ## Not in this milestone
 
@@ -146,6 +284,7 @@ To keep the milestone focused, these wait even though they are designed: trees a
 # Future milestones
 
 
+- **Settlements: the planner** (`design/planner.md`). Planners as a workspace primitive and `plan_settle_v1` with the `hamlet`, `street_village`, and `market_town` scenarios first. Plans in the runtime with plots, mounts, streets, and the navigation mesh checked for every tier; the planner view with a preview fill from `house_v1`; and a book with numbers from runs. Then the keep, the walled town, the river town, and cities planned by district.
 - **The rest of the plotter design** (`design/plotter.md`), after the first steps above: active entities (players and creatures, by handle, with collision masks) and sensors with contacts and distances; full instance results (event flags, sounds playing, sleep, ready) for every pipeline; footprints and collision descriptions on bushes, rocks, and flowers and on the conformance files; regrow kinds (succession); and more plotters, one per biome (a cypress swamp first, since its species exist).
 
 

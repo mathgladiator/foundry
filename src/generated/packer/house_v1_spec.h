@@ -3,13 +3,18 @@
 
 #include "channels/house_v1_spec.h"
 #include "packer/house_v1_type.h"
+#include "packer/house_v1_palette.h"
+#include "packer/village_v1_theme.h"
 
 namespace foundry {
 
 inline void pack_fields(Writer &w, const channels::house_v1_spec &c) {
   pack_fields(w, c.type);
+  pack_fields(w, c.palette);
+  pack_fields(w, c.theme);
   w.u32(c.stage);
   w.u32(c.season);
+  w.u32(c.household);
   w.u32(c.footprint);
   w.u32(c.seed);
   w.u32(c.detail);
@@ -17,8 +22,11 @@ inline void pack_fields(Writer &w, const channels::house_v1_spec &c) {
 
 inline void unpack_fields(Reader &r, channels::house_v1_spec &c) {
   unpack_fields(r, c.type);
+  unpack_fields(r, c.palette);
+  unpack_fields(r, c.theme);
   c.stage = r.u32();
   c.season = r.u32();
+  c.household = r.u32();
   c.footprint = r.u32();
   c.seed = r.u32();
   c.detail = r.u32();

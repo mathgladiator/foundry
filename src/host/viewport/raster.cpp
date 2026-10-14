@@ -3,6 +3,7 @@
 #include "viewport/gpu.h"
 
 #include <algorithm>
+#include <mutex>
 #include <cmath>
 #include <limits>
 
@@ -197,8 +198,9 @@ void raster_mesh(Target &t, const Projector &pr, const runtime::Mesh &m, bool si
   }
 }
 
-// Ink: darken pixels on silhouettes and depth discontinuities (style.md section 6).
-void ink(Target &t, bool silhouette) {
+// Ink: darken pixels on silhouettes and depth discontinuities (style.md section 6), and with the
+// look's edges, between colours on one surface.
+void ink(Target &t, bool silhouette, float edges) {
   std::vector<Rgb> out = t.color;
   for (int y = 1; y + 1 < t.h; ++y)
     for (int x = 1; x + 1 < t.w; ++x) {
@@ -214,14 +216,52 @@ void ink(Target &t, bool silhouette) {
         if (t.id[i] != t.id[j]) edge = t.id[i] != 0;
         else if (t.id[i] && std::fabs(t.depth[i] - t.depth[j]) > 0.03f * std::max(t.depth[i], 1.0f)) edge = t.depth[i] > t.depth[j] ? false : true;
       }
-      if (!edge) continue;
+      // Between colours: where the albedo changes (only one pixel out, so these lines are thinner).
+      float colour_edge = 0;
+      if (!edge && edges > 0 && t.id[i] && !silhouette)
+        for (int k = 0; k < 2; ++k) {
+          const size_t j = k == 0 ? i + 1 : i + static_cast<size_t>(t.w);
+          if (!t.id[j]) continue;
+          const Rgb &a = t.albedo[i], &b = t.albedo[j];
+          const float d = std::fabs(a.r - b.r) + std::fabs(a.g - b.g) + std::fabs(a.b - b.b);
+          if (d > 0.18f && (0.2126f * a.r + 0.7152f * a.g + 0.0722f * a.b) <= (0.2126f * b.r + 0.7152f * b.g + 0.0722f * b.b))
+            colour_edge = std::max(colour_edge, edges);
+        }
+      if (!edge && colour_edge <= 0) continue;
       Rgb a = t.albedo[i];
+      if (!edge) {
+        const float k = 1.0f - 0.72f * colour_edge;
+        out[i] = {t.color[i].r * k, t.color[i].g * k, t.color[i].b * k};
+        continue;
+      }
       out[i] = silhouette ? Rgb{0, 0, 0} : Rgb{a.r * 0.28f, a.g * 0.28f, a.b * 0.28f};
     }
   t.color = std::move(out);
 }
 
 }  // namespace
+
+namespace {
+std::mutex look_mutex;
+runtime::Look look_now;
+int look_counter = 0;
+}  // namespace
+
+void set_look(const runtime::Look &l) {
+  std::lock_guard<std::mutex> lock(look_mutex);
+  look_now = l;
+  ++look_counter;
+}
+
+runtime::Look look() {
+  std::lock_guard<std::mutex> lock(look_mutex);
+  return look_now;
+}
+
+int look_version() {
+  std::lock_guard<std::mutex> lock(look_mutex);
+  return look_counter;
+}
 
 View parse_view(const std::string &name) {
   if (name == "front") return View::Front;
@@ -255,6 +295,10 @@ Framing frame(const Scene &scene, int W, int H) {
     asset_radius = std::max(asset_radius, scene.conformance_radius);
     bounds.add({-scene.conformance_radius, 0, -scene.conformance_radius});
     bounds.add({scene.conformance_radius, scene.conformance_height, scene.conformance_radius});
+  }
+  if (scene.has_box && scene.overlays.conformance) {
+    bounds.add(scene.box_min);
+    bounds.add(scene.box_max);
   }
   for (const Line &l : scene.lines) {
     bounds.add(l.a);
@@ -387,10 +431,65 @@ std::vector<OverlaySegment> overlay_segments(const Scene &scene, const Framing &
   if (scene.overlays.hero) add_capsule(out, {hero_x(f.asset_radius), 0, 0}, 0.35f, 1.8f, {0.55f, 0.85f, 1.0f}, 0.85f, 0.25f);
   if (scene.has_conformance && scene.overlays.conformance)
     add_capsule(out, {0, 0, 0}, scene.conformance_radius, scene.conformance_height, {0.45f, 1.0f, 0.55f}, 0.9f, 0.3f);
+  if (scene.has_box && scene.overlays.conformance) {
+    const vec3 a = scene.box_min, b = scene.box_max;
+    const vec3 c[8] = {{a.x, a.y, a.z}, {b.x, a.y, a.z}, {b.x, a.y, b.z}, {a.x, a.y, b.z},
+                       {a.x, b.y, a.z}, {b.x, b.y, a.z}, {b.x, b.y, b.z}, {a.x, b.y, b.z}};
+    for (int k = 0; k < 4; ++k) {
+      out.push_back({c[k], c[(k + 1) % 4], 0.45f, 1.0f, 0.55f, 0.75f, 0.25f});
+      out.push_back({c[4 + k], c[4 + (k + 1) % 4], 0.45f, 1.0f, 0.55f, 0.75f, 0.25f});
+      out.push_back({c[k], c[4 + k], 0.45f, 1.0f, 0.55f, 0.75f, 0.25f});
+    }
+  }
   for (const Line &l : scene.lines) out.push_back({l.a, l.b, l.r, l.g, l.bl, l.alpha, l.alpha * 0.25f});
   if (scene.overlays.collision)
     for (const Line &l : scene.collision) out.push_back({l.a, l.b, l.r, l.g, l.bl, l.alpha, l.alpha * 0.35f});
   return out;
+}
+
+// Fire's sprites (design/submit.md, "Fire"): soft discs, depth-tested against the mesh; light added,
+// smoke blended over and lit by the light's average.
+void draw_sprites(Target &t, const Projector &pr, const std::vector<runtime::fire::Sprite> &sprites, const CpuLight &light) {
+  const runtime::Look lk = look();
+  for (const runtime::fire::Sprite &s : sprites) {
+    const vec3 c = pr.project({s.pos[0], s.pos[1], s.pos[2]});
+    if (c.z <= 0.01f) continue;
+    const float px = pr.ortho ? s.size * pr.scale : s.size * pr.scale / c.z;
+    if (px < 0.3f) continue;
+    const float ry = px * s.stretch;
+    const float cy = c.y - (s.stretch - 1.0f) * px * 0.6f;
+    const int x0 = std::max(0, static_cast<int>(c.x - px)), x1 = std::min(t.w - 1, static_cast<int>(c.x + px) + 1);
+    const int y0 = std::max(0, static_cast<int>(cy - ry)), y1 = std::min(t.h - 1, static_cast<int>(cy + ry) + 1);
+    float col[3] = {s.color[0], s.color[1], s.color[2]};
+    if (!s.additive) {
+      col[0] *= light.ambient.r * 0.45f + light.key.r * 0.55f;
+      col[1] *= light.ambient.g * 0.45f + light.key.g * 0.55f;
+      col[2] *= light.ambient.b * 0.45f + light.key.b * 0.55f;
+    }
+    runtime::look_apply(lk, col);
+    for (int y = y0; y <= y1; ++y)
+      for (int x = x0; x <= x1; ++x) {
+        float u = (static_cast<float>(x) + 0.5f - c.x) / px, v = (cy - static_cast<float>(y) - 0.5f) / ry;
+        if (s.stretch > 1.2f) u /= std::max(1.0f - std::clamp(v * 0.5f + 0.5f, 0.0f, 1.0f) * 0.65f, 0.2f);
+        const float r2 = u * u + v * v;
+        if (r2 >= 1.0f) continue;
+        const size_t i = static_cast<size_t>(y) * t.w + x;
+        if (c.z >= t.depth[i]) continue;
+        const float soft = (1.0f - r2) * (1.0f - r2);
+        Rgb &d = t.color[i];
+        if (s.additive) {
+          const float k = s.color[3] * soft * (0.6f + 0.8f * soft);
+          d.r += col[0] * k;
+          d.g += col[1] * k;
+          d.b += col[2] * k;
+        } else {
+          const float a = s.color[3] * soft;
+          d.r += (col[0] - d.r) * a;
+          d.g += (col[1] - d.g) * a;
+          d.b += (col[2] - d.b) * a;
+        }
+      }
+  }
 }
 
 Image render_cpu(const Scene &scene, int width, int height) {
@@ -427,7 +526,15 @@ Image render_cpu(const Scene &scene, int width, int height) {
   }
 
   if (scene.mesh) raster_mesh(t, pr, *scene.mesh, scene.silhouette, light);
-  ink(t, scene.silhouette);
+  const runtime::Look lk = look();
+  ink(t, scene.silhouette, lk.edges);
+  if (!lk.identity() && !scene.silhouette)
+    for (Rgb &c : t.color) {
+      float v[3] = {c.r, c.g, c.b};
+      runtime::look_apply(lk, v);
+      c = {v[0], v[1], v[2]};
+    }
+  if (!scene.silhouette) draw_sprites(t, pr, scene.sprites, light);
   for (const OverlaySegment &l : overlay_segments(scene, fr)) draw_line(t, pr, l.a, l.b, {l.r, l.g, l.bl}, l.alpha, l.hidden);
 
   Image img;

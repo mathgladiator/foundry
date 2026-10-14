@@ -1,0 +1,37 @@
+{
+  "created_at": "2026-10-13T23:30:00Z",
+  "doc": "A gatehouse: two towers of the wall's kind either side of a vaulted passage, battlements over it, a portcullis half raised, banners.",
+  "notes": [],
+  "state": "draft",
+  "value": {
+    "name": "gatehouse",
+    "kind": "gatehouse",
+    "door_color": [
+      0.4,
+      0.28,
+      0.17
+    ],
+    "iron_color": [
+      0.2,
+      0.2,
+      0.22
+    ],
+    "leaves": 2,
+    "portcullis": true,
+    "rise": 4.0,
+    "depth": 2.0,
+    "roof": "cone",
+    "roof_color": [
+      0.32,
+      0.34,
+      0.4
+    ],
+    "banners": true,
+    "lamps": true,
+    "accent": [
+      0.68,
+      0.14,
+      0.14
+    ]
+  }
+}

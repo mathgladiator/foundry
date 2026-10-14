@@ -1,0 +1,53 @@
+{
+  "created_at": "2026-10-13T23:30:00Z",
+  "doc": "A fountain: an octagonal basin, a column, a bowl spilling water, a bronze finial.",
+  "notes": [],
+  "state": "draft",
+  "value": {
+    "name": "fountain",
+    "kind": "fountain",
+    "size": "centre",
+    "walls": "stone",
+    "wall_color": [
+      0.78,
+      0.76,
+      0.7
+    ],
+    "trim_color": [
+      0.86,
+      0.84,
+      0.78
+    ],
+    "base_color": [
+      0.42,
+      0.4,
+      0.38
+    ],
+    "roof": "slate",
+    "roof_color": [
+      0.32,
+      0.34,
+      0.4
+    ],
+    "metal_color": [
+      0.55,
+      0.42,
+      0.25
+    ],
+    "accent": [
+      0.3,
+      0.5,
+      0.7
+    ],
+    "roof_pitch": 40,
+    "wall_height": 2.5,
+    "spire": false,
+    "bell": false,
+    "clock": false,
+    "columns": false,
+    "dome": false,
+    "banners": false,
+    "lamps": false,
+    "symbol": "none"
+  }
+}

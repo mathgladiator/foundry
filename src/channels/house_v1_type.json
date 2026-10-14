@@ -22,27 +22,25 @@
     {
       "name": "footprint",
       "type": "u32",
-      "doc": "Its usual footprint (design/systems.md, Village houses): flower7 (a cell and its six neighbours), rectWxH (H rows of W cells, brick-laid, so the plot is nearly rectangular), or flower19.",
+      "doc": "Its usual lot shape (design/systems.md, Village houses): wide (a broad front, its ridge along the street), deep (a narrow front and a long lot, its gable to the street), round (a hex flower, a house standing in its garden), long (a burgage: a narrow front and a very long lot, the house at the back of a long yard), or broad (a shopfront: a very wide front on a shallow lot). The household picks the size.",
       "enum": [
-        "flower7",
-        "rect3x2",
-        "rect3x3",
-        "rect4x3",
-        "rect5x4",
-        "flower19"
+        "wide",
+        "deep",
+        "round",
+        "long",
+        "broad"
       ]
     },
     {
       "name": "footprint_alt",
       "type": "u32",
-      "doc": "Its other footprint, for variety along a street.",
+      "doc": "Its other lot shape, for variety along a street.",
       "enum": [
-        "flower7",
-        "rect3x2",
-        "rect3x3",
-        "rect4x3",
-        "rect5x4",
-        "flower19"
+        "wide",
+        "deep",
+        "round",
+        "long",
+        "broad"
       ]
     },
     {

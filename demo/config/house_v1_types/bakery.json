@@ -6,8 +6,8 @@
   "value": {
     "name": "bakery",
     "kind": "store",
-    "footprint": "flower7",
-    "footprint_alt": "rect3x3",
+    "footprint": "deep",
+    "footprint_alt": "long",
     "walls": "brick",
     "wall_color": [
       0.72,

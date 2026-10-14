@@ -1,0 +1,51 @@
+{
+  "created_at": "2026-10-13T17:00:00Z",
+  "doc": "A northern village: dark tarred timber, red trim, turf-dark roofs.",
+  "notes": [],
+  "state": "draft",
+  "value": {
+    "name": "northern",
+    "roof": [
+      0.3,
+      0.36,
+      0.24
+    ],
+    "roof_mix": 0.7,
+    "wall": [
+      0.28,
+      0.22,
+      0.17
+    ],
+    "wall_mix": 0.8,
+    "trim": [
+      0.62,
+      0.16,
+      0.12
+    ],
+    "trim_mix": 0.8,
+    "door": [
+      0.62,
+      0.16,
+      0.12
+    ],
+    "door_mix": 0.9,
+    "shutter": [
+      0.85,
+      0.82,
+      0.74
+    ],
+    "shutter_mix": 0.8,
+    "accent": [
+      0.5,
+      0.5,
+      0.5
+    ],
+    "accent_mix": 0.0,
+    "sign": [
+      0.5,
+      0.5,
+      0.5
+    ],
+    "sign_mix": 0.0
+  }
+}

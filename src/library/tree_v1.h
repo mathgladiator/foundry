@@ -39,6 +39,8 @@ typedef enum foundry_tree_v1_species {
   FOUNDRY_TREE_V1_SPECIES_WILLOW = 31,
   FOUNDRY_TREE_V1_SPECIES_COUNT = 32
 } foundry_tree_v1_species;
+/* A species by its name (as a config entry or a figure names it), or -1. */
+int foundry_tree_v1_species_find(const char *name);
 
 typedef enum foundry_tree_v1_age {
   FOUNDRY_TREE_V1_AGE_SAPLING = 0,
@@ -47,6 +49,8 @@ typedef enum foundry_tree_v1_age {
   FOUNDRY_TREE_V1_AGE_ANCIENT = 3,
   FOUNDRY_TREE_V1_AGE_COUNT = 4
 } foundry_tree_v1_age;
+/* A age by its name (as a config entry or a figure names it), or -1. */
+int foundry_tree_v1_age_find(const char *name);
 
 typedef enum foundry_tree_v1_season {
   FOUNDRY_TREE_V1_SEASON_WINTER = 0,
@@ -55,6 +59,8 @@ typedef enum foundry_tree_v1_season {
   FOUNDRY_TREE_V1_SEASON_FALL = 3,
   FOUNDRY_TREE_V1_SEASON_COUNT = 4
 } foundry_tree_v1_season;
+/* A season by its name (as a config entry or a figure names it), or -1. */
+int foundry_tree_v1_season_find(const char *name);
 
 typedef enum foundry_tree_v1_detail {
   FOUNDRY_TREE_V1_DETAIL_HIGH = 0,
@@ -62,6 +68,8 @@ typedef enum foundry_tree_v1_detail {
   FOUNDRY_TREE_V1_DETAIL_LOW = 2,
   FOUNDRY_TREE_V1_DETAIL_COUNT = 3
 } foundry_tree_v1_detail;
+/* A detail by its name (as a config entry or a figure names it), or -1. */
+int foundry_tree_v1_detail_find(const char *name);
 
 typedef struct foundry_tree_v1_params {
   foundry_tree_v1_species species;  /* A species: one genome from config/tree_v1_genomes/. */

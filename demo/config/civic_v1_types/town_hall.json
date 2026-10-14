@@ -1,0 +1,53 @@
+{
+  "created_at": "2026-10-13T23:30:00Z",
+  "doc": "The town hall: a broad brick hall, a cupola with a clock and a bell, banners in the town's colours, a crown over the door.",
+  "notes": [],
+  "state": "draft",
+  "value": {
+    "name": "town_hall",
+    "kind": "hall",
+    "size": "great",
+    "walls": "brick",
+    "wall_color": [
+      0.66,
+      0.36,
+      0.28
+    ],
+    "trim_color": [
+      0.88,
+      0.84,
+      0.76
+    ],
+    "base_color": [
+      0.42,
+      0.4,
+      0.38
+    ],
+    "roof": "slate",
+    "roof_color": [
+      0.32,
+      0.34,
+      0.4
+    ],
+    "metal_color": [
+      0.85,
+      0.7,
+      0.3
+    ],
+    "accent": [
+      0.15,
+      0.3,
+      0.6
+    ],
+    "roof_pitch": 35,
+    "wall_height": 6.5,
+    "spire": false,
+    "bell": true,
+    "clock": true,
+    "columns": false,
+    "dome": false,
+    "banners": true,
+    "lamps": true,
+    "symbol": "crown"
+  }
+}

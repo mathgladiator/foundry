@@ -1,0 +1,50 @@
+{
+  "created_at": "2026-10-14T01:30:00Z",
+  "doc": "Two paddocks sharing a fence down the middle: T junctions where it meets the ring.",
+  "notes": [],
+  "state": "draft",
+  "value": {
+    "name": "paddocks",
+    "nodes": [
+      4,
+      4,
+      -4,
+      8,
+      -8,
+      4,
+      -4,
+      -4,
+      4,
+      -8,
+      8,
+      -4
+    ],
+    "heights": [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "links": [
+      0,
+      1,
+      1,
+      2,
+      2,
+      3,
+      3,
+      4,
+      4,
+      5,
+      5,
+      0,
+      5,
+      2
+    ],
+    "gate_nodes": [],
+    "gate_links": [],
+    "towers": []
+  }
+}

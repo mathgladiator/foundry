@@ -1,0 +1,47 @@
+{
+  "family": "boundary",
+  "version": 1,
+  "feature": "figure",
+  "doc": "A control figure (design/boundary.md, Figures): a tree or bush near the rim that the boundary leaves for the game to fill from a system.",
+  "fields": [
+    {
+      "name": "position",
+      "type": "vec3",
+      "doc": "Where it stands, metres."
+    },
+    {
+      "name": "yaw",
+      "type": "f32",
+      "doc": "Its turn, degrees."
+    },
+    {
+      "name": "kind",
+      "type": "u32",
+      "doc": "Tree or bush.",
+      "enum": [
+        "tree",
+        "bush"
+      ]
+    },
+    {
+      "name": "species",
+      "type": "string",
+      "doc": "Its species, from the biome's lists (a tree_v1 or bush_v1 genome's name)."
+    },
+    {
+      "name": "age",
+      "type": "u32",
+      "doc": "Its age: a tree's sapling, young, mature, ancient (0 to 3); a bush's young, mature, old (0 to 2)."
+    },
+    {
+      "name": "height",
+      "type": "f32",
+      "doc": "About how tall it stands, metres."
+    },
+    {
+      "name": "seed",
+      "type": "u32",
+      "doc": "Its seed."
+    }
+  ]
+}

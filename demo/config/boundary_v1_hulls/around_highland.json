@@ -1,0 +1,21 @@
+{
+  "created_at": "2026-10-14T13:00:00Z",
+  "doc": "Any region as a highland: ledges all round.",
+  "notes": [],
+  "state": "draft",
+  "value": {
+    "name": "around_highland",
+    "cells": [],
+    "edges": [],
+    "heights": [],
+    "rises": [],
+    "radius": 20,
+    "sectors": [
+      1
+    ],
+    "sector_rises": [
+      0.5
+    ],
+    "rise": 0.4
+  }
+}

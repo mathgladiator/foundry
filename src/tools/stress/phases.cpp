@@ -33,8 +33,10 @@ std::vector<uint32_t> counts_of(const json &phase, std::vector<uint32_t> fallbac
 
 // Runs frames until every instance has its build (or the limit passes); returns sim seconds.
 double wait_ready(Ctx &ctx, double limit_seconds) {
-  const double start = ctx.sim_time;
-  while (ctx.sim_time - start < limit_seconds) {
+  // The limit holds in the simulation's time and on the wall clock both: frames can be far quicker
+  // than builds (a boundary's build takes a good part of a second).
+  const double start = ctx.sim_time, wall = now_ms();
+  while (ctx.sim_time - start < limit_seconds || now_ms() - wall < limit_seconds * 1000.0) {
     foundry_diag_counters c = counters(ctx);
     if (c.waiting == 0 && c.cache_pending == 0) break;
     ctx.frame();
@@ -195,6 +197,22 @@ PhaseResult run_diversity(Ctx &ctx, const json &phase, std::vector<Failure> &fai
       next_check += 1;
     }
     if (ctx.sim_time - start > seconds + 120) break;  // builds never finished
+  }
+  // Builds slower than the phase (a boundary's) finish while waiting: time them as they come in.
+  {
+    const double start_wait = ctx.sim_time, wall = now_ms();
+    while (ctx.sim_time - start_wait < 60 || now_ms() - wall < 60000) {
+      bool all = true;
+      for (size_t i = 0; i < n; ++i) {
+        if (latency[i] >= 0 || !handles[i]) continue;
+        foundry_diag_instance info;
+        if (foundry_diag_instance_get(ctx.rt, handles[i], &info) == FOUNDRY_OK && (info.ready || info.failed))
+          latency[i] = now_ms() - spawned_at[i];
+        else all = false;
+      }
+      if (all) break;
+      ctx.frame();
+    }
   }
   wait_ready(ctx, 60);
   ctx.frame();
@@ -429,7 +447,7 @@ PhaseResult run_forest(Ctx &ctx, const json &phase, std::vector<Failure> &failur
       if (cam == "walk") {  // a ground-level path through the forest
         const float t = static_cast<float>(ctx.sim_time - start) * 1.5f - extent;
         const float eye[3] = {t, 1.7f, 0.3f * spacing}, target[3] = {t + 10, 1.5f, 0.3f * spacing};
-        ctx.camera(eye, target, 400);
+        ctx.camera(eye, target, static_cast<float>(get(phase, "far", 400)));  // a terrain's plan sees farther
       }
       frames.push_back(ctx.frame(true, frames.size() % 10 == 9));
       if (frames.size() > 20 && stats(totals(frames)).p50 > budget * 8 && ctx.sim_time - start > secs / 4) break;

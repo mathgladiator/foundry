@@ -1,0 +1,41 @@
+{
+  "created_at": "2026-10-14T01:30:00Z",
+  "doc": "Two lines crossing at 60 degrees.",
+  "notes": [],
+  "state": "draft",
+  "value": {
+    "name": "cross",
+    "nodes": [
+      0,
+      0,
+      3,
+      3,
+      -3,
+      -3,
+      -3,
+      6,
+      3,
+      -6
+    ],
+    "heights": [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "links": [
+      0,
+      1,
+      0,
+      2,
+      0,
+      3,
+      0,
+      4
+    ],
+    "gate_nodes": [],
+    "gate_links": [],
+    "towers": []
+  }
+}

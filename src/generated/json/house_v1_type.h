@@ -9,8 +9,8 @@
 namespace foundry::json {
 
 inline constexpr std::array<const char *, 3> kHouseV1TypeKind = {"home", "store", "workshop"};
-inline constexpr std::array<const char *, 6> kHouseV1TypeFootprint = {"flower7", "rect3x2", "rect3x3", "rect4x3", "rect5x4", "flower19"};
-inline constexpr std::array<const char *, 6> kHouseV1TypeFootprintAlt = {"flower7", "rect3x2", "rect3x3", "rect4x3", "rect5x4", "flower19"};
+inline constexpr std::array<const char *, 5> kHouseV1TypeFootprint = {"wide", "deep", "round", "long", "broad"};
+inline constexpr std::array<const char *, 5> kHouseV1TypeFootprintAlt = {"wide", "deep", "round", "long", "broad"};
 inline constexpr std::array<const char *, 5> kHouseV1TypeWalls = {"timber", "plank", "log", "stone", "brick"};
 inline constexpr std::array<const char *, 4> kHouseV1TypeRoof = {"thatch", "shingle", "slate", "tile"};
 inline constexpr std::array<const char *, 3> kHouseV1TypeSign = {"none", "hanging", "board"};

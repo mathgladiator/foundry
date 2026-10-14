@@ -8,6 +8,8 @@
 // frame rate it would get. It shows the native runtime as last built.
 #pragma once
 
+#include "render/look.h"
+
 #include <SDL3/SDL_gpu.h>
 
 #include <cstdint>
@@ -28,6 +30,7 @@ struct LiveStats {
   double update_ms = 0, prepare_ms = 0, draw_ms = 0;  // the runtime's CPU, per frame
   uint64_t instances = 0, drawn = 0, triangles = 0, draws = 0, animated = 0, builds_pending = 0;
   uint64_t field_tiles = 0;  // grass tiles drawn (fields)
+  uint64_t terrain_nodes = 0, terrain_triangles = 0;  // the boundary's terrain drawn (design/boundary.md)
   uint64_t trees = 0;  // drawn, of the kinds whose pipeline starts with tree_
   double grow_ms = 0;  // growing the region to full, when it started
   std::string error;
@@ -52,6 +55,11 @@ class Live {
   // The plot view's shared values (season, wind) on every instance and field that has them, by
   // name, whenever they change (a build parameter such as season rebuilds; wind only sways).
   void share(const nlohmann::json &shared);
+  // The boundary (design/boundary.md), when the plotter has one: shown or not, and values for its
+  // pipeline's parameters by name (its hull's sectors, biome, detail...), as a game would set them.
+  void set_boundary(bool show, const nlohmann::json &values);
+  // The game's look (foundry_set_look), as the viewport's.
+  void set_look(const runtime::Look &look);
   // The sky over the region (design/observatory.md), through the game's API: the observatory (null:
   // none) is handed in when it changes, its state every call; the shadow map looks at centre.
   void set_sky(const std::shared_ptr<const runtime::sky::Observatory> &observatory, const runtime::sky::State &state,
@@ -68,6 +76,12 @@ class Live {
   foundry_runtime *rt_ = nullptr;
   foundry_region region_ = FOUNDRY_NO_REGION;
   std::vector<foundry_instance> instances_;
+  foundry_instance boundary_ = FOUNDRY_NO_INSTANCE;
+  bool boundary_shown_ = true;
+  std::string boundary_values_;
+  float far_ = 0;  // the boundary's reach, for the camera's far plane
+  std::vector<foundry_instance> figures_;  // the boundary's figures, filled once it is built
+  bool figures_done_ = false;
   std::vector<bool> tree_;
   SDL_GPUTexture *color_ = nullptr, *depth_ = nullptr;
   int w_ = 0, h_ = 0;

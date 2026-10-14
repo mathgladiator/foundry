@@ -1,0 +1,28 @@
+{
+  "created_at": "2026-10-13T23:30:00Z",
+  "doc": "A split-rail fence: rough rails zigzagging, crossed stakes at each joint.",
+  "notes": [],
+  "state": "draft",
+  "value": {
+    "name": "split_rail",
+    "style": "split_rail",
+    "color": [
+      0.5,
+      0.4,
+      0.3
+    ],
+    "post_color": [
+      0.45,
+      0.35,
+      0.25
+    ],
+    "height": 1.1,
+    "thickness": 0.5,
+    "module_m": 1.5,
+    "gate_color": [
+      0.5,
+      0.38,
+      0.25
+    ]
+  }
+}

@@ -328,5 +328,14 @@
         "species": "meadow"
       }
     }
-  ]
+  ],
+  "boundary": {
+    "pipeline": "boundary_v1",
+    "params": {
+      "hull": "around_valley",
+      "biome": "temperate",
+      "detail": "high",
+      "view_distance": 3000
+    }
+  }
 }

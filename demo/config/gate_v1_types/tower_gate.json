@@ -1,0 +1,37 @@
+{
+  "created_at": "2026-10-13T23:30:00Z",
+  "doc": "A tower gate: a square tower over the passage with a gabled roof and an arched window over the road.",
+  "notes": [],
+  "state": "draft",
+  "value": {
+    "name": "tower_gate",
+    "kind": "tower_gate",
+    "door_color": [
+      0.4,
+      0.28,
+      0.17
+    ],
+    "iron_color": [
+      0.2,
+      0.2,
+      0.22
+    ],
+    "leaves": 2,
+    "portcullis": false,
+    "rise": 4.5,
+    "depth": 2.5,
+    "roof": "gable",
+    "roof_color": [
+      0.55,
+      0.3,
+      0.2
+    ],
+    "banners": true,
+    "lamps": false,
+    "accent": [
+      0.68,
+      0.14,
+      0.14
+    ]
+  }
+}

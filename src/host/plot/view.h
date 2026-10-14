@@ -33,6 +33,7 @@ struct Picture {
   std::vector<viewport::Line> lines;          // the cells' outlines, coloured by ground
   std::vector<viewport::Line> collision;      // every occupant's collision
   nlohmann::json metrics = nlohmann::json::object();
+  float frame_m = 0;   // > 0: frame this many metres (the region), not the whole picture (a boundary's world)
   int version = 0;     // the state it shows
   bool building = false;
   std::string error;
@@ -76,6 +77,11 @@ class View {
   // Shared values (season, wind) for every occupant shown.
   void set_shared(const nlohmann::json &patch);
   nlohmann::json shared() const;
+  // The boundary (design/boundary.md), when the plotter has one (its file's boundary: a pipeline and
+  // its parameters): {"pipeline", "show", "values"}, the values its file gives with the view's own.
+  // The picture builds it around the region's ring of cells. patch: {"show": bool, "values": {...}}.
+  void set_boundary(const nlohmann::json &patch);
+  nlohmann::json boundary() const;
 
   // Grows the region: up to max placements in seed or regrow mode, keeping clear of exclusions
   // ([{position:[x,y,z], radius}]); verify_native also runs the plot system natively and compares.
@@ -112,6 +118,7 @@ class View {
   nlohmann::json cells_ = nlohmann::json::array();  // the resolved cells
   uint32_t seed_ = 1;
   nlohmann::json shared_ = nlohmann::json::object();
+  nlohmann::json boundary_ = nlohmann::json::object();  // {"show", "values"}: the view's own
   std::vector<Occupant> occupants_;
   nlohmann::json last_grow_ = nlohmann::json::object();
   int version_ = 1;

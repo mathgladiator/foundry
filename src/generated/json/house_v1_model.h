@@ -10,17 +10,31 @@
 
 namespace foundry::json {
 
-inline constexpr std::array<const char *, 6> kHouseV1ModelFootprint = {"flower7", "rect3x2", "rect3x3", "rect4x3", "rect5x4", "flower19"};
+inline constexpr std::array<const char *, 15> kHouseV1ModelFootprint = {"rect5x4", "rect4x5", "flower19", "rect3x8", "rect7x4", "rect6x5", "rect5x6", "flower37", "rect4x9", "rect9x5", "rect8x6", "rect6x8", "flower61", "rect5x11", "rect10x6"};
 
 inline nlohmann::json to_json(const channels::house_v1_model &c) {
   nlohmann::json j = nlohmann::json::object();
   j["height"] = c.height;
   j["radius"] = c.radius;
+  j["fire_points"] = nlohmann::json::array();
+  for (const auto &x : c.fire_points) j["fire_points"].push_back(nlohmann::json::array({x.x, x.y, x.z}));
+  j["fire_configs"] = nlohmann::json::array();
+  for (const auto &x : c.fire_configs) j["fire_configs"].push_back(x);
+  j["fire_lit"] = nlohmann::json::array();
+  for (const auto &x : c.fire_lit) j["fire_lit"].push_back(x);
   j["footprint"] = enum_name(c.footprint, kHouseV1ModelFootprint);
   j["footprint_cells"] = c.footprint_cells;
   j["footprint_radius"] = c.footprint_radius;
   j["cells"] = nlohmann::json::array();
   for (const auto &x : c.cells) j["cells"].push_back(x);
+  j["doors"] = nlohmann::json::array();
+  for (const auto &x : c.doors) j["doors"].push_back(x);
+  j["lot_min"] = nlohmann::json::array({c.lot_min.x, c.lot_min.y, c.lot_min.z});
+  j["lot_max"] = nlohmann::json::array({c.lot_max.x, c.lot_max.y, c.lot_max.z});
+  j["guide_cells"] = nlohmann::json::array();
+  for (const auto &x : c.guide_cells) j["guide_cells"].push_back(x);
+  j["guide_tones"] = nlohmann::json::array();
+  for (const auto &x : c.guide_tones) j["guide_tones"].push_back(x);
   j["doorway"] = nlohmann::json::array({c.doorway.x, c.doorway.y, c.doorway.z});
   j["doorway_heading"] = c.doorway_heading;
   j["marker"] = nlohmann::json::array({c.marker.x, c.marker.y, c.marker.z});
@@ -53,6 +67,18 @@ inline void from_json(const nlohmann::json &j, channels::house_v1_model &c) {
   if (j.contains("radius")) {
     c.radius = j.at("radius").get<float>();
   }
+  if (j.contains("fire_points")) {
+    c.fire_points.clear();
+    for (const auto &x : j.at("fire_points")) c.fire_points.push_back(foundry::vec3{x.at(0).get<float>(), x.at(1).get<float>(), x.at(2).get<float>()});
+  }
+  if (j.contains("fire_configs")) {
+    c.fire_configs.clear();
+    for (const auto &x : j.at("fire_configs")) c.fire_configs.push_back(x.get<uint32_t>());
+  }
+  if (j.contains("fire_lit")) {
+    c.fire_lit.clear();
+    for (const auto &x : j.at("fire_lit")) c.fire_lit.push_back(x.get<uint32_t>());
+  }
   if (j.contains("footprint")) {
     c.footprint = enum_value(j.at("footprint"), kHouseV1ModelFootprint);
   }
@@ -65,6 +91,24 @@ inline void from_json(const nlohmann::json &j, channels::house_v1_model &c) {
   if (j.contains("cells")) {
     c.cells.clear();
     for (const auto &x : j.at("cells")) c.cells.push_back(x.get<int32_t>());
+  }
+  if (j.contains("doors")) {
+    c.doors.clear();
+    for (const auto &x : j.at("doors")) c.doors.push_back(x.get<int32_t>());
+  }
+  if (j.contains("lot_min")) {
+    c.lot_min = foundry::vec3{j.at("lot_min").at(0).get<float>(), j.at("lot_min").at(1).get<float>(), j.at("lot_min").at(2).get<float>()};
+  }
+  if (j.contains("lot_max")) {
+    c.lot_max = foundry::vec3{j.at("lot_max").at(0).get<float>(), j.at("lot_max").at(1).get<float>(), j.at("lot_max").at(2).get<float>()};
+  }
+  if (j.contains("guide_cells")) {
+    c.guide_cells.clear();
+    for (const auto &x : j.at("guide_cells")) c.guide_cells.push_back(x.get<int32_t>());
+  }
+  if (j.contains("guide_tones")) {
+    c.guide_tones.clear();
+    for (const auto &x : j.at("guide_tones")) c.guide_tones.push_back(x.get<uint32_t>());
   }
   if (j.contains("doorway")) {
     c.doorway = foundry::vec3{j.at("doorway").at(0).get<float>(), j.at("doorway").at(1).get<float>(), j.at("doorway").at(2).get<float>()};

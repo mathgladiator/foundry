@@ -3,6 +3,8 @@
 // parameters (species x season, age x seed, ...) at one shared scale.
 #include "pipeline/tools.h"
 
+#include "pipeline/compose.h"
+
 #include <algorithm>
 #include <cstdio>
 #include <filesystem>
@@ -47,6 +49,8 @@ json frame_json(const Frame &f) {
               {"settled", f.settled}};
   if (f.conformance_radius > 0)
     out["conformance"] = {{"radius_m", f.conformance_radius}, {"height_m", f.conformance_height}};
+  if (f.has_box)
+    out["conformance_box"] = {{"min", {f.box_min.x, f.box_min.y, f.box_min.z}}, {"max", {f.box_max.x, f.box_max.y, f.box_max.z}}};
   if (!f.facts.empty()) out["facts"] = f.facts;
   return out;
 }
@@ -59,7 +63,34 @@ viewport::Camera camera_from(const json &args) {
   cam.zoom = args.value("zoom", cam.zoom);
   cam.quarter = args.value("quarter", 0);
   cam.distance = args.value("distance", 0.0f);
+  if (args.contains("eye") && args["eye"].is_array() && args["eye"].size() == 3) {
+    // Standing at an eye (a player inside a boundary's region): heading from north (-z) toward
+    // east (+x) and elevation, in degrees.
+    cam.free = true;
+    for (int k = 0; k < 3; ++k) cam.eye[k] = args["eye"][k].get<float>();
+    cam.azimuth = args.value("heading", 0.0f) * 0.0174533f;
+    cam.elevation = args.value("elevation", 0.0f) * 0.0174533f;
+    cam.fov = args.value("fov", 63.0f) * 0.0174533f;
+  }
   return cam;
+}
+
+// The highest point of a mesh straight under (x, z), or false if nothing is there: an eye can stand
+// on the ground (pipeline_view's on_ground).
+bool ground_under(const runtime::Mesh &m, float x, float z, float &y) {
+  bool hit = false;
+  for (size_t i = 0; i + 2 < m.indices.size(); i += 3) {
+    const auto &a = m.positions[m.indices[i]], &b = m.positions[m.indices[i + 1]], &c = m.positions[m.indices[i + 2]];
+    const float d = (b.z - c.z) * (a.x - c.x) + (c.x - b.x) * (a.z - c.z);
+    if (std::fabs(d) < 1e-9f) continue;
+    const float u = ((b.z - c.z) * (x - c.x) + (c.x - b.x) * (z - c.z)) / d;
+    const float v = ((c.z - a.z) * (x - c.x) + (a.x - c.x) * (z - c.z)) / d;
+    if (u < 0 || v < 0 || u + v > 1) continue;
+    const float h = u * a.y + v * b.y + (1 - u - v) * c.y;
+    if (!hit || h > y) y = h;
+    hit = true;
+  }
+  return hit;
 }
 
 assets::ViewContent content_of(const Frame &f, const std::string &label) {
@@ -69,6 +100,15 @@ assets::ViewContent content_of(const Frame &f, const std::string &label) {
   v.has_conformance = f.conformance_radius > 0;
   v.radius = f.conformance_radius;
   v.height = f.conformance_height;
+  v.has_box = f.has_box;
+  v.box_min = f.box_min;
+  v.box_max = f.box_max;
+  v.lines = f.guides;
+  v.fires = f.fires;
+  v.own_ground = f.terrain;
+  v.fire_time = f.time;
+  v.wind_speed = f.wind_speed;
+  v.wind_heading = f.wind_heading;
   if (f.collision) physics::wireframe(*f.collision, v.collision);
   return v;
 }
@@ -99,6 +139,7 @@ void register_tools(mcp::Registry &registry, Runner &runner, Live &live, workspa
                     if (!p.values.empty()) j["values"] = p.values;
                     if (p.type == "u32" || p.type == "f32") j["range"] = {p.min, p.max};
                     if (!p.unit.empty()) j["unit"] = p.unit;
+                    if (p.edge_bits > 0) j["edges"] = {{"bits", p.edge_bits}, {"values", p.edge_values}, {"order", "edge d at bits d * bits: directions 0, 300, 240, 180, 120, 60 degrees from +x toward +z"}};
                     if (!p.doc.empty()) j["doc"] = p.doc;
                     if (!p.when_param.empty())
                       j["when"] = {{"param", p.when_param}, {"field", p.when_field}, {"applies_in", p.when_on}};
@@ -271,9 +312,20 @@ void register_tools(mcp::Registry &registry, Runner &runner, Live &live, workspa
                              {"distance", {{"type", "number"}}},
                              {"frame", {{"type", "number"}}},
                              {"silhouette", {{"type", "boolean"}}},
+                             {"eye", {{"type", "array"}, {"description", "stand here (x, y, z metres) instead of orbiting: a player's view (a boundary's region)"}}},
+                             {"heading", {{"type", "number"}, {"description", "with eye: degrees from north (-z) toward east (+x)"}}},
+                             {"elevation", {{"type", "number"}, {"description", "with eye: degrees above the horizon"}}},
+                             {"on_ground", {{"type", "boolean"}, {"description", "with eye: its y is above the model's ground there (1.7 stands a player on it)"}}},
+                             {"fov", {{"type", "number"}, {"description", "with eye: vertical field of view, degrees (63)"}}},
+                             {"overlays", {{"type", "boolean"}, {"description", "hero, hex, conformance, grid, collision (default: true, false with eye)"}}},
+                             {"burning", {{"type", "number"}, {"description", "how much it burns (design/submit.md, Fire): 0 only its lit fires and chimneys, 1 its blaze points alight, up to 2"}}},
                              {"observatory", {{"type", "string"},
                                               {"description", "under this observatory's sky (design/observatory.md), or none; "
                                                               "default: what the pipeline's viewer is under"}}},
+                             {"compose", {{"type", "object"},
+                                          {"description", "what is composed round the model, where its draw asks (a terrain's boundary and plotter, "
+                                                          "a boundary's figures): nature (bool), plotter (name), surround (bool), figures "
+                                                          "(bool), surround_values (object). Default: all on; false turns all off"}}},
                              {"size", {{"type", "integer"}}}},
                             {"pipeline"}),
                 [&runner, &live](const json &args) {
@@ -286,15 +338,48 @@ void register_tools(mcp::Registry &registry, Runner &runner, Live &live, workspa
                   Runner::Result r = runner.run(def, values, false, true);
                   if (!r.ok) return mcp::Result::error(r.error);
                   viewport::Camera cam = camera_from(args);
-                  cam.frame = args.value("frame", 0.0f);
+                  cam.frame = args.value("frame", r.frame.frame_m);
+                  if (cam.free && args.value("on_ground", false) && r.frame.mesh) {
+                    float y = 0;
+                    if (ground_under(*r.frame.mesh, cam.eye[0], cam.eye[2], y)) cam.eye[1] += y;
+                  }
                   int size = std::clamp(args.value("size", 512), 64, 1024);
                   viewport::SkyScene sky_scene;
                   const std::string under = args.value("observatory", sky::observatories().view_of("pipeline:" + name));
                   const bool has_sky = under != "none" && sky::observatories().scene(under, sky_scene);
-                  viewport::Image img = assets::render_view(content_of(r.frame, name), cam, {}, args.value("silhouette", false), size, size,
+                  assets::ViewContent content = content_of(r.frame, name);
+                  content.burning = args.value("burning", 0.0f);
+                  json composed;
+                  if (composes(def) && !(args.contains("compose") && args["compose"].is_boolean() && !args["compose"].get<bool>())) {
+                    const json c = args.value("compose", json::object()).is_object() ? args.value("compose", json::object()) : json::object();
+                    ComposeOptions o;
+                    o.nature = c.value("nature", true);
+                    o.plotter = c.value("plotter", "");
+                    o.surround = c.value("surround", true);
+                    o.figures = c.value("figures", true);
+                    o.surround_values = c.value("surround_values", json::object());
+                    Composite comp = compose(runner, def, r.frame, values, o);
+                    if (comp.mesh) {
+                      content.mesh = comp.mesh;
+                      content.lines.insert(content.lines.end(), comp.guides.begin(), comp.guides.end());
+                      content.collision.insert(content.collision.end(), comp.wire.begin(), comp.wire.end());
+                      content.fires.insert(content.fires.end(), comp.fires.begin(), comp.fires.end());
+                      content.own_ground = content.own_ground || comp.own_ground;
+                    }
+                    composed = comp.report;
+                  }
+                  // Overlays (hero, hex, conformance, grid, collision) by default, but not for a player's eye.
+                  viewport::Overlays overlays;
+                  if (!args.value("overlays", !cam.free)) {
+                    overlays.conformance = overlays.collision = overlays.hero = overlays.hex = overlays.grid = false;
+                    content.lines.clear();
+                  }
+                  viewport::Image img = assets::render_view(content, cam, overlays, args.value("silhouette", false), size, size,
                                                             0, has_sky ? &sky_scene : nullptr);
                   json v = runner.complete(def, values);
-                  return image_result(img, name + " " + v.dump() + "\n" + frame_json(r.frame).dump());
+                  json facts = frame_json(r.frame);
+                  if (!composed.is_null()) facts["composed"] = composed;
+                  return image_result(img, name + " " + v.dump() + "\n" + facts.dump());
                 }});
 
   registry.add({"pipeline_sheet",
@@ -312,7 +397,8 @@ void register_tools(mcp::Registry &registry, Runner &runner, Live &live, workspa
                              {"pitch", {{"type", "number"}}},
                              {"frame", {{"type", "number"}, {"description", "metres to frame; default: the tallest cell"}}},
                              {"cell", {{"type", "integer"}, {"description", "cell size in pixels, default 192"}}},
-                             {"overlays", {{"type", "boolean"}, {"description", "hero, hex, conformance, grid (default true)"}}}},
+                             {"overlays", {{"type", "boolean"}, {"description", "hero, hex, conformance, grid (default true)"}}},
+                             {"burning", {{"type", "number"}, {"description", "how much each cell burns (0 to 2)"}}}},
                             {"pipeline", "rows", "cols"}),
                 [&runner, &live](const json &args) {
                   std::string name = args.value("pipeline", ""), error;
@@ -369,7 +455,9 @@ void register_tools(mcp::Registry &registry, Runner &runner, Live &live, workspa
                   sheet.rgba.assign(static_cast<size_t>(sheet.width) * sheet.height * 4, 18);
                   for (size_t k = 0; k < cells.size(); ++k) {
                     if (!cells[k].ok) continue;
-                    viewport::Image img = assets::render_view(content_of(cells[k].frame, name), cam, ov, false, cell, cell);
+                    assets::ViewContent content = content_of(cells[k].frame, name);
+                    content.burning = args.value("burning", 0.0f);
+                    viewport::Image img = assets::render_view(content, cam, ov, false, cell, cell);
                     int ox = gap + static_cast<int>(k % cols.size()) * (cell + gap);
                     int oy = gap + static_cast<int>(k / cols.size()) * (cell + gap);
                     for (int y = 0; y < img.height && y < cell; ++y)

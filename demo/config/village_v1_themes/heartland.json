@@ -1,0 +1,47 @@
+{
+  "created_at": "2026-10-14T04:30:00Z",
+  "doc": "Today's village: each type keeps its own roof, walls, and colours.",
+  "notes": [],
+  "state": "draft",
+  "value": {
+    "name": "heartland",
+    "roof": "as_type",
+    "plan": "as_type",
+    "walls": "as_type",
+    "windows": "as_type",
+    "foundation": "stone",
+    "ornament": "none",
+    "wall_color": [
+      0.8,
+      0.75,
+      0.65
+    ],
+    "trim_color": [
+      0.4,
+      0.3,
+      0.2
+    ],
+    "roof_color": [
+      0.5,
+      0.35,
+      0.25
+    ],
+    "accent": [
+      0.7,
+      0.15,
+      0.15
+    ],
+    "mix": 0.0,
+    "moss": 0.0,
+    "smoke_hole": false,
+    "hearth_fire": 1,
+    "torch_fire": 2,
+    "blaze_fire": 4,
+    "road_lane": "lane",
+    "road_high": "high_street",
+    "road_square": "square",
+    "wall_kind": "town_wall",
+    "fence_kind": "picket",
+    "gate_type": "town_gate"
+  }
+}

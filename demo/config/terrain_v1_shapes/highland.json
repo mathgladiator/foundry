@@ -1,0 +1,58 @@
+{
+  "created_at": "2026-10-14T17:30:00Z",
+  "doc": "A triangle of high rock: cliffs and caves, a mountain behind, a ledge looking out; a stream ends in a tarn; two lanes climb in.",
+  "notes": [],
+  "state": "draft",
+  "value": {
+    "name": "highland",
+    "kind": "triangle",
+    "radius": 40,
+    "width": 60,
+    "depth": 40,
+    "notch": 40,
+    "corners": [],
+    "rotation": 0,
+    "wobble": 2,
+    "seed": 7,
+    "sides": [
+      {
+        "edge": "ridge",
+        "height": 14,
+        "rise": 0.7
+      },
+      {
+        "edge": "mountain",
+        "height": 18,
+        "rise": 0.95
+      },
+      {
+        "edge": "ledge",
+        "height": 8,
+        "rise": 0.3
+      }
+    ],
+    "openings": [
+      {
+        "kind": "lane",
+        "side": 2,
+        "at": 0.35,
+        "width": 1,
+        "name": "the climb"
+      },
+      {
+        "kind": "lane",
+        "side": 0,
+        "at": 0.6,
+        "width": 1,
+        "name": "the col"
+      },
+      {
+        "kind": "river_in",
+        "side": 1,
+        "at": 0.5,
+        "width": 1,
+        "name": ""
+      }
+    ]
+  }
+}

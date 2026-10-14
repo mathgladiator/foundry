@@ -124,6 +124,20 @@ The renderer uses one mega shader (an "uber shader") that implements the look in
 - **Shared with the game.** The runtime exports the shader, lets the game configure it through defines, and caches compiled versions on disk (`api.md`, "The shader").
 - **The look is opt-in.** The mega shader implements `style.md` because that is the current project's style. Another project can swap in its own style values, or its own shader.
 
+### The look
+
+The game sets one **look** for everything the runtime draws (`foundry_set_look`, `api.md`): a per-pixel grade applied last, after the light, by every mesh, field, and sky shader (`src/runtime/shaders/look.hlsli`; its CPU mirror, `src/runtime/render/look.h`). It is the game's setting, not the models': a model never needs to agree with it, and the default changes nothing.
+
+| Setting | What it does |
+|---|---|
+| Colour vision | Typical, protanopia, deuteranopia, or tritanopia: daltonizing, which simulates what that eye sees and moves the difference into channels it can tell apart |
+| Contrast | 0 to 1: an S-curve on brightness, with a little more saturation |
+| Saturation | 1 as made; 0 grey, 2 doubled |
+| Edges | 0 to 1: dark lines where the surface colour changes, drawn by passes that see neighbouring pixels (the foundry's ink pass today; the runtime has no post pass yet) |
+| Effect | None, greyscale, or a tint (a duotone from black through one hue to white), at a strength from 0 to 1, so a buff, a theme, or a cutscene fades it in and out |
+
+The foundry applies the same grade in its viewport's ink pass (and its software renderer), so every view, screenshot, and sheet can be judged under a look; the viewport's **Look** button and `look_set` set it. A system that needs the look (a model built with more contrast for a high-contrast setting) would take it as a pipeline parameter the game sets, like the wind; none does yet.
+
 ## Rendering many meshes efficiently
 
 On modern GPUs, the number of triangles is rarely the bottleneck. The costs are draw calls, state changes, and memory traffic. Everything below is aimed at drawing many different dynamic meshes with as few state changes as possible.
@@ -204,7 +218,19 @@ Magic effects, auras, and other layers need transparency. Each frame draws in pa
 Magic motion is a function of time and parameters (`systems.md`, Magic), and that maps directly onto the GPU:
 
 - **Analytic particles.** For most effects, a particle's position is computed in the vertex shader from its seed, the effect's parameters, and the instance's `timeline`. The CPU uploads nothing per particle, so a rain cloud with thousands of drops costs one instanced draw and no update work beyond advancing time. Because a sleeping instance's timeline stops, its particles freeze too.
-- **Stateful particles.** Things that really simulate, such as break pieces falling and bouncing, run on the CPU in the update phase, or in a compute shader when there are many of them.
+- **Stateful particles.** Things that really simulate, such as break pieces falling and bouncing, run on the CPU in the update phase, or in a compute shader when there are many of them. Fire is the first (below).
+
+## Fire
+
+Fire is the runtime's first stateful particle system (`src/runtime/fire/`). It is one system for the whole world, not part of any pipeline: buildings only say where fires burn.
+
+- **Fire points.** A building's model carries fire points (`draw.fires`: positions, a fire config id each, and when each burns): **lit** (a hearth, a forge, a torch, a brazier, a candle) burns always; **smoke** (a chimney, a smoke hole) shows a hearth's smoke without its flames; **blaze** points (spread over the building's roof and walls) burn only while the game says the instance is burning. A ruin keeps no lit fire, only its blaze points.
+- **Fire configs** (`fire_v1_config`, compiled in from `config/fire_v1_configs/`): a fire's kind (flames, embers, or a spirit fire that holds its colour and throws no smoke), its core and tip colours, size, height, rate, flicker, sparks, smoke (colour, rate, size, life, rise), and its light (colour, reach, strength). A village theme names the configs its hearths, torches, and blazes use. Ids are stable.
+- **Simulation.** Each frame the runtime turns the fire points of every instance near the view into emitters (an instance's transform applied), and a CPU particle system steps them: flame tongues rising and shrinking from core to tip colour, sparks thrown up and falling back, an ember bed's glow, and smoke puffs that rise, swell, and drift toward the world's wind (`foundry_set_wind`) until they move with it. Emitters keep their timing from frame to frame by key (instance and point). At most 60,000 particles live at once; past that, the oldest go.
+- **Drawing.** After everything solid and the sky: smoke as soft discs blended over (the transparent pass), lit by the sky's light and fogged; then flames, sparks, and glows added (the additive pass), a tongue stretched into a teardrop. Both test depth without writing it, and apply the look last (`fire.hlsl`, `render/fire_renderer.h`).
+- **Light.** The mega shader takes the eight strongest, nearest fires' lights (`light.hlsli`, `fire_light`): each lights the faces turned toward it within its reach, in the cel look's bands (a warm lit band and a fainter one), so a hearth glows on the wall beside it and a burning street lights its neighbours.
+- **The game's control.** `foundry_set_burning(instance, amount)`: 0 none, 1 its blaze points alight, up to 2 a raging blaze (its lit fires and chimneys burn harder too). Fire is for looks: it never changes what a pipeline builds, so it needn't match across machines bit for bit.
+- **In the foundry.** Every view of a pipeline, a planner, or a sheet shows its fires as a still (the system stepped from nothing to the moment shown, so the same moment always looks the same): on the GPU with the runtime's own fire renderer over the inked image, on the CPU as soft discs. `pipeline_view` and `pipeline_sheet` take `burning`. The live plotter is the runtime itself.
 
 ## One frame
 

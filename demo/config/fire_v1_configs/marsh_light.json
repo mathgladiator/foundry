@@ -1,0 +1,42 @@
+{
+  "created_at": "2026-10-14T04:30:00Z",
+  "doc": "A marsh lantern: a pale teal flame.",
+  "notes": [],
+  "state": "draft",
+  "value": {
+    "name": "marsh_light",
+    "id": 12,
+    "kind": "spirit",
+    "core_color": [
+      0.7,
+      1.0,
+      0.85
+    ],
+    "tip_color": [
+      0.25,
+      0.75,
+      0.6
+    ],
+    "size": 0.08,
+    "height": 0.18,
+    "rate": 14,
+    "flicker": 0.5,
+    "sparks": 0,
+    "smoke_color": [
+      0.6,
+      0.7,
+      0.65
+    ],
+    "smoke_rate": 0,
+    "smoke_size": 0.1,
+    "smoke_life": 2,
+    "smoke_rise": 0.5,
+    "light_color": [
+      0.55,
+      0.95,
+      0.8
+    ],
+    "light_radius": 4,
+    "light_strength": 0.8
+  }
+}

@@ -24,6 +24,7 @@
 
 #include "forge/forge.h"
 #include "physics/toy.h"
+#include "core/pipeline.h"
 #include "render/mesh.h"
 #include "wasm/runner.h"
 
@@ -41,6 +42,10 @@ struct Param {
   // (fruit: when species.pickable). Where it doesn't apply, every stage reads it as off.
   std::string when_param, when_field;
   std::vector<std::string> when_on;  // the entries of when_param where it applies
+  // "edges": a u32 that packs a value per hex edge (edge_bits each, six edges in the hex
+  // directions' order), edited as six choices named by edge_values (road_v1's mask, its fences).
+  int edge_bits = 0;
+  std::vector<std::string> edge_values;
 };
 
 struct Stage {
@@ -57,8 +62,35 @@ struct Definition {
   std::string model_stage, pose_stage;  // what the viewport draws, and what poses it
   // Model fields giving the conformance capsule's radius and height (draw.conformance), if any.
   std::string conformance_radius, conformance_height;
+  // Model fields giving a box conformance (draw.conformance.box: its min and max corners), if any.
+  std::string conformance_box_min, conformance_box_max;
   // Model fields giving the footprint at the largest age (draw.footprint), if any.
   std::string footprint_radius, footprint_cells;
+  // The model field listing the cells it stands on, as q, r pairs (draw.footprint.lot), if any.
+  std::string footprint_lot;
+  // The model field listing which of those cells are water (draw.footprint.wet), if any.
+  std::string footprint_wet;
+  std::string footprint_doors;  // the cells just outside its doors (draw.footprint.doors)
+  // Where a model asks for other things to go (draw.places: positions, yaws, sizes), such as a
+  // wall's gates: vec3, degree, and metre fields of the model.
+  std::string places_positions, places_yaws, places_sizes;
+  std::string fire_points, fire_configs, fire_lit;  // draw.fires
+  // Model fields giving cells to outline on the ground (draw.guides: group, q, r triples, and a tone
+  // per group: 0 bright, 1 medium, 2 faint), such as every lot a building can stand on.
+  std::string guide_cells, guide_tones;
+  // Guide segments the model carries for the viewer (draw.guides.lines: vec3 pairs; colors: packed
+  // RGBA per segment): a road cell's neighbours and flow, a wall piece's line.
+  std::string guide_lines, guide_colors;
+  // > 0: the viewer frames this many metres for every model (draw.frame_m), so sizes compare.
+  float frame_m = 0;
+  // draw.terrain (design/boundary.md): the model's terrain quadtree's field names; empty: none.
+  nlohmann::json terrain = nlohmann::json::object();
+  // What the viewer composes round the model, each naming model fields (empty: none):
+  // draw.nature (a plotter grown over the model's open land: regions, plotter), draw.surround (a
+  // second pipeline built round it, such as a boundary round a terrain: pipeline, hull, shared,
+  // params), and draw.figures (stand-ins the model leaves for the game, filled with builds: field,
+  // kinds).
+  nlohmann::json nature = nlohmann::json::object(), surround = nlohmann::json::object(), figures = nlohmann::json::object();
   const Param *param(const std::string &n) const;
   const Stage *stage(const std::string &id) const;
   // Parameters that only update stages read (time, wind): changing them never rebuilds.
@@ -100,6 +132,25 @@ struct Frame {
   std::shared_ptr<const physics::Collision> collision;  // what collides, checked in the toy Jolt world
   float footprint_radius = 0;   // the ground contact at the largest age (0: none)
   uint32_t footprint_cells = 0;  // and its footprint on the hex grid
+  std::vector<int> lot_cells;    // the cells it stands on, q, r pairs (draw.footprint.lot)
+  std::vector<int> wet_cells;    // which of them are water (draw.footprint.wet)
+  std::vector<int> door_cells;   // the cells just outside its doors (draw.footprint.doors)
+  struct Place {
+    foundry::vec3 at;
+    float yaw_deg = 0, size = 0;
+  };
+  std::vector<Place> places;     // what it asks to have placed (draw.places)
+  bool has_box = false;          // a box conformance (draw.conformance.box)
+  foundry::vec3 box_min{0, 0, 0}, box_max{0, 0, 0};
+  std::vector<viewport::Line> guides;  // cells outlined on the ground (draw.guides)
+  float frame_m = 0;                   // the definition's fixed framing, if any
+  bool terrain = false;                // it draws its own ground out to the horizon (draw.terrain)
+  std::vector<runtime::FirePoint> fires;  // its fire points (draw.fires; design/submit.md, "Fire")
+  // The values the fire system reads by name, as the foundry shares wind: the pipeline's clock
+  // (its time parameter) and the wind (wind_speed, wind_heading).
+  float time = 0, wind_speed = 0, wind_heading = 0;
+  // The model fields draw.nature, draw.surround, and draw.figures name, as JSON, for the composer.
+  std::shared_ptr<const nlohmann::json> extras;
 };
 
 struct Model;  // a decoded model: rest mesh plus skinning

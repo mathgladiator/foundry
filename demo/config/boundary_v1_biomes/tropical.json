@@ -1,0 +1,101 @@
+{
+  "created_at": "2026-10-14T13:00:00Z",
+  "doc": "A tropical coast: palm jungle, turquoise shallows over white sand, dark volcanic cliffs, green peaks in cloud.",
+  "notes": [],
+  "state": "draft",
+  "value": {
+    "name": "tropical",
+    "grass": [
+      0.33,
+      0.6,
+      0.2
+    ],
+    "grass_dry": [
+      0.66,
+      0.62,
+      0.34
+    ],
+    "soil": [
+      0.42,
+      0.32,
+      0.22
+    ],
+    "rock": [
+      0.42,
+      0.4,
+      0.38
+    ],
+    "rock_dark": [
+      0.24,
+      0.22,
+      0.22
+    ],
+    "sand": [
+      0.93,
+      0.88,
+      0.7
+    ],
+    "snow": [
+      0.94,
+      0.96,
+      0.98
+    ],
+    "foliage": [
+      0.2,
+      0.52,
+      0.16
+    ],
+    "foliage_dark": [
+      0.08,
+      0.3,
+      0.12
+    ],
+    "jungle": [
+      0.16,
+      0.6,
+      0.2
+    ],
+    "trunk": [
+      0.45,
+      0.36,
+      0.25
+    ],
+    "reed": [
+      0.56,
+      0.6,
+      0.3
+    ],
+    "water_shallow": [
+      0.2,
+      0.75,
+      0.72
+    ],
+    "water_deep": [
+      0.082,
+      0.42,
+      0.68
+    ],
+    "autumn": [
+      0.85,
+      0.42,
+      0.12
+    ],
+    "forest_form": 0,
+    "jungle_form": 0,
+    "tree_height": 20,
+    "cliff_height": 35,
+    "ledge_drop": 90,
+    "peak_height": 900,
+    "snow_line": 0,
+    "tree_line": 900,
+    "sea_depth": 2.0,
+    "roughness": 0.55,
+    "fields": 0.25,
+    "rivers": 0.5,
+    "figure_forest": "mango,mahogany,ebony,jacaranda",
+    "figure_jungle": "coconut,mahogany,teak,mango,coconut",
+    "figure_mountain": "pine,cedar",
+    "figure_marsh": "mangrove,mangrove,baldcypress",
+    "figure_bushes": "hibiscus,palmetto"
+  }
+}

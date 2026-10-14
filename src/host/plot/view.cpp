@@ -1,5 +1,7 @@
 #include "plot/view.h"
 
+#include "pipeline/compose.h"
+
 #include <algorithm>
 #include <array>
 #include <chrono>
@@ -47,6 +49,67 @@ nlohmann::json normalize(const nlohmann::json &regions) {
 
 nlohmann::json region(const char *shape, int q, int r, int radius, int priority) {
   return {{"shape", shape}, {"q", q}, {"r", r}, {"radius", radius}, {"priority", priority}};
+}
+
+// The ring of cells just outside a region's cells (design/boundary.md), counterclockwise as seen from
+// above, each with the height of the region's cell beside it: the region's edges chained into
+// loops, the outer (largest) loop's outside cells, as foundry_region_hull gives a game.
+struct RingCell {
+  int q, r;
+  float height;
+};
+std::vector<RingCell> ring_of(const nlohmann::json &cells) {
+  static const int dq[6] = {1, 1, 0, -1, -1, 0}, dr[6] = {0, -1, -1, 0, 1, 1};
+  static const double cs[6] = {0.8660254, 0, -0.8660254, -0.8660254, 0, 0.8660254}, sn[6] = {0.5, 1, 0.5, -0.5, -1, -0.5};
+  auto corner = [](int q, int r, int j) {
+    const double x = 1.7320508 * (q + r * 0.5) + cs[j], z = 1.5 * r - sn[j];
+    return std::make_pair(std::lround(x * 1000), std::lround(z * 1000));
+  };
+  std::map<std::pair<int, int>, float> height;
+  for (const auto &c : cells) height[{c.value("q", 0), c.value("r", 0)}] = c.value("height", 0.0f);
+  struct Edge {
+    std::pair<long, long> from, to;
+    RingCell out;
+    bool used = false;
+  };
+  std::vector<Edge> edges;
+  std::multimap<std::pair<long, long>, size_t> starting;
+  for (const auto &[cell, h] : height)
+    for (int k = 0; k < 6; ++k) {
+      const int nq = cell.first + dq[k], nr = cell.second + dr[k];
+      if (height.count({nq, nr})) continue;
+      starting.insert({corner(cell.first, cell.second, (k + 5) % 6), edges.size()});
+      edges.push_back({corner(cell.first, cell.second, (k + 5) % 6), corner(cell.first, cell.second, k), {nq, nr, h}});
+    }
+  std::vector<RingCell> best;
+  double best_area = 0;
+  for (size_t s = 0; s < edges.size(); ++s) {
+    if (edges[s].used) continue;
+    std::vector<size_t> loop;
+    for (size_t at = s; !edges[at].used;) {
+      edges[at].used = true;
+      loop.push_back(at);
+      size_t next = edges.size();
+      auto range = starting.equal_range(edges[at].to);
+      for (auto it = range.first; it != range.second; ++it)
+        if (!edges[it->second].used) {
+          next = it->second;
+          break;
+        }
+      if (next == edges.size()) break;
+      at = next;
+    }
+    double area = 0;
+    for (size_t i : loop) area += static_cast<double>(edges[i].to.first) * edges[i].from.second -
+                                  static_cast<double>(edges[i].from.first) * edges[i].to.second;
+    if (area <= best_area) continue;
+    best_area = area;
+    best.clear();
+    for (size_t i : loop)
+      if (best.empty() || best.back().q != edges[i].out.q || best.back().r != edges[i].out.r) best.push_back(edges[i].out);
+    while (best.size() > 1 && best.back().q == best.front().q && best.back().r == best.front().r) best.pop_back();
+  }
+  return best;
 }
 
 void place(const runtime::Mesh &m, foundry::vec3 at, float yaw, runtime::Mesh &out) {
@@ -438,6 +501,16 @@ bool View::show(const std::string &name, std::string &error) {
       if (!pipeline::load(paths_, k.pipeline, d, error)) return false;
       defs[k.pipeline] = d;
     }
+  if (p.file.contains("boundary")) {
+    const std::string bp = p.file["boundary"].value("pipeline", "");
+    pipeline::Definition d;
+    if (!pipeline::load(paths_, bp, d, error)) return false;
+    if (d.terrain.empty() || !d.terrain.contains("hull")) {
+      error = p.name + ": its boundary " + bp + " takes no hull (its draw.terrain names none)";
+      return false;
+    }
+    defs[bp] = d;
+  }
   const nlohmann::json view = p.file.value("view", nlohmann::json::object());
   {
     std::lock_guard<std::mutex> lock(mutex_);
@@ -447,12 +520,28 @@ bool View::show(const std::string &name, std::string &error) {
     seed_ = view.value("seed", 1u);
     shared_ = p.shared;
     if (view.contains("shared")) shared_.update(view["shared"]);
+    boundary_ = {{"show", true}, {"values", nlohmann::json::object()}};
     regions_ = preset(view.value("preset", std::string("glen")), view.value("radius", 12), seed_);
     occupants_.clear();
     last_grow_ = nlohmann::json::object();
     ++version_;
   }
   return resolve_cells(error);
+}
+
+void View::set_boundary(const nlohmann::json &patch) {
+  std::lock_guard<std::mutex> lock(mutex_);
+  if (patch.contains("show")) boundary_["show"] = patch["show"].get<bool>();
+  if (patch.contains("values")) boundary_["values"].update(patch["values"]);
+  ++version_;
+}
+
+nlohmann::json View::boundary() const {
+  std::lock_guard<std::mutex> lock(mutex_);
+  if (!loaded_ || !plotter_.file.contains("boundary")) return nlohmann::json();
+  nlohmann::json v = plotter_.file["boundary"].value("params", nlohmann::json::object());
+  v.update(boundary_.value("values", nlohmann::json::object()));
+  return {{"pipeline", plotter_.file["boundary"].value("pipeline", "")}, {"show", boundary_.value("show", true)}, {"values", v}};
 }
 
 std::string View::name() const {
@@ -802,7 +891,7 @@ void View::compose(int version) {
   // A snapshot of the state, so the region can keep changing while this composes.
   Plotter p;
   std::map<std::string, pipeline::Definition> defs;
-  nlohmann::json cells, shared;
+  nlohmann::json cells, shared, boundary;
   std::vector<Occupant> occupants;
   uint32_t seed;
   {
@@ -813,6 +902,7 @@ void View::compose(int version) {
     shared = shared_;
     occupants = occupants_;
     seed = seed_;
+    boundary = boundary_;
   }
   (void)seed;
   auto mesh = std::make_shared<runtime::Mesh>();
@@ -852,6 +942,68 @@ void View::compose(int version) {
                              {at.x + fr * std::cos(a1), at.y + 0.03f, at.z + fr * std::sin(a1)}, 1.0f, 0.65f, 0.2f, 0.6f});
       }
   }
+  // The boundary (design/boundary.md): its pipeline around the region's ring, its hull given inline
+  // (the ring's cells and heights, with the chosen entry's sectors for their edges).
+  nlohmann::json boundary_facts;
+  if (p.file.contains("boundary") && boundary.value("show", true)) {
+    const std::string bp = p.file["boundary"].value("pipeline", "");
+    auto def = defs.find(bp);
+    if (def != defs.end()) {
+      nlohmann::json v = p.file["boundary"].value("params", nlohmann::json::object());
+      v.update(boundary.value("values", nlohmann::json::object()));
+      for (auto it = shared.begin(); it != shared.end(); ++it)
+        if (def->second.param(it.key())) v[it.key()] = it.value();
+      if (def->second.param("seed")) v["seed"] = seed;
+      const std::string hp = def->second.terrain.value("hull", "");
+      const pipeline::Param *param = def->second.param(hp);
+      nlohmann::json entry = nlohmann::json::object();
+      if (param) {
+        const std::string chosen = v.contains(hp) && v[hp].is_string() ? v[hp].get<std::string>()
+                                   : param->fallback.is_string()      ? param->fallback.get<std::string>()
+                                                                      : "";
+        try {
+          entry = core::read_json(paths_.workspace + "/config/" + param->table + "/" + chosen + ".json").at("value");
+        } catch (const std::exception &) {
+        }
+      }
+      nlohmann::json qr = nlohmann::json::array(), heights = nlohmann::json::array();
+      for (const RingCell &rc : ring_of(cells)) {
+        qr.push_back(rc.q);
+        qr.push_back(rc.r);
+        heights.push_back(rc.height);
+      }
+      entry["name"] = "region";
+      entry["cells"] = qr;
+      entry["heights"] = heights;
+      entry["edges"] = nlohmann::json::array();
+      entry["rises"] = nlohmann::json::array();
+      v[hp] = entry;
+      const auto r0 = std::chrono::steady_clock::now();
+      auto res = runner_.run(def->second, v, false, false, false);
+      run_ms += std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - r0).count();
+      if (res.ok && res.frame.mesh) {
+        // Without the stand-in floor: the region's own ground is drawn.
+        runtime::Mesh m = *res.frame.mesh;
+        const size_t floor = res.frame.facts.value("terrain_floor_triangles", size_t(0));
+        m.indices.resize(m.indices.size() - std::min(m.indices.size(), floor * 3));
+        place(m, {0, 0, 0}, 0, *mesh);
+        if (res.frame.collision) physics::wireframe(*res.frame.collision, collision, {0, 0, 0}, 0);
+        boundary_facts = res.frame.facts;
+        // Its figures: the trees it leaves for the game, filled as a game would.
+        const std::string ff = def->second.figures.value("field", "");
+        if (!ff.empty() && res.frame.extras && res.frame.extras->contains(ff)) {
+          std::vector<pipeline::PlacedBodies> bodies;
+          nlohmann::json report;
+          pipeline::fill_figures(runner_, def->second.figures, (*res.frame.extras)[ff], runner_.complete(def->second, v), *mesh, bodies,
+                                 report);
+          boundary_facts["figures_filled"] = report;
+        }
+      } else {
+        ++failed;
+        if (first_error.empty()) first_error = bp + ": " + res.error;
+      }
+    }
+  }
   const double total_ms = std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - t_pipelines).count();
   core::log().add("plot", p.name + ": composed " + std::to_string(occupants.size()) + " occupants, " +
                               std::to_string(mesh->indices.size() / 3) + " triangles, in " + std::to_string(static_cast<int>(total_ms)) +
@@ -861,6 +1013,15 @@ void View::compose(int version) {
   picture_.lines = std::move(lines);
   picture_.collision = std::move(collision);
   picture_.metrics = metrics_locked();
+  picture_.frame_m = 0;
+  if (!boundary_facts.is_null()) {
+    picture_.metrics["boundary"] = boundary_facts;
+    // Frame the region, not the world its boundary invents around it.
+    float reach = 4;
+    for (const auto &c : cells)
+      reach = std::max(reach, std::hypot(cell_x(c.value("q", 0), c.value("r", 0)), cell_z(c.value("r", 0))));
+    picture_.frame_m = 2.4f * reach + 8;
+  }
   picture_.version = version;
   picture_.building = false;
   picture_.error = failed ? std::to_string(failed) + " occupants failed to build; first: " + first_error : "";

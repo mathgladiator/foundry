@@ -1,0 +1,162 @@
+{
+  "family": "civic",
+  "version": 1,
+  "feature": "type",
+  "doc": "A civic building's type (design/planner.md, Civic buildings), as a config entry: what it is (a court, a bank, a church, a temple, a town hall, a guild hall, a library, a market hall, or a centre a square rings: a well, a market cross, a fountain, a maypole, a statue, a shrine), its usual size, materials, colours, and what it shows.",
+  "fields": [
+    {
+      "name": "name",
+      "type": "string",
+      "doc": "The type's name (church, court)."
+    },
+    {
+      "name": "kind",
+      "type": "u32",
+      "doc": "How it is built: a hall (court, town hall, guild hall, library), a church (nave, tower or spire, apse), a temple (columned portico and pediment), a bank (a stone strongroom with columns), a tower (a mage's or a watch tower), a market hall (open arcades under a hall), or a centre: a well, a market cross, a fountain, a maypole, a statue, a shrine.",
+      "enum": [
+        "hall",
+        "church",
+        "temple",
+        "bank",
+        "tower",
+        "market_hall",
+        "well",
+        "cross",
+        "fountain",
+        "maypole",
+        "statue",
+        "shrine"
+      ]
+    },
+    {
+      "name": "size",
+      "type": "u32",
+      "doc": "Its usual lot: centre (a 7-cell flower in a square's middle, the road ringing it), small (rect6x5), large (rect9x7), or great (rect12x9).",
+      "enum": [
+        "centre",
+        "small",
+        "large",
+        "great"
+      ]
+    },
+    {
+      "name": "walls",
+      "type": "u32",
+      "doc": "What its walls are made of.",
+      "enum": [
+        "timber",
+        "stone",
+        "brick",
+        "marble"
+      ]
+    },
+    {
+      "name": "wall_color",
+      "type": "vec3",
+      "doc": "Walls."
+    },
+    {
+      "name": "trim_color",
+      "type": "vec3",
+      "doc": "Dressings: quoins, frames, columns, copings."
+    },
+    {
+      "name": "base_color",
+      "type": "vec3",
+      "doc": "The plinth and steps."
+    },
+    {
+      "name": "roof",
+      "type": "u32",
+      "doc": "What covers the roof.",
+      "enum": [
+        "slate",
+        "tile",
+        "lead",
+        "thatch",
+        "shingle"
+      ]
+    },
+    {
+      "name": "roof_color",
+      "type": "vec3",
+      "doc": "The roof."
+    },
+    {
+      "name": "metal_color",
+      "type": "vec3",
+      "doc": "Bells, domes, finials, the clock's face, a fountain's spouts."
+    },
+    {
+      "name": "accent",
+      "type": "vec3",
+      "doc": "Banners, awnings, ribbons, a statue's paint."
+    },
+    {
+      "name": "roof_pitch",
+      "type": "f32",
+      "doc": "The roof's slope, degrees.",
+      "min": 15,
+      "max": 60
+    },
+    {
+      "name": "wall_height",
+      "type": "f32",
+      "doc": "The main walls' height, metres.",
+      "min": 2.5,
+      "max": 12
+    },
+    {
+      "name": "spire",
+      "type": "bool",
+      "doc": "A tower with a spire (a church's), or a tall roof on a tower."
+    },
+    {
+      "name": "bell",
+      "type": "bool",
+      "doc": "A bell in a belfry that swings."
+    },
+    {
+      "name": "clock",
+      "type": "bool",
+      "doc": "A clock face on its tower or gable."
+    },
+    {
+      "name": "columns",
+      "type": "bool",
+      "doc": "A columned portico across its front."
+    },
+    {
+      "name": "dome",
+      "type": "bool",
+      "doc": "A dome over its middle."
+    },
+    {
+      "name": "banners",
+      "type": "bool",
+      "doc": "Banners on its front that sway."
+    },
+    {
+      "name": "lamps",
+      "type": "bool",
+      "doc": "Lamps by its door that flicker."
+    },
+    {
+      "name": "symbol",
+      "type": "u32",
+      "doc": "The emblem over its door.",
+      "enum": [
+        "none",
+        "sun",
+        "scales",
+        "coins",
+        "book",
+        "hammer",
+        "star",
+        "tree",
+        "crown",
+        "wheel"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,53 @@
+{
+  "created_at": "2026-10-13T23:30:00Z",
+  "doc": "A parish church: a stone nave and apse, a tower at its front with a belfry and a spire, a clock.",
+  "notes": [],
+  "state": "draft",
+  "value": {
+    "name": "church",
+    "kind": "church",
+    "size": "large",
+    "walls": "stone",
+    "wall_color": [
+      0.72,
+      0.69,
+      0.62
+    ],
+    "trim_color": [
+      0.82,
+      0.8,
+      0.74
+    ],
+    "base_color": [
+      0.42,
+      0.4,
+      0.38
+    ],
+    "roof": "slate",
+    "roof_color": [
+      0.32,
+      0.34,
+      0.4
+    ],
+    "metal_color": [
+      0.55,
+      0.42,
+      0.25
+    ],
+    "accent": [
+      0.6,
+      0.15,
+      0.2
+    ],
+    "roof_pitch": 45,
+    "wall_height": 6.0,
+    "spire": true,
+    "bell": true,
+    "clock": true,
+    "columns": false,
+    "dome": false,
+    "banners": false,
+    "lamps": false,
+    "symbol": "sun"
+  }
+}

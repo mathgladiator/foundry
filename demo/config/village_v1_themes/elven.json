@@ -1,0 +1,47 @@
+{
+  "created_at": "2026-10-14T04:30:00Z",
+  "doc": "An elven glade: white marble, sweeping roofs, round windows, crystals, blue spirit fire, living walls.",
+  "notes": [],
+  "state": "draft",
+  "value": {
+    "name": "elven",
+    "roof": "sweep",
+    "plan": "as_type",
+    "walls": "marble",
+    "windows": "round",
+    "foundation": "stone",
+    "ornament": "crystals",
+    "wall_color": [
+      0.9,
+      0.89,
+      0.85
+    ],
+    "trim_color": [
+      0.62,
+      0.66,
+      0.7
+    ],
+    "roof_color": [
+      0.3,
+      0.45,
+      0.5
+    ],
+    "accent": [
+      0.55,
+      0.8,
+      1.0
+    ],
+    "mix": 0.85,
+    "moss": 0.15,
+    "smoke_hole": false,
+    "hearth_fire": 6,
+    "torch_fire": 6,
+    "blaze_fire": 4,
+    "road_lane": "elven_way",
+    "road_high": "elven_way",
+    "road_square": "elven_way",
+    "wall_kind": "living_wall",
+    "fence_kind": "living_willow",
+    "gate_type": "tower_gate"
+  }
+}

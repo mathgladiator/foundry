@@ -1,0 +1,40 @@
+{
+  "created_at": "2026-10-14T06:00:00Z",
+  "doc": "Lettuces: loose bright green heads.",
+  "notes": [],
+  "state": "draft",
+  "value": {
+    "name": "lettuce",
+    "kind": "leafy_head",
+    "height": 0.25,
+    "spacing": 0.32,
+    "row_spacing": 0.45,
+    "stem_color": [
+      0.55,
+      0.75,
+      0.35
+    ],
+    "leaf_color": [
+      0.5,
+      0.78,
+      0.32
+    ],
+    "fruit_color": [
+      0.62,
+      0.85,
+      0.4
+    ],
+    "flower_color": [
+      0,
+      0,
+      0
+    ],
+    "ripe_color": [
+      0.62,
+      0.85,
+      0.4
+    ],
+    "fruit_size": 0.14,
+    "sway": 0.15
+  }
+}

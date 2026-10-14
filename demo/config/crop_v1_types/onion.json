@@ -1,0 +1,40 @@
+{
+  "created_at": "2026-10-14T06:00:00Z",
+  "doc": "Onions: upright green tubes, pale bulbs.",
+  "notes": [],
+  "state": "draft",
+  "value": {
+    "name": "onion",
+    "kind": "root",
+    "height": 0.45,
+    "spacing": 0.15,
+    "row_spacing": 0.4,
+    "stem_color": [
+      0.45,
+      0.62,
+      0.4
+    ],
+    "leaf_color": [
+      0.42,
+      0.62,
+      0.42
+    ],
+    "fruit_color": [
+      0.92,
+      0.8,
+      0.6
+    ],
+    "flower_color": [
+      0,
+      0,
+      0
+    ],
+    "ripe_color": [
+      0.62,
+      0.6,
+      0.38
+    ],
+    "fruit_size": 0.07,
+    "sway": 0.5
+  }
+}

@@ -92,14 +92,20 @@ void Live::stop() {
   if (device_) SDL_WaitForGPUIdle(device_);
   if (rt_) {
     for (foundry_instance i : instances_) foundry_destroy(rt_, i);
+    for (foundry_instance i : figures_) foundry_destroy(rt_, i);
     if (region_ != FOUNDRY_NO_REGION) foundry_region_destroy(rt_, region_);
     foundry_runtime_destroy(rt_);
   }
   rt_ = nullptr;
   region_ = FOUNDRY_NO_REGION;
+  boundary_ = FOUNDRY_NO_INSTANCE;
+  boundary_values_.clear();
+  far_ = 0;
   shared_.clear();
   sky_.reset();
   instances_.clear();
+  figures_.clear();
+  figures_done_ = false;
   tree_.clear();
   if (device_) {
     if (color_) SDL_ReleaseGPUTexture(device_, color_);
@@ -168,9 +174,42 @@ bool Live::start(SDL_GPUDevice *device, const std::string &plotter, const nlohma
       tree_.push_back(false);
     }
   }
+  // Its boundary (design/boundary.md): the ring around the region, its edges by the boundary's sectors.
+  if (*foundry_plotter_boundary_name(p) && boundary_shown_) {
+    std::vector<foundry_hull_cell> hull(foundry_region_hull(rt_, region_, nullptr, 0));
+    foundry_region_hull(rt_, region_, hull.data(), static_cast<uint32_t>(hull.size()));
+    boundary_ = foundry_region_spawn_boundary(rt_, region_, hull.data(), static_cast<uint32_t>(hull.size()));
+    if (boundary_ != FOUNDRY_NO_INSTANCE) {
+      instances_.push_back(boundary_);
+      tree_.push_back(false);
+    }
+  }
   stats_.grow_ms = now_ms() - t0;
   extent_ = reach + 2;
   return true;
+}
+
+void Live::set_boundary(bool show, const nlohmann::json &values) {
+  if (!rt_) {
+    boundary_shown_ = show;
+    return;
+  }
+  if (show != boundary_shown_) {
+    boundary_shown_ = show;
+    key_.clear();  // regrow, with or without it
+    return;
+  }
+  const std::string dump = values.dump();
+  if (boundary_ == FOUNDRY_NO_INSTANCE || dump == boundary_values_) return;
+  boundary_values_ = dump;
+  for (auto it = values.begin(); it != values.end(); ++it) {
+    const std::string value = it.value().is_string() ? it.value().get<std::string>() : it.value().dump();
+    foundry_diag_set_param(rt_, boundary_, it.key().c_str(), value.c_str());
+  }
+  far_ = 0;
+  for (foundry_instance i : figures_) foundry_destroy(rt_, i);  // filled again from the new build
+  figures_.clear();
+  figures_done_ = false;
 }
 
 void Live::share(const nlohmann::json &shared) {
@@ -181,7 +220,10 @@ void Live::share(const nlohmann::json &shared) {
   for (auto it = shared.begin(); it != shared.end(); ++it) {
     const std::string value = it.value().is_string() ? it.value().get<std::string>() : it.value().dump();
     for (foundry_instance i : instances_) foundry_diag_set_param(rt_, i, it.key().c_str(), value.c_str());
+    for (foundry_instance i : figures_) foundry_diag_set_param(rt_, i, it.key().c_str(), value.c_str());
   }
+  // The world's wind, which carries the fire system's smoke (as a game sets it).
+  foundry_set_wind(rt_, shared.value("wind_speed", 0.0f), shared.value("wind_heading", 90.0f));
 }
 
 void Live::set_sky(const std::shared_ptr<const runtime::sky::Observatory> &o, const runtime::sky::State &state,
@@ -299,7 +341,18 @@ SDL_GPUTexture *Live::frame(SDL_GPUCommandBuffer *cmd, int width, int height, co
                           -(r[0] * eye[0] + r[1] * eye[1] + r[2] * eye[2]), -(u[0] * eye[0] + u[1] * eye[1] + u[2] * eye[2]),
                           (f[0] * eye[0] + f[1] * eye[1] + f[2] * eye[2]), 1};
   const float fov = 50.0f * 3.14159265f / 180.0f, near_z = 0.3f;
-  const float far_z = std::max(500.0f, fl + 3 * extent_);
+  if (boundary_ != FOUNDRY_NO_INSTANCE && far_ == 0) {
+    foundry_diag_instance info;
+    if (foundry_diag_instance_get(rt_, boundary_, &info) == FOUNDRY_OK && info.ready) far_ = std::min(info.radius * 1.2f, 40000.0f);
+  }
+  // The boundary's figures: the trees it leaves for the game, filled as a game would once it's built.
+  if (boundary_ != FOUNDRY_NO_INSTANCE && !figures_done_ && far_ > 0) {
+    figures_.resize(foundry_instance_figures(rt_, boundary_, nullptr, 0));
+    figures_.resize(foundry_region_spawn_figures(rt_, region_, boundary_, figures_.data(), static_cast<uint32_t>(figures_.size())));
+    figures_done_ = true;
+    shared_.clear();  // so the next share reaches them too
+  }
+  const float far_z = std::max({500.0f, fl + 3 * extent_, far_});
   const float aspect = static_cast<float>(width) / static_cast<float>(height);
   const float t = 1.0f / std::tan(fov * 0.5f);
   const float proj[16] = {t / aspect, 0, 0, 0, 0, t, 0, 0, 0, 0, far_z / (near_z - far_z), -1, 0, 0, near_z * far_z / (near_z - far_z), 0};
@@ -344,6 +397,8 @@ SDL_GPUTexture *Live::frame(SDL_GPUCommandBuffer *cmd, int width, int height, co
   stats_.draws = c.draws;
   stats_.animated = c.animated;
   stats_.field_tiles = c.field_tiles;
+  stats_.terrain_nodes = c.terrain_nodes;
+  stats_.terrain_triangles = c.terrain_triangles;
   stats_.builds_pending = c.cache_pending;
   if (frames_ % 30 == 1) {  // trees drawn, now and then (it asks about every instance)
     uint64_t trees = 0;
@@ -355,6 +410,20 @@ SDL_GPUTexture *Live::frame(SDL_GPUCommandBuffer *cmd, int width, int height, co
     stats_.trees = trees;
   }
   return color_;
+}
+
+void Live::set_look(const runtime::Look &l) {
+  if (!rt_) return;
+  foundry_look g;
+  foundry_look_default(&g);
+  g.vision = static_cast<foundry_vision>(l.vision);
+  g.contrast = l.contrast;
+  g.saturation = l.saturation;
+  g.edges = l.edges;
+  g.effect = static_cast<foundry_look_effect>(l.effect);
+  for (int i = 0; i < 3; ++i) g.tint[i] = l.tint[i];
+  g.strength = l.strength;
+  foundry_set_look(rt_, &g);
 }
 
 }  // namespace plot

@@ -1,0 +1,62 @@
+{
+  "created_at": "2026-10-14T01:30:00Z",
+  "doc": "A small ward: a ring of side 3 with a gate, and a spur running out to a tower.",
+  "notes": [],
+  "state": "draft",
+  "value": {
+    "name": "compound",
+    "nodes": [
+      3,
+      3,
+      -3,
+      6,
+      -6,
+      3,
+      -3,
+      -3,
+      3,
+      -6,
+      6,
+      -3,
+      7,
+      7,
+      -1,
+      -4
+    ],
+    "heights": [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "links": [
+      0,
+      1,
+      1,
+      2,
+      2,
+      3,
+      4,
+      5,
+      5,
+      0,
+      0,
+      6,
+      3,
+      7,
+      7,
+      4
+    ],
+    "gate_nodes": [
+      7
+    ],
+    "gate_links": [],
+    "towers": [
+      6
+    ]
+  }
+}

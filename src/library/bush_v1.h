@@ -21,6 +21,8 @@ typedef enum foundry_bush_v1_species {
   FOUNDRY_BUSH_V1_SPECIES_SAGEBRUSH = 13,
   FOUNDRY_BUSH_V1_SPECIES_COUNT = 14
 } foundry_bush_v1_species;
+/* A species by its name (as a config entry or a figure names it), or -1. */
+int foundry_bush_v1_species_find(const char *name);
 
 typedef enum foundry_bush_v1_age {
   FOUNDRY_BUSH_V1_AGE_YOUNG = 0,
@@ -28,6 +30,8 @@ typedef enum foundry_bush_v1_age {
   FOUNDRY_BUSH_V1_AGE_OLD = 2,
   FOUNDRY_BUSH_V1_AGE_COUNT = 3
 } foundry_bush_v1_age;
+/* A age by its name (as a config entry or a figure names it), or -1. */
+int foundry_bush_v1_age_find(const char *name);
 
 typedef enum foundry_bush_v1_season {
   FOUNDRY_BUSH_V1_SEASON_WINTER = 0,
@@ -36,6 +40,8 @@ typedef enum foundry_bush_v1_season {
   FOUNDRY_BUSH_V1_SEASON_FALL = 3,
   FOUNDRY_BUSH_V1_SEASON_COUNT = 4
 } foundry_bush_v1_season;
+/* A season by its name (as a config entry or a figure names it), or -1. */
+int foundry_bush_v1_season_find(const char *name);
 
 typedef enum foundry_bush_v1_detail {
   FOUNDRY_BUSH_V1_DETAIL_HIGH = 0,
@@ -43,6 +49,8 @@ typedef enum foundry_bush_v1_detail {
   FOUNDRY_BUSH_V1_DETAIL_LOW = 2,
   FOUNDRY_BUSH_V1_DETAIL_COUNT = 3
 } foundry_bush_v1_detail;
+/* A detail by its name (as a config entry or a figure names it), or -1. */
+int foundry_bush_v1_detail_find(const char *name);
 
 typedef struct foundry_bush_v1_params {
   foundry_bush_v1_species species;  /* A species: one genome from config/bush_v1_genomes/. */

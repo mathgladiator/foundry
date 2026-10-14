@@ -6,8 +6,8 @@
   "value": {
     "name": "mill",
     "kind": "workshop",
-    "footprint": "rect4x3",
-    "footprint_alt": "rect5x4",
+    "footprint": "wide",
+    "footprint_alt": "round",
     "walls": "stone",
     "wall_color": [
       0.78,

@@ -22,6 +22,8 @@
 #define SKY_S2 s2
 #endif
 
+#include "look.hlsli"
+
 struct SkyData {
   float4 ray_x, ray_y, ray_z;  // a pixel's direction: ray_z + ndc.x * ray_x + ndc.y * ray_y
   float4 eye;                  // xyz the camera (m), w the time (s)
@@ -43,6 +45,7 @@ struct SkyData {
   float4 aurora_low, aurora_high;
   float4 night;                // rgb the night sky's glow
   float4 ground;               // rgb under the horizon
+  LookData look;               // the game's look (look.hlsli)
 };
 
 [[vk::binding(SKY_BINDING, 3)]] cbuffer SkyBuffer : register(SKY_REG, space3) { SkyData sky; };

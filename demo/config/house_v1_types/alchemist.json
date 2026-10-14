@@ -6,8 +6,8 @@
   "value": {
     "name": "alchemist",
     "kind": "store",
-    "footprint": "flower7",
-    "footprint_alt": "rect3x3",
+    "footprint": "round",
+    "footprint_alt": "long",
     "walls": "stone",
     "wall_color": [
       0.5,

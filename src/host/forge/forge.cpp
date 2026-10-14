@@ -1,6 +1,7 @@
 #include "forge/forge.h"
 
 #include <cstdio>
+#include <cstdlib>
 #include <filesystem>
 
 #include "core/jobs.h"
@@ -14,6 +15,21 @@ namespace forge {
 
 std::string wasm_path(const Paths &p, const std::string &system) { return p.build + "/wasm/" + system + ".wasm"; }
 std::string native_path(const Paths &p, const std::string &system) { return p.build + "/native/run_" + system; }
+
+void dump_mismatch(const std::string &system, const std::vector<uint8_t> &input, const std::vector<uint8_t> &wasm,
+                   const std::vector<uint8_t> &native) {
+  const char *dir = std::getenv("FOUNDRY_DUMP_MISMATCH");
+  if (!dir) return;
+  auto put = [&](const std::string &name, const std::vector<uint8_t> &b) {
+    if (FILE *f = std::fopen((std::string(dir) + "/" + system + "." + name).c_str(), "wb")) {
+      std::fwrite(b.data(), 1, b.size(), f);
+      std::fclose(f);
+    }
+  };
+  put("input", input);
+  put("wasm", wasm);
+  put("native", native);
+}
 
 namespace {
 
@@ -149,7 +165,10 @@ RunResult run_bytes(const Paths &p, wasm::Runner &runner, const std::string &sys
                        std::to_string(r.status);
     } else {
       r.native_match = status != 0 || native_out == r.output_bytes;
-      if (!r.native_match) r.native_error = "native output bytes differ from WebAssembly output";
+      if (!r.native_match) {
+        r.native_error = "native output bytes differ from WebAssembly output";
+        dump_mismatch(system, input, r.output_bytes, native_out);
+      }
     }
     core::log().add("native", system + (r.native_match ? ": native output matches WebAssembly" : ": " + r.native_error));
   }

@@ -1,0 +1,44 @@
+{
+  "created_at": "2026-10-13T23:30:00Z",
+  "doc": "A brick wall: red brick with a string course, battlements, and square towers with pyramid roofs.",
+  "notes": [],
+  "state": "draft",
+  "value": {
+    "name": "brick_wall",
+    "material": "brick",
+    "color": [
+      0.62,
+      0.32,
+      0.25
+    ],
+    "trim_color": [
+      0.82,
+      0.78,
+      0.7
+    ],
+    "height": 4.5,
+    "thickness": 1.0,
+    "batter": 0.1,
+    "footing": 1.0,
+    "crenellated": true,
+    "walkway": false,
+    "buttresses": false,
+    "tower": "square",
+    "tower_radius": 1.8,
+    "tower_height": 2.5,
+    "tower_roof": "pyramid",
+    "roof_color": [
+      0.55,
+      0.28,
+      0.2
+    ],
+    "banners": true,
+    "accent": [
+      0.68,
+      0.14,
+      0.14
+    ],
+    "tower_every_m": 26.0,
+    "tower_turn_deg": 25.0
+  }
+}

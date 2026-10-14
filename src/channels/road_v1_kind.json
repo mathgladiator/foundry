@@ -1,0 +1,114 @@
+{
+  "family": "road",
+  "version": 1,
+  "feature": "kind",
+  "doc": "A kind of road (design/planner.md, Roads): its surface and what stands at its edges by rule (a half's stall, bench, crates, planter, or cart; lamp and sign posts; planters and crates against buildings; a quay or bank at water), as a config entry, so a lane, a high street, and a market are data. A road never builds a fence or a centre: fences are fence_v1's, a square's centre a civic building's.",
+  "fields": [
+    {
+      "name": "name",
+      "type": "string",
+      "doc": "The kind's name (lane, market)."
+    },
+    {
+      "name": "surface",
+      "type": "u32",
+      "doc": "What it is paved with (moss stones: stepping stones in moss; sand; a boardwalk of planks on piles).",
+      "enum": [
+        "dirt",
+        "gravel",
+        "cobble",
+        "flagstone",
+        "planks",
+        "moss_stones",
+        "sand",
+        "boardwalk"
+      ]
+    },
+    {
+      "name": "surface_color",
+      "type": "vec3",
+      "doc": "The paving."
+    },
+    {
+      "name": "detail_color",
+      "type": "vec3",
+      "doc": "Ruts, joints, and kerbs."
+    },
+    {
+      "name": "paved",
+      "type": "f32",
+      "doc": "How much of a cell the paving covers toward open land (1 to its edge; less leaves a verge).",
+      "min": 0.4,
+      "max": 1
+    },
+    {
+      "name": "verge",
+      "type": "u32",
+      "doc": "What lies between the paving and open land.",
+      "enum": [
+        "grass",
+        "kerb",
+        "ditch"
+      ]
+    },
+    {
+      "name": "ruts",
+      "type": "bool",
+      "doc": "Cart ruts along the way."
+    },
+    {
+      "name": "half",
+      "type": "u32",
+      "doc": "What an edge piece in a half holds, where the plan gives the cell a half: a market stall against its edge, a bench, crates and barrels, a planter, or a hand cart.",
+      "enum": [
+        "none",
+        "stall",
+        "bench",
+        "crates",
+        "planter",
+        "cart"
+      ]
+    },
+    {
+      "name": "half_color",
+      "type": "vec3",
+      "doc": "A stall's awning, a cart's paint, a bench's cushions."
+    },
+    {
+      "name": "lamps",
+      "type": "f32",
+      "doc": "How often a cell beside a building or open land has a lamp post on a corner, 0 to 1.",
+      "min": 0,
+      "max": 1
+    },
+    {
+      "name": "lamp_color",
+      "type": "vec3",
+      "doc": "The lamp's glow."
+    },
+    {
+      "name": "signs",
+      "type": "bool",
+      "doc": "A sign post at one junction cell in four (three or four ways), its arms pointing along them."
+    },
+    {
+      "name": "clutter",
+      "type": "f32",
+      "doc": "How often a building's side or back has crates or a barrel against it, 0 to 1 (inside the edge's strip, never across the way).",
+      "min": 0,
+      "max": 1
+    },
+    {
+      "name": "planters",
+      "type": "f32",
+      "doc": "How often a building front has a planter against it, 0 to 1 (inside the edge's strip).",
+      "min": 0,
+      "max": 1
+    },
+    {
+      "name": "quay",
+      "type": "bool",
+      "doc": "Its edges to water are a stone quay with bollards (else a bank)."
+    }
+  ]
+}

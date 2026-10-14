@@ -6,8 +6,8 @@
   "value": {
     "name": "farmhouse",
     "kind": "home",
-    "footprint": "rect4x3",
-    "footprint_alt": "rect5x4",
+    "footprint": "wide",
+    "footprint_alt": "round",
     "walls": "log",
     "wall_color": [
       0.55,

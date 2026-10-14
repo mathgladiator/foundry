@@ -1,0 +1,40 @@
+{
+  "created_at": "2026-10-14T06:00:00Z",
+  "doc": "Tomatoes: vines on canes, red fruit.",
+  "notes": [],
+  "state": "draft",
+  "value": {
+    "name": "tomato",
+    "kind": "pole_vine",
+    "height": 1.4,
+    "spacing": 0.7,
+    "row_spacing": 1.1,
+    "stem_color": [
+      0.36,
+      0.52,
+      0.24
+    ],
+    "leaf_color": [
+      0.3,
+      0.5,
+      0.22
+    ],
+    "fruit_color": [
+      0.88,
+      0.18,
+      0.12
+    ],
+    "flower_color": [
+      0.95,
+      0.85,
+      0.2
+    ],
+    "ripe_color": [
+      0.36,
+      0.5,
+      0.24
+    ],
+    "fruit_size": 0.09,
+    "sway": 0.3
+  }
+}

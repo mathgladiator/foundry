@@ -6,8 +6,8 @@
   "value": {
     "name": "general_store",
     "kind": "store",
-    "footprint": "rect3x3",
-    "footprint_alt": "rect4x3",
+    "footprint": "deep",
+    "footprint_alt": "broad",
     "walls": "plank",
     "wall_color": [
       0.66,

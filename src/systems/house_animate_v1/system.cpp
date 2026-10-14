@@ -1,11 +1,13 @@
 // house_animate_v1: one frame of a building's moving parts (design/systems.md, Village houses).
 //
 // Every motion is closed form, so a frame depends only on its inputs and any time can be shown:
-// - sway: bends toward the wind as a damped oscillator driven by the same gusts as the trees
-//   (tree_animate_v1), so signs, banners, and laundry move with the trees around them;
+// - sway: swings about the line it hangs from, pushed by the wind across it as a damped oscillator
+//   driven by the same gusts as the trees (tree_animate_v1), so signs, banners, laundry, the
+//   awning's valance, and tent flaps move with the trees around them and never come away;
 // - spin: turns at its rate (faster with the wind when it has drag: sails); with no rate it is a
 //   weathervane, turned to point where the wind blows, wobbling in the gusts;
 // - rise: a smoke puff rising, swelling, drifting downwind, and shrinking away, on a loop;
+// - drift: a crop's wind group, moving downwind in the gusts (its plants blend toward it by height);
 // - hinge: the door, swinging open when door_time starts, staying for a visit, and closing;
 // - flicker: a glow pulsing.
 #include <vector>
@@ -119,18 +121,17 @@ bool run(const channels::house_v1_motion &in, channels::house_v1_pose &out, std:
     };
     switch (b.motion) {
       case house_v1_bone::kMotionSway: {
+        // Turns about the line it hangs from (its axis), so it never comes away from it: pushed by
+        // the wind across that line, and fluttering at its own frequency even when the wind runs
+        // along it.
         if (b.drag <= 0 || q <= 0) break;
         moving = true;
         const float phase = 2 * kPi * b.phase;
-        const float own = 0.3f * foundry::det::sin(2 * kPi * b.rate * time + phase);
-        const float along = clampf(b.drag * q * (response(b.rate, 0.15f) + own), -b.reach, b.reach);
-        const float across = clampf(b.drag * q * 0.25f * foundry::det::sin(2 * kPi * b.rate * 1.31f * time + phase * 1.7f), -b.reach * 0.5f,
-                                    b.reach * 0.5f);
-        vec3 k1 = cross(b.axis, wind);
-        const float exposed = length(k1);
-        k1 = exposed > 1e-3f ? k1 * (1 / exposed) : perpendicular(b.axis);
-        const vec3 k2 = normalize(cross(b.axis, k1));
-        local = compose(rotation_about(b.pivot, k1, along * (0.3f + 0.7f * exposed)), rotation_about(b.pivot, k2, across));
+        const vec3 lee = cross(v3(0, 1, 0), b.axis);  // where a positive turn swings its free edge
+        const float push = length(lee) > 1e-3f ? dot(wind, normalize(lee)) : 0.0f;
+        const float own = foundry::det::sin(2 * kPi * b.rate * time + phase) + 0.4f * foundry::det::sin(2 * kPi * b.rate * 2.17f * time + 1.7f * phase);
+        const float angle = clampf(b.drag * q * (push * response(b.rate, 0.15f) + 0.3f * own), -b.reach, b.reach);
+        local = rotation_about(b.pivot, b.axis, angle);
         break;
       }
       case house_v1_bone::kMotionSpin: {
@@ -160,6 +161,19 @@ bool run(const channels::house_v1_motion &in, channels::house_v1_pose &out, std:
         const float open = door_open(in.door_time);
         if (in.door_time >= 0 && in.door_time < 4.4f) moving = true;
         if (open > 0) local = rotation_about(b.pivot, b.axis, b.reach * open);
+        break;
+      }
+      case house_v1_bone::kMotionDrift: {
+        // A crop's wind group: it moves downwind in the gusts (reach metres at most, drag scaling the
+        // push), with a flutter at its own rate; its plants blend toward it by height, so each bends
+        // from its own root however far from the pivot it stands.
+        if (b.drag <= 0 || q <= 0) break;
+        moving = true;
+        const float phase = 2 * kPi * b.phase;
+        const float own = foundry::det::sin(2 * kPi * b.rate * time + phase) + 0.5f * foundry::det::sin(2 * kPi * b.rate * 1.93f * time + 2.1f * phase);
+        const float push = clampf(b.drag * q * (response(b.rate, 0.2f) + 0.3f * own), -b.reach, b.reach);
+        const vec3 across = cross(v3(0, 1, 0), wind);
+        local = scale_about(b.pivot, 1.0f, wind * push + across * (0.25f * b.drag * q * own));
         break;
       }
       case house_v1_bone::kMotionFlicker: {

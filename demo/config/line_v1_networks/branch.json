@@ -1,0 +1,36 @@
+{
+  "created_at": "2026-10-14T01:30:00Z",
+  "doc": "A straight line with a branch: a T on the lattice.",
+  "notes": [],
+  "state": "draft",
+  "value": {
+    "name": "branch",
+    "nodes": [
+      0,
+      0,
+      3,
+      3,
+      -3,
+      -3,
+      -3,
+      6
+    ],
+    "heights": [
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "links": [
+      0,
+      1,
+      0,
+      2,
+      0,
+      3
+    ],
+    "gate_nodes": [],
+    "gate_links": [],
+    "towers": []
+  }
+}

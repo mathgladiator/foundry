@@ -1,0 +1,92 @@
+{
+  "family": "gate",
+  "version": 1,
+  "feature": "type",
+  "doc": "A kind of gate in a wall (design/planner.md, Gates), as a config entry: a log gate in a palisade, a town gate's arch, a gatehouse with towers and a portcullis, a tower gate, or a postern, with its doors, roof, and what it shows. It takes the wall's kind, so it matches the wall it stands in.",
+  "fields": [
+    {
+      "name": "name",
+      "type": "string",
+      "doc": "The type's name (town_gate, gatehouse)."
+    },
+    {
+      "name": "kind",
+      "type": "u32",
+      "doc": "How it is built: a gate (two leaves between posts or piers, the wall's own height), an arch (an arched opening through a raised section of the wall), a gatehouse (two towers either side of a vaulted passage, a portcullis), a tower gate (a tower over the passage), or a postern (a small door).",
+      "enum": [
+        "gate",
+        "arch",
+        "gatehouse",
+        "tower_gate",
+        "postern"
+      ]
+    },
+    {
+      "name": "door_color",
+      "type": "vec3",
+      "doc": "Its doors."
+    },
+    {
+      "name": "iron_color",
+      "type": "vec3",
+      "doc": "Straps, studs, the portcullis."
+    },
+    {
+      "name": "leaves",
+      "type": "u32",
+      "doc": "Door leaves: 1 or 2.",
+      "min": 1,
+      "max": 2
+    },
+    {
+      "name": "portcullis",
+      "type": "bool",
+      "doc": "A portcullis in the passage."
+    },
+    {
+      "name": "rise",
+      "type": "f32",
+      "doc": "How far it rises above the wall, metres.",
+      "min": 0,
+      "max": 12
+    },
+    {
+      "name": "depth",
+      "type": "f32",
+      "doc": "How deep its passage is, as a multiple of the wall's thickness.",
+      "min": 1,
+      "max": 6
+    },
+    {
+      "name": "roof",
+      "type": "u32",
+      "doc": "Its top: none (crenellated as the wall), a cone, a pyramid, or a gable.",
+      "enum": [
+        "none",
+        "cone",
+        "pyramid",
+        "gable"
+      ]
+    },
+    {
+      "name": "roof_color",
+      "type": "vec3",
+      "doc": "Its roof."
+    },
+    {
+      "name": "banners",
+      "type": "bool",
+      "doc": "Banners that sway."
+    },
+    {
+      "name": "lamps",
+      "type": "bool",
+      "doc": "Torches either side that flicker."
+    },
+    {
+      "name": "accent",
+      "type": "vec3",
+      "doc": "Banners."
+    }
+  ]
+}

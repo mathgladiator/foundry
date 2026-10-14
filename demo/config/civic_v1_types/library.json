@@ -1,0 +1,53 @@
+{
+  "created_at": "2026-10-13T23:30:00Z",
+  "doc": "The library: a quiet stone hall of tall windows, a book over its door, a little cupola.",
+  "notes": [],
+  "state": "draft",
+  "value": {
+    "name": "library",
+    "kind": "hall",
+    "size": "large",
+    "walls": "stone",
+    "wall_color": [
+      0.74,
+      0.7,
+      0.6
+    ],
+    "trim_color": [
+      0.6,
+      0.55,
+      0.45
+    ],
+    "base_color": [
+      0.42,
+      0.4,
+      0.38
+    ],
+    "roof": "slate",
+    "roof_color": [
+      0.28,
+      0.32,
+      0.3
+    ],
+    "metal_color": [
+      0.55,
+      0.42,
+      0.25
+    ],
+    "accent": [
+      0.3,
+      0.45,
+      0.3
+    ],
+    "roof_pitch": 40,
+    "wall_height": 5.5,
+    "spire": false,
+    "bell": false,
+    "clock": false,
+    "columns": false,
+    "dome": false,
+    "banners": false,
+    "lamps": true,
+    "symbol": "book"
+  }
+}

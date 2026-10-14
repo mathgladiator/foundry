@@ -6,8 +6,8 @@
   "value": {
     "name": "smithy",
     "kind": "workshop",
-    "footprint": "rect3x3",
-    "footprint_alt": "rect4x3",
+    "footprint": "wide",
+    "footprint_alt": "broad",
     "walls": "stone",
     "wall_color": [
       0.6,

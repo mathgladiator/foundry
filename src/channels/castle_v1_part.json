@@ -1,0 +1,127 @@
+{
+  "family": "castle",
+  "version": 1,
+  "feature": "part",
+  "doc": "A castle's part (design/planner.md, Castles), as a config entry: the keep, a great hall, a chapel, a range of barracks, stables, a kitchen, or storehouses, or a tower, with its stone, roof, and what it shows.",
+  "fields": [
+    {
+      "name": "name",
+      "type": "string",
+      "doc": "The part's name (keep, great_hall)."
+    },
+    {
+      "name": "kind",
+      "type": "u32",
+      "doc": "How it is built: a keep (a great tower with corner turrets), a hall (a tall stone hall with buttresses and tall windows), a chapel (a small church with a bellcote), a range (a long low building against a wall: barracks, stables, a kitchen, storehouses), or a tower (round, standing on its own).",
+      "enum": [
+        "keep",
+        "hall",
+        "chapel",
+        "range",
+        "tower"
+      ]
+    },
+    {
+      "name": "size",
+      "type": "u32",
+      "doc": "Its usual lot: small (rect6x5), medium (rect8x6), large (rect10x7), or keep (rect8x8).",
+      "enum": [
+        "small",
+        "medium",
+        "large",
+        "keep"
+      ]
+    },
+    {
+      "name": "stone_color",
+      "type": "vec3",
+      "doc": "The stone."
+    },
+    {
+      "name": "trim_color",
+      "type": "vec3",
+      "doc": "Dressings: quoins, copings, window frames."
+    },
+    {
+      "name": "roof",
+      "type": "u32",
+      "doc": "What covers it: none (a flat, crenellated top), slate, lead, tile, or thatch.",
+      "enum": [
+        "none",
+        "slate",
+        "lead",
+        "tile",
+        "thatch"
+      ]
+    },
+    {
+      "name": "roof_color",
+      "type": "vec3",
+      "doc": "The roof."
+    },
+    {
+      "name": "door_color",
+      "type": "vec3",
+      "doc": "Doors."
+    },
+    {
+      "name": "accent",
+      "type": "vec3",
+      "doc": "Banners and pennants."
+    },
+    {
+      "name": "stories",
+      "type": "u32",
+      "doc": "Storeys (1 to 5; a keep's are taller).",
+      "min": 1,
+      "max": 5
+    },
+    {
+      "name": "story_height",
+      "type": "f32",
+      "doc": "One storey's height, metres.",
+      "min": 2.5,
+      "max": 6
+    },
+    {
+      "name": "crenellated",
+      "type": "bool",
+      "doc": "Battlements along its top."
+    },
+    {
+      "name": "turrets",
+      "type": "bool",
+      "doc": "Turrets at its corners."
+    },
+    {
+      "name": "banners",
+      "type": "bool",
+      "doc": "Banners or pennants that sway."
+    },
+    {
+      "name": "chimneys",
+      "type": "bool",
+      "doc": "Chimneys, smoking."
+    },
+    {
+      "name": "windows",
+      "type": "u32",
+      "doc": "Its windows: arrow slits, arched windows, or tall traceried ones.",
+      "enum": [
+        "slits",
+        "arched",
+        "tracery"
+      ]
+    },
+    {
+      "name": "doors",
+      "type": "u32",
+      "doc": "Its doors: one door up steps, an arch, or a row of stable doors.",
+      "enum": [
+        "door",
+        "arch",
+        "stable"
+      ]
+    }
+  ]
+}

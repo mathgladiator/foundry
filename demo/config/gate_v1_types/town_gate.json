@@ -1,0 +1,37 @@
+{
+  "created_at": "2026-10-13T23:30:00Z",
+  "doc": "A town gate: an arched opening through a raised section of wall, voussoirs picked out, a portcullis, torches either side.",
+  "notes": [],
+  "state": "draft",
+  "value": {
+    "name": "town_gate",
+    "kind": "arch",
+    "door_color": [
+      0.4,
+      0.28,
+      0.17
+    ],
+    "iron_color": [
+      0.2,
+      0.2,
+      0.22
+    ],
+    "leaves": 2,
+    "portcullis": true,
+    "rise": 2.5,
+    "depth": 1.5,
+    "roof": "none",
+    "roof_color": [
+      0.32,
+      0.34,
+      0.4
+    ],
+    "banners": true,
+    "lamps": true,
+    "accent": [
+      0.68,
+      0.14,
+      0.14
+    ]
+  }
+}

@@ -1,0 +1,66 @@
+{
+  "family": "fence",
+  "version": 1,
+  "feature": "kind",
+  "doc": "A kind of fence (design/planner.md, Fences), as a config entry: its style, height, colours, and how its line is laid (post spacing, straightening), so a picket fence, a split rail, a wattle hurdle, a hedge, a low stone wall, and iron railings are data.",
+  "fields": [
+    {
+      "name": "name",
+      "type": "string",
+      "doc": "The kind's name (picket, hedge)."
+    },
+    {
+      "name": "style",
+      "type": "u32",
+      "doc": "How it is built: pickets, rails, split rails, wattle hurdles, a hedge, a low dry-stone wall, iron railings, living willow woven in diamonds, upright stone slabs, or bundled reeds.",
+      "enum": [
+        "picket",
+        "rail",
+        "split_rail",
+        "wattle",
+        "hedge",
+        "low_wall",
+        "iron",
+        "living_willow",
+        "stone_slab",
+        "reed"
+      ]
+    },
+    {
+      "name": "color",
+      "type": "vec3",
+      "doc": "Pickets, rails, hurdles, leaves, stones, or bars."
+    },
+    {
+      "name": "post_color",
+      "type": "vec3",
+      "doc": "Posts and caps."
+    },
+    {
+      "name": "height",
+      "type": "f32",
+      "doc": "Its height, metres.",
+      "min": 0.4,
+      "max": 2.5
+    },
+    {
+      "name": "thickness",
+      "type": "f32",
+      "doc": "Its thickness (a hedge's or wall's), metres.",
+      "min": 0.05,
+      "max": 1.2
+    },
+    {
+      "name": "module_m",
+      "type": "f32",
+      "doc": "Post spacing along a link, metres (a link is 3 m).",
+      "min": 0.8,
+      "max": 6
+    },
+    {
+      "name": "gate_color",
+      "type": "vec3",
+      "doc": "Its gates."
+    }
+  ]
+}

@@ -1,0 +1,8 @@
+{
+  "kind": "channel",
+  "name": "plan_v1_line",
+  "state": "draft",
+  "reason": "A plan's wall, keep-wall, and fence lines (approved 2026-10-13; patched 2026-10-14: a kind and a lattice network).",
+  "notes": [],
+  "created_at": "2026-10-13T23:30:00Z"
+}

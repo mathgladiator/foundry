@@ -2,25 +2,208 @@
   "kind": "pipeline",
   "name": "house_v1",
   "state": "draft",
-  "doc": "A village house, store, or workshop, outside only (design/systems.md, Village houses): the game asks for a type, a stage of its owner's upgrades (construction, basic, deluxe, premium), a season, and a footprint, with the local wind; build makes the building on its lot with its sign, yard, and moving parts, and the animator sways, spins, smokes, flickers, and opens the door when the game says.",
+  "doc": "A village house, store, or workshop, outside only (design/systems.md, Village houses): the game asks for a type, a stage of its owner's upgrades (construction, basic, deluxe, premium), a season, a household (solo, family, or extended, which sizes the lot), and a lot shape, with the local wind; build makes the building on its lot with its sign, yard, and moving parts, and the animator sways, spins, smokes, flickers, and opens the door when the game says.",
   "notes": [],
   "created_at": "2026-10-13T12:00:00Z",
   "params": [
-    {"name": "type", "type": "config", "table": "house_v1_types", "default": "cottage", "doc": "A type: one entry from config/house_v1_types/."},
-    {"name": "stage", "type": "enum", "values": ["construction", "basic", "deluxe", "premium"], "default": "deluxe", "doc": "How far its owner has come. Every stage stands on the same footprint."},
-    {"name": "season", "type": "enum", "values": ["winter", "spring", "summer", "fall"], "default": "summer"},
-    {"name": "footprint", "type": "enum", "values": ["usual", "alternate"], "default": "usual", "doc": "The type's usual footprint or its other one."},
-    {"name": "seed", "type": "u32", "min": 1, "max": 1000, "default": 1, "doc": "Which of the distinct buildings per type, stage, and season (the runtime caps how many by quality)."},
-    {"name": "detail", "type": "enum", "values": ["high", "medium", "low"], "default": "high", "doc": "Level of detail; the runtime picks it from distance and quality."},
-    {"name": "wind_speed", "type": "f32", "min": 0, "max": 25, "default": 6, "unit": "m/s"},
-    {"name": "wind_heading", "type": "f32", "min": 0, "max": 360, "default": 90, "unit": "deg", "doc": "Toward which the wind blows, from +Z toward +X."},
-    {"name": "gust_damping", "type": "f32", "min": 0, "max": 1, "default": 0.3},
-    {"name": "time", "type": "time", "default": 0, "unit": "s"},
-    {"name": "door_time", "type": "event", "default": -1, "unit": "s", "doc": "Seconds since the door opened; negative while it is shut. The game starts it when someone comes to the door (foundry_house_v1_start_door); it opens, stays for a visit, and closes."}
+    {
+      "name": "type",
+      "type": "config",
+      "table": "house_v1_types",
+      "default": "cottage",
+      "doc": "A type: one entry from config/house_v1_types/."
+    },
+    {
+      "name": "palette",
+      "type": "config",
+      "table": "house_v1_palettes",
+      "default": "natural",
+      "doc": "A colour scheme from config/house_v1_palettes/, mixed over the type's colours part by part: a player's colour or a village's theme (natural keeps the type's own)."
+    },
+    {
+      "name": "theme",
+      "type": "config",
+      "table": "village_v1_themes",
+      "default": "heartland",
+      "doc": "The village's theme from config/village_v1_themes/: its roofs, plan, walls, windows, foundation, ornaments, colours, and fires (heartland keeps the type's own)."
+    },
+    {
+      "name": "stage",
+      "type": "enum",
+      "values": [
+        "construction",
+        "basic",
+        "deluxe",
+        "premium",
+        "ruin"
+      ],
+      "default": "deluxe",
+      "doc": "How far its owner has come, or a ruin (a premium house fallen to wreck: roofless, broken, overgrown). Every stage stands on the same footprint."
+    },
+    {
+      "name": "season",
+      "type": "enum",
+      "values": [
+        "winter",
+        "spring",
+        "summer",
+        "fall"
+      ],
+      "default": "summer"
+    },
+    {
+      "name": "household",
+      "type": "enum",
+      "values": [
+        "solo",
+        "family",
+        "extended"
+      ],
+      "default": "family",
+      "doc": "Who lives or works there, which sets the lot's size: solo, family, or extended (several generations)."
+    },
+    {
+      "name": "footprint",
+      "type": "enum",
+      "values": [
+        "usual",
+        "alternate"
+      ],
+      "default": "usual",
+      "doc": "The type's usual lot shape (wide, deep, round, long, or broad) or its other one."
+    },
+    {
+      "name": "seed",
+      "type": "u32",
+      "min": 1,
+      "max": 1000,
+      "default": 1,
+      "doc": "Which of the distinct buildings per type, stage, and season (the runtime caps how many by quality)."
+    },
+    {
+      "name": "detail",
+      "type": "enum",
+      "values": [
+        "high",
+        "medium",
+        "low"
+      ],
+      "default": "high",
+      "doc": "Level of detail; the runtime picks it from distance and quality."
+    },
+    {
+      "name": "wind_speed",
+      "type": "f32",
+      "min": 0,
+      "max": 25,
+      "default": 6,
+      "unit": "m/s"
+    },
+    {
+      "name": "wind_heading",
+      "type": "f32",
+      "min": 0,
+      "max": 360,
+      "default": 90,
+      "unit": "deg",
+      "doc": "Toward which the wind blows, from +Z toward +X."
+    },
+    {
+      "name": "gust_damping",
+      "type": "f32",
+      "min": 0,
+      "max": 1,
+      "default": 0.3
+    },
+    {
+      "name": "time",
+      "type": "time",
+      "default": 0,
+      "unit": "s"
+    },
+    {
+      "name": "door_time",
+      "type": "event",
+      "default": -1,
+      "unit": "s",
+      "doc": "Seconds since the door opened; negative while it is shut. The game starts it when someone comes to the door (foundry_house_v1_start_door); it opens, stays for a visit, and closes."
+    }
   ],
   "stages": [
-    {"id": "build", "system": "house_build_v1", "input": {"type": "$type", "stage": "$stage", "season": "$season", "footprint": "$footprint", "seed": "$seed", "detail": "$detail"}},
-    {"id": "animate", "system": "house_animate_v1", "phase": "update", "input": {"bones": "@build.bones", "wind_speed": "$wind_speed", "wind_heading": "$wind_heading", "gust_damping": "$gust_damping", "time": "$time", "door_time": "$door_time", "seed": "$seed"}}
+    {
+      "id": "build",
+      "system": "house_build_v1",
+      "input": {
+        "type": "$type",
+        "palette": "$palette",
+        "stage": "$stage",
+        "season": "$season",
+        "household": "$household",
+        "footprint": "$footprint",
+        "seed": "$seed",
+        "detail": "$detail",
+        "theme": "$theme"
+      }
+    },
+    {
+      "id": "animate",
+      "system": "house_animate_v1",
+      "phase": "update",
+      "input": {
+        "bones": "@build.bones",
+        "wind_speed": "$wind_speed",
+        "wind_heading": "$wind_heading",
+        "gust_damping": "$gust_damping",
+        "time": "$time",
+        "door_time": "$door_time",
+        "seed": "$seed"
+      }
+    }
   ],
-  "draw": {"model": "build", "pose": "animate", "conformance": {"radius": "radius", "height": "height"}, "footprint": {"radius": "footprint_radius", "cells": "footprint_cells"}, "detail_pixels": {"report": "perf/report-house_v1-detail-20261013T150331Z.json", "high": [256, 256, 8], "medium": [256, 256, 24], "low": [256, 256, 256]}}
+  "draw": {
+    "model": "build",
+    "pose": "animate",
+    "frame_m": 20,
+    "conformance": {
+      "radius": "radius",
+      "height": "height",
+      "box": {
+        "min": "lot_min",
+        "max": "lot_max"
+      }
+    },
+    "guides": {
+      "cells": "guide_cells",
+      "tones": "guide_tones"
+    },
+    "footprint": {
+      "radius": "footprint_radius",
+      "cells": "footprint_cells",
+      "lot": "cells",
+      "doors": "doors"
+    },
+    "detail_pixels": {
+      "report": "perf/report-house_v1-detail-20261013T165341Z.json",
+      "high": [
+        256,
+        256,
+        8
+      ],
+      "medium": [
+        256,
+        256,
+        256
+      ],
+      "low": [
+        256,
+        256,
+        256
+      ]
+    },
+    "fires": {
+      "points": "fire_points",
+      "configs": "fire_configs",
+      "lit": "fire_lit"
+    }
+  }
 }

@@ -1,0 +1,53 @@
+{
+  "channel": "castle_v1_part",
+  "doc": "Castle parts for castle_v1: each entry is one building of a castle's wards (the keep, a great hall, a chapel, barracks, stables, a kitchen, storehouses, a tower), its usual lot, stone, roof, and what it shows. A planner's fill picks them for its keep and castle plots; the native runtime compiles every entry in.",
+  "label": "part",
+  "editor": {
+    "groups": [
+      {
+        "label": "Identity",
+        "fields": [
+          "name",
+          "kind",
+          "size"
+        ]
+      },
+      {
+        "label": "Materials",
+        "fields": [
+          "stone_color",
+          "trim_color",
+          "roof",
+          "roof_color",
+          "door_color",
+          "accent"
+        ]
+      },
+      {
+        "label": "Shape",
+        "fields": [
+          "stories",
+          "story_height",
+          "windows",
+          "doors"
+        ]
+      },
+      {
+        "label": "What it shows",
+        "fields": [
+          "crenellated",
+          "turrets",
+          "banners",
+          "chimneys"
+        ]
+      }
+    ],
+    "colors": [
+      "stone_color",
+      "trim_color",
+      "roof_color",
+      "door_color",
+      "accent"
+    ]
+  }
+}

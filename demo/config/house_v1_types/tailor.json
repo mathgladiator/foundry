@@ -6,8 +6,8 @@
   "value": {
     "name": "tailor",
     "kind": "store",
-    "footprint": "rect3x2",
-    "footprint_alt": "flower7",
+    "footprint": "long",
+    "footprint_alt": "deep",
     "walls": "timber",
     "wall_color": [
       0.88,

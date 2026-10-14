@@ -1,0 +1,58 @@
+{
+  "channel": "civic_v1_type",
+  "doc": "Civic building types for civic_v1: each entry is one kind of building a settlement holds in common (a church, a court, a bank) or a centre a square rings (a well, a market cross, a fountain), its usual lot, materials, colours, and what it shows. A planner's fill picks them for its civic and centre plots; the native runtime compiles every entry in.",
+  "label": "type",
+  "editor": {
+    "groups": [
+      {
+        "label": "Identity",
+        "fields": [
+          "name",
+          "kind",
+          "size",
+          "symbol"
+        ]
+      },
+      {
+        "label": "Materials",
+        "fields": [
+          "walls",
+          "wall_color",
+          "trim_color",
+          "base_color",
+          "roof",
+          "roof_color",
+          "metal_color",
+          "accent"
+        ]
+      },
+      {
+        "label": "Shape",
+        "fields": [
+          "roof_pitch",
+          "wall_height"
+        ]
+      },
+      {
+        "label": "What it shows",
+        "fields": [
+          "spire",
+          "bell",
+          "clock",
+          "columns",
+          "dome",
+          "banners",
+          "lamps"
+        ]
+      }
+    ],
+    "colors": [
+      "wall_color",
+      "trim_color",
+      "base_color",
+      "roof_color",
+      "metal_color",
+      "accent"
+    ]
+  }
+}

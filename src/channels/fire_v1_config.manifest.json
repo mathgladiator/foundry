@@ -1,0 +1,8 @@
+{
+  "kind": "channel",
+  "name": "fire_v1_config",
+  "state": "draft",
+  "reason": "Fire configs for the runtime's fire system (approved 2026-10-14): the human wants buildings to emit fire points (x, y, z, fire config id) and a runtime fire system with smoke that respects the wind.",
+  "notes": [],
+  "created_at": "2026-10-14T04:00:00Z"
+}

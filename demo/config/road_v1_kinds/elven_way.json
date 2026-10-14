@@ -1,0 +1,39 @@
+{
+  "created_at": "2026-10-14T04:30:00Z",
+  "doc": "An elven way: pale flagstones, blue lamps, flowers.",
+  "notes": [],
+  "state": "draft",
+  "value": {
+    "name": "elven_way",
+    "surface": "flagstone",
+    "surface_color": [
+      0.84,
+      0.84,
+      0.8
+    ],
+    "detail_color": [
+      0.7,
+      0.72,
+      0.7
+    ],
+    "paved": 0.8,
+    "verge": "grass",
+    "ruts": false,
+    "half": "planter",
+    "half_color": [
+      0.8,
+      0.8,
+      0.78
+    ],
+    "lamps": 0.1,
+    "lamp_color": [
+      0.55,
+      0.75,
+      1.0
+    ],
+    "signs": false,
+    "clutter": 0.03,
+    "planters": 0.3,
+    "quay": false
+  }
+}

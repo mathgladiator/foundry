@@ -1,0 +1,36 @@
+{
+  "created_at": "2026-10-14T01:30:00Z",
+  "doc": "Three arms 120 degrees apart: a Y.",
+  "notes": [],
+  "state": "draft",
+  "value": {
+    "name": "wye",
+    "nodes": [
+      0,
+      0,
+      3,
+      3,
+      -6,
+      3,
+      3,
+      -6
+    ],
+    "heights": [
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "links": [
+      0,
+      1,
+      0,
+      2,
+      0,
+      3
+    ],
+    "gate_nodes": [],
+    "gate_links": [],
+    "towers": []
+  }
+}

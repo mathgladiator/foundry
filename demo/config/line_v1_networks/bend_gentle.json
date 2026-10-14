@@ -1,0 +1,31 @@
+{
+  "created_at": "2026-10-14T01:30:00Z",
+  "doc": "Two arms 120 degrees apart: a gentle bend.",
+  "notes": [],
+  "state": "draft",
+  "value": {
+    "name": "bend_gentle",
+    "nodes": [
+      0,
+      0,
+      3,
+      3,
+      -6,
+      3
+    ],
+    "heights": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "links": [
+      0,
+      1,
+      0,
+      2
+    ],
+    "gate_nodes": [],
+    "gate_links": [],
+    "towers": []
+  }
+}

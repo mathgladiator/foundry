@@ -1,0 +1,66 @@
+{
+  "family": "castle",
+  "version": 1,
+  "feature": "spec",
+  "doc": "One castle part to build (design/planner.md, Castles): the part, the lot size it stands on, and the season.",
+  "fields": [
+    {
+      "name": "part",
+      "type": "castle_v1_part",
+      "doc": "The part."
+    },
+    {
+      "name": "size",
+      "type": "u32",
+      "doc": "Its lot: small (rect6x5), medium (rect8x6), large (rect10x7), or keep (rect8x8).",
+      "enum": [
+        "small",
+        "medium",
+        "large",
+        "keep"
+      ]
+    },
+    {
+      "name": "theme",
+      "type": "village_v1_theme",
+      "doc": "The village theme: its architecture and fires (heartland keeps the type's own)."
+    },
+    {
+      "name": "stage",
+      "type": "u32",
+      "doc": "How far it has come: planning (its lot staked out, materials piled), half (walls half up in scaffolding), finished, or a ruin.",
+      "enum": [
+        "planning",
+        "half",
+        "finished",
+        "ruin"
+      ]
+    },
+    {
+      "name": "season",
+      "type": "u32",
+      "doc": "The season.",
+      "enum": [
+        "winter",
+        "spring",
+        "summer",
+        "fall"
+      ]
+    },
+    {
+      "name": "seed",
+      "type": "u32",
+      "doc": "Which of the distinct builds."
+    },
+    {
+      "name": "detail",
+      "type": "u32",
+      "doc": "Level of detail.",
+      "enum": [
+        "high",
+        "medium",
+        "low"
+      ]
+    }
+  ]
+}

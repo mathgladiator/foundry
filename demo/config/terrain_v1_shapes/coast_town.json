@@ -1,0 +1,70 @@
+{
+  "created_at": "2026-10-14T17:30:00Z",
+  "doc": "A shore town: the sea to the south, a mountain to the north whose river runs down to the sea, forest east and west with a road through each.",
+  "notes": [],
+  "state": "draft",
+  "value": {
+    "name": "coast_town",
+    "kind": "rectangle",
+    "radius": 30,
+    "width": 80,
+    "depth": 44,
+    "notch": 40,
+    "corners": [],
+    "rotation": 0,
+    "wobble": 3,
+    "seed": 7,
+    "sides": [
+      {
+        "edge": "mountain",
+        "height": 10,
+        "rise": 0.8
+      },
+      {
+        "edge": "forest",
+        "height": 3,
+        "rise": 0.4
+      },
+      {
+        "edge": "sea",
+        "height": -1,
+        "rise": 0.1
+      },
+      {
+        "edge": "forest",
+        "height": 2,
+        "rise": 0.4
+      }
+    ],
+    "openings": [
+      {
+        "kind": "road",
+        "side": 1,
+        "at": 0.6,
+        "width": 2,
+        "name": "east road"
+      },
+      {
+        "kind": "road",
+        "side": 3,
+        "at": 0.4,
+        "width": 2,
+        "name": "west road"
+      },
+      {
+        "kind": "river_in",
+        "side": 0,
+        "at": 0.35,
+        "width": 2,
+        "name": ""
+      },
+      {
+        "kind": "river_out",
+        "side": 2,
+        "at": 0.6,
+        "width": 2,
+        "name": ""
+      }
+    ]
+  }
+}

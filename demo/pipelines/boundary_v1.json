@@ -1,0 +1,165 @@
+{
+  "kind": "pipeline",
+  "name": "boundary_v1",
+  "state": "draft",
+  "doc": "A boundary (design/boundary.md): walls a playable region in so the player can't leave, while it looks like the world goes on. The game gives a hull (a config entry here: a predefined shape, or sectors by direction; a game gives its own cells) whose cells each name an edge (a ledge to look out from, a ridge's cliff, a mountain, a forest or jungle too thick to pass, a sea, a marsh) and a rise; rim resolves it into a smooth rim with the edges blended along it; terrain grows the world beyond it from those seeds out past the view distance, as a quadtree of terrain nodes with their own images that the runtime draws as a cut by distance, morphing between levels, with the rim's dressing and the walls that keep the player in. Trees and bushes within the figure range are figures: the game fills them from its own systems (the foundry with tree_v1 and bush_v1).",
+  "notes": [],
+  "created_at": "2026-10-14T13:00:00Z",
+  "params": [
+    {
+      "name": "hull",
+      "type": "config",
+      "table": "boundary_v1_hulls",
+      "default": "valley",
+      "doc": "The hull: one entry from config/boundary_v1_hulls/ (a predefined shape, or sectors by direction around a ring); a game gives its own cells (foundry_boundary_v1_spawn_hull)."
+    },
+    {
+      "name": "biome",
+      "type": "config",
+      "table": "boundary_v1_biomes",
+      "default": "temperate",
+      "doc": "The biome: its colours, tree forms, and scale."
+    },
+    {
+      "name": "season",
+      "type": "enum",
+      "values": [
+        "winter",
+        "spring",
+        "summer",
+        "fall"
+      ],
+      "default": "summer"
+    },
+    {
+      "name": "detail",
+      "type": "enum",
+      "values": [
+        "high",
+        "medium",
+        "low"
+      ],
+      "default": "high",
+      "doc": "How finely: the finest terrain spacing (2, 4, 8 m), the images (64, 32, 16 texels a node), and the dressing's density."
+    },
+    {
+      "name": "view_distance",
+      "type": "f32",
+      "min": 500,
+      "max": 12000,
+      "default": 3000,
+      "unit": "m",
+      "doc": "How far beyond the region the world reaches."
+    },
+    {
+      "name": "figure_range",
+      "type": "f32",
+      "min": 0,
+      "max": 300,
+      "default": 100,
+      "unit": "m",
+      "doc": "How far beyond the rim trees and bushes are figures for the game to fill from its own systems (design/boundary.md, Figures); past it the boundary draws its own woods. 0: it draws them all."
+    },
+    {
+      "name": "blend",
+      "type": "f32",
+      "min": 1,
+      "max": 20,
+      "default": 6,
+      "unit": "m",
+      "doc": "How far edges blend into each other along the rim."
+    },
+    {
+      "name": "seed",
+      "type": "u32",
+      "min": 1,
+      "max": 1000000,
+      "default": 1,
+      "doc": "The world's seed."
+    }
+  ],
+  "stages": [
+    {
+      "id": "rim",
+      "system": "boundary_rim_v1",
+      "input": {
+        "hull": "$hull",
+        "blend": "$blend",
+        "seed": "$seed"
+      }
+    },
+    {
+      "id": "terrain",
+      "system": "boundary_terrain_v1",
+      "input": {
+        "rim": "@rim",
+        "biome": "$biome",
+        "season": "$season",
+        "detail": "$detail",
+        "view_distance": "$view_distance",
+        "seed": "$seed",
+        "figure_range": "$figure_range"
+      }
+    }
+  ],
+  "draw": {
+    "model": "terrain",
+    "frame_m": 200,
+    "guides": {
+      "lines": "guide_lines",
+      "colors": "guide_colors"
+    },
+    "fires": {
+      "points": "fire_points",
+      "configs": "fire_configs",
+      "lit": "fire_lit"
+    },
+    "terrain": {
+      "hull": "hull",
+      "node_min": "node_min",
+      "node_max": "node_max",
+      "children": "node_children",
+      "spacing": "node_spacing",
+      "first": "node_first",
+      "count": "node_count",
+      "positions": "terrain_positions",
+      "normals": "terrain_normals",
+      "uvs": "terrain_uvs",
+      "morph": "terrain_morph",
+      "indices": "terrain_indices",
+      "image_size": "image_size",
+      "images": "images"
+    },
+    "figures": {
+      "field": "figures",
+      "kinds": {
+        "tree": {
+          "pipeline": "tree_v1",
+          "species": "species",
+          "age": "age",
+          "seed": "seed",
+          "shared": [
+            "season"
+          ],
+          "params": {
+            "detail": "low"
+          },
+          "distinct_seeds": 4
+        },
+        "bush": {
+          "pipeline": "bush_v1",
+          "species": "species",
+          "age": "age",
+          "seed": "seed",
+          "shared": [
+            "season"
+          ],
+          "params": {
+            "detail": "low"
+          },
+          "distinct_seeds": 4
+        }
+      }
+    }
+  }
+}

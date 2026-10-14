@@ -1,0 +1,54 @@
+{
+  "family": "terrain",
+  "version": 1,
+  "feature": "flat",
+  "doc": "A flat (design/terrain.md): cells kept level enough for a settlement planner.",
+  "fields": [
+    {
+      "name": "name",
+      "type": "string",
+      "doc": "The flat's name."
+    },
+    {
+      "name": "q",
+      "type": "i32",
+      "doc": "A round flat's middle: axial q."
+    },
+    {
+      "name": "r",
+      "type": "i32",
+      "doc": "Axial r."
+    },
+    {
+      "name": "radius",
+      "type": "u32",
+      "doc": "A round flat's radius, cells (0 with cells given).",
+      "min": 0,
+      "max": 60
+    },
+    {
+      "name": "cells",
+      "type": "i32[]",
+      "doc": "Its cells as q, r pairs, beside or instead of the round one."
+    },
+    {
+      "name": "level",
+      "type": "bool",
+      "doc": "Whether it is levelled to `height` (else to its cells' mean)."
+    },
+    {
+      "name": "height",
+      "type": "f32",
+      "doc": "Its height when `level`, metres.",
+      "min": -40,
+      "max": 80
+    },
+    {
+      "name": "tolerance",
+      "type": "f32",
+      "doc": "How far its ground may stray from level, metres (a gentle tilt inside it).",
+      "min": 0,
+      "max": 3
+    }
+  ]
+}

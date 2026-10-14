@@ -1,0 +1,42 @@
+{
+  "created_at": "2026-10-14T04:30:00Z",
+  "doc": "A brazier on a stand or a gate's pier.",
+  "notes": [],
+  "state": "draft",
+  "value": {
+    "name": "brazier",
+    "id": 8,
+    "kind": "flame",
+    "core_color": [
+      1.0,
+      0.68,
+      0.22
+    ],
+    "tip_color": [
+      1.0,
+      0.3,
+      0.06
+    ],
+    "size": 0.3,
+    "height": 0.6,
+    "rate": 50,
+    "flicker": 0.65,
+    "sparks": 5,
+    "smoke_color": [
+      0.3,
+      0.3,
+      0.3
+    ],
+    "smoke_rate": 3,
+    "smoke_size": 0.3,
+    "smoke_life": 5,
+    "smoke_rise": 1.0,
+    "light_color": [
+      1.0,
+      0.62,
+      0.32
+    ],
+    "light_radius": 8,
+    "light_strength": 1.4
+  }
+}

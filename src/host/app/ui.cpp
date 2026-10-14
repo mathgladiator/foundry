@@ -37,6 +37,7 @@
 #include "perf/stress.h"
 #include "pipeline/config.h"
 #include "pipeline/flow.h"
+#include "pipeline/compose.h"
 #include "pipeline/live.h"
 #include "sky/observatory.h"
 #include "viewport/gpu.h"
@@ -51,7 +52,7 @@ ImVec4 state_color(const std::string &state) {
   return {0.95f, 0.8f, 0.4f, 1};
 }
 
-const char *kKinds[][2] = {{"pipeline", "Pipelines"}, {"plotter", "Plotters"}, {"observatory", "Observatories"}, {"system", "Systems"}, {"channel", "Channels"},
+const char *kKinds[][2] = {{"pipeline", "Pipelines"}, {"plotter", "Plotters"}, {"planner", "Planners"}, {"observatory", "Observatories"}, {"system", "Systems"}, {"channel", "Channels"},
                            {"config", "Config"}, {"conformance", "Conformance"}, {"meshy", "Meshy"}, {"fixed", "Fixed assets"},
                            {"fracture", "Fractures"}, {"reference", "Reference"}};
 
@@ -273,6 +274,11 @@ struct UiState {
   bool play_request = false;
   bool view_hovered = false;  // the static view's image, last frame
   std::vector<runtime::CollisionBody> walk_bodies;  // a pipeline's collision, for the play test
+  std::vector<pipeline::PlacedBodies> walk_placed;   // and what the viewer composed round it
+  // What the viewer composes round a pipeline's model (draw.nature, surround, figures), per pipeline.
+  std::map<std::string, pipeline::ComposeOptions> compose;
+  std::unique_ptr<pipeline::Composer> composer;
+  nlohmann::json composed_report;
   const void *scale_of = nullptr;  // the mesh view_scale was measured on
   float view_scale = 2;            // its size in metres, for how far the camera pans
   // The plotter inspector's controls (design/plotter.md, "In the foundry").
@@ -294,6 +300,10 @@ struct UiState {
     char scale_sizes[64] = "1,2,4,8,12,16";
     bool scale_find = true;  // then grow the grid until the overview drops below 60 fps
   } plot_ui;
+  // The planner inspector's state (design/planner.md, "In the foundry").
+  struct PlanUi {
+    std::string message;
+  } plan_ui;
 };
 
 std::string render_key(const UiState &s, int w, int h) {
@@ -302,7 +312,7 @@ std::string render_key(const UiState &s, int w, int h) {
                 s.ws_version, static_cast<int>(s.camera.view), s.camera.quarter, s.camera.distance, s.camera.yaw, s.camera.pitch, s.camera.zoom,
                 s.camera.pan[0], s.camera.pan[1], s.camera.pan[2], s.overlays.conformance,
                 s.overlays.collision, s.overlays.hero, s.overlays.hex, s.overlays.grid, s.silhouette, w, h);
-  return buf + s.live_key + (s.plot_ui.collision ? "|pc" : "");
+  return buf + s.live_key + (s.plot_ui.collision ? "|pc" : "") + "|look" + std::to_string(viewport::look_version());
 }
 
 // Every item name uses `_` as a path separator, so the tree has virtual folders:
@@ -673,6 +683,9 @@ void draw_lod_limits(Services &sv, UiState &st, const workspace::Item &item) {
 bool is_live(const std::string &id) { return id.rfind("pipeline:", 0) == 0 || id.rfind("config:", 0) == 0; }
 bool is_plot(const std::string &id) { return id.rfind("plotter:", 0) == 0; }
 bool is_obs(const std::string &id) { return id.rfind("observatory:", 0) == 0; }
+bool is_plan(const std::string &id) { return id.rfind("planner:", 0) == 0; }
+// Items whose picture composes in the background: a plotter's region, a planner's plan.
+bool is_composed(const std::string &id) { return is_plot(id) || is_plan(id); }
 
 // A viewer's sky (design/observatory.md): a checkbox and which observatory, for pipelines, config
 // entries, and plotters.
@@ -764,6 +777,8 @@ bool update_fracture_view(Services &sv, UiState &st) {
 }
 
 // The live pipeline instance's parameters, clock, break, and last build.
+bool draw_config_field(const nlohmann::json &f, nlohmann::json &value, bool color);
+
 void draw_live(Services &sv) {
   pipeline::Live &live = *sv.live;
   const pipeline::Definition def = live.definition();
@@ -775,11 +790,30 @@ void draw_live(Services &sv) {
     const nlohmann::json &v = values[p.name];
     ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x * 0.55f);
     if (p.type == "enum" || p.type == "config") {
-      std::string cur = v.is_string() ? v.get<std::string>() : "";
+      std::string cur = v.is_string() ? v.get<std::string>() : (v.is_object() ? v.value("name", std::string()) + " (edited)" : "");
       if (ImGui::BeginCombo(p.name.c_str(), cur.c_str())) {
         for (const auto &choice : p.values)
           if (ImGui::Selectable(choice.c_str(), choice == cur)) patch[p.name] = choice;
         ImGui::EndCombo();
+      }
+      if (p.type == "config") {
+        // Edit the entry here, for this view only (a shape's sides swapped, say): the parameter
+        // becomes the entry inline; picking a preset again drops the edits.
+        static std::map<std::string, bool> editing;
+        bool &open = editing[def.name + "." + p.name];
+        ImGui::SameLine();
+        if (ImGui::SmallButton(open ? "done" : "edit")) open = !open;
+        ImGui::SetItemTooltip("Edit this %s here (the view's own copy; the preset is unchanged).", p.name.c_str());
+        if (open) {
+          nlohmann::json entry = v.is_object() ? v : pipeline::config::entry(sv.paths, p.table, cur)["value"];
+          const nlohmann::json fields = pipeline::config::fields(pipeline::config::table(sv.paths, p.table));
+          bool edited = false;
+          ImGui::Indent();
+          for (const auto &f : fields)
+            if (entry.is_object() && entry.contains(f["name"].get<std::string>())) edited |= draw_config_field(f, entry, false);
+          ImGui::Unindent();
+          if (edited) patch[p.name] = entry;
+        }
       }
     } else if (p.type == "bool") {
       // A gated parameter that doesn't apply here (fruit on a species without any) is shown off and disabled.
@@ -792,6 +826,29 @@ void draw_live(Services &sv) {
         ImGui::SameLine();
         const std::string gate = values.value(p.when_param, std::string());
         ImGui::TextDisabled("disabled: %s is off for %s", p.when_field.c_str(), gate.c_str());
+      }
+    } else if (p.type == "u32" && p.edge_bits > 0 && !p.edge_values.empty()) {
+      // A value per hex edge: six choices, laid out round the hex as the edges face (edge 0 east,
+      // then clockwise from above: 300, 240, 180, 120, 60 degrees), with the packed number beside.
+      const uint32_t x = v.get<uint32_t>(), mask = (1u << p.edge_bits) - 1u;
+      ImGui::Text("%s  (%u)", p.name.c_str(), x);
+      static const int kOrder[6] = {2, 1, 3, 0, 4, 5};  // rows: upper-left, upper-right, left, right, lower-left, lower-right
+      static const char *kWhere[6] = {"e0 (east)", "e1 (north-east)", "e2 (north-west)", "e3 (west)", "e4 (south-west)", "e5 (south-east)"};
+      const float w = ImGui::GetContentRegionAvail().x * 0.27f;
+      for (int k = 0; k < 6; ++k) {
+        const int d = kOrder[k];
+        if (k % 2) ImGui::SameLine();
+        ImGui::PushID(d);
+        const uint32_t cur = (x >> (static_cast<uint32_t>(d * p.edge_bits))) & mask;
+        ImGui::SetNextItemWidth(w);
+        const std::string label = cur < p.edge_values.size() ? p.edge_values[cur] : std::to_string(cur);
+        if (ImGui::BeginCombo(kWhere[d], label.c_str())) {
+          for (uint32_t c = 0; c < p.edge_values.size() && c <= mask; ++c)
+            if (ImGui::Selectable(p.edge_values[c].c_str(), c == cur))
+              patch[p.name] = (x & ~(mask << (d * p.edge_bits))) | (c << (d * p.edge_bits));
+          ImGui::EndCombo();
+        }
+        ImGui::PopID();
       }
     } else if (p.type == "u32") {
       int x = v.get<int>();
@@ -860,6 +917,85 @@ void draw_live(Services &sv) {
   }
 }
 
+// What the viewer composes round a pipeline's model (draw.nature, draw.surround, draw.figures): each
+// turned on or off, the plotter picked, and the surround's own parameters (not those it shares).
+void draw_composed(Services &sv, UiState &st) {
+  const pipeline::Definition def = sv.live->definition();
+  if (!pipeline::composes(def)) return;
+  pipeline::ComposeOptions &o = st.compose[def.name];
+  ImGui::SeparatorText("Around it");
+  if (!def.nature.empty()) {
+    ImGui::Checkbox("plotter fill", &o.nature);
+    ImGui::SetItemTooltip("A plotter grows the model's open land (draw.nature).");
+    const std::string now = o.plotter.empty() ? def.nature.value("plotter", "") : o.plotter;
+    ImGui::SameLine();
+    ImGui::SetNextItemWidth(170);
+    if (ImGui::BeginCombo("##plotter", now.c_str())) {
+      for (const auto &n : plot::names(sv.paths))
+        if (ImGui::Selectable(n.c_str(), n == now)) o.plotter = n;
+      ImGui::EndCombo();
+    }
+  }
+  if (!def.surround.empty()) {
+    const std::string pipe = def.surround.value("pipeline", "");
+    ImGui::Checkbox(("surround: " + pipe).c_str(), &o.surround);
+    ImGui::SetItemTooltip("%s built round the model, from its hull (draw.surround).", pipe.c_str());
+    pipeline::Definition d;
+    std::string e;
+    if (o.surround && pipeline::load(sv.paths, pipe, d, e)) {
+      const nlohmann::json shared = def.surround.value("shared", nlohmann::json::array());
+      const nlohmann::json base = def.surround.value("params", nlohmann::json::object());
+      const std::string hull = d.terrain.value("hull", "");
+      ImGui::Indent();
+      for (const auto &p : d.params) {
+        if (p.name == "seed" || p.name == hull || p.type == "time" || p.type == "event") continue;
+        if (std::find(shared.begin(), shared.end(), p.name) != shared.end()) continue;
+        ImGui::PushID(p.name.c_str());
+        ImGui::SetNextItemWidth(160);
+        const nlohmann::json cur = o.surround_values.contains(p.name) ? o.surround_values[p.name] : base.contains(p.name) ? base[p.name] : p.fallback;
+        if (p.type == "enum" || p.type == "config") {
+          const std::string v = cur.is_string() ? cur.get<std::string>() : "";
+          if (ImGui::BeginCombo(p.name.c_str(), v.c_str())) {
+            for (const auto &c : p.values)
+              if (ImGui::Selectable(c.c_str(), c == v)) o.surround_values[p.name] = c;
+            ImGui::EndCombo();
+          }
+        } else if (p.type == "f32" || p.type == "u32") {
+          static std::map<std::string, float> held;  // applied when the drag ends: each change rebuilds
+          auto h = held.find(p.name);
+          float v = h != held.end() ? h->second : (cur.is_number() ? cur.get<float>() : 0.0f);
+          ImGui::SliderFloat(p.name.c_str(), &v, static_cast<float>(p.min), static_cast<float>(p.max), "%.0f");
+          if (ImGui::IsItemActive()) held[p.name] = v;
+          if (ImGui::IsItemDeactivatedAfterEdit()) o.surround_values[p.name] = p.type == "u32" ? nlohmann::json(static_cast<uint32_t>(v)) : nlohmann::json(v);
+          if (!ImGui::IsItemActive()) held.erase(p.name);
+        }
+        ImGui::PopID();
+      }
+      ImGui::Unindent();
+    }
+  }
+  bool figures = !def.figures.empty();
+  if (!figures && !def.surround.empty()) {
+    pipeline::Definition d;
+    std::string e;
+    figures = pipeline::load(sv.paths, def.surround.value("pipeline", ""), d, e) && !d.figures.empty();
+  }
+  if (figures) {
+    ImGui::Checkbox("figures", &o.figures);
+    ImGui::SetItemTooltip("The trees and bushes left for the game (draw.figures), filled with builds as a game would.");
+  }
+  if (st.composer && st.composer->busy()) ImGui::TextDisabled("composing...");
+  if (st.composed_report.is_object() && !st.composed_report.empty()) {
+    const nlohmann::json &r = st.composed_report;
+    ImGui::TextDisabled("%s", ("nature " + r.value("nature", nlohmann::json(0)).dump() + ", figures " + r.value("figures", nlohmann::json(0)).dump() +
+                               " (" + r.value("figure_builds", nlohmann::json(0)).dump() + " builds), " + r.value("triangles", nlohmann::json(0)).dump() +
+                               " triangles, " + std::to_string(static_cast<int>(r.value("milliseconds", 0.0))) + " ms")
+                                  .c_str());
+    for (const char *k : {"surround_error", "nature_error", "figures_error"})
+      if (r.contains(k)) ImGui::TextColored({0.95f, 0.45f, 0.4f, 1}, "%s", r[k].get<std::string>().c_str());
+  }
+}
+
 // One field of a config entry, edited with a widget chosen from its schema type.
 bool draw_config_field(const nlohmann::json &f, nlohmann::json &value, bool color) {
   const std::string name = f.value("name", ""), type = f.value("type", "");
@@ -911,6 +1047,77 @@ bool draw_config_field(const nlohmann::json &f, nlohmann::json &value, bool colo
                : ImGui::DragScalarN(name.c_str(), ImGuiDataType_Float, a.data(), n, 0.01f))
       x = a;
     changed |= ImGui::IsItemDeactivatedAfterEdit();
+  } else if ((type == "i32[]" || type == "u32[]") && x.is_array()) {
+    // Whole numbers as a comma-separated list (a polygon's corners as q, r pairs).
+    std::string text;
+    for (const auto &n : x) text += (text.empty() ? "" : ", ") + n.dump();
+    char buf[1024];
+    std::snprintf(buf, sizeof buf, "%s", text.c_str());
+    if (ImGui::InputText(name.c_str(), buf, sizeof buf, ImGuiInputTextFlags_EnterReturnsTrue)) {
+      nlohmann::json list = nlohmann::json::array();
+      for (const char *p = buf; *p;) {
+        char *end = nullptr;
+        const long n = std::strtol(p, &end, 10);
+        if (end == p) {
+          ++p;
+          continue;
+        }
+        list.push_back(type == "u32[]" ? nlohmann::json(static_cast<uint32_t>(std::max(0L, n))) : nlohmann::json(n));
+        p = end;
+      }
+      x = list;
+      changed = true;
+    }
+  } else if (type.size() > 2 && type.substr(type.size() - 2) == "[]" && x.is_array() &&
+             !pipeline::config::channel_fields(type.substr(0, type.size() - 2)).empty()) {
+    // A list of structs (a shape's sides, its openings): each element's fields, and add, copy, remove.
+    const std::string elem = type.substr(0, type.size() - 2);
+    const nlohmann::json sub = pipeline::config::channel_fields(elem);
+    if (ImGui::TreeNode(name.c_str(), "%s (%zu)", name.c_str(), x.size())) {
+      int remove = -1, copy = -1;
+      for (size_t i = 0; i < x.size(); ++i) {
+        ImGui::PushID(static_cast<int>(i));
+        // A one-line summary: the element's first enum or string field.
+        std::string label = std::to_string(i);
+        for (const auto &sf : sub)
+          if (x[i].contains(sf["name"].get<std::string>()) && x[i][sf["name"].get<std::string>()].is_string()) {
+            label += ": " + x[i][sf["name"].get<std::string>()].get<std::string>();
+            break;
+          }
+        if (ImGui::TreeNode("elem", "%s", label.c_str())) {
+          for (const auto &sf : sub)
+            if (x[i].contains(sf["name"].get<std::string>())) changed |= draw_config_field(sf, x[i], false);
+          if (ImGui::SmallButton("copy")) copy = static_cast<int>(i);
+          ImGui::SameLine();
+          if (ImGui::SmallButton("remove")) remove = static_cast<int>(i);
+          ImGui::TreePop();
+        }
+        ImGui::PopID();
+      }
+      if (ImGui::SmallButton("add")) {
+        x.push_back(x.empty() ? pipeline::config::blank(elem) : x.back());
+        changed = true;
+      }
+      if (copy >= 0) {
+        x.insert(x.begin() + copy + 1, x[static_cast<size_t>(copy)]);
+        changed = true;
+      }
+      if (remove >= 0) {
+        x.erase(x.begin() + remove);
+        changed = true;
+      }
+      ImGui::TreePop();
+    }
+  } else if (x.is_object() && !pipeline::config::channel_fields(type).empty()) {
+    // A nested struct (a hull's shape).
+    if (ImGui::TreeNode(name.c_str())) {
+      for (const auto &sf : pipeline::config::channel_fields(type)) {
+        const std::string sn = sf["name"];
+        if (!x.contains(sn)) x[sn] = pipeline::config::blank(type)[sn];
+        changed |= draw_config_field(sf, x, false);
+      }
+      ImGui::TreePop();
+    }
   } else {
     ImGui::Text("%s: %s", name.c_str(), x.dump().c_str());
   }
@@ -1505,6 +1712,217 @@ void draw_plotter_performance(Services &sv, UiState::PlotUi &u, const std::strin
   }
 }
 
+// A planner: its plan for a seed, a plot count, and a tier; what the view shows; its rules (the
+// config's fields, from the plan_v1_config schema, tried in the view and saved on request); and the
+// plan's report (design/planner.md, "In the foundry").
+void draw_planner(Services &sv, UiState &st, const workspace::Item &item) {
+  auto &u = st.plan_ui;
+  plan::View &view = *sv.plan;
+  std::string error;
+  if (!view.show(item.name, error)) {
+    ImGui::TextColored({0.95f, 0.45f, 0.4f, 1}, "%s", error.c_str());
+    return;
+  }
+  const plan::Planner pl = view.planner();
+  const plan::Settings s = view.settings();
+  const nlohmann::json cfg = view.config();
+  {
+    // What fills it here, from the planner's file (the game fills its plots its own way).
+    std::string fills;
+    for (const char *part : {"buildings", "civics", "castles", "roads", "waterfronts"}) {
+      const std::string pipe = pl.fill.value(part, nlohmann::json::object()).value("pipeline", std::string());
+      if (!pipe.empty()) fills += (fills.empty() ? "" : ", ") + std::string(part) + " " + pipe;
+    }
+    const nlohmann::json fl = pl.fill.value("lines", nlohmann::json::object());
+    if (!fl.empty()) fills += ", lines " + fl.value("system", std::string("?"));
+    ImGui::TextWrapped("Plan system %s, scenario %s. A plan is cells and plots; walls and gates are tiles and lines. The game fills it; here: %s; nature on the open land from a plotter.",
+                       pl.system.c_str(), cfg.value("scenario", std::string("?")).c_str(), fills.empty() ? "nothing" : fills.c_str());
+  }
+  auto apply = [&](const nlohmann::json &patch) {
+    if (!view.set(patch, error)) u.message = error;
+  };
+  ImGui::SeparatorText("Plan");
+  int seed = static_cast<int>(s.seed);
+  ImGui::SetNextItemWidth(140);
+  if (ImGui::InputInt("seed", &seed)) apply({{"seed", std::max(1, seed)}});
+  ImGui::SameLine();
+  const int lo = cfg.value("plots_min", 1), hi = std::max(lo, cfg.value("plots_max", 40));
+  int plots = s.plots ? static_cast<int>(s.plots) : (lo + hi) / 2;
+  ImGui::SetNextItemWidth(220);
+  if (ImGui::SliderInt("plots", &plots, lo, hi)) apply({{"plots", plots}});
+  ImGui::SetItemTooltip("Household plots at the final tier, within the scenario's range.");
+  ImGui::TextUnformatted("tier:");
+  for (int t = 0; t < 3; ++t) {
+    ImGui::SameLine();
+    if (ImGui::RadioButton(plan::tiers()[t].c_str(), static_cast<int>(s.tier) == t)) apply({{"tier", t}});
+  }
+  ImGui::SameLine();
+  ImGui::TextDisabled("(each tier is whole: what it opens is reached from its entrances)");
+  ImGui::SeparatorText("Show");
+  bool fill = s.fill, show_lines = s.lines, outlines = s.outlines, nav = s.nav, collision = s.collision, nature = !s.nature.empty();
+  if (ImGui::Checkbox("fill (buildings, roads, waterfronts)", &fill)) apply({{"fill", fill}});
+  ImGui::SameLine();
+  if (ImGui::Checkbox("walls, fences, gates", &show_lines)) apply({{"lines", show_lines}});
+  ImGui::SetItemTooltip("The plan's lines laid by the fill's line system and filled with walls, fences, and gates; off, walls and gates are only their tiles.");
+  ImGui::SameLine();
+  static std::string nature_pick = "happy_glen_v1";
+  if (!s.nature.empty()) nature_pick = s.nature;
+  if (ImGui::Checkbox("nature", &nature)) apply({{"nature", nature ? nature_pick : std::string()}});
+  ImGui::SetItemTooltip("A plotter grows the plan's open land and an apron round it: what the plan leaves unreserved.");
+  ImGui::SameLine();
+  ImGui::SetNextItemWidth(150);
+  if (ImGui::BeginCombo("##nature", nature_pick.c_str())) {
+    for (const std::string &n : plot::names(sv.paths))
+      if (ImGui::Selectable(n.c_str(), n == nature_pick)) {
+        nature_pick = n;
+        if (nature) apply({{"nature", n}});
+      }
+    ImGui::EndCombo();
+  }
+  if (ImGui::Checkbox("plot outlines", &outlines)) apply({{"outlines", outlines}});
+  ImGui::SameLine();
+  if (ImGui::Checkbox("navigation mesh", &nav)) apply({{"nav", nav}});
+  ImGui::SameLine();
+  if (ImGui::Checkbox("collision", &collision)) apply({{"collision", collision}});
+  static const char *colours[] = {"use", "height", "tier", "wealth"};
+  int ci = 0;
+  for (int i = 0; i < 4; ++i)
+    if (s.colour == colours[i]) ci = i;
+  ImGui::SetNextItemWidth(120);
+  if (ImGui::Combo("colour by", &ci, colours, 4)) apply({{"colour", colours[ci]}});
+  static const char *seasons[] = {"winter", "spring", "summer", "fall"};
+  int si = 2;
+  for (int i = 0; i < 4; ++i)
+    if (s.shared.value("season", std::string("summer")) == seasons[i]) si = i;
+  ImGui::SameLine();
+  ImGui::SetNextItemWidth(110);
+  if (ImGui::Combo("season", &si, seasons, 4)) apply({{"shared", {{"season", seasons[si]}}}});
+  float wind = s.shared.value("wind_speed", 4.0f);
+  ImGui::SameLine();
+  ImGui::SetNextItemWidth(110);
+  if (ImGui::SliderFloat("wind (m/s)", &wind, 0, 20, "%.0f")) apply({{"shared", {{"wind_speed", wind}}}});
+
+  // The report.
+  const nlohmann::json r = view.report();
+  ImGui::SeparatorText("Report");
+  const plan::Picture pic = view.picture();
+  if (pic.building) ImGui::TextDisabled("planning and composing...");
+  if (!pic.error.empty()) ImGui::TextColored({0.95f, 0.45f, 0.4f, 1}, "%s", pic.error.c_str());
+  if (r.is_object() && r.contains("plots")) {
+    const bool ok = r.value("ok", false);
+    ImGui::TextColored(ok ? ImVec4{0.45f, 0.85f, 0.5f, 1} : ImVec4{0.95f, 0.45f, 0.4f, 1},
+                       ok ? "Every plot is reached from every entrance, and every trade by cart." : "Some plots aren't reached.");
+    ImGui::Text("%d household plots (range %d to %d), %d buildings and waterfronts; %d unreached, %d without a cart, %d given up",
+                r.value("household_plots", 0), lo, hi, r.value("buildings", 0), r.value("plots_unreached", 0), r.value("cart_unreached", 0),
+                r.value("repairs", 0));
+    ImGui::Text("The village: %d cells (%.2f ha), %d of them open; %d entrances; longest walk %.0f m, steepest road %.1f%%, highest step %.2f m, %.0f m of steps over 0.3 m",
+                r.value("cells", 0), r.value("hectares", 0.0), r.value("open_cells", 0), r.value("entrances", 0), r.value("longest_walk_m", 0.0),
+                r.value("steepest_street", 0.0) * 100, r.value("highest_step_m", 0.0), r.value("retaining_m", 0.0));
+    ImGui::Text("Planned in %.1f ms (WebAssembly), %d bytes; navigation: %d polygons, %d links%s", r.value("plan_ms", 0.0),
+                r.value("plan_bytes", 0), r.value("nav_polys", 0), r.value("nav_links", 0),
+                r.contains("native_matches_wasm") ? (r["native_matches_wasm"].get<bool>() ? "; native matches" : "; NATIVE DIFFERS") : "");
+    if (r.contains("note")) ImGui::TextColored({0.95f, 0.8f, 0.4f, 1}, "%s", r["note"].get<std::string>().c_str());
+    auto counts = [](const char *label, const nlohmann::json &m) {
+      std::string t = std::string(label) + ": ";
+      for (auto it = m.begin(); it != m.end(); ++it) t += it.key() + " " + std::to_string(it.value().get<int>()) + "  ";
+      ImGui::TextWrapped("%s", t.c_str());
+    };
+    counts("classes", r.value("by_class", nlohmann::json::object()));
+    counts("shapes", r.value("by_shape", nlohmann::json::object()));
+    counts("uses", r.value("by_use", nlohmann::json::object()));
+    counts("tiers", r.value("by_tier", nlohmann::json::object()));
+    counts("plots", r.value("by_kind", nlohmann::json::object()));
+    counts("road cells", r.value("road_cells", nlohmann::json::object()));
+    counts("halves (edge pieces)", r.value("halves", nlohmann::json::object()));
+    counts("lines", r.value("lines", nlohmann::json::object()));
+    ImGui::Text("%d fenced edges; navigation: %d half polygons", r.value("fenced_edges", 0), r.value("nav_half_polys", 0));
+    if (pic.report.contains("drawn")) {
+      nlohmann::json d = pic.report["drawn"];
+      counts("drawn", d);
+    }
+    for (const auto &l : pic.report.value("lines_laid", nlohmann::json::array()))
+      ImGui::Text("  %s: %d nodes, %d links (%.0f m), %d joins, %d gates, %d chunks", l.value("kind", std::string()).c_str(), l.value("nodes", 0),
+                  l.value("links", 0), 3.0 * l.value("links", 0), l.value("joins", 0), l.value("gates", 0), l.value("chunks", 0));
+  }
+  if (ImGui::Button("Plan and check native")) {
+    nlohmann::json rep;
+    if (!view.plan(true, rep, error)) u.message = error;
+    else u.message = rep.value("native_matches_wasm", false) ? "native matches WebAssembly" : "native DIFFERS from WebAssembly";
+  }
+  ImGui::SameLine();
+  ImGui::BeginDisabled(s.overrides.empty());
+  if (ImGui::Button("Save rules and view to the file")) {
+    if (!view.save(error)) u.message = error;
+    else u.message = "saved planners/" + item.name + ".json";
+  }
+  ImGui::SameLine();
+  if (ImGui::Button("Revert rules")) {
+    nlohmann::json patch = nlohmann::json::object();
+    for (auto it = s.overrides.begin(); it != s.overrides.end(); ++it) patch[it.key()] = nullptr;
+    apply({{"config", patch}});
+  }
+  ImGui::EndDisabled();
+  if (!u.message.empty()) ImGui::TextWrapped("%s", u.message.c_str());
+
+  // The rules: every field of the config, from the channel's schema.
+  if (ImGui::CollapsingHeader("Rules (the scenario's config)", ImGuiTreeNodeFlags_DefaultOpen)) {
+    static nlohmann::json schema = core::read_json(sv.paths.root + "/src/channels/plan_v1_config.json");
+    for (const auto &f : schema.value("fields", nlohmann::json::array())) {
+      const std::string name = f["name"], type = f["type"];
+      if (name.rfind("lot_", 0) == 0 || name == "scenario") continue;
+      ImGui::PushID(name.c_str());
+      const bool changed = s.overrides.contains(name);
+      ImGui::SetNextItemWidth(160);
+      const std::string label = name + (changed ? " *" : "");
+      if (f.contains("enum")) {
+        const auto &e = f["enum"];
+        int cur = 0;
+        for (size_t i = 0; i < e.size(); ++i)
+          if (cfg.value(name, std::string()) == e[i].get<std::string>()) cur = static_cast<int>(i);
+        if (ImGui::BeginCombo(label.c_str(), e[cur].get<std::string>().c_str())) {
+          for (size_t i = 0; i < e.size(); ++i)
+            if (ImGui::Selectable(e[i].get<std::string>().c_str(), static_cast<int>(i) == cur)) apply({{"config", {{name, e[i]}}}});
+          ImGui::EndCombo();
+        }
+      } else if (type == "bool") {
+        bool b = cfg.value(name, false);
+        if (ImGui::Checkbox(label.c_str(), &b)) apply({{"config", {{name, b}}}});
+      } else if (type == "u32") {
+        int v = cfg.value(name, 0);
+        const int mn = f.value("min", 0), mx = std::min(f.value("max", 100), name.rfind("plots_", 0) == 0 ? 400 : 100);
+        if (ImGui::SliderInt(label.c_str(), &v, mn, mx)) apply({{"config", {{name, v}}}});
+      } else if (type == "f32") {
+        float v = cfg.value(name, 0.0f);
+        if (ImGui::SliderFloat(label.c_str(), &v, f.value("min", 0.0f), f.value("max", 1.0f), "%.2f")) apply({{"config", {{name, v}}}});
+      }
+      ImGui::SetItemTooltip("%s", f.value("doc", std::string()).c_str());
+      ImGui::PopID();
+    }
+  }
+  if (ImGui::CollapsingHeader("Lots")) {
+    if (ImGui::BeginTable("lots", 5, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg)) {
+      for (const char *c : {"class", "shape", "footprint", "cells", "buildings that stand on it"}) ImGui::TableSetupColumn(c);
+      ImGui::TableHeadersRow();
+      for (const auto &l : pl.lots) {
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        ImGui::TextUnformatted(plan::classes()[l.cls].c_str());
+        ImGui::TableNextColumn();
+        ImGui::TextUnformatted(plan::shapes()[l.shape].c_str());
+        ImGui::TableNextColumn();
+        ImGui::TextUnformatted(l.name.c_str());
+        ImGui::TableNextColumn();
+        ImGui::Text("%zu", l.cells.size() / 2);
+        ImGui::TableNextColumn();
+        std::string t;
+        for (const auto &b : l.builds) t += b.value(pl.fill.value("type_param", std::string("type")), std::string()) + " ";
+        ImGui::TextUnformatted(t.empty() ? "(a stand-in)" : t.c_str());
+      }
+      ImGui::EndTable();
+    }
+  }
+}
+
 void draw_plotter(Services &sv, UiState &st, const workspace::Item &item) {
   auto &u = st.plot_ui;
   plot::View &view = *sv.plot;
@@ -1684,6 +2102,45 @@ void draw_plotter(Services &sv, UiState &st, const workspace::Item &item) {
     }
     ImGui::PopID();
   }
+  // The boundary (design/boundary.md): what walls the region in while the world seems to go on, as
+  // its plotter gives it; its parameters as a game would set them (a hull preset's sectors give the
+  // ring its edges by direction).
+  const nlohmann::json boundary = view.boundary();
+  if (!boundary.is_null()) {
+    ImGui::SeparatorText("Boundary");
+    bool show = boundary.value("show", true);
+    if (ImGui::Checkbox("show it", &show)) view.set_boundary({{"show", show}});
+    ImGui::SameLine();
+    ImGui::TextDisabled("%s", boundary.value("pipeline", "").c_str());
+    pipeline::Definition d;
+    std::string e;
+    if (show && pipeline::load(sv.paths, boundary.value("pipeline", ""), d, e)) {
+      const nlohmann::json values = boundary.value("values", nlohmann::json::object());
+      for (const auto &p : d.params) {
+        if (p.name == "seed" || p.type == "time" || p.type == "event" || shared.contains(p.name)) continue;
+        ImGui::PushID(p.name.c_str());
+        ImGui::SetNextItemWidth(160);
+        const nlohmann::json cur = values.contains(p.name) ? values[p.name] : p.fallback;
+        if (p.type == "enum" || p.type == "config") {
+          const std::string now = cur.is_string() ? cur.get<std::string>() : "";
+          if (ImGui::BeginCombo(p.name.c_str(), now.c_str())) {
+            for (const auto &c : p.values)
+              if (ImGui::Selectable(c.c_str(), c == now)) view.set_boundary({{"values", {{p.name, c}}}});
+            ImGui::EndCombo();
+          }
+        } else if (p.type == "f32" || p.type == "u32") {
+          static std::map<std::string, float> held;  // a value while its slider is dragged: applied when it ends (each change rebuilds)
+          auto h = held.find(p.name);
+          float v = h != held.end() ? h->second : (cur.is_number() ? cur.get<float>() : 0.0f);
+          ImGui::SliderFloat(p.name.c_str(), &v, static_cast<float>(p.min), static_cast<float>(p.max), "%.0f");
+          if (ImGui::IsItemActive()) held[p.name] = v;
+          if (ImGui::IsItemDeactivatedAfterEdit()) view.set_boundary({{"values", {{p.name, v}}}});
+          if (!ImGui::IsItemActive()) held.erase(p.name);
+        }
+        ImGui::PopID();
+      }
+    }
+  }
   ImGui::SeparatorText("Grow and clear");
   ImGui::SetNextItemWidth(160);
   ImGui::SliderInt("max per grow", &u.max, 1, 500);
@@ -1803,11 +2260,16 @@ void draw_details(Services &sv, UiState &st, const workspace::Item &item) {
                 d.value("height", 0.0f));
   } else if (item.kind == "plotter") {
     draw_plotter(sv, st, item);
+  } else if (item.kind == "planner") {
+    draw_planner(sv, st, item);
   } else if (item.kind == "observatory") {
     draw_observatory(st, item);
   } else if (item.kind == "pipeline") {
     std::string error;
-    if (sv.live->show(item.name, error)) draw_live(sv);
+    if (sv.live->show(item.name, error)) {
+      draw_live(sv);
+      draw_composed(sv, st);
+    }
     else ImGui::TextColored({0.95f, 0.45f, 0.4f, 1}, "%s", error.c_str());
   } else if (item.kind == "config") {
     std::string error;
@@ -1833,7 +2295,10 @@ void draw_details(Services &sv, UiState &st, const workspace::Item &item) {
     }
     draw_config(sv, item);
     ImGui::Separator();
-    if (sv.live->show_config_file(item.path, error)) draw_live(sv);
+    if (sv.live->show_config_file(item.path, error)) {
+      draw_live(sv);
+      draw_composed(sv, st);
+    }
     else ImGui::TextColored({0.95f, 0.45f, 0.4f, 1}, "%s", error.c_str());
   } else if (item.kind == "channel") {
     nlohmann::json schema = core::read_json(item.path);
@@ -2407,26 +2872,71 @@ float view_scale(UiState &st) {
 
 // The world a play test walks in for the static view: a floor at the ground's height, and what the
 // selection stands for: a plotter's ground, a pipeline's collision bodies, or a fixed mesh as it is.
-// Returns the highest ground under the scene, to drop the walker onto.
-float build_walk_world(Services &sv, UiState &st, physics::Walker &w) {
+// Returns the highest ground under the scene, and for a map (a region, a plan, a boundary's world)
+// where in it to start.
+struct WalkWorld {
+  float top = 0;
+  bool map = false;       // start at its middle, in the first place the walker fits
+  float centre[2] = {0, 0};
+  float radius = 0;       // how far from the middle to look
+  bool on_floor = false;  // it has no ground of its own: the floor is its ground
+  bool solid = false;     // its collision bodies are its ground (a terrain's columns)
+};
+
+// The middle of a ground's triangles (their box's) and the distance to its farthest corner.
+void middle_of(const std::vector<float> &tris, WalkWorld &out) {
+  float lo[2] = {1e30f, 1e30f}, hi[2] = {-1e30f, -1e30f};
+  for (size_t i = 0; i + 2 < tris.size(); i += 3) {
+    lo[0] = std::min(lo[0], tris[i]);
+    hi[0] = std::max(hi[0], tris[i]);
+    lo[1] = std::min(lo[1], tris[i + 2]);
+    hi[1] = std::max(hi[1], tris[i + 2]);
+  }
+  if (lo[0] > hi[0]) return;
+  out.centre[0] = 0.5f * (lo[0] + hi[0]);
+  out.centre[1] = 0.5f * (lo[1] + hi[1]);
+  out.radius = 0.5f * std::hypot(hi[0] - lo[0], hi[1] - lo[1]);
+}
+
+// Stands the walker at a map's middle, in the first place it fits; false when it isn't a map or
+// nothing fits.
+bool start_in_middle(physics::Walker &w, const WalkWorld &ww, float feet[3]) {
+  return ww.map && w.find_spawn(ww.centre[0], ww.centre[1], std::max(ww.radius, 4.0f), ww.on_floor, feet, ww.solid);
+}
+
+WalkWorld build_walk_world(Services &sv, UiState &st, physics::Walker &w) {
+  WalkWorld ww;
   w.clear();
   w.add_floor(0);
   std::vector<float> tris;
-  if (is_plot(st.selected)) {
+  if (is_plan(st.selected)) {
+    tris = sv.plan->walk_triangles();
+  } else if (is_plot(st.selected)) {
     tris = sv.plot->ground_triangles();
-  } else if (!st.walk_bodies.empty()) {
+  } else if (!st.walk_bodies.empty() || !st.walk_placed.empty()) {
     const float at[3] = {0, 0, 0};
     w.add_bodies(st.walk_bodies, at, 0);
+    for (const auto &pb : st.walk_placed) {
+      const float p[3] = {pb.at.x, pb.at.y, pb.at.z};
+      w.add_bodies(pb.bodies, p, pb.yaw);
+    }
   } else if (!is_live(st.selected) && st.content.mesh) {  // a pipeline without collision has nothing to bump into
     const runtime::Mesh &m = *st.content.mesh;
     tris.reserve(m.indices.size() * 3);
     for (uint32_t i : m.indices) tris.insert(tris.end(), {m.positions[i].x, m.positions[i].y, m.positions[i].z});
   }
-  float top = 0;
-  if (is_plot(st.selected))
-    for (size_t i = 1; i < tris.size(); i += 3) top = std::max(top, tris[i]);
+  if (is_composed(st.selected)) {
+    for (size_t i = 1; i < tris.size(); i += 3) ww.top = std::max(ww.top, tris[i]);
+    ww.map = true;
+    middle_of(tris, ww);
+  } else if (st.content.own_ground) {  // a boundary's world: the region is its middle, the floor its ground
+    ww.map = true;
+    ww.radius = 200;
+    ww.on_floor = true;
+    ww.solid = !st.walk_placed.empty();  // a terrain inside its boundary: its own columns are its ground
+  }
   w.add_triangles(tris);
-  return top;
+  return ww;
 }
 
 // The camera's height and centre (the orbit's target, which drags and the gamepad move), and the
@@ -2451,7 +2961,50 @@ void draw_camera_row(UiState &st) {
   ImGui::TextDisabled(st.pad.connected ? "| gamepad: right stick orbits, left pans, triggers zoom" : "");
 }
 
+// The game's look (design/submit.md, "The look"): colour vision, contrast, saturation, edges between
+// colours, and an effect, as a game sets them; every view in the foundry uses it.
+void draw_look_button() {
+  runtime::Look l = viewport::look();
+  if (ImGui::Button(l.identity() && l.edges <= 0 ? "Look" : "Look *")) ImGui::OpenPopup("look");
+  ImGui::SetItemTooltip("The game's look: colour vision, contrast, lines between colours, and effects (greyscale, a tint).");
+  if (!ImGui::BeginPopup("look")) return;
+  bool changed = false;
+  static const char *visions[] = {"typical", "protanopia (red-blind)", "deuteranopia (green-blind)", "tritanopia (blue-blind)"};
+  ImGui::SetNextItemWidth(220);
+  changed |= ImGui::Combo("colour vision", &l.vision, visions, 4);
+  ImGui::SetItemTooltip("Daltonizing: what this eye can't tell apart is moved into colours it can.");
+  ImGui::SetNextItemWidth(220);
+  changed |= ImGui::SliderFloat("contrast", &l.contrast, 0, 1, "%.2f");
+  ImGui::SetNextItemWidth(220);
+  changed |= ImGui::SliderFloat("saturation", &l.saturation, 0, 2, "%.2f");
+  ImGui::SetNextItemWidth(220);
+  changed |= ImGui::SliderFloat("lines between colours", &l.edges, 0, 1, "%.2f");
+  static const char *effects[] = {"none", "greyscale", "tint (greyscale toward a hue)"};
+  ImGui::SetNextItemWidth(220);
+  changed |= ImGui::Combo("effect", &l.effect, effects, 3);
+  if (l.effect == 2) changed |= ImGui::ColorEdit3("tint", l.tint, ImGuiColorEditFlags_NoInputs);
+  if (l.effect) {
+    ImGui::SetNextItemWidth(220);
+    changed |= ImGui::SliderFloat("strength", &l.strength, 0, 1, "%.2f");
+  }
+  if (ImGui::Button("Reset")) {
+    l = runtime::Look();
+    changed = true;
+  }
+  ImGui::SameLine();
+  if (ImGui::Button("Higher contrast")) {
+    l.contrast = 0.6f;
+    l.saturation = 1.15f;
+    l.edges = 0.7f;
+    changed = true;
+  }
+  if (changed) viewport::set_look(l);
+  ImGui::EndPopup();
+}
+
 void draw_viewport_controls(UiState &st) {
+  draw_look_button();
+  ImGui::SameLine();
   const char *views[] = {"Orbit", "Front", "Side", "Top", "Iso"};
   for (int v = 0; v < 5; ++v) {
     if (v) ImGui::SameLine();
@@ -2602,6 +3155,11 @@ void draw_live_plot(Services &sv, UiState &st, SDL_GPUDevice *device, SDL_Window
                                 " things and fields grown in " + std::to_string(static_cast<int>(live.stats().grow_ms)) + " ms");
   }
   live.share(sv.plot->shared());  // the inspector's season and wind
+  {
+    const nlohmann::json b = sv.plot->boundary();
+    if (!b.is_null()) live.set_boundary(b.value("show", true), b.value("values", nlohmann::json::object()));
+  }
+  live.set_look(viewport::look());
   // The play test walks in the runtime's own Jolt world (it keeps the trunks there); the ground is
   // the plot view's, rebuilt when it changes.
   st.pad_owned = true;
@@ -2619,8 +3177,12 @@ void draw_live_plot(Services &sv, UiState &st, SDL_GPUDevice *device, SDL_Window
     w.add_triangles(tris);
     w.add_floor(lo - 0.05f);
     st.play.world_key = key;
-    if (st.play_request) {  // drop in where the orbit looks, facing the way it faces
-      const float feet[3] = {st.camera.pan[0], top + 0.5f, st.camera.pan[2]};
+    if (st.play_request) {  // the region's middle, the first place the walker fits, facing the way the orbit faces
+      WalkWorld ww;
+      ww.map = true;
+      middle_of(tris, ww);
+      float feet[3] = {st.camera.pan[0], top + 0.5f, st.camera.pan[2]};
+      start_in_middle(w, ww, feet);
       st.play.start(&w, feet, -st.camera.yaw);
       st.fly = false;
     } else {
@@ -2652,6 +3214,8 @@ void draw_live_plot(Services &sv, UiState &st, SDL_GPUDevice *device, SDL_Window
               ls.fps, ls.update_ms, ls.prepare_ms, (unsigned long long)ls.drawn, (unsigned long long)ls.instances,
               (unsigned long long)ls.trees, (unsigned long long)ls.field_tiles, ls.triangles / 1e6, (unsigned long long)ls.animated,
               ls.builds_pending ? "   building..." : "");
+  if (ls.terrain_nodes)
+    ImGui::Text("boundary: %llu terrain nodes, %.2f M triangles", (unsigned long long)ls.terrain_nodes, ls.terrain_triangles / 1e6);
   draw_camera_row(st);
   if (!st.play.on())
     ImGui::TextDisabled("Drag to orbit, wheel to zoom, shift-drag to pan, ctrl-drag for height; hold the right button to fly "
@@ -2808,14 +3372,16 @@ int run_ui(Services &sv) {
         st.triangles = 0;
         st.selected_lod = -1;
         st.camera.distance = 0;
+        if (!is_obs(selected)) st.camera.zoom = 1.0f;  // each item opens at its own framing
         st.camera.pan[0] = st.camera.pan[1] = st.camera.pan[2] = 0;
         st.play.stop();
         st.walk_bodies.clear();
+        st.walk_placed.clear();
       }
       st.ws_version = version;
       st.selected = selected;
       // A plotter's region composes in the background (below), so it never blocks here.
-      st.content = is_plot(st.selected) ? assets::ViewContent{} : assets::load_view(*sv.ws, st.selected);
+      st.content = is_composed(st.selected) ? assets::ViewContent{} : assets::load_view(*sv.ws, st.selected);
       st.live_key.clear();  // whatever replaces the content (live or fracture) sets it again
       st.fracture.loaded_for.clear();  // a regenerated fracture loads again
       // A viewed LOD follows its row: after a regeneration, show its new triangle count.
@@ -2829,6 +3395,28 @@ int run_ui(Services &sv) {
     // A pipeline or config entry shows the live instance: pose it for this moment.
     if (update_fracture_view(sv, st)) {
       // a fracture preview or break
+    } else if (is_plan(st.selected)) {
+      // A planner shows its plan: the latest composed picture.
+      std::string err;
+      if (sv.plan->name() != st.selected.substr(8) && !sv.plan->show(st.selected.substr(8), err)) st.plan_ui.message = err;
+      plan::Picture pic = sv.plan->picture();
+      if (pic.mesh) {
+        const std::string key = "|plan" + std::to_string(pic.version);
+        if (key != st.live_key) {
+          st.live_key = key;
+          st.content.mesh = pic.mesh;
+          st.content.lines = pic.lines;
+          st.content.collision = pic.collision;
+          st.content.has_conformance = false;
+          st.content.fires = pic.fires;
+          st.content.fire_time = static_cast<float>(SDL_GetTicks() % 100000u) / 1000.0f;
+          st.content.wind_speed = sv.plan->settings().shared.value("wind_speed", 0.0f);
+          st.content.wind_heading = sv.plan->settings().shared.value("wind_heading", 90.0f);
+          st.content.progressive = nullptr;
+          st.content.lods.clear();
+          st.camera.frame = 0;
+        }
+      }
     } else if (is_plot(st.selected)) {
       // A plotter shows its region: the latest composed picture.
       std::string err;
@@ -2844,25 +3432,63 @@ int run_ui(Services &sv) {
           st.content.has_conformance = false;
           st.content.progressive = nullptr;
           st.content.lods.clear();
-          st.camera.frame = 0;
+          st.content.own_ground = pic.frame_m > 0;  // a boundary's world around the region
+          st.camera.frame = pic.frame_m;
         }
       }
     } else if (is_live(st.selected)) {
       pipeline::Frame f = sv.live->frame(now_seconds());
+      // What the viewer composes round the model (a terrain's boundary and plotter, a boundary's
+      // figures), in the background; until it's ready the bare model shows.
+      pipeline::Composite comp;
+      bool composing = false;
+      float reach = 0;
       if (f.mesh) {
-        std::string key = "|live" + std::to_string(f.model_version) + sv.live->values().dump();
+        const pipeline::Definition def = sv.live->definition();
+        if (pipeline::composes(def)) {
+          if (!st.composer) st.composer = std::make_unique<pipeline::Composer>(sv.live->runner());
+          st.composer->want(def, f, sv.live->values(), st.compose[def.name]);
+          comp = st.composer->latest();
+          composing = comp.mesh != nullptr;
+          reach = f.facts.value("radius", 0.0f);
+        }
+      }
+      if (f.mesh) {
+        std::string key = "|live" + std::to_string(f.model_version) + sv.live->values().dump() + "|c" + std::to_string(comp.version);
         if (key != st.live_key) {
           // A stable frame per model, so swaying and falling don't refit the camera.
-          if (st.live_key.rfind("|live" + std::to_string(f.model_version) + "{", 0) != 0)
-            st.camera.frame = std::max(f.height, 2.0f) * 1.15f;
+          // A pipeline that fixes its framing (draw.frame_m) keeps it for every model, so sizes compare;
+          // a composed one frames the model's reach.
+          if (f.frame_m > 0) st.camera.frame = f.frame_m;
+          else if (st.live_key.rfind("|live" + std::to_string(f.model_version) + "{", 0) != 0)
+            st.camera.frame = std::max(std::max(f.height, 2.0f) * 1.15f, reach * 1.3f);
           st.live_key = key;
-          st.content.mesh = f.mesh;
+          st.content.mesh = composing ? comp.mesh : f.mesh;
           st.content.has_conformance = f.conformance_radius > 0;
           st.content.radius = f.conformance_radius;
           st.content.height = f.conformance_height;
+          st.content.has_box = f.has_box;
+          st.content.box_min = f.box_min;
+          st.content.box_max = f.box_max;
+          st.content.lines = f.guides;
+          st.content.fires = f.fires;
+          st.content.own_ground = f.terrain || (composing && comp.own_ground);
+          st.content.fire_time = f.time > 0 ? f.time : static_cast<float>(SDL_GetTicks() % 100000u) / 1000.0f;
+          st.content.wind_speed = f.wind_speed;
+          st.content.wind_heading = f.wind_heading;
           st.content.collision.clear();
           if (f.collision) physics::wireframe(*f.collision, st.content.collision);
           st.walk_bodies = f.collision ? f.collision->bodies : std::vector<runtime::CollisionBody>();
+          st.walk_placed.clear();
+          if (composing) {
+            st.content.fires.insert(st.content.fires.end(), comp.fires.begin(), comp.fires.end());
+            st.content.lines.insert(st.content.lines.end(), comp.guides.begin(), comp.guides.end());
+            st.content.collision.insert(st.content.collision.end(), comp.wire.begin(), comp.wire.end());
+            st.walk_placed = comp.bodies;
+            st.composed_report = comp.report;
+          } else {
+            st.composed_report = nlohmann::json();
+          }
           st.content.progressive = nullptr;
           st.content.lods.clear();
         }
@@ -2953,6 +3579,10 @@ int run_ui(Services &sv) {
     update_references(sv, st);
     load_reference(sv, st);
     if (is_plot(st.selected)) {
+      if (st.plot_live) {  // the static view's controls carry it otherwise
+        draw_look_button();
+        ImGui::SameLine();
+      }
       ImGui::Checkbox("Live (native runtime)", &st.plot_live);
       if (ImGui::IsItemHovered())
         ImGui::SetTooltip("The region simulated and drawn by the native runtime a game links, every frame.\n"
@@ -2973,7 +3603,7 @@ int run_ui(Services &sv) {
       draw_camera_row(st);
     } else {
       draw_viewport_controls(st);
-      if (is_live(st.selected)) draw_sky_controls(st);
+      if (is_live(st.selected) || is_plan(st.selected)) draw_sky_controls(st);
     }
     ImVec2 avail = ImGui::GetContentRegionAvail();
     int side = std::max(64, static_cast<int>(std::min(avail.x, avail.y)));
@@ -2994,10 +3624,12 @@ int run_ui(Services &sv) {
       st.pad_owned = !st.content.image;
       // The play test: walk where the view is, then look from behind the walker or its eyes.
       if (st.play_request && !st.content.image) {
-        const float top = build_walk_world(sv, st, st.play.own_world());
+        const WalkWorld ww = build_walk_world(sv, st, st.play.own_world());
         st.play.world_key = st.selected + st.live_key;
+        // A map starts at its middle, in the first place the walker fits; a single asset, back from it.
         const float d = std::max(3.0f, view_scale(st) * 1.3f + 1.5f), yaw = st.camera.yaw;
-        const float feet[3] = {st.camera.pan[0] + std::sin(yaw) * d, top + 0.3f, st.camera.pan[2] + std::cos(yaw) * d};
+        float feet[3] = {st.camera.pan[0] + std::sin(yaw) * d, ww.top + 0.3f, st.camera.pan[2] + std::cos(yaw) * d};
+        start_in_middle(st.play.own_world(), ww, feet);
         st.play.start(nullptr, feet, -yaw);
       } else if (st.play.on() && st.play.world_key != st.selected + st.live_key) {
         build_walk_world(sv, st, st.play.own_world());  // the model changed under it
@@ -3028,6 +3660,7 @@ int run_ui(Services &sv) {
       if (key != st.rendered_key) {
         // A plotter's region draws its own lines; its collision has its own toggle, off at first.
         viewport::Overlays ov = is_plot(st.selected) ? plot::overlays(st.plot_ui.collision) : st.overlays;
+        if (is_plan(st.selected)) ov = plot::overlays(sv.plan->settings().collision);
         if (is_obs(st.selected)) ov = plot::overlays(false);
         if (st.play.on()) ov.hero = false;
         st.pending = assets::render_view(st.play.on() ? playing : st.content, cam, ov, st.silhouette && !is_obs(st.selected), rpx, rpx, st.triangles,

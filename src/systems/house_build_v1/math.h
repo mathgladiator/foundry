@@ -31,6 +31,7 @@ inline vec3 lerp(vec3 a, vec3 b, float t) { return a + (b - a) * t; }
 inline float clampf(float v, float lo, float hi) { return v < lo ? lo : (v > hi ? hi : v); }
 inline float minf(float a, float b) { return a < b ? a : b; }
 inline float maxf(float a, float b) { return a > b ? a : b; }
+inline float absf(float v) { return v < 0 ? -v : v; }
 inline float mixf(float a, float b, float t) { return a + (b - a) * t; }
 inline float smooth(float t) { return t * t * (3 - 2 * t); }
 

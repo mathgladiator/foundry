@@ -50,6 +50,7 @@ Every 3D view in the foundry (pipelines, config entries, fixed assets, plotters 
   - Controls: WASD or the left stick walks (4 m/s), and Shift or the right trigger runs (8). Space or A jumps (about 1.1 m). Drag or the right stick looks. The wheel or Y moves the camera between behind the capsule and its eyes, and Escape or Back stops.
   - It climbs steps up to 0.45 m and slopes up to 50 degrees. Solid bodies stop it, soft ones part, and queries and sensors don't touch it.
   - What it walks on: in the live plotter, the region's ground, among every trunk the runtime keeps in the Jolt world the foundry hands it, as a game does. In other views, a floor plus the model's collision bodies (a pipeline's) or its mesh (a fixed asset, or an observatory's sundial).
+  - Where it starts: on a map (a plotter's region, live or static; a planner's plan; a boundary's world), at the middle, in the first place the capsule fits. It searches rings outward every half metre for open ground: the lowest ground there, with nothing above it (no roof, canopy, or trunk's top), flat enough to stand on, where the capsule touches nothing. A single asset starts back from it, facing it. Either way it faces the way the camera faces.
   - `tests/walker_test.cpp` checks the walk and run speeds, a solid trunk and a soft one, a step and a wall, and the jump.
 
 ## Levels of testing

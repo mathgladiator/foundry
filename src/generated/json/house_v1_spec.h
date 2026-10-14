@@ -6,19 +6,25 @@
 #include "channels/house_v1_spec.h"
 #include "json/enums.h"
 #include "json/house_v1_type.h"
+#include "json/house_v1_palette.h"
+#include "json/village_v1_theme.h"
 
 namespace foundry::json {
 
-inline constexpr std::array<const char *, 4> kHouseV1SpecStage = {"construction", "basic", "deluxe", "premium"};
+inline constexpr std::array<const char *, 5> kHouseV1SpecStage = {"construction", "basic", "deluxe", "premium", "ruin"};
 inline constexpr std::array<const char *, 4> kHouseV1SpecSeason = {"winter", "spring", "summer", "fall"};
+inline constexpr std::array<const char *, 3> kHouseV1SpecHousehold = {"solo", "family", "extended"};
 inline constexpr std::array<const char *, 2> kHouseV1SpecFootprint = {"usual", "alternate"};
 inline constexpr std::array<const char *, 3> kHouseV1SpecDetail = {"high", "medium", "low"};
 
 inline nlohmann::json to_json(const channels::house_v1_spec &c) {
   nlohmann::json j = nlohmann::json::object();
   j["type"] = to_json(c.type);
+  j["palette"] = to_json(c.palette);
+  j["theme"] = to_json(c.theme);
   j["stage"] = enum_name(c.stage, kHouseV1SpecStage);
   j["season"] = enum_name(c.season, kHouseV1SpecSeason);
+  j["household"] = enum_name(c.household, kHouseV1SpecHousehold);
   j["footprint"] = enum_name(c.footprint, kHouseV1SpecFootprint);
   j["seed"] = c.seed;
   j["detail"] = enum_name(c.detail, kHouseV1SpecDetail);
@@ -30,11 +36,20 @@ inline void from_json(const nlohmann::json &j, channels::house_v1_spec &c) {
   if (j.contains("type")) {
     c.type = [&] { channels::house_v1_type n; from_json(j.at("type"), n); return n; }();
   }
+  if (j.contains("palette")) {
+    c.palette = [&] { channels::house_v1_palette n; from_json(j.at("palette"), n); return n; }();
+  }
+  if (j.contains("theme")) {
+    c.theme = [&] { channels::village_v1_theme n; from_json(j.at("theme"), n); return n; }();
+  }
   if (j.contains("stage")) {
     c.stage = enum_value(j.at("stage"), kHouseV1SpecStage);
   }
   if (j.contains("season")) {
     c.season = enum_value(j.at("season"), kHouseV1SpecSeason);
+  }
+  if (j.contains("household")) {
+    c.household = enum_value(j.at("household"), kHouseV1SpecHousehold);
   }
   if (j.contains("footprint")) {
     c.footprint = enum_value(j.at("footprint"), kHouseV1SpecFootprint);

@@ -1,0 +1,37 @@
+{
+  "created_at": "2026-10-13T23:30:00Z",
+  "doc": "A postern: a small iron-strapped door in a thickened stretch of wall.",
+  "notes": [],
+  "state": "draft",
+  "value": {
+    "name": "postern",
+    "kind": "postern",
+    "door_color": [
+      0.4,
+      0.28,
+      0.17
+    ],
+    "iron_color": [
+      0.2,
+      0.2,
+      0.22
+    ],
+    "leaves": 1,
+    "portcullis": false,
+    "rise": 0.0,
+    "depth": 1.0,
+    "roof": "none",
+    "roof_color": [
+      0.32,
+      0.34,
+      0.4
+    ],
+    "banners": false,
+    "lamps": false,
+    "accent": [
+      0.68,
+      0.14,
+      0.14
+    ]
+  }
+}

@@ -6,8 +6,8 @@
   "value": {
     "name": "carpenter",
     "kind": "workshop",
-    "footprint": "rect4x3",
-    "footprint_alt": "rect3x2",
+    "footprint": "wide",
+    "footprint_alt": "round",
     "walls": "plank",
     "wall_color": [
       0.72,

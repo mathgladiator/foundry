@@ -1,0 +1,71 @@
+{
+  "family": "plan",
+  "version": 1,
+  "feature": "cell",
+  "doc": "One cell of a plan's shape (design/planner.md, What a plan holds): only the village's own cells; everything open passes to a plotter.",
+  "fields": [
+    {
+      "name": "q",
+      "type": "i32",
+      "doc": "Axial q."
+    },
+    {
+      "name": "r",
+      "type": "i32",
+      "doc": "Axial r."
+    },
+    {
+      "name": "height",
+      "type": "f32",
+      "doc": "Ground height, metres, in 5 cm steps.",
+      "min": -1000,
+      "max": 10000
+    },
+    {
+      "name": "use",
+      "type": "u32",
+      "doc": "What it is: a building's plot, a road, water, a waterfront's plot, the settlement's wall, a gate (an entrance or exit, in a wall or at the road's end), open (unreserved: the plotter's), or the keep's wall. A wall is a tile: what stands on it is the wall system's.",
+      "enum": [
+        "building",
+        "road",
+        "water",
+        "waterfront",
+        "wall",
+        "gate",
+        "open",
+        "keep_wall"
+      ]
+    },
+    {
+      "name": "road",
+      "type": "u32",
+      "doc": "Its road class, where it is a road or gate.",
+      "enum": [
+        "none",
+        "high",
+        "lane",
+        "alley",
+        "square",
+        "market",
+        "bridge",
+        "quay",
+        "gate"
+      ]
+    },
+    {
+      "name": "plot",
+      "type": "i32",
+      "doc": "The plot it belongs to (building, road, waterfront, or water), or -1."
+    },
+    {
+      "name": "tier",
+      "type": "u32",
+      "doc": "When it opens.",
+      "enum": [
+        "hamlet",
+        "village",
+        "town"
+      ]
+    }
+  ]
+}

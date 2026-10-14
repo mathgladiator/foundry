@@ -13,7 +13,7 @@ For each pipelines/<name>.json in the workspace (default demo/), it writes:
   src/generated/stress/stress_<name>.c the stress binding (design/quality.perf.md):
                                        a parameter table and thunks onto the API
 and src/library/runtime.h, every fragment in a fixed order: foundry.h, region.h,
-sky.h, then the pipelines by name, then the plotters.
+sky.h, fire.h, ground.h, then the pipelines by name, then the plotters.
 
 Config floats are written as exact hex literals of the float the foundry gets
 from JSON, so the native build makes the same models as WebAssembly.
@@ -131,6 +131,12 @@ class Pipeline:
         # A field (design/plotter.md, "Fields"): the per-cell stage, and which parameters are the
         # cell's (q, r, ground, moisture, seed), the tile's variant, and the wind.
         self.field = self.draw.get("field")
+        # A terrain (design/boundary.md, "Levels"): the model's quadtree fields, and the config
+        # parameter a game may replace with its own hull (foundry_<pipeline>_spawn_hull).
+        self.terrain = self.draw.get("terrain")
+        self.hull = self.terrain.get("hull") if self.terrain else None
+        if self.hull and not any(p["name"] == self.hull and p["type"] == "config" for p in self.params):
+            sys.exit(f"{self.src}: draw.terrain.hull names no config parameter")
         if self.model not in self.by_id:
             sys.exit(f"{self.src}: draw.model names no stage")
         # Build parameters: anything a build stage reads; the rest only move the pose.
@@ -205,7 +211,9 @@ class Pipeline:
                 o.append(f"typedef enum {t} {{\n")
                 for i, v in enumerate(p["values"]):
                     o.append(f"  {self.U}_{upper(p['name'])}_{upper(v)} = {i},\n")
-                o.append(f"  {self.U}_{upper(p['name'])}_COUNT = {len(p['values'])}\n}} {t};\n\n")
+                o.append(f"  {self.U}_{upper(p['name'])}_COUNT = {len(p['values'])}\n}} {t};\n")
+                o.append(f"/* A {p['name']} by its name (as a config entry or a figure names it), or -1. */\n"
+                         f"int {self.C}_{p['name']}_find(const char *name);\n\n")
         o.append(f"typedef struct {self.C}_params {{\n")
         for p in self.values:
             doc = p.get("doc", "")
@@ -226,6 +234,13 @@ class Pipeline:
             o.append(f"foundry_instance {self.C}_spawn_field(foundry_runtime *rt, const {self.C}_params *params,\n"
                      f"                                        const float transform[16], const foundry_field_cell *cells,\n"
                      f"                                        uint32_t count);\n")
+        if self.hull:
+            o.append(f"/* A boundary around the game's own region (design/boundary.md): these cells, counterclockwise\n"
+                     f" * around it, in place of params' {self.hull} entry's (whose sectors still give auto edges their\n"
+                     f" * edge by direction). See foundry_region_hull. */\n")
+            o.append(f"foundry_instance {self.C}_spawn_hull(foundry_runtime *rt, const {self.C}_params *params,\n"
+                     f"                                       const float transform[16], const foundry_hull_cell *cells,\n"
+                     f"                                       uint32_t count);\n")
         for p in self.values:
             o.append(f"foundry_status {self.C}_set_{p['name']}(foundry_runtime *rt, foundry_instance instance, "
                      f"{self.ctype(p)} value);\n")
@@ -303,6 +318,15 @@ class Pipeline:
                 f = field(self.channels, typ, k)
                 self.bind_cpp(v, f["type"], f"{target}.{k}", out, indent, where)
             return
+        if isinstance(binding, list) and typ.endswith("[]") and any(isinstance(b, str) and b[:1] in "$@" for b in binding):
+            # A list of bindings: each element bound in turn.
+            if where == "update":
+                return
+            if where == "build":
+                out.append(f"{indent}{target}.resize({len(binding)});\n")
+            for i, b in enumerate(binding):
+                self.bind_cpp(b, typ[:-2], f"{target}[{i}]", out, indent, where)
+            return
         if isinstance(binding, str) and binding.startswith("$"):
             if where == "bind":
                 return  # parameters and clocks are set every update
@@ -311,6 +335,8 @@ class Pipeline:
                 out.append(f"{indent}{target} = clocks[{self.clock[p['name']]}];\n")
             elif p["type"] == "config":
                 out.append(f"{indent}config_{p['name']}(static_cast<uint32_t>(p.{p['name']}), {target});\n")
+                if p["name"] == self.hull and where == "build":
+                    out.append(f"{indent}if (payload) hull_from_cells(*payload, {target});  // the game's own hull\n")
             elif p["type"] == "enum":
                 out.append(f"{indent}{target} = static_cast<uint32_t>({self.read_cpp(p)});\n")
             else:
@@ -462,6 +488,8 @@ class Pipeline:
                     for k, v in st["input"].items():
                         if v == f"${cp['name']}":
                             ctype = field(ch, st["in"], k)["type"]
+                        elif isinstance(v, list) and f"${cp['name']}" in v:  # one element of a list field
+                            ctype = field(ch, st["in"], k)["type"].removesuffix("[]")
             if ctype is None:
                 sys.exit(f"{self.src}: config parameter {cp['name']} must bind a whole input field")
             o.append(f"// {cp['name']}: compiled in from config/{cp['table']}/.\n")
@@ -475,6 +503,30 @@ class Pipeline:
             for i, n in enumerate(cp["values"]):
                 o.append(f"    case {i}: config_{cp['name']}_{n}(g); return;\n")
             o.append("  }\n}\n\n")
+        if self.hull:
+            htype = None
+            for st in self.stages:
+                if isinstance(st["input"], dict):
+                    for k, v in st["input"].items():
+                        if v == f"${self.hull}":
+                            htype = field(ch, st["in"], k)["type"]
+            for need in ("cells", "edges", "heights", "rises"):
+                field(ch, htype, need)
+            o.append("// The game's own hull (foundry_hull_cell records) in place of the entry's cells.\n")
+            o.append(f"void hull_from_cells(const std::vector<uint8_t> &payload, channels::{htype} &h) {{\n"
+                     "  const size_t n = payload.size() / sizeof(foundry_hull_cell);\n"
+                     "  h.cells.clear();\n  h.edges.clear();\n  h.heights.clear();\n  h.rises.clear();\n"
+                     "  h.opening_cells.clear();\n  h.opening_kinds.clear();\n  h.opening_widths.clear();\n"
+                     "  for (size_t i = 0; i < n; ++i) {\n"
+                     "    foundry_hull_cell c;\n"
+                     "    std::memcpy(&c, payload.data() + i * sizeof c, sizeof c);\n"
+                     "    h.cells.push_back(c.q);\n    h.cells.push_back(c.r);\n"
+                     "    h.edges.push_back(static_cast<uint32_t>(c.edge));\n"
+                     "    h.heights.push_back(c.height);\n    h.rises.push_back(c.rise);\n"
+                     "    if (c.opening) {  // a road or river leaving through it\n"
+                     "      h.opening_cells.push_back(c.q);\n      h.opening_cells.push_back(c.r);\n"
+                     "      h.opening_kinds.push_back(c.opening - 1);\n      h.opening_widths.push_back(c.opening_width ? c.opening_width : 1u);\n"
+                     "    }\n  }\n}\n\n")
         # Gates, compiled in from the config entries.
         for p in self.values:
             if p.get("when"):
@@ -540,8 +592,15 @@ class Pipeline:
                 o.append(f"    key_add(h, p.{p['name']});\n")
         o.append("    return h ? h : 1;\n  }\n\n")
         # build()
-        o.append("  std::shared_ptr<runtime::Build> build(const void *params, std::string &error) const override {\n")
-        o.append("    const Params &p = *static_cast<const Params *>(params);\n")
+        o.append("  std::shared_ptr<runtime::Build> build(const void *params, std::string &error) const override {\n"
+                 "    return build_impl(params, nullptr, error);\n  }\n\n")
+        if self.hull:
+            o.append("  std::shared_ptr<runtime::Build> build_with(const void *params, const std::vector<uint8_t> &payload,\n"
+                     "                                             std::string &error) const override {\n"
+                     "    return build_impl(params, &payload, error);\n  }\n\n")
+        o.append("  std::shared_ptr<runtime::Build> build_impl(const void *params, const std::vector<uint8_t> *payload,\n"
+                 "                                             std::string &error) const {\n")
+        o.append("    const Params &p = *static_cast<const Params *>(params);\n    (void)payload;\n")
         o.append("    auto b = std::make_shared<Built>();\n")
         o.append("    const float *clocks = nullptr;\n    (void)clocks;\n")
         for st in self.stages:
@@ -612,6 +671,136 @@ class Pipeline:
                     sys.exit(f"{self.src}: draw.footprint.{k} names no field of {mo}")
             o.append(f"    b->footprint_radius = {self.model}_out.{fp['radius']};\n")
             o.append(f"    b->footprint_cells = {self.model}_out.{fp['cells']};\n")
+        fr = self.draw.get("fires")
+        if fr:
+            # Fire points (design/submit.md, "Fire"): where, which fire config, and when each burns.
+            for k in ("points", "configs", "lit"):
+                if fr.get(k) not in mf:
+                    sys.exit(f"{self.src}: draw.fires.{k} names no field of {mo}")
+            o.append(f"""    {{
+      const auto &fp = {self.model}_out.{fr['points']};
+      const auto &fc = {self.model}_out.{fr['configs']};
+      const auto &fl = {self.model}_out.{fr['lit']};
+      for (size_t i = 0; i < fp.size() && i < fc.size(); ++i) {{
+        runtime::FirePoint f;
+        f.pos[0] = fp[i].x; f.pos[1] = fp[i].y; f.pos[2] = fp[i].z;
+        f.config = fc[i];
+        f.lit = i < fl.size() ? fl[i] : runtime::FirePoint::kAlways;
+        b->fires.push_back(f);
+      }}
+    }}
+""")
+        if self.terrain:
+            # The terrain convention (design/boundary.md, "Levels"): the quadtree's nodes, their
+            # vertices interleaved with their uvs and morph, their triangles, and every node's image.
+            t = {k: self.terrain.get(k, k) for k in ("node_min", "node_max", "children", "spacing", "first", "count",
+                                                      "positions", "normals", "uvs", "morph", "indices", "image_size", "images")}
+            for k, v in t.items():
+                if v not in mf:
+                    sys.exit(f"{self.src}: draw.terrain.{k} names no field of {mo}")
+            M = f"{self.model}_out"
+            o.append(f"""    {{
+      auto t = std::make_shared<runtime::Terrain>();
+      const auto &mn = {M}.{t['node_min']};
+      const auto &mx = {M}.{t['node_max']};
+      const auto &ch = {M}.{t['children']};
+      const auto &sp = {M}.{t['spacing']};
+      const auto &fi = {M}.{t['first']};
+      const auto &co = {M}.{t['count']};
+      t->nodes.resize(mn.size());
+      for (size_t i = 0; i < mn.size() && i < mx.size() && i < sp.size() && i < fi.size() && i < co.size(); ++i) {{
+        runtime::TerrainNode &n = t->nodes[i];
+        n.min[0] = mn[i].x; n.min[1] = mn[i].y; n.min[2] = mn[i].z;
+        n.max[0] = mx[i].x; n.max[1] = mx[i].y; n.max[2] = mx[i].z;
+        for (int q = 0; q < 4; ++q) n.child[q] = i * 4 + q < ch.size() ? ch[i * 4 + q] : UINT32_MAX;
+        n.spacing = sp[i];
+        n.first = fi[i];
+        n.count = co[i];
+      }}
+      const auto &ps = {M}.{t['positions']};
+      const auto &ns = {M}.{t['normals']};
+      const auto &uv = {M}.{t['uvs']};
+      const auto &mo = {M}.{t['morph']};
+      t->vertices.resize(ps.size() * 9);
+      for (size_t i = 0; i < ps.size(); ++i) {{
+        float *v = t->vertices.data() + i * 9;
+        v[0] = ps[i].x; v[1] = ps[i].y; v[2] = ps[i].z;
+        const foundry::vec3 nn = i < ns.size() ? ns[i] : foundry::vec3{{0, 1, 0}};
+        v[3] = nn.x; v[4] = nn.y; v[5] = nn.z;
+        v[6] = 2 * i < uv.size() ? uv[2 * i] : 0.0f;
+        v[7] = 2 * i + 1 < uv.size() ? uv[2 * i + 1] : 0.0f;
+        v[8] = i < mo.size() ? mo[i] : 0.0f;
+      }}
+      t->indices = std::move({M}.{t['indices']});
+      t->triangles = t->indices.size() / 3;
+      t->image_size = {M}.{t['image_size']};
+      t->images = std::move({M}.{t['images']});
+      b->bytes += t->nodes.size() * sizeof(runtime::TerrainNode);
+      b->terrain = std::move(t);
+    }}
+""")
+        fg = self.draw.get("figures")
+        if fg:
+            # Figures (design/boundary.md, "Figures"): what the model leaves for the game to fill.
+            if fg.get("field") not in mf:
+                sys.exit(f"{self.src}: draw.figures.field names no field of {mo}")
+            o.append(f"""    for (const auto &fi : {self.model}_out.{fg['field']}) {{
+      runtime::Figure f;
+      f.position[0] = fi.position.x; f.position[1] = fi.position.y; f.position[2] = fi.position.z;
+      f.yaw = fi.yaw;
+      f.kind = fi.kind;
+      f.species = fi.species;
+      f.age = fi.age;
+      f.height = fi.height;
+      f.seed = fi.seed;
+      b->figures.push_back(std::move(f));
+    }}
+    b->bytes += b->figures.size() * sizeof(runtime::Figure);
+""")
+        gd = self.draw.get("ground")
+        if gd:
+            # A terrain's ground (design/terrain.md): the ground channel's fields, for the game's queries.
+            if gd.get("field") not in mf:
+                sys.exit(f"{self.src}: draw.ground.field names no field of {mo}")
+            o.append(f"""    {{
+      const auto &gs = {self.model}_out.{gd['field']};
+      auto g = std::make_shared<runtime::Ground>();
+      g->cells = gs.cells;
+      g->span_first = gs.span_first;
+      g->span_lo = gs.span_lo;
+      g->span_hi = gs.span_hi;
+      g->span_material = gs.span_material;
+      g->water = gs.water;
+      g->flags = gs.flags;
+      g->road_cells = gs.road_cells;
+      g->road_counts = gs.road_counts;
+      for (const auto &br : gs.bridges) {{
+        runtime::Ground::Bridge x;
+        x.a[0] = br.a.x; x.a[1] = br.a.y; x.a[2] = br.a.z;
+        x.b[0] = br.b.x; x.b[1] = br.b.y; x.b[2] = br.b.z;
+        x.width = br.width;
+        g->bridges.push_back(x);
+      }}
+      for (const auto &v : gs.nav_vertices) {{
+        g->nav_vertices.push_back(v.x);
+        g->nav_vertices.push_back(v.y);
+        g->nav_vertices.push_back(v.z);
+      }}
+      g->nav_polys = gs.nav_polys;
+      g->nav_cells = gs.nav_cells;
+      g->nav_links = gs.nav_links;
+      g->hull_cells = gs.hull.cells;
+      g->hull_edges = gs.hull.edges;
+      g->hull_heights = gs.hull.heights;
+      g->hull_rises = gs.hull.rises;
+      g->opening_cells = gs.hull.opening_cells;
+      g->opening_kinds = gs.hull.opening_kinds;
+      g->opening_widths = gs.hull.opening_widths;
+      g->build_index();
+      b->bytes += (g->span_lo.size() + g->span_hi.size() + g->cells.size()) * 4 + g->nav_vertices.size() * 4;
+      b->ground = std::move(g);
+    }}
+""")
         o.append("""    const auto &m = b->mesh;
     b->triangles = static_cast<uint32_t>(m.indices.size() / 3);
     uint32_t bones = 1;
@@ -631,6 +820,7 @@ class Pipeline:
     }
     b->height = top;
     b->radius = std::sqrt(r2);
+    runtime::terrain_bounds(*b);
     if (!finite) b->problem = "a vertex is not finite";
     else if (m.indices.empty()) b->problem = "the mesh has no triangles";
     else if (*std::max_element(m.indices.begin(), m.indices.end()) >= m.positions.size()) b->problem = "an index is out of range";
@@ -727,6 +917,13 @@ class Pipeline:
         o.append(f"foundry_instance {self.C}_spawn(foundry_runtime *rt, const Params *params, const float transform[16]) {{\n"
                  "  if (!rt || !params || !valid(*params)) return FOUNDRY_NO_INSTANCE;\n"
                  "  return rt->world.spawn(&kType, params, transform);\n}\n\n")
+        if self.hull:
+            o.append(f"foundry_instance {self.C}_spawn_hull(foundry_runtime *rt, const Params *params, const float transform[16],\n"
+                     f"                                       const foundry_hull_cell *cells, uint32_t count) {{\n"
+                     "  if (!rt || !params || !valid(*params) || (count && !cells)) return FOUNDRY_NO_INSTANCE;\n"
+                     "  std::vector<uint8_t> payload(size_t(count) * sizeof(foundry_hull_cell));\n"
+                     "  if (count) std::memcpy(payload.data(), cells, payload.size());\n"
+                     "  return rt->world.spawn(&kType, params, transform, &payload);\n}\n\n")
         if self.field:
             fd = self.field
             o.append(f"foundry_instance {self.C}_spawn_field(foundry_runtime *rt, const Params *params, const float transform[16],\n"
@@ -747,6 +944,13 @@ class Pipeline:
             o.append("  if (!valid(check)) return FOUNDRY_STATUS_BAD_PARAMETER;\n")
             o.append(f"  return foundry_status_of(rt->world.set_param(instance, &kType, offsetof(Params, {n}), &value, sizeof value, "
                      f"{'true' if p['build'] else 'false'}));\n}}\n\n")
+        for p in self.values:
+            if p["type"] in ("enum", "config"):
+                names = ", ".join(c_string(v) for v in p["values"])
+                o.append(f"int {self.C}_{p['name']}_find(const char *name) {{\n"
+                         f"  static const char *const names[] = {{{names}}};\n"
+                         f"  for (int i = 0; name && i < {len(p['values'])}; ++i)\n"
+                         f"    if (std::strcmp(names[i], name) == 0) return i;\n  return -1;\n}}\n\n")
         for p in self.values:
             if p.get("when"):
                 g = self.gate(p)
@@ -931,6 +1135,17 @@ class PlotterGen:
                 sys.exit(f"{self.src}: {pipe.name} is not a field (its draw has no field)")
             label = fdef["pipeline"] + "".join(" " + v for _, v in sorted(fdef.get("params", {}).items()) if isinstance(v, str))
             self.fields.append({"pipe": pipe, "params": fdef.get("params", {}), "label": label})
+        # A boundary (design/boundary.md): a terrain pipeline spawned around the region with its hull.
+        self.boundary = None
+        bdef = self.j.get("boundary")
+        if bdef:
+            pipe = self.pipes.get(bdef["pipeline"])
+            if not pipe:
+                sys.exit(f"{self.src}: no pipeline {bdef['pipeline']}")
+            if not pipe.hull:
+                sys.exit(f"{self.src}: {pipe.name} takes no hull (its draw.terrain names none)")
+            label = bdef["pipeline"] + "".join(" " + v for _, v in sorted(bdef.get("params", {}).items()) if isinstance(v, str))
+            self.boundary = {"pipe": pipe, "params": bdef.get("params", {}), "label": label}
         self.C = upper(self.name)
 
     # The pipeline generator's channel-value writers, shared.
@@ -1006,6 +1221,43 @@ class PlotterGen:
         if not self.fields:
             o.append("    {nullptr, nullptr},\n")
         o.append("};\n\n")
+        if self.boundary:
+            pipe = self.boundary["pipe"]
+            o.append(f"foundry_instance boundary_{self.name}(foundry_runtime *rt, uint32_t world_seed, const float t[16],\n"
+                     f"                                    const foundry_hull_cell *cells, uint32_t count) {{\n")
+            o.append(f"  {pipe.C}_params p;\n  {pipe.C}_default_params(&p);\n")
+            for name, v in sorted(self.boundary["params"].items()):
+                o.append("  " + self.assign(pipe, name, v) + "\n")
+            if any(q["name"] == "seed" for q in pipe.params):
+                o.append("  p.seed = 1u + (world_seed % 1000000u);\n")
+            else:
+                o.append("  (void)world_seed;\n")
+            o.append(f"  return {pipe.C}_spawn_hull(rt, &p, t, cells, count);\n}}\n\n")
+            # Its figures, each spawned from its kind's pipeline (draw.figures.kinds): the species by
+            # name, the age, and a seed; the finest detail is the runtime's to choose.
+            fig = pipe.draw.get("figures")
+            o.append(f"foundry_instance figure_{self.name}(foundry_runtime *rt, const foundry_figure *f, const float t[16]) {{\n")
+            if fig:
+                for kind_i, kind in enumerate(("tree", "bush")):
+                    spec = fig.get("kinds", {}).get(kind)
+                    if not spec:
+                        continue
+                    kp = self.pipes.get(spec["pipeline"])
+                    if not kp:
+                        sys.exit(f"{self.src}: no pipeline {spec['pipeline']} for {pipe.name}'s figures")
+                    sp, ag, sd = spec.get("species", "species"), spec.get("age", "age"), spec.get("seed", "seed")
+                    age_n = len(next(q for q in kp.params if q["name"] == ag)["values"])
+                    o.append(f"  if (f->kind == {kind_i}u) {{\n    {kp.C}_params p;\n    {kp.C}_default_params(&p);\n")
+                    for name, v in sorted(spec.get("params", {}).items()):
+                        if name != "detail":
+                            o.append("    " + self.assign(kp, name, v) + "\n")
+                    o.append(f"    const int s = {kp.C}_{sp}_find(f->species);\n    if (s < 0) return FOUNDRY_NO_INSTANCE;\n"
+                             f"    p.{sp} = static_cast<{kp.ctype(next(q for q in kp.params if q['name'] == sp))}>(s);\n"
+                             f"    p.{ag} = static_cast<{kp.ctype(next(q for q in kp.params if q['name'] == ag))}>(f->age < {age_n}u ? f->age : {age_n - 1}u);\n"
+                             f"    p.{sd} = 1u + (f->seed % {int(spec.get('distinct_seeds', 4))}u);\n"
+                             f"    return {kp.C}_spawn(rt, &p, t);\n  }}\n")
+            o.append("  (void)rt;\n  (void)f;\n  (void)t;\n  return FOUNDRY_NO_INSTANCE;\n}\n\n")
+            o.append(f"const plotters::Boundary boundary_info_{self.name} = {{{c_string(self.boundary['label'])}, boundary_{self.name}, figure_{self.name}}};\n\n")
         o.append(f"const plotters::Kind kinds_{self.name}[] = {{\n")
         for k in self.kinds:
             o.append(f"    {{{c_string(k['label'])}, spawn_{self.name}_{k['id']}}},\n")
@@ -1034,14 +1286,49 @@ def plotters_files(plotters):
     c.append("namespace plotters {\n\nnamespace {\nconst Info kInfos[] = {\n")
     for p in plotters:
         c.append(f"    {{{c_string(p.name)}, config_{p.name}, {p.system}::run, kinds_{p.name}, {len(p.kinds)}u, fields_{p.name}, "
-                 f"{len(p.fields)}u}},\n")
+                 f"{len(p.fields)}u, {'&boundary_info_' + p.name if p.boundary else 'nullptr'}}},\n")
     if not plotters:
-        c.append("    {nullptr, nullptr, nullptr, nullptr, 0u, nullptr, 0u},\n")
+        c.append("    {nullptr, nullptr, nullptr, nullptr, 0u, nullptr, 0u, nullptr},\n")
     c.append("};\n}  // namespace\n\n")
     c.append(f"uint32_t count() {{ return {len(plotters)}u; }}\n\n"
              "const Info *info(foundry_plotter plotter) { return plotter < count() ? &kInfos[plotter] : nullptr; }\n\n"
              "}  // namespace plotters\n")
     return "".join(h), "".join(c)
+
+
+def fires_files(workspace):
+    """The fire configs (config/fire_v1_configs/), compiled in for the runtime's fire system."""
+    tdir = os.path.join(workspace, "config", "fire_v1_configs")
+    entries = []
+    if os.path.isdir(tdir):
+        for fn in sorted(os.listdir(tdir)):
+            if fn.endswith(".json") and fn != "table.json":
+                with open(os.path.join(tdir, fn)) as f:
+                    entries.append(json.load(f)["value"])
+    entries.sort(key=lambda v: v["id"])
+    ids = [v["id"] for v in entries]
+    if len(set(ids)) != len(ids):
+        sys.exit("config/fire_v1_configs: two fires share an id")
+    kinds = {"flame": 0, "ember": 1, "spirit": 2}
+    h = (banner("config/fire_v1_configs") + "// The fire configs compiled in (design/submit.md, \"Fire\").\n#pragma once\n\n#include <vector>\n\n"
+         "#include \"fire/fire.h\"\n\nnamespace fires {\nconst std::vector<runtime::fire::Config> &configs();\nconst char *const *names();\n}  // namespace fires\n")
+    c = [banner("config/fire_v1_configs"), "#include \"fires.h\"\n\nnamespace fires {\n\nconst std::vector<runtime::fire::Config> &configs() {\n",
+         "  static const std::vector<runtime::fire::Config> c = [] {\n    std::vector<runtime::fire::Config> v;\n"]
+    def v3(x):
+        return ", ".join(f32(a) for a in x)
+    for v in entries:
+        k = v["kind"] if isinstance(v["kind"], int) else kinds[v["kind"]]
+        c.append(f"    {{  // {v['name']}\n      runtime::fire::Config f;\n      f.id = {v['id']}u;\n      f.kind = {k}u;\n")
+        for a in ("core", "tip"):
+            c.append(f"      {{ const float x[3] = {{{v3(v[a + '_color'])}}}; for (int i = 0; i < 3; ++i) f.{a}[i] = x[i]; }}\n")
+        c.append(f"      {{ const float x[3] = {{{v3(v['smoke_color'])}}}; for (int i = 0; i < 3; ++i) f.smoke[i] = x[i]; }}\n")
+        c.append(f"      {{ const float x[3] = {{{v3(v['light_color'])}}}; for (int i = 0; i < 3; ++i) f.light[i] = x[i]; }}\n")
+        for a in ("size", "height", "rate", "flicker", "sparks", "smoke_rate", "smoke_size", "smoke_life", "smoke_rise", "light_radius", "light_strength"):
+            c.append(f"      f.{a} = {f32(v[a])};\n")
+        c.append("      v.push_back(f);\n    }\n")
+    c.append("    return v;\n  }();\n  return c;\n}\n\nconst char *const *names() {\n  static const char *const n[] = {")
+    c.append(", ".join(c_string(v["name"]) for v in entries) + (", " if entries else "") + "nullptr};\n  return n;\n}\n\n}  // namespace fires\n")
+    return h, "".join(c)
 
 
 def main():
@@ -1073,6 +1360,9 @@ def main():
             "int main(int argc, char **argv) {\n"
             f"  const stress_pipeline *pipelines[] = {{{refs}}};\n"
             f"  return stress_region_main(argc, argv, FOUNDRY_PLOTTER_{p.C}, {c_string(p.name)}, pipelines, {len(used)});\n}}\n")
+    fh, fc = fires_files(workspace)
+    files[os.path.join(LIBRARY, "fires.h")] = fh
+    files[os.path.join(LIBRARY, "fires.cpp")] = fc
     ph, pc = plotters_files(plotters)
     files[os.path.join(LIBRARY, "plotters.h")] = ph
     files[os.path.join(LIBRARY, "plotters.cpp")] = pc
@@ -1082,8 +1372,12 @@ def main():
         core += "\n" + f.read()
     with open(os.path.join(LIBRARY, "sky.h")) as f:
         core += "\n" + f.read()
+    with open(os.path.join(LIBRARY, "fire.h")) as f:
+        core += "\n" + f.read()
+    with open(os.path.join(LIBRARY, "ground.h")) as f:
+        core += "\n" + f.read()
     runtime_h = ["/* runtime.h: the game-facing API (design/api.md). Assembled by tools/gen_pipelines.py from\n"
-                 " * the fragments in src/library/: foundry.h, region.h, sky.h, each pipeline by name, then the plotters. Do not edit. */\n"
+                 " * the fragments in src/library/: foundry.h, region.h, sky.h, fire.h, ground.h, each pipeline by name, then the plotters. Do not edit. */\n"
                  "#pragma once\n\n", core]
     for p in pipelines:
         runtime_h.append("\n" + files[os.path.join(LIBRARY, f"{p.name}.h")])

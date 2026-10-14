@@ -1,0 +1,78 @@
+{
+  "family": "road",
+  "version": 1,
+  "feature": "model",
+  "doc": "A built road cell (design/planner.md, Roads): its paving and edge pieces, centred on the cell, with moving parts as bones (awnings sway, lamps flicker), its flow, collision, and guides for the viewer (its neighbours, its flow, its half, its fence edges).",
+  "fields": [
+    {
+      "name": "height",
+      "type": "f32",
+      "doc": "Height, metres (conformance)."
+    },
+    {
+      "name": "radius",
+      "type": "f32",
+      "doc": "Conformance radius, metres."
+    },
+    {
+      "name": "flow",
+      "type": "u32",
+      "doc": "Which edges a walker or cart passes through: bit d for edge d (its road and gate neighbours, less any its half takes)."
+    },
+    {
+      "name": "guide_lines",
+      "type": "vec3[]",
+      "doc": "For the viewer only: line segments as pairs of points: each neighbour's outline coloured by what it is, arrows along the flow, the half's cut, and fence edges."
+    },
+    {
+      "name": "guide_colors",
+      "type": "u32[]",
+      "doc": "Each guide segment's colour, packed RGBA."
+    },
+    {
+      "name": "bones",
+      "type": "house_v1_bone[]",
+      "doc": "The moving parts, animated by house_animate_v1."
+    },
+    {
+      "name": "positions",
+      "type": "vec3[]",
+      "doc": "Vertex positions."
+    },
+    {
+      "name": "normals",
+      "type": "vec3[]",
+      "doc": "Vertex normals."
+    },
+    {
+      "name": "indices",
+      "type": "u32[]",
+      "doc": "Triangles."
+    },
+    {
+      "name": "bone_a",
+      "type": "u32[]",
+      "doc": "Skinning: first bone."
+    },
+    {
+      "name": "bone_b",
+      "type": "u32[]",
+      "doc": "Skinning: second bone."
+    },
+    {
+      "name": "bone_w",
+      "type": "f32[]",
+      "doc": "Skinning: the second bone's weight."
+    },
+    {
+      "name": "colors",
+      "type": "u32[]",
+      "doc": "Packed RGBA per vertex."
+    },
+    {
+      "name": "collision",
+      "type": "physics_v1_body[]",
+      "doc": "What collides: stalls, carts, posts, crates, a bridge deck."
+    }
+  ]
+}

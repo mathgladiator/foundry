@@ -18,17 +18,18 @@ struct house_v1_bone {
   static constexpr uint32_t kMotionRise = 3;
   static constexpr uint32_t kMotionHinge = 4;
   static constexpr uint32_t kMotionFlicker = 5;
+  static constexpr uint32_t kMotionDrift = 6;
   // The parent bone, or -1.
   int32_t parent = 0;
   // Where it turns, metres, in the model's rest frame.
   foundry::vec3 pivot;
-  // A unit axis: what it spins or hinges about; for sway, the way the part hangs or streams; for rise, up.
+  // A unit axis: what it spins or hinges about; for sway, the line it hangs from (a sign's bracket, a banner's pole, a washing line, an awning's edge, a tent flap's seam), which it turns about, so it never comes away; for rise, up.
   foundry::vec3 axis;
-  // fixed (the root), sway (bends in the wind: a sign, a banner, laundry, an awning, the tent), spin (a wheel, sails, a weathervane), rise (a smoke puff rising, swelling, and fading, on a loop), hinge (the door, by door_time), flicker (a glow or flame pulsing).
+  // fixed (the root), sway (swings about the line it hangs from, pushed by the wind across it: a sign, a banner, laundry, an awning's valance, the tent's flap), spin (a wheel, sails, a weathervane), rise (a smoke puff rising, swelling, and fading, on a loop), hinge (the door, by door_time), flicker (a glow or flame pulsing). Drift: it moves downwind in the gusts, by up to reach metres (a crop's wind group: its vertices blend toward it by height, so every plant on it bends from its own root).
   uint32_t motion = 0;
   // Spin: turns per second (sails and vanes turn faster with the wind); rise: loops per second; sway: its natural frequency, Hz; flicker: Hz.
   float rate = 0.0f;
-  // Hinge: the open angle, radians; rise: how high a puff goes, metres; flicker: how much it pulses (0 to 1); sway: the most it bends, radians.
+  // Hinge: the open angle, radians; rise: how high a puff goes, metres; flicker: how much it pulses (0 to 1); sway: the most it swings, radians.
   float reach = 0.0f;
   // How much the wind moves it (0: not at all).
   float drag = 0.0f;

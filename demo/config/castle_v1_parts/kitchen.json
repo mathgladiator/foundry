@@ -1,0 +1,45 @@
+{
+  "created_at": "2026-10-13T23:30:00Z",
+  "doc": "The kitchen: a low stone range with big chimneys and their smoke.",
+  "notes": [],
+  "state": "draft",
+  "value": {
+    "name": "kitchen",
+    "kind": "range",
+    "size": "small",
+    "stone_color": [
+      0.66,
+      0.64,
+      0.6
+    ],
+    "trim_color": [
+      0.76,
+      0.74,
+      0.7
+    ],
+    "roof": "slate",
+    "roof_color": [
+      0.32,
+      0.34,
+      0.4
+    ],
+    "door_color": [
+      0.38,
+      0.26,
+      0.16
+    ],
+    "accent": [
+      0.68,
+      0.14,
+      0.14
+    ],
+    "stories": 1,
+    "story_height": 3.6,
+    "crenellated": false,
+    "turrets": false,
+    "banners": false,
+    "chimneys": true,
+    "windows": "arched",
+    "doors": "door"
+  }
+}

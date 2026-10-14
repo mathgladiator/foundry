@@ -1,0 +1,35 @@
+{
+  "created_at": "2026-10-13T19:30:00Z",
+  "doc": "A fishery: a hut on the bank, a short jetty, nets drying on racks, boats drawn up.",
+  "notes": [],
+  "state": "draft",
+  "value": {
+    "name": "fishery",
+    "kind": "fishery",
+    "wood_color": [
+      0.48,
+      0.36,
+      0.24
+    ],
+    "wall_color": [
+      0.62,
+      0.5,
+      0.36
+    ],
+    "roof_color": [
+      0.7,
+      0.6,
+      0.36
+    ],
+    "accent": [
+      0.62,
+      0.55,
+      0.4
+    ],
+    "boats": 2,
+    "crane": false,
+    "nets": true,
+    "barrels": true,
+    "lamp": false
+  }
+}

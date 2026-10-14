@@ -1,0 +1,40 @@
+{
+  "created_at": "2026-10-14T06:00:00Z",
+  "doc": "Maize: tall stalks, long leaves, cobs in their husks, tassels.",
+  "notes": [],
+  "state": "draft",
+  "value": {
+    "name": "maize",
+    "kind": "tall_stalk",
+    "height": 2.2,
+    "spacing": 0.6,
+    "row_spacing": 0.9,
+    "stem_color": [
+      0.5,
+      0.62,
+      0.3
+    ],
+    "leaf_color": [
+      0.36,
+      0.58,
+      0.26
+    ],
+    "fruit_color": [
+      0.85,
+      0.78,
+      0.4
+    ],
+    "flower_color": [
+      0,
+      0,
+      0
+    ],
+    "ripe_color": [
+      0.78,
+      0.68,
+      0.38
+    ],
+    "fruit_size": 0.12,
+    "sway": 0.5
+  }
+}

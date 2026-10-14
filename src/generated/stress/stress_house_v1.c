@@ -5,15 +5,21 @@
 #include "stress.h"
 
 static const char *const type_values[] = {"alchemist", "bakery", "carpenter", "cottage", "farmhouse", "general_store", "inn", "mill", "smithy", "tailor"};
-static const char *const stage_values[] = {"construction", "basic", "deluxe", "premium"};
+static const char *const palette_values[] = {"autumn", "black", "blue", "green", "natural", "northern", "orange", "purple", "red", "white", "whitewash", "yellow"};
+static const char *const theme_values[] = {"desert", "druidic", "dwarven", "elven", "heartland", "marsh", "nordic", "stone_dome"};
+static const char *const stage_values[] = {"construction", "basic", "deluxe", "premium", "ruin"};
 static const char *const season_values[] = {"winter", "spring", "summer", "fall"};
+static const char *const household_values[] = {"solo", "family", "extended"};
 static const char *const footprint_values[] = {"usual", "alternate"};
 static const char *const detail_values[] = {"high", "medium", "low"};
 
 static const stress_param params[] = {
     {"type", STRESS_ENUM, STRESS_BUILD, type_values, 10, 0.0, 0.0, {.u = 3u}, -1, 0},
-    {"stage", STRESS_ENUM, STRESS_BUILD, stage_values, 4, 0.0, 0.0, {.u = 2u}, -1, 0},
+    {"palette", STRESS_ENUM, STRESS_BUILD, palette_values, 12, 0.0, 0.0, {.u = 4u}, -1, 0},
+    {"theme", STRESS_ENUM, STRESS_BUILD, theme_values, 8, 0.0, 0.0, {.u = 4u}, -1, 0},
+    {"stage", STRESS_ENUM, STRESS_BUILD, stage_values, 5, 0.0, 0.0, {.u = 2u}, -1, 0},
     {"season", STRESS_ENUM, STRESS_BUILD, season_values, 4, 0.0, 0.0, {.u = 2u}, -1, 0},
+    {"household", STRESS_ENUM, STRESS_BUILD, household_values, 3, 0.0, 0.0, {.u = 1u}, -1, 0},
     {"footprint", STRESS_ENUM, STRESS_BUILD, footprint_values, 2, 0.0, 0.0, {.u = 0u}, -1, 0},
     {"seed", STRESS_U32, STRESS_BUILD, 0, 0, 1.0, 1000.0, {.u = 1u}, -1, 0},
     {"detail", STRESS_ENUM, STRESS_BUILD, detail_values, 3, 0.0, 0.0, {.u = 0u}, -1, 0},
@@ -28,35 +34,41 @@ static foundry_instance spawn(foundry_runtime *rt, const stress_value *v, const 
   foundry_house_v1_params p;
   foundry_house_v1_default_params(&p);
   p.type = (foundry_house_v1_type)v[0].u;
-  p.stage = (foundry_house_v1_stage)v[1].u;
-  p.season = (foundry_house_v1_season)v[2].u;
-  p.footprint = (foundry_house_v1_footprint)v[3].u;
-  p.seed = v[4].u;
-  p.detail = (foundry_house_v1_detail)v[5].u;
-  p.wind_speed = v[6].f;
-  p.wind_heading = v[7].f;
-  p.gust_damping = v[8].f;
+  p.palette = (foundry_house_v1_palette)v[1].u;
+  p.theme = (foundry_house_v1_theme)v[2].u;
+  p.stage = (foundry_house_v1_stage)v[3].u;
+  p.season = (foundry_house_v1_season)v[4].u;
+  p.household = (foundry_house_v1_household)v[5].u;
+  p.footprint = (foundry_house_v1_footprint)v[6].u;
+  p.seed = v[7].u;
+  p.detail = (foundry_house_v1_detail)v[8].u;
+  p.wind_speed = v[9].f;
+  p.wind_heading = v[10].f;
+  p.gust_damping = v[11].f;
   return foundry_house_v1_spawn(rt, &p, transform);
 }
 
 static foundry_status set(foundry_runtime *rt, foundry_instance i, uint32_t param, stress_value v) {
   switch (param) {
     case 0: return foundry_house_v1_set_type(rt, i, (foundry_house_v1_type)v.u);
-    case 1: return foundry_house_v1_set_stage(rt, i, (foundry_house_v1_stage)v.u);
-    case 2: return foundry_house_v1_set_season(rt, i, (foundry_house_v1_season)v.u);
-    case 3: return foundry_house_v1_set_footprint(rt, i, (foundry_house_v1_footprint)v.u);
-    case 4: return foundry_house_v1_set_seed(rt, i, v.u);
-    case 5: return foundry_house_v1_set_detail(rt, i, (foundry_house_v1_detail)v.u);
-    case 6: return foundry_house_v1_set_wind_speed(rt, i, v.f);
-    case 7: return foundry_house_v1_set_wind_heading(rt, i, v.f);
-    case 8: return foundry_house_v1_set_gust_damping(rt, i, v.f);
+    case 1: return foundry_house_v1_set_palette(rt, i, (foundry_house_v1_palette)v.u);
+    case 2: return foundry_house_v1_set_theme(rt, i, (foundry_house_v1_theme)v.u);
+    case 3: return foundry_house_v1_set_stage(rt, i, (foundry_house_v1_stage)v.u);
+    case 4: return foundry_house_v1_set_season(rt, i, (foundry_house_v1_season)v.u);
+    case 5: return foundry_house_v1_set_household(rt, i, (foundry_house_v1_household)v.u);
+    case 6: return foundry_house_v1_set_footprint(rt, i, (foundry_house_v1_footprint)v.u);
+    case 7: return foundry_house_v1_set_seed(rt, i, v.u);
+    case 8: return foundry_house_v1_set_detail(rt, i, (foundry_house_v1_detail)v.u);
+    case 9: return foundry_house_v1_set_wind_speed(rt, i, v.f);
+    case 10: return foundry_house_v1_set_wind_heading(rt, i, v.f);
+    case 11: return foundry_house_v1_set_gust_damping(rt, i, v.f);
   }
   return FOUNDRY_STATUS_BAD_PARAMETER;
 }
 
 static foundry_status trigger(foundry_runtime *rt, foundry_instance i, uint32_t param) {
   switch (param) {
-    case 10: return foundry_house_v1_start_door(rt, i);
+    case 13: return foundry_house_v1_start_door(rt, i);
   }
   return FOUNDRY_STATUS_BAD_PARAMETER;
 }
@@ -64,7 +76,7 @@ static foundry_status trigger(foundry_runtime *rt, foundry_instance i, uint32_t 
 static const char *const systems[] = {"house_build_v1", "house_animate_v1"};
 
 /* Linked by the plotters' region runs too, which build this file with STRESS_NO_MAIN. */
-const stress_pipeline stress_binding_house_v1 = {"house_v1", "draft", params, 11, systems, 2, spawn, set, trigger, NULL};
+const stress_pipeline stress_binding_house_v1 = {"house_v1", "draft", params, 14, systems, 2, spawn, set, trigger, NULL};
 
 #ifndef STRESS_NO_MAIN
 int main(int argc, char **argv) {

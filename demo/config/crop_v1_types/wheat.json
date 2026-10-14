@@ -1,0 +1,40 @@
+{
+  "created_at": "2026-10-14T06:00:00Z",
+  "doc": "Bread wheat: tall tufts with long heads, gold when ripe.",
+  "notes": [],
+  "state": "draft",
+  "value": {
+    "name": "wheat",
+    "kind": "grain",
+    "height": 1.0,
+    "spacing": 0.3,
+    "row_spacing": 0.45,
+    "stem_color": [
+      0.55,
+      0.62,
+      0.3
+    ],
+    "leaf_color": [
+      0.42,
+      0.6,
+      0.28
+    ],
+    "fruit_color": [
+      0.7,
+      0.7,
+      0.35
+    ],
+    "flower_color": [
+      0,
+      0,
+      0
+    ],
+    "ripe_color": [
+      0.88,
+      0.74,
+      0.36
+    ],
+    "fruit_size": 0.12,
+    "sway": 0.9
+  }
+}

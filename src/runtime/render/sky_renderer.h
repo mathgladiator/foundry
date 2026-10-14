@@ -12,6 +12,7 @@
 #include <string>
 #include <vector>
 
+#include "render/look.h"
 #include "sky/sky.h"
 
 namespace runtime {
@@ -21,6 +22,12 @@ struct LightUniform {
   float key_dir[4], key[4], ambient[4], fog[4], eye[4];
   float shadow_vp[16];
   float shadow[4], shadow_at[4], cloud[4], cloud_wind[4];
+  // Fires' lights (design/submit.md, "Fire"): how many, then each one's place and reach, and its
+  // colour times its strength.
+  static constexpr int kFireLights = 8;
+  float fire_count[4];
+  float fire_pos[kFireLights][4], fire_col[kFireLights][4];
+  float look[12];  // look.hlsli's LookData
 };
 
 // sky.hlsli's SkyData.
@@ -31,6 +38,7 @@ struct SkyUniform {
   float to_stars[3][4];
   float stars[4], lit_color[4], cloud[4], cloud_wind[4], cloud_lit[4], cloud_shade[4];
   float aurora[4], aurora_low[4], aurora_high[4], night[4], ground[4];
+  float look[12];  // look.hlsli's LookData
 };
 
 // What a mesh pass binds for its light: the uniform, and the shadow map and cloud map.
@@ -80,6 +88,9 @@ class SkyRenderer {
   // The light every mesh shader shares: the classic fixed one, or the sky's (with the shadow map
   // when shadow is given). Its samplers are bound either way.
   LightBinding classic_light();
+  // The game's look (look.h), written into every light and sky uniform from now on.
+  void set_look(const Look &look) { look_ = look; }
+  const Look &look() const { return look_; }
   LightBinding light(const sky::Frame &f, const sky::State &s, const float eye[3], double time, const ShadowView *shadow);
   SkyUniform sky_uniform(const sky::Frame &f, const sky::State &s, const SkyCamera &cam, double time) const;
   void sky_samplers(SDL_GPUTextureSamplerBinding out[3]) const;
@@ -88,6 +99,7 @@ class SkyRenderer {
   void draw(SDL_GPUCommandBuffer *cmd, SDL_GPURenderPass *pass, const SkyUniform &u);
 
  private:
+  Look look_;
   SDL_GPUTexture *texture(SDL_GPUTextureType type, SDL_GPUTextureFormat format, uint32_t size, uint32_t layers,
                           SDL_GPUTextureUsageFlags usage);
   void put(SDL_GPUCopyPass *copy, SDL_GPUTexture *tex, uint32_t layer, uint32_t size, const void *data, uint32_t bytes);

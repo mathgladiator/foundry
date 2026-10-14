@@ -280,6 +280,23 @@ foundry_configure_shader(rt, &shader);
 const foundry_shader_export *exp = foundry_get_shader(rt);
 ```
 
+## The look
+
+The look (`submit.md`, "The look") is macro-level configuration: the game sets it from its settings, or changes it any frame for an effect.
+
+```c
+foundry_look look;
+foundry_look_default(&look);            /* changes nothing */
+look.vision = FOUNDRY_VISION_DEUTERANOPIA;
+look.contrast = 0.6f;
+foundry_set_look(rt, &look);
+/* a cutscene: fade to a red duotone */
+look.effect = FOUNDRY_LOOK_EFFECT_TINT;
+look.tint[0] = 0.85f; look.tint[1] = 0.12f; look.tint[2] = 0.1f;
+look.strength = t;                      /* 0 to 1 */
+foundry_set_look(rt, &look);
+```
+
 ## Errors
 
 Every call that can fail returns a status code, and nothing crashes on bad input from the game: a stale handle, an unknown mount name, or an out-of-range parameter is reported and ignored. Bugs inside a system are a different matter: native code can't contain them, so they are meant to be caught earlier, in the instrumented WebAssembly build and in play testing (`spine.md`, "The native build").

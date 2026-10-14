@@ -1,0 +1,11 @@
+{
+  "name": "wall_build",
+  "version": 1,
+  "kind": "system",
+  "doc": "Builds a wall network (design/planner.md, Walls, fences, and gates) on the hex grid's diagonal lattice (line_v1_network: nodes and links along lines through opposite corners, so it stays straight and meets at 60 and 120 degrees), or one chunk of it, as one model at its nodes' heights, from its kind (a config entry: logs, stone, brick, or earth; height, thickness, batter, footing; battlements, a wall-walk on its inside, buttresses; towers square or round with their roofs and banners, at junctions, at bends past a turn, every so often along runs, and where the network says): runs rising with the ground, piers at ends and bends, openings at gate nodes and links (reported for gate_v1: middle, turn, width); snow on its tops in winter; collision, and guides showing the lattice and its openings.",
+  "input": "wall_v1_spec",
+  "output": "wall_v1_model",
+  "state": "draft",
+  "notes": [],
+  "created_at": "2026-10-13T23:30:00Z"
+}

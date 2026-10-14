@@ -20,6 +20,10 @@ struct Paths {
 
 std::string wasm_path(const Paths &p, const std::string &system);
 std::string native_path(const Paths &p, const std::string &system);
+// FOUNDRY_DUMP_MISMATCH=<dir>: when a native output differs from WebAssembly's, keep the input and
+// both outputs there (<system>.input, .wasm, .native) to find where they part.
+void dump_mismatch(const std::string &system, const std::vector<uint8_t> &input, const std::vector<uint8_t> &wasm,
+                   const std::vector<uint8_t> &native);
 
 // Creates src/systems/<name>_v<version>/ with a manifest and a source file
 // (a stub that reports "not implemented" when `source` is empty).

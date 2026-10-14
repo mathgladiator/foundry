@@ -16,6 +16,7 @@
 #include <mutex>
 #include <string>
 
+#include "render/fire_renderer.h"
 #include "render/sky_renderer.h"
 #include "viewport/raster.h"
 
@@ -54,6 +55,8 @@ class GpuRenderer {
   SDL_GPUGraphicsPipeline *mesh_ = nullptr, *ink_ = nullptr, *down_ = nullptr, *lines_ = nullptr, *sky_ = nullptr, *shadow_ = nullptr;
   // An observatory's sky (Scene::sky): its textures, uniforms, and shadow map, and the ground it puts down.
   runtime::SkyRenderer sky_renderer_;
+  runtime::FireRenderer fire_renderer_;
+  bool fire_ok_ = false;
   runtime::Mesh ground_;
   float ground_key_[4] = {0, 0, 0, 0};  // the radius and colour it was made for
   SDL_GPUSampler *nearest_ = nullptr, *linear_ = nullptr;

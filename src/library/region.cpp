@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <cmath>
 #include <cstring>
+#include <map>
 #include <set>
 #include <string>
 #include <vector>
@@ -349,6 +350,133 @@ foundry_plotter foundry_plotter_find(const char *name) {
 const char *foundry_plotter_name(foundry_plotter plotter) {
   const plotters::Info *info = plotters::info(plotter);
   return info ? info->name : "";
+}
+
+}  // extern "C"
+
+// Boundaries (design/boundary.md): the ring of cells around a region, and the plotter's boundary.
+namespace {
+
+// The six neighbours, counterclockwise as seen from above, from east (north is -z).
+const int kDq[6] = {1, 1, 0, -1, -1, 0}, kDr[6] = {0, -1, -1, 0, 1, 1};
+
+// A hex corner's place, as integers (pointy-top, circumradius 1; corner j at 30 + 60 j degrees,
+// counterclockwise as seen from above): exact keys for chaining edges.
+std::pair<long, long> corner(int q, int r, int j) {
+  static const double kC[6] = {0.8660254, 0, -0.8660254, -0.8660254, 0, 0.8660254};
+  static const double kS[6] = {0.5, 1, 0.5, -0.5, -1, -0.5};
+  const double x = 1.7320508 * (q + r * 0.5) + kC[j], z = 1.5 * r - kS[j];
+  return {std::lround(x * 1000), std::lround(z * 1000)};
+}
+
+}  // namespace
+
+extern "C" {
+
+uint32_t foundry_region_hull(foundry_runtime *rt, foundry_region region, foundry_hull_cell *out, uint32_t capacity) {
+  regions::Region *r = regions::find(rt, region);
+  if (!r) return 0;
+  const plotters::Info *info = plotters::info(r->plotter);
+  channels::plot_v1_result res;
+  std::string error;
+  if (!info || !info->run(regions::request(*r, channels::plot_v1_request::kModeSeed, 0, true), res, error)) return 0;
+  std::map<std::pair<int32_t, int32_t>, float> height;
+  for (const auto &c : res.cells) height[{c.q, c.r}] = c.height;
+  // Every edge between a region cell and one outside, running counterclockwise around the region
+  // (the region on its left as seen from above): from the cell's corner before the neighbour's
+  // direction to the one after. They chain into loops: the outer one runs counterclockwise.
+  struct Edge {
+    std::pair<long, long> from, to;
+    int32_t q, r;  // the cell outside
+    float height;  // the region's cell's
+    bool used = false;
+  };
+  std::vector<Edge> edges;
+  std::multimap<std::pair<long, long>, size_t> starting;
+  for (const auto &[cell, h] : height)
+    for (int k = 0; k < 6; ++k) {
+      const int32_t nq = cell.first + kDq[k], nr = cell.second + kDr[k];
+      if (height.count({nq, nr})) continue;
+      Edge e;
+      e.from = corner(cell.first, cell.second, (k + 5) % 6);
+      e.to = corner(cell.first, cell.second, k);
+      e.q = nq;
+      e.r = nr;
+      e.height = h;
+      starting.insert({e.from, edges.size()});
+      edges.push_back(e);
+    }
+  std::vector<foundry_hull_cell> best;
+  double best_area = 0;
+  for (size_t s = 0; s < edges.size(); ++s) {
+    if (edges[s].used) continue;
+    std::vector<size_t> loop;
+    size_t at = s;
+    while (!edges[at].used) {
+      edges[at].used = true;
+      loop.push_back(at);
+      size_t next = edges.size();
+      auto range = starting.equal_range(edges[at].to);
+      for (auto it = range.first; it != range.second; ++it)
+        if (!edges[it->second].used) {
+          next = it->second;
+          break;
+        }
+      if (next == edges.size()) break;
+      at = next;
+    }
+    // The loop's area as seen from above (counterclockwise is positive with x east and z south).
+    double area = 0;
+    for (size_t i : loop) area += static_cast<double>(edges[i].to.first) * edges[i].from.second -
+                                  static_cast<double>(edges[i].from.first) * edges[i].to.second;
+    if (area <= best_area) continue;
+    best_area = area;
+    best.clear();
+    for (size_t i : loop) {
+      const Edge &e = edges[i];
+      if (!best.empty() && best.back().q == e.q && best.back().r == e.r) continue;
+      best.push_back({e.q, e.r, FOUNDRY_EDGE_AUTO, e.height, -1.0f, 0u, 0u});
+    }
+    while (best.size() > 1 && best.back().q == best.front().q && best.back().r == best.front().r) best.pop_back();
+  }
+  for (uint32_t i = 0; out && i < capacity && i < best.size(); ++i) out[i] = best[i];
+  return static_cast<uint32_t>(best.size());
+}
+
+foundry_instance foundry_region_spawn_boundary(foundry_runtime *rt, foundry_region region, const foundry_hull_cell *cells,
+                                               uint32_t count) {
+  regions::Region *r = regions::find(rt, region);
+  if (!r || (count && !cells)) return FOUNDRY_NO_INSTANCE;
+  const plotters::Info *info = plotters::info(r->plotter);
+  if (!info || !info->boundary) return FOUNDRY_NO_INSTANCE;
+  return info->boundary->spawn(rt, r->seed, r->transform, cells, count);
+}
+
+uint32_t foundry_region_spawn_figures(foundry_runtime *rt, foundry_region region, foundry_instance boundary, foundry_instance *out,
+                                      uint32_t capacity) {
+  regions::Region *r = regions::find(rt, region);
+  if (!r) return 0;
+  const plotters::Info *info = plotters::info(r->plotter);
+  if (!info || !info->boundary || !info->boundary->figure) return 0;
+  const uint32_t n = foundry_instance_figures(rt, boundary, nullptr, 0);
+  std::vector<foundry_figure> figures(n);
+  foundry_instance_figures(rt, boundary, figures.data(), n);
+  uint32_t spawned = 0;
+  for (const foundry_figure &f : figures) {
+    const float a = f.yaw * 0.0174532925f, c = std::cos(a), s = std::sin(a);
+    // Turned about +Y by its yaw, standing at its place (column-major).
+    const float t[16] = {c, 0, -s, 0, 0, 1, 0, 0, s, 0, c, 0, f.position[0], f.position[1], f.position[2], 1};
+    const foundry_instance i = info->boundary->figure(rt, &f, t);
+    if (i == FOUNDRY_NO_INSTANCE) continue;
+    if (out && spawned < capacity) out[spawned] = i;
+    ++spawned;
+  }
+  return spawned;
+}
+
+const char *foundry_plotter_boundary_name(foundry_plotter plotter) {
+  const plotters::Info *info = plotters::info(plotter);
+  return info && info->boundary ? info->boundary->label : "";
 }
 
 }  // extern "C"

@@ -41,6 +41,13 @@ class Walker {
   // Stands the capsule with its feet at `feet`, still.
   void spawn(const float feet[3]);
 
+  // The first place nearest (x, z) where the capsule fits: searching rings outward (every half metre,
+  // out to `radius`), the first open ground (its own ground, with nothing overhead, flat enough to
+  // stand on) where it touches nothing. `on_floor`: the wide floor counts as ground (a scene with no ground
+  // of its own); `solid_ground`: solid bodies count as ground too (a terrain's columns).
+  // Writes the feet and returns true, or false when nothing fits.
+  bool find_spawn(float x, float z, float radius, bool on_floor, float feet[3], bool solid_ground = false);
+
   struct Input {
     float forward = 0, right = 0;  // -1 to 1, along the heading
     float heading = 0;             // radians from north (-Z) toward east (+X)

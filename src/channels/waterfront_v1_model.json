@@ -1,0 +1,118 @@
+{
+  "family": "waterfront",
+  "version": 1,
+  "feature": "model",
+  "doc": "A built waterfront building: its mesh and bones (boats rock, nets sway, the crane's jib turns), its lot's cells (and which are water), its box, and collision.",
+  "fields": [
+    {
+      "name": "height",
+      "type": "f32",
+      "doc": "Height, metres (conformance)."
+    },
+    {
+      "name": "radius",
+      "type": "f32",
+      "doc": "Conformance radius, metres."
+    },
+    {
+      "name": "fire_points",
+      "type": "vec3[]",
+      "doc": "Where fires burn, metres: hearths, forges, torches, braziers (lit), and points over its roof and walls that burn when it does."
+    },
+    {
+      "name": "fire_configs",
+      "type": "u32[]",
+      "doc": "Each fire point's fire config (fire_v1_config's id)."
+    },
+    {
+      "name": "fire_lit",
+      "type": "u32[]",
+      "doc": "Each fire point: 1 always lit (a hearth, a torch), 0 only while the building burns, 2 its smoke only (a chimney or a smoke hole: the hearth's smoke without its flames)."
+    },
+    {
+      "name": "footprint",
+      "type": "u32",
+      "doc": "Which lot it stands on.",
+      "enum": [
+        "rect3x4",
+        "rect4x5",
+        "rect5x6"
+      ]
+    },
+    {
+      "name": "footprint_cells",
+      "type": "u32",
+      "doc": "The round footprint that holds it, for plotters that know only those."
+    },
+    {
+      "name": "footprint_radius",
+      "type": "f32",
+      "doc": "The radius its round footprint must hold, metres."
+    },
+    {
+      "name": "cells",
+      "type": "i32[]",
+      "doc": "The cells it stands on, as q, r pairs (axial, pointy-top, 1 m cells), relative to the cell under the origin; +z is the water."
+    },
+    {
+      "name": "wet",
+      "type": "i32[]",
+      "doc": "Which of its cells are water, as q, r pairs: a planner places it where these are water and the rest land."
+    },
+    {
+      "name": "lot_min",
+      "type": "vec3",
+      "doc": "The lot's box, its low corner, metres."
+    },
+    {
+      "name": "lot_max",
+      "type": "vec3",
+      "doc": "The lot's box, its high corner, metres."
+    },
+    {
+      "name": "bones",
+      "type": "house_v1_bone[]",
+      "doc": "The moving parts, animated by house_animate_v1."
+    },
+    {
+      "name": "positions",
+      "type": "vec3[]",
+      "doc": "Vertex positions."
+    },
+    {
+      "name": "normals",
+      "type": "vec3[]",
+      "doc": "Vertex normals."
+    },
+    {
+      "name": "indices",
+      "type": "u32[]",
+      "doc": "Triangles."
+    },
+    {
+      "name": "bone_a",
+      "type": "u32[]",
+      "doc": "Skinning: first bone."
+    },
+    {
+      "name": "bone_b",
+      "type": "u32[]",
+      "doc": "Skinning: second bone."
+    },
+    {
+      "name": "bone_w",
+      "type": "f32[]",
+      "doc": "Skinning: the second bone's weight."
+    },
+    {
+      "name": "colors",
+      "type": "u32[]",
+      "doc": "Packed RGBA per vertex."
+    },
+    {
+      "name": "collision",
+      "type": "physics_v1_body[]",
+      "doc": "What collides: buildings, decks, the crane."
+    }
+  ]
+}

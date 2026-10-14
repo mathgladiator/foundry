@@ -8,7 +8,7 @@
 
 namespace foundry::json {
 
-inline constexpr std::array<const char *, 6> kHouseV1BoneMotion = {"fixed", "sway", "spin", "rise", "hinge", "flicker"};
+inline constexpr std::array<const char *, 7> kHouseV1BoneMotion = {"fixed", "sway", "spin", "rise", "hinge", "flicker", "drift"};
 
 inline nlohmann::json to_json(const channels::house_v1_bone &c) {
   nlohmann::json j = nlohmann::json::object();

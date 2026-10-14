@@ -29,6 +29,10 @@ bool split(const std::string &path, std::string &table, std::string &entry);
 
 // The table channel's schema fields, each with name, type, and any min, max, enum, and doc.
 nlohmann::json fields(const nlohmann::json &table);
+// The same for any channel by name (a nested struct's fields); empty if there is no such channel.
+nlohmann::json channel_fields(const std::string &channel);
+// A fresh value of a channel (each field at its minimum, its first enum value, or empty).
+nlohmann::json blank(const std::string &channel);
 // Checks values ({field: value}) against the table's channel and merges them into value.
 bool apply(const nlohmann::json &table, nlohmann::json &value, const nlohmann::json &values, std::string &error);
 

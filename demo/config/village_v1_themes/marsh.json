@@ -1,0 +1,47 @@
+{
+  "created_at": "2026-10-14T04:30:00Z",
+  "doc": "A fen village: reed-thatched huts on stilts, boardwalks, reed fences, pale marsh lanterns.",
+  "notes": [],
+  "state": "draft",
+  "value": {
+    "name": "marsh",
+    "roof": "cone",
+    "plan": "as_type",
+    "walls": "plank",
+    "windows": "square",
+    "foundation": "stilts",
+    "ornament": "prayer_flags",
+    "wall_color": [
+      0.5,
+      0.42,
+      0.3
+    ],
+    "trim_color": [
+      0.36,
+      0.28,
+      0.2
+    ],
+    "roof_color": [
+      0.72,
+      0.64,
+      0.4
+    ],
+    "accent": [
+      0.5,
+      0.8,
+      0.7
+    ],
+    "mix": 0.7,
+    "moss": 0.3,
+    "smoke_hole": true,
+    "hearth_fire": 9,
+    "torch_fire": 12,
+    "blaze_fire": 4,
+    "road_lane": "boardwalk",
+    "road_high": "boardwalk",
+    "road_square": "boardwalk",
+    "wall_kind": "palisade",
+    "fence_kind": "reed",
+    "gate_type": "wooden_gate"
+  }
+}

@@ -1,0 +1,88 @@
+{
+  "family": "crop",
+  "version": 1,
+  "feature": "type",
+  "doc": "A crop (design/planner.md, Crops), as a config entry: how its plants grow, how far apart, how tall, their colours, and how much the wind moves them.",
+  "fields": [
+    {
+      "name": "name",
+      "type": "string",
+      "doc": "The crop's name (wheat, cabbage)."
+    },
+    {
+      "name": "kind",
+      "type": "u32",
+      "doc": "How its plants grow: grain (stalks with heads), a tall stalk (maize, sunflowers), a leafy head (cabbage, lettuce), root tops (carrots, potatoes), gourds on the ground (pumpkins), a pole vine (beans), a trellis vine (grapes), or flowering bushes (lavender).",
+      "enum": [
+        "grain",
+        "tall_stalk",
+        "leafy_head",
+        "root",
+        "gourd",
+        "pole_vine",
+        "trellis_vine",
+        "flowering"
+      ]
+    },
+    {
+      "name": "height",
+      "type": "f32",
+      "doc": "A ripe plant's height, metres.",
+      "min": 0.1,
+      "max": 3
+    },
+    {
+      "name": "spacing",
+      "type": "f32",
+      "doc": "Metres between plants along a row.",
+      "min": 0.15,
+      "max": 2
+    },
+    {
+      "name": "row_spacing",
+      "type": "f32",
+      "doc": "Metres between rows.",
+      "min": 0.3,
+      "max": 3
+    },
+    {
+      "name": "stem_color",
+      "type": "vec3",
+      "doc": "Stems and stalks."
+    },
+    {
+      "name": "leaf_color",
+      "type": "vec3",
+      "doc": "Leaves."
+    },
+    {
+      "name": "fruit_color",
+      "type": "vec3",
+      "doc": "What it bears: heads, cobs, gourds, bunches, roots' shoulders."
+    },
+    {
+      "name": "flower_color",
+      "type": "vec3",
+      "doc": "Its flowers."
+    },
+    {
+      "name": "ripe_color",
+      "type": "vec3",
+      "doc": "The colour ripe grain or leaves turn."
+    },
+    {
+      "name": "fruit_size",
+      "type": "f32",
+      "doc": "How big what it bears is, metres.",
+      "min": 0.02,
+      "max": 0.8
+    },
+    {
+      "name": "sway",
+      "type": "f32",
+      "doc": "How much the wind moves it, 0 to 1.",
+      "min": 0,
+      "max": 1
+    }
+  ]
+}

@@ -1,0 +1,44 @@
+{
+  "created_at": "2026-10-13T23:30:00Z",
+  "doc": "A keep's wall: taller and thicker than the town's, round towers with cone roofs close together, the lord's banners.",
+  "notes": [],
+  "state": "draft",
+  "value": {
+    "name": "keep_wall",
+    "material": "stone",
+    "color": [
+      0.66,
+      0.64,
+      0.6
+    ],
+    "trim_color": [
+      0.76,
+      0.74,
+      0.7
+    ],
+    "height": 7.0,
+    "thickness": 2.2,
+    "batter": 0.5,
+    "footing": 1.4,
+    "crenellated": true,
+    "walkway": true,
+    "buttresses": false,
+    "tower": "round",
+    "tower_radius": 2.6,
+    "tower_height": 4.0,
+    "tower_roof": "cone",
+    "roof_color": [
+      0.32,
+      0.34,
+      0.4
+    ],
+    "banners": true,
+    "accent": [
+      0.68,
+      0.14,
+      0.14
+    ],
+    "tower_every_m": 26.0,
+    "tower_turn_deg": 35.0
+  }
+}

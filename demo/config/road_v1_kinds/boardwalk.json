@@ -1,0 +1,39 @@
+{
+  "created_at": "2026-10-14T04:30:00Z",
+  "doc": "A marsh village's boardwalk: planks on piles.",
+  "notes": [],
+  "state": "draft",
+  "value": {
+    "name": "boardwalk",
+    "surface": "boardwalk",
+    "surface_color": [
+      0.5,
+      0.4,
+      0.28
+    ],
+    "detail_color": [
+      0.36,
+      0.28,
+      0.2
+    ],
+    "paved": 0.7,
+    "verge": "ditch",
+    "ruts": false,
+    "half": "crates",
+    "half_color": [
+      0.45,
+      0.34,
+      0.22
+    ],
+    "lamps": 0.06,
+    "lamp_color": [
+      0.7,
+      1.0,
+      0.85
+    ],
+    "signs": false,
+    "clutter": 0.12,
+    "planters": 0.0,
+    "quay": false
+  }
+}

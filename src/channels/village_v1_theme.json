@@ -1,0 +1,177 @@
+{
+  "family": "village",
+  "version": 1,
+  "feature": "theme",
+  "doc": "A village theme (design/planner.md, Themes), as a config entry: the architecture its buildings share (roof form, plan, walls, windows, foundations, ornaments, moss, colours), the fires its hearths, torches, and blazes burn, and the road, wall, fence, and gate kinds that suit it.",
+  "fields": [
+    {
+      "name": "name",
+      "type": "string",
+      "doc": "The theme's name (druidic, stone_dome)."
+    },
+    {
+      "name": "roof",
+      "type": "u32",
+      "doc": "Roof form: the type's own, a gable, a hip, a cone (thatched round huts), a dome (corbelled or plastered), flat (with a parapet), turf (a gable grown over with grass), or a sweep (curving eaves).",
+      "enum": [
+        "as_type",
+        "gable",
+        "hip",
+        "cone",
+        "dome",
+        "flat",
+        "turf",
+        "sweep"
+      ]
+    },
+    {
+      "name": "plan",
+      "type": "u32",
+      "doc": "Plan: the type's own, rectangular, or round (a roundhouse, a beehive hut).",
+      "enum": [
+        "as_type",
+        "rect",
+        "round"
+      ]
+    },
+    {
+      "name": "walls",
+      "type": "u32",
+      "doc": "Wall material: the type's own, or timber, plank, log, stone, brick, wattle and daub, drystone, adobe, living wood, or marble.",
+      "enum": [
+        "as_type",
+        "timber",
+        "plank",
+        "log",
+        "stone",
+        "brick",
+        "wattle",
+        "drystone",
+        "adobe",
+        "living",
+        "marble"
+      ]
+    },
+    {
+      "name": "windows",
+      "type": "u32",
+      "doc": "Windows: the type's own, square, round, arched, or slits.",
+      "enum": [
+        "as_type",
+        "square",
+        "round",
+        "arched",
+        "slit"
+      ]
+    },
+    {
+      "name": "foundation",
+      "type": "u32",
+      "doc": "What it stands on: a stone base, stilts, an earth mound, or nothing.",
+      "enum": [
+        "stone",
+        "stilts",
+        "mound",
+        "none"
+      ]
+    },
+    {
+      "name": "ornament",
+      "type": "u32",
+      "doc": "What adorns it: nothing, carved posts and bargeboards, standing stones, dragon heads on its gables, crystals, prayer flags, or lanterns.",
+      "enum": [
+        "none",
+        "carvings",
+        "standing_stones",
+        "dragon_heads",
+        "crystals",
+        "prayer_flags",
+        "lanterns"
+      ]
+    },
+    {
+      "name": "wall_color",
+      "type": "vec3",
+      "doc": "Walls."
+    },
+    {
+      "name": "trim_color",
+      "type": "vec3",
+      "doc": "Timbers, frames, carvings."
+    },
+    {
+      "name": "roof_color",
+      "type": "vec3",
+      "doc": "The roof."
+    },
+    {
+      "name": "accent",
+      "type": "vec3",
+      "doc": "Cloth, flags, crystals' glow."
+    },
+    {
+      "name": "mix",
+      "type": "f32",
+      "doc": "How far its colours replace the type's, 0 to 1.",
+      "min": 0,
+      "max": 1
+    },
+    {
+      "name": "moss",
+      "type": "f32",
+      "doc": "How much moss and green grows on roofs and walls, 0 to 1.",
+      "min": 0,
+      "max": 1
+    },
+    {
+      "name": "smoke_hole",
+      "type": "bool",
+      "doc": "Smoke leaves through a hole at the roof's apex instead of a chimney."
+    },
+    {
+      "name": "hearth_fire",
+      "type": "u32",
+      "doc": "The fire config (fire_v1_config's id) of its hearths and forges."
+    },
+    {
+      "name": "torch_fire",
+      "type": "u32",
+      "doc": "The fire config of its torches, lamps, and braziers."
+    },
+    {
+      "name": "blaze_fire",
+      "type": "u32",
+      "doc": "The fire config of a building of it burning."
+    },
+    {
+      "name": "road_lane",
+      "type": "string",
+      "doc": "The road kind (road_v1_kinds) for its lanes."
+    },
+    {
+      "name": "road_high",
+      "type": "string",
+      "doc": "For its high streets."
+    },
+    {
+      "name": "road_square",
+      "type": "string",
+      "doc": "For its squares and markets."
+    },
+    {
+      "name": "wall_kind",
+      "type": "string",
+      "doc": "The wall kind (wall_v1_kinds) round it."
+    },
+    {
+      "name": "fence_kind",
+      "type": "string",
+      "doc": "The fence kind (fence_v1_kinds) of its yards."
+    },
+    {
+      "name": "gate_type",
+      "type": "string",
+      "doc": "The gate type (gate_v1_types) in its walls."
+    }
+  ]
+}

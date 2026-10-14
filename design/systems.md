@@ -151,29 +151,35 @@ The person living on site upgrades it. Every stage stands on the same footprint,
 
 | Stage | What stands there |
 |---|---|
-| `construction` | The owner's tent and campfire, the plot staked out with string, a foundation half laid, a scaffold, a lumber pile, a cart |
+| `construction` | The household's tents (one per generation) and a campfire, the plot staked out with string, a foundation half laid, a scaffold, a lumber pile, a cart |
 | `basic` | A one-room house: plain walls, a thatched or plank roof, one door, a window or two, the type's simplest sign |
 | `deluxe` | Shingled roof, chimney, shutters, window boxes, a porch or awning, the type's real sign and its working doodads |
 | `premium` | A stone base, a second floor or a wing, dormers, lanterns, a fence and garden, banners, the type's showpiece (a forge's bellows, an inn's balcony) |
 
 ### Types (config `house_v1_types`)
 
-Each type is a config entry, so new ones need no code: its kind (`home`, `store`, `workshop`), its footprints, its walls, roof, and palette, its sign (a shape and a symbol: a mug, an anvil, a loaf), and its doodads by name. A starting set of ten: cottage, farmhouse, inn, general store, bakery, smithy, carpenter, tailor, alchemist, and mill.
+Each type is a config entry, so new ones need no code: its kind (`home`, `store`, `workshop`), its lot shapes, its walls, roof, and palette, its sign (a shape and a symbol: a mug, an anvil, a loaf), and its doodads by name. A starting set of ten: cottage, farmhouse, inn, general store, bakery, smithy, carpenter, tailor, alchemist, and mill.
 
-**Footprints** are diverse but reasonable (`style.md` §2): each type has a usual footprint and an alternate one, and the spec picks one. They are `flower7` and `flower19` (round), or `rect W×H`: H rows of W cells laid like bricks, so the plot is nearly rectangular and a house fits it better than a skewed `box`. The largest rectangle inside each (shrunk by 0.1 m from the lot's edge) is measured once:
-- `flower7`: 3.3 × 3.3 m;
-- `rect3x2`: 4.2 × 2.3 m;
-- `rect3x3`: 4.2 × 3.8 m;
-- `rect4x3`: 5.9 × 3.8 m;
-- `rect5x4`: 7.6 × 5.4 m;
-- `flower19`: 6.8 × 3.9 m.
+### Households and lots
 
-The house stands at the back of that rectangle, at 68% of it when basic, 80% deluxe, and 90% premium. Its yard is the rest of the lot, and the lot also stays inside the round footprint that holds its cells. The cottage, bakery, and alchemist take `flower7`; the tailor `rect3x2`; the general store and smithy `rect3x3`; the farmhouse, carpenter, and mill `rect4x3`; and the inn `flower19`. Each has a larger or smaller alternate. `book/house_v1.md` has the details and the measurements.
+A house must be big enough to believe a hero could live in it: stand up, work, and lie down. The lot's size is set by the **household** (the spec's `household`), and its shape by the type (a usual shape and an alternate one):
+
+| Household | Wide | Deep | Round | Long (a burgage) | Broad (a shopfront) |
+|---|---|---|---|---|---|
+| `solo`: one person | `rect5x4` (20 cells) | `rect4x5` (20) | `flower19` (19) | `rect3x8` (24) | `rect7x4` (28) |
+| `family`: a couple and their children | `rect6x5` (30) | `rect5x6` (30) | `flower37` (37) | `rect4x9` (36) | `rect9x5` (45) |
+| `extended`: several generations | `rect8x6` (48) | `rect6x8` (48) | `flower61` (61) | `rect5x11` (55) | `rect10x6` (60) |
+
+`rect W×H` is H rows of W cells laid like bricks, so the plot is nearly rectangular and a house fits it better than a skewed `box`; `flowerN` is a hex of hexes. The largest rectangle inside each (shrunk by 0.1 m from the lot's edge, `style.md` §2) is measured once, and `book/house_v1.md` lists them. The house stands against the back of that rectangle, its width 72% of the rectangle's when basic, 84% deluxe, and 92% premium, leaving a front yard of 2.0, 1.8, and 1.6 m (more on a flower, whose front bulges past the rectangle). A house deeper than it is wide turns its gable to the street, and is never deeper than 1.25 times its width (on a long lot, the rest is its back garden). An extended household's house has a second storey from deluxe on, and construction pitches a tent for each generation. The lot stays inside the round footprint that holds its cells (19 to 127 cells), for plotters that know only those; a planner (`planner.md`) places it by its exact cells. The model carries the lot's box (its cells' bounds up to the roof: a second, box conformance, which a planner's plot matches) and every lot as guides, which the viewer outlines on the ground at one fixed framing so the sizes compare.
+
+### Palettes
+
+A type's colours are its own; a **palette** (the spec's `palette`, a config entry of `house_v1_palette`) mixes colours over them part by part (roof, walls, trim, door, shutters, cloth, sign), each with a mix from 0 (the type's) to 1 (the palette's). One palette dresses any type: a player's colour (red, green, blue, purple, orange, yellow, black, white) or a village's theme. New palettes are config entries, vibed up without code.
 
 ### Moving, by itself and in the wind
 
 - **By itself:** chimney smoke (puffs that rise, swell, and fade, on a loop), a mill's waterwheel or sails, a weathervane, the forge's glow, a tent flap. These are the base animation, always on and cheap.
-- **In the wind** (`wind_speed`, `wind_heading`, `gust_damping` as the trees use): the hanging sign swings, banners and flags stream, laundry lines and awnings ripple, the tent breathes.
+- **In the wind** (`wind_speed`, `wind_heading`, `gust_damping` as the trees use): the hanging sign swings, banners and flags stream, laundry lines and awnings ripple, the tents' flaps lift. Each swings about the line it hangs from (a bracket, a pole, a line, an awning's edge, a flap's seam), so it never comes away from it.
 - **The door** opens and closes when the game sets `door_time` (an event, like the rock's break): 0.6 s to open, a 3 s visit, 0.8 s to close.
 - A house never settles, since its smoke, sails, and glows always move; see `book/house_v1.md`, "Known limits".
 
@@ -197,6 +203,23 @@ Walls and the roof are solid boxes. Fences, carts, and barrels are solid and low
 | `house_v1_pose` | The bones' matrices, and whether it has settled |
 
 Two systems, as the bush has: `house_build_v1` (spec to model) and `house_animate_v1` (motion to pose).
+
+## Roads, waterfronts, civic buildings, castles, walls, fences, and gates
+
+Settlements (`planner.md`) need more than houses. Each of these is its own pipeline, with its types or kinds in a config table, so new ones are data:
+
+- **Roads** are `road_v1`: one hex cell at a time, a **kind** (lane, street, high street, market, square, alley, bridge, quay, gate: surface, verges, the edge piece a half holds, lamps, sign posts, planters and crates against buildings, a quay), what its six neighbours are (a mask), which half an edge piece takes, and which edges a fence runs along. A road only builds what stands at its edges: an edge piece takes at most half a cell and keeps the cell's flow open (`book/road_v1.md`).
+- **Waterfronts** are `waterfront_v1`: a pier with boats, a boathouse, a quay warehouse with a crane, a fishery with nets, on a lot whose back two rows are land and the rest water; boats rock about their keels (`book/waterfront_v1.md`).
+- **Civic buildings** are `civic_v1`: a church, a temple, a court, a town hall, a guild hall, a library, a bank, a mage's tower, a market hall, and the centres a square's road rings (a well, a market cross, a fountain, a maypole, a statue, a shrine), on lots by size, plain to grand (`book/civic_v1.md`).
+- **Castles** are `castle_v1`: the keep, a great hall, a chapel, ranges (barracks, stables, a kitchen, storehouses), a tower: the parts of a keep's ward, a small village round a bailey inside the keep's wall (`book/castle_v1.md`).
+- **Walls and fences** are networks on the hex grid's diagonal lattice (`line_v1_network`): links along lines through hexagons' opposite corners, straight however long, meeting at 60 and 120 degrees in joins that fit, with gates at nodes or links. `wall_v1` (a palisade, a town wall, a curtain, a keep's wall, an earth bank, a brick wall) and `fence_v1` (pickets, rails, split rails, wattle, a hedge, a low stone wall, iron) each build a whole network, or a chunk of one, as one model; example networks in config show them (`book/wall_v1.md`, `book/fence_v1.md`).
+- **Gates** are `gate_v1`: a gate, an arch, a gatehouse, a tower gate, or a postern in each opening a wall's model reports, built with the wall's own kind so it matches any wall (`book/gate_v1.md`).
+- **Doors.** Houses, civic buildings, and castle parts report their doors' cells, fixed by the footprint, so a planner keeps the way in front of each door clear.
+
+- **Crops** are `crop_v1`: a field on a lot like a building's, sown in rows (16 crops in config: grains, maize, sunflowers, cabbages, lettuces, roots, pumpkins, beans, tomatoes, grapes, lavender, flax), from sown to ripe to harvested; its plants share a few wind groups, so a field poses with a handful of wind computations (`book/crop_v1.md`).
+- **Themes, ruins, and fire.** A village theme (`planner.md`, "Themes") sets the architecture of houses, civic buildings, castles, and waterfronts; every village pipeline has a ruin, and civic buildings and castles are built in steps (`planner.md`, "Ruins and building"); buildings carry fire points the runtime's fire system burns (`submit.md`, "Fire").
+
+All borrow the house's bones and animator (`house_v1_bone`, `house_animate_v1`) for what moves: awnings, boats, bells, banners, torches, doors, gates, and crops' wind groups (smoke is now the fire system's).
 
 ## Humanoid heroes and villains
 

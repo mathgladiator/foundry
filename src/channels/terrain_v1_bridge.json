@@ -1,0 +1,28 @@
+{
+  "family": "terrain",
+  "version": 1,
+  "feature": "bridge",
+  "doc": "A bridge where a road crosses water (design/terrain.md, Building it): its two mounts on the banks, for a bridge pipeline or the game.",
+  "fields": [
+    {
+      "name": "a",
+      "type": "vec3",
+      "doc": "The first mount: the bank's end of the deck, metres."
+    },
+    {
+      "name": "b",
+      "type": "vec3",
+      "doc": "The second mount, metres."
+    },
+    {
+      "name": "width",
+      "type": "f32",
+      "doc": "The road's width, metres."
+    },
+    {
+      "name": "cells",
+      "type": "i32[]",
+      "doc": "The cells it spans, as q, r pairs."
+    }
+  ]
+}

@@ -1,0 +1,47 @@
+{
+  "created_at": "2026-10-14T04:30:00Z",
+  "doc": "A hold's town: dark dressed stone, flat battlemented roofs, slit windows, brass lanterns, roaring forges.",
+  "notes": [],
+  "state": "draft",
+  "value": {
+    "name": "dwarven",
+    "roof": "flat",
+    "plan": "rect",
+    "walls": "stone",
+    "windows": "slit",
+    "foundation": "stone",
+    "ornament": "lanterns",
+    "wall_color": [
+      0.44,
+      0.42,
+      0.42
+    ],
+    "trim_color": [
+      0.62,
+      0.5,
+      0.28
+    ],
+    "roof_color": [
+      0.36,
+      0.35,
+      0.36
+    ],
+    "accent": [
+      0.8,
+      0.6,
+      0.2
+    ],
+    "mix": 0.85,
+    "moss": 0.05,
+    "smoke_hole": false,
+    "hearth_fire": 11,
+    "torch_fire": 8,
+    "blaze_fire": 4,
+    "road_lane": "street",
+    "road_high": "high_street",
+    "road_square": "square",
+    "wall_kind": "dwarf_rampart",
+    "fence_kind": "low_wall",
+    "gate_type": "gatehouse"
+  }
+}

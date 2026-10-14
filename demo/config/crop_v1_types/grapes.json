@@ -1,0 +1,40 @@
+{
+  "created_at": "2026-10-14T06:00:00Z",
+  "doc": "Grapes: vines along posts and wires, purple bunches.",
+  "notes": [],
+  "state": "draft",
+  "value": {
+    "name": "grapes",
+    "kind": "trellis_vine",
+    "height": 1.6,
+    "spacing": 1.2,
+    "row_spacing": 2.2,
+    "stem_color": [
+      0.42,
+      0.32,
+      0.22
+    ],
+    "leaf_color": [
+      0.38,
+      0.55,
+      0.25
+    ],
+    "fruit_color": [
+      0.42,
+      0.18,
+      0.42
+    ],
+    "flower_color": [
+      0,
+      0,
+      0
+    ],
+    "ripe_color": [
+      0.7,
+      0.55,
+      0.25
+    ],
+    "fruit_size": 0.12,
+    "sway": 0.25
+  }
+}

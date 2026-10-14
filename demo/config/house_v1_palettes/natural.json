@@ -1,0 +1,51 @@
+{
+  "created_at": "2026-10-13T17:00:00Z",
+  "doc": "Each type in its own colours: nothing mixed.",
+  "notes": [],
+  "state": "draft",
+  "value": {
+    "name": "natural",
+    "roof": [
+      0.5,
+      0.5,
+      0.5
+    ],
+    "roof_mix": 0.0,
+    "wall": [
+      0.5,
+      0.5,
+      0.5
+    ],
+    "wall_mix": 0.0,
+    "trim": [
+      0.5,
+      0.5,
+      0.5
+    ],
+    "trim_mix": 0.0,
+    "door": [
+      0.5,
+      0.5,
+      0.5
+    ],
+    "door_mix": 0.0,
+    "shutter": [
+      0.5,
+      0.5,
+      0.5
+    ],
+    "shutter_mix": 0.0,
+    "accent": [
+      0.5,
+      0.5,
+      0.5
+    ],
+    "accent_mix": 0.0,
+    "sign": [
+      0.5,
+      0.5,
+      0.5
+    ],
+    "sign_mix": 0.0
+  }
+}

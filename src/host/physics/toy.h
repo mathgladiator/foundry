@@ -27,9 +27,11 @@ struct Collision {
 // Registers Jolt's allocator, factory, and types, once for the process.
 void init_jolt();
 
-// conformance_radius 0: no conformance to check against.
+// conformance_radius 0: no conformance to check against. box_min and box_max (both or neither): a box
+// conformance too, which the collision must also stay inside.
 std::shared_ptr<const Collision> analyze(const std::vector<runtime::CollisionBody> &bodies, float conformance_radius,
-                                         float conformance_height);
+                                         float conformance_height, const foundry::vec3 *box_min = nullptr,
+                                         const foundry::vec3 *box_max = nullptr);
 
 // The collision's surfaces as wireframe lines, coloured by purpose (solid red, soft orange, query cyan,
 // sensor yellow), turned by yaw about +Y and moved to `at` (a placement in a region).

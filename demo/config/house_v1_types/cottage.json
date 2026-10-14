@@ -6,8 +6,8 @@
   "value": {
     "name": "cottage",
     "kind": "home",
-    "footprint": "flower7",
-    "footprint_alt": "rect3x2",
+    "footprint": "round",
+    "footprint_alt": "wide",
     "walls": "timber",
     "wall_color": [
       0.92,

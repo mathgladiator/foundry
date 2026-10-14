@@ -1,0 +1,23 @@
+{
+  "family": "plan",
+  "version": 1,
+  "feature": "line",
+  "doc": "A line in a plan (design/planner.md, What a plan holds): a wall, the keep's wall, or a fence, as a network of lattice links with its gates; the game builds it with wall_v1 or fence_v1.",
+  "fields": [
+    {
+      "name": "kind",
+      "type": "u32",
+      "doc": "What runs along it: the settlement's wall, the keep's wall, or a fence.",
+      "enum": [
+        "wall",
+        "keep_wall",
+        "fence"
+      ]
+    },
+    {
+      "name": "network",
+      "type": "line_v1_network",
+      "doc": "Its nodes, links, gates, and towers."
+    }
+  ]
+}

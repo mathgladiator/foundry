@@ -12,6 +12,8 @@
 
 #include "app/capture.h"
 #include "app/services.h"
+#include "plan/tools.h"
+#include "viewport/tools.h"
 #include "plot/tools.h"
 #include "assets/mesh_item.h"
 #include "assets/tools.h"
@@ -21,7 +23,9 @@
 #include "forge/tools.h"
 #include "meshy/tools.h"
 #include "perf/stress.h"
+#include "pipeline/compose.h"
 #include "pipeline/tools.h"
+#include "plot/grow.h"
 #include "sky/observatory.h"
 #include "sky/tools.h"
 #include "workspace/tools.h"
@@ -85,6 +89,7 @@ int main(int argc, char **argv) {
   core::log().add("app", "workspace: " + s.config.workspace);
 
   workspace::Workspace ws(root, s.config.workspace);
+  assets::set_fire_root(ws.root());
   ws.scan();
   wasm::Runner runner;
   meshy::Client meshy(s.config);
@@ -96,16 +101,29 @@ int main(int argc, char **argv) {
   assets::register_tools(registry, s.paths, runner, ws);
   meshy::register_tools(registry, meshy, ws);
   pipeline::Runner pipelines(s.paths, runner);
+  // The pipeline view's plotter fill (draw.nature) grows through the plot slice.
+  pipeline::set_nature_grower([&s, &pipelines, &runner](const std::string &plotter, const nlohmann::json &regions, uint32_t seed,
+                                                        const nlohmann::json &shared, runtime::Mesh &mesh, std::string &error) {
+    return plot::grow(s.paths, pipelines, runner, plotter, regions, seed, shared, mesh, error);
+  });
   pipeline::Live live(pipelines);
   pipeline::register_tools(registry, pipelines, live, ws);
   plot::View plot_view(s.paths, pipelines, runner);
   plot::register_tools(registry, plot_view);
+  plan::View plan_view(s.paths, pipelines, runner);
+  plan::register_tools(registry, plan_view);
+  viewport::register_tools(registry);
   sky::observatories().set_root(s.config.workspace);
   sky::register_tools(registry);
   perf::register_stress_tools(registry, s.paths, pipelines);
   // Selecting a pipeline or a config entry shows the live instance, posed for now.
-  assets::set_live_provider([&live, &plot_view](const workspace::Item &item, assets::ViewContent &v) {
+  assets::set_live_provider([&live, &plot_view, &plan_view](const workspace::Item &item, assets::ViewContent &v) {
     std::string error;
+    if (item.kind == "planner") {
+      // A planner shows its plan, planned and composed in the background.
+      if (!plan_view.show(item.name, error)) return false;
+      return plan::content(plan_view, v, 180000);
+    }
     if (item.kind == "plotter") {
       // A plotter shows its region, composed in the background.
       if (!plot_view.show(item.name, error)) return false;
@@ -126,6 +144,15 @@ int main(int argc, char **argv) {
     v.has_conformance = f.conformance_radius > 0;
     v.radius = f.conformance_radius;
     v.height = f.conformance_height;
+    v.has_box = f.has_box;
+    v.box_min = f.box_min;
+    v.box_max = f.box_max;
+    v.lines = f.guides;
+    v.fires = f.fires;
+    v.own_ground = f.terrain;
+    v.fire_time = f.time;
+    v.wind_speed = f.wind_speed;
+    v.wind_heading = f.wind_heading;
     return true;
   });
   registry.add({"ui_screenshot",
@@ -166,6 +193,7 @@ int main(int argc, char **argv) {
   s.server = &server;
   s.live = &live;
   s.plot = &plot_view;
+  s.plan = &plan_view;
 
   int rc = 0;
   if (headless) {

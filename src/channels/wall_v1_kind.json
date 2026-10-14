@@ -1,0 +1,144 @@
+{
+  "family": "wall",
+  "version": 1,
+  "feature": "kind",
+  "doc": "A kind of wall (design/planner.md, Walls), as a config entry: its material, height, thickness, crown, towers, and how its line is laid (module, towers, straightening), so a palisade, a town wall, and a castle's curtain are data.",
+  "fields": [
+    {
+      "name": "name",
+      "type": "string",
+      "doc": "The kind's name (palisade, town_wall)."
+    },
+    {
+      "name": "material",
+      "type": "u32",
+      "doc": "What it is built of: logs (a palisade), stone, brick, earth (a bank with a timber crown), megaliths (standing stones with lintels), drystone (unmortared, irregular courses), or living wood (woven willow and hawthorn, in leaf).",
+      "enum": [
+        "logs",
+        "stone",
+        "brick",
+        "earth",
+        "megalith",
+        "drystone",
+        "living"
+      ]
+    },
+    {
+      "name": "color",
+      "type": "vec3",
+      "doc": "The wall."
+    },
+    {
+      "name": "trim_color",
+      "type": "vec3",
+      "doc": "Copings, dressings, the wall-walk's planks, log tips."
+    },
+    {
+      "name": "height",
+      "type": "f32",
+      "doc": "The wall's height above the ground, metres.",
+      "min": 1.5,
+      "max": 14
+    },
+    {
+      "name": "thickness",
+      "type": "f32",
+      "doc": "Its thickness at the top, metres.",
+      "min": 0.25,
+      "max": 4
+    },
+    {
+      "name": "batter",
+      "type": "f32",
+      "doc": "How much wider its base is than its top, metres either side.",
+      "min": 0,
+      "max": 1.5
+    },
+    {
+      "name": "footing",
+      "type": "f32",
+      "doc": "How far it reaches below its base, so steps down a slope never show a gap, metres.",
+      "min": 0.2,
+      "max": 3
+    },
+    {
+      "name": "crenellated",
+      "type": "bool",
+      "doc": "Battlements along its top."
+    },
+    {
+      "name": "walkway",
+      "type": "bool",
+      "doc": "A wall-walk with a parapet (a palisade's: a fighting platform on posts behind it)."
+    },
+    {
+      "name": "buttresses",
+      "type": "bool",
+      "doc": "Buttresses along its outer face at each module."
+    },
+    {
+      "name": "tower",
+      "type": "u32",
+      "doc": "Its towers: none, square, or round.",
+      "enum": [
+        "none",
+        "square",
+        "round"
+      ]
+    },
+    {
+      "name": "tower_radius",
+      "type": "f32",
+      "doc": "A tower's half width (square) or radius (round), metres.",
+      "min": 0.5,
+      "max": 6
+    },
+    {
+      "name": "tower_height",
+      "type": "f32",
+      "doc": "How far a tower rises above the wall, metres.",
+      "min": 0,
+      "max": 12
+    },
+    {
+      "name": "tower_roof",
+      "type": "u32",
+      "doc": "A tower's top: none (crenellated), a cone, or a pyramid (a dome: corbelled stone, for a stone-dome village).",
+      "enum": [
+        "none",
+        "cone",
+        "pyramid",
+        "dome"
+      ]
+    },
+    {
+      "name": "roof_color",
+      "type": "vec3",
+      "doc": "Towers' roofs."
+    },
+    {
+      "name": "banners",
+      "type": "bool",
+      "doc": "Banners on towers that sway."
+    },
+    {
+      "name": "accent",
+      "type": "vec3",
+      "doc": "Banners."
+    },
+    {
+      "name": "tower_every_m",
+      "type": "f32",
+      "doc": "A tower at least this often along a straight run, metres (0: only at joins).",
+      "min": 0,
+      "max": 200
+    },
+    {
+      "name": "tower_turn_deg",
+      "type": "f32",
+      "doc": "Bends turning at least this much get a tower (60 or 120 on the lattice; 180: never); junctions always do.",
+      "min": 0,
+      "max": 180
+    }
+  ]
+}

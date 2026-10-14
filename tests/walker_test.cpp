@@ -106,6 +106,26 @@ int main() {
     CHECK(peak > 0.9f && peak < 1.6f);
     CHECK(std::fabs(f[1]) < 0.05f && w.grounded());
   }
+  {  // starts at the middle in the first place it fits: beside a trunk, out from under a roof, on ground
+    Walker w;
+    w.add_floor(0);
+    const float g[] = {-10, 1, -10, -10, 1, 10, 10, 1, 10, -10, 1, -10, 10, 1, 10, 10, 1, -10};  // ground at 1 m
+    w.add_triangles(std::vector<float>(g, g + sizeof g / sizeof *g));
+    const float tree_at[3] = {0, 1, 0};
+    w.add_bodies({trunk(runtime::CollisionBody::kSolid)}, tree_at, 0);
+    CHECK(w.find_spawn(0, 0, 8, false, f));
+    std::printf("beside a trunk: started at %.2f, %.2f, %.2f\n", f[0], f[1], f[2]);
+    CHECK(std::hypot(f[0], f[2]) > 0.4f + Walker::kRadius && std::hypot(f[0], f[2]) < 1.6f && std::fabs(f[1] - 1.1f) < 0.05f);
+    const float roof[] = {-3, 4, -3, -3, 4, 3, 3, 4, 3, -3, 4, -3, 3, 4, 3, 3, 4, -3};  // a flat roof over the middle
+    w.add_triangles(std::vector<float>(roof, roof + sizeof roof / sizeof *roof));
+    CHECK(w.find_spawn(0, 0, 8, false, f));
+    std::printf("under a roof: started at %.2f, %.2f, %.2f\n", f[0], f[1], f[2]);
+    CHECK(std::fmax(std::fabs(f[0]), std::fabs(f[2])) > 3 && std::fabs(f[1] - 1.1f) < 0.05f);
+    CHECK(!w.find_spawn(30, 0, 5, false, f));  // only the floor out there
+    const bool floor_fit = w.find_spawn(30, 0, 5, true, f);
+    std::printf("on the floor: %d at %.2f, %.2f, %.2f\n", floor_fit, f[0], f[1], f[2]);
+    CHECK(floor_fit && std::fabs(f[1] - 0.1f) < 0.05f);
+  }
   if (failures) std::printf("%d failed\n", failures);
   else std::printf("ok\n");
   return failures ? 1 : 0;

@@ -1,0 +1,58 @@
+{
+  "family": "boundary",
+  "version": 1,
+  "feature": "terrain_spec",
+  "doc": "boundary_terrain_v1's input (design/boundary.md): the rim, the biome, the season, how far the world must reach, and how finely to build it.",
+  "fields": [
+    {
+      "name": "rim",
+      "type": "boundary_v1_rim",
+      "doc": "The resolved rim."
+    },
+    {
+      "name": "biome",
+      "type": "boundary_v1_biome",
+      "doc": "The biome."
+    },
+    {
+      "name": "season",
+      "type": "u32",
+      "doc": "The season.",
+      "enum": [
+        "winter",
+        "spring",
+        "summer",
+        "fall"
+      ]
+    },
+    {
+      "name": "detail",
+      "type": "u32",
+      "doc": "How finely: the finest terrain spacing (2, 4, or 8 m), the images' size (64, 32, 16 texels a node), and how dense the rim's dressing is.",
+      "enum": [
+        "high",
+        "medium",
+        "low"
+      ]
+    },
+    {
+      "name": "view_distance",
+      "type": "f32",
+      "doc": "How far from the region the world reaches, metres.",
+      "min": 500,
+      "max": 12000
+    },
+    {
+      "name": "figure_range",
+      "type": "f32",
+      "doc": "How far beyond the rim trees and bushes are control figures for the game to fill, metres; past it the boundary draws its own (0: it draws them all).",
+      "min": 0,
+      "max": 300
+    },
+    {
+      "name": "seed",
+      "type": "u32",
+      "doc": "The world's seed."
+    }
+  ]
+}

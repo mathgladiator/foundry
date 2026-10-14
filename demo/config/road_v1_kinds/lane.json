@@ -1,0 +1,39 @@
+{
+  "created_at": "2026-10-13T19:00:00Z",
+  "doc": "A village lane: packed dirt with cart ruts and grass verges; a hand cart in a half the plan gives it.",
+  "notes": [],
+  "state": "draft",
+  "value": {
+    "name": "lane",
+    "surface": "dirt",
+    "surface_color": [
+      0.6,
+      0.5,
+      0.36
+    ],
+    "detail_color": [
+      0.42,
+      0.34,
+      0.24
+    ],
+    "paved": 0.75,
+    "verge": "grass",
+    "ruts": true,
+    "half": "cart",
+    "half_color": [
+      0.45,
+      0.32,
+      0.2
+    ],
+    "lamps": 0.0,
+    "lamp_color": [
+      1.0,
+      0.82,
+      0.45
+    ],
+    "signs": false,
+    "clutter": 0.12,
+    "planters": 0.0,
+    "quay": false
+  }
+}

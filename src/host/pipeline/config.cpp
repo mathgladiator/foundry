@@ -49,8 +49,25 @@ bool split(const std::string &path, std::string &table, std::string &entry) {
   return entry != "table";
 }
 
-json fields(const json &table) {
-  const auto *info = foundry::json::find_channel(table.value("channel", ""));
+json fields(const json &table) { return channel_fields(table.value("channel", "")); }
+
+json blank(const std::string &channel) {
+  json out = json::object();
+  for (const auto &f : channel_fields(channel)) {
+    const std::string type = f["type"], name = f["name"];
+    if (f.contains("enum")) out[name] = f["enum"][0];
+    else if (type.size() > 2 && type.substr(type.size() - 2) == "[]") out[name] = json::array();
+    else if (type == "f32" || type == "u32" || type == "i32") out[name] = f.value("min", 0.0);
+    else if (type == "bool") out[name] = false;
+    else if (type == "string") out[name] = "";
+    else if (type == "vec3") out[name] = {0, 0, 0};
+    else out[name] = blank(type);
+  }
+  return out;
+}
+
+json channel_fields(const std::string &channel) {
+  const auto *info = foundry::json::find_channel(channel);
   if (!info) return json::array();
   const json schema = json::parse(info->schema);
   json out = json::array();

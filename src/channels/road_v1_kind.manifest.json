@@ -1,0 +1,8 @@
+{
+  "kind": "channel",
+  "name": "road_v1_kind",
+  "state": "draft",
+  "reason": "Road kinds as config entries for road_v1 (approved 2026-10-13; patched the same day: edges only, a half's piece, sign posts; fences and centres moved to their own systems). Patched 2026-10-14: theme materials (approved).",
+  "notes": [],
+  "created_at": "2026-10-13T19:00:00Z"
+}

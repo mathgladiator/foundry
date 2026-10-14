@@ -1,0 +1,51 @@
+{
+  "created_at": "2026-10-13T17:00:00Z",
+  "doc": "A player's colour, blue: the roof, cloth, door, shutters, and sign in it; walls and timbers stay the type's.",
+  "notes": [],
+  "state": "draft",
+  "value": {
+    "name": "blue",
+    "roof": [
+      0.18,
+      0.34,
+      0.78
+    ],
+    "roof_mix": 0.85,
+    "wall": [
+      0.5,
+      0.5,
+      0.5
+    ],
+    "wall_mix": 0.0,
+    "trim": [
+      0.5,
+      0.5,
+      0.5
+    ],
+    "trim_mix": 0.0,
+    "door": [
+      0.126,
+      0.238,
+      0.5459999999999999
+    ],
+    "door_mix": 0.9,
+    "shutter": [
+      0.18,
+      0.34,
+      0.78
+    ],
+    "shutter_mix": 0.9,
+    "accent": [
+      0.18,
+      0.34,
+      0.78
+    ],
+    "accent_mix": 1.0,
+    "sign": [
+      0.18,
+      0.34,
+      0.78
+    ],
+    "sign_mix": 0.6
+  }
+}

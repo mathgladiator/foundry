@@ -711,7 +711,13 @@ class Type final : public runtime::PipelineType {
   }
 
   std::shared_ptr<runtime::Build> build(const void *params, std::string &error) const override {
+    return build_impl(params, nullptr, error);
+  }
+
+  std::shared_ptr<runtime::Build> build_impl(const void *params, const std::vector<uint8_t> *payload,
+                                             std::string &error) const {
     const Params &p = *static_cast<const Params *>(params);
+    (void)payload;
     auto b = std::make_shared<Built>();
     const float *clocks = nullptr;
     (void)clocks;
@@ -787,6 +793,7 @@ class Type final : public runtime::PipelineType {
     }
     b->height = top;
     b->radius = std::sqrt(r2);
+    runtime::terrain_bounds(*b);
     if (!finite) b->problem = "a vertex is not finite";
     else if (m.indices.empty()) b->problem = "the mesh has no triangles";
     else if (*std::max_element(m.indices.begin(), m.indices.end()) >= m.positions.size()) b->problem = "an index is out of range";
@@ -948,6 +955,34 @@ foundry_status foundry_bush_v1_set_gust_damping(foundry_runtime *rt, foundry_ins
   check.gust_damping = value;
   if (!valid(check)) return FOUNDRY_STATUS_BAD_PARAMETER;
   return foundry_status_of(rt->world.set_param(instance, &kType, offsetof(Params, gust_damping), &value, sizeof value, false));
+}
+
+int foundry_bush_v1_species_find(const char *name) {
+  static const char *const names[] = {"blackberry", "blueberry", "boxwood", "buttonbush", "creosote", "elderberry", "hazel", "hibiscus", "holly", "juniper", "oleander", "palmetto", "rhododendron", "sagebrush"};
+  for (int i = 0; name && i < 14; ++i)
+    if (std::strcmp(names[i], name) == 0) return i;
+  return -1;
+}
+
+int foundry_bush_v1_age_find(const char *name) {
+  static const char *const names[] = {"young", "mature", "old"};
+  for (int i = 0; name && i < 3; ++i)
+    if (std::strcmp(names[i], name) == 0) return i;
+  return -1;
+}
+
+int foundry_bush_v1_season_find(const char *name) {
+  static const char *const names[] = {"winter", "spring", "summer", "fall"};
+  for (int i = 0; name && i < 4; ++i)
+    if (std::strcmp(names[i], name) == 0) return i;
+  return -1;
+}
+
+int foundry_bush_v1_detail_find(const char *name) {
+  static const char *const names[] = {"high", "medium", "low"};
+  for (int i = 0; name && i < 3; ++i)
+    if (std::strcmp(names[i], name) == 0) return i;
+  return -1;
 }
 
 bool foundry_bush_v1_fruit_applies(foundry_bush_v1_species species) {

@@ -1,0 +1,26 @@
+{
+  "created_at": "2026-10-14T01:30:00Z",
+  "doc": "A straight line of eight links, given as one long link: straight across the hexes.",
+  "notes": [],
+  "state": "draft",
+  "value": {
+    "name": "straight",
+    "nodes": [
+      -4,
+      -4,
+      4,
+      4
+    ],
+    "heights": [
+      0.0,
+      0.0
+    ],
+    "links": [
+      0,
+      1
+    ],
+    "gate_nodes": [],
+    "gate_links": [],
+    "towers": []
+  }
+}

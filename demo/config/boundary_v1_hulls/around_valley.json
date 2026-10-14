@@ -1,0 +1,31 @@
+{
+  "created_at": "2026-10-14T13:00:00Z",
+  "doc": "Any region as a valley: a ledge to the east, cliffs to the north and south, forest to the west.",
+  "notes": [],
+  "state": "draft",
+  "value": {
+    "name": "around_valley",
+    "cells": [],
+    "edges": [],
+    "heights": [],
+    "rises": [],
+    "radius": 20,
+    "sectors": [
+      1,
+      2,
+      2,
+      4,
+      2,
+      2
+    ],
+    "sector_rises": [
+      0.4,
+      0.85,
+      0.85,
+      0.4,
+      0.85,
+      0.85
+    ],
+    "rise": 0.4
+  }
+}

@@ -1,0 +1,37 @@
+{
+  "created_at": "2026-10-13T23:30:00Z",
+  "doc": "A wooden gate: two plank leaves between piers or great posts, the wall's height, a lintel over a palisade's.",
+  "notes": [],
+  "state": "draft",
+  "value": {
+    "name": "wooden_gate",
+    "kind": "gate",
+    "door_color": [
+      0.4,
+      0.28,
+      0.17
+    ],
+    "iron_color": [
+      0.2,
+      0.2,
+      0.22
+    ],
+    "leaves": 2,
+    "portcullis": false,
+    "rise": 0.8,
+    "depth": 1.5,
+    "roof": "none",
+    "roof_color": [
+      0.32,
+      0.34,
+      0.4
+    ],
+    "banners": false,
+    "lamps": true,
+    "accent": [
+      0.68,
+      0.14,
+      0.14
+    ]
+  }
+}

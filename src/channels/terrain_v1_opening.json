@@ -1,0 +1,45 @@
+{
+  "family": "terrain",
+  "version": 1,
+  "feature": "opening",
+  "doc": "An opening on a shape's side (design/terrain.md): where a road enters or leaves, or where water flows in or out.",
+  "fields": [
+    {
+      "name": "kind",
+      "type": "u32",
+      "doc": "What crosses the edge here.",
+      "enum": [
+        "road",
+        "lane",
+        "river_in",
+        "river_out"
+      ]
+    },
+    {
+      "name": "side",
+      "type": "u32",
+      "doc": "The side it is on (0: from corner 0 to corner 1).",
+      "min": 0,
+      "max": 15
+    },
+    {
+      "name": "at",
+      "type": "f32",
+      "doc": "How far along the side, 0 at its first corner to 1 at its next.",
+      "min": 0,
+      "max": 1
+    },
+    {
+      "name": "width",
+      "type": "u32",
+      "doc": "Its width, cells.",
+      "min": 1,
+      "max": 8
+    },
+    {
+      "name": "name",
+      "type": "string",
+      "doc": "Its name, for the game (an exit's destination, say)."
+    }
+  ]
+}

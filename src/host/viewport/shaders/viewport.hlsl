@@ -59,6 +59,7 @@ MeshOut mesh_vs(MeshIn v) {
 [[vk::binding(0, 3)]] cbuffer Look : register(b0, space3) {
   float4 mode;  // x: 1 draws a silhouette (solid black); y: 1 under a sky (the background is the sky pass's);
                 // z: 1 draws backdrop (a sky's ground: no depth for the ink, so it is never inked)
+  LookData grade;  // the game's look (look.hlsli), applied by the ink pass after the ink
 };
 
 struct MeshTargets {
@@ -140,7 +141,13 @@ Full full_vs(uint id : SV_VertexID) {
 
 // Ink on silhouettes and depth edges (a pixel two supersampled pixels out, so the ink is about one
 // final pixel wide), and the background's vertical gradient.
+float4 ink_inner(Full i);
 float4 ink_ps(Full i) : SV_Target0 {
+  const float4 c = ink_inner(i);
+  return mode.x > 0.5 ? c : float4(look_apply(grade, c.rgb), 1);
+}
+
+float4 ink_inner(Full i) {
   uint w, h;
   depth_tex.GetDimensions(w, h);
   int2 p = int2(i.position.xy);
@@ -162,6 +169,20 @@ float4 ink_ps(Full i) : SV_Target0 {
       if (dq <= 0) edge = true;
       else if (abs(d - dq) > 0.03 * max(d, 1.0) && d <= dq) edge = true;
     }
+  }
+  if (!edge && grade.c.x > 0 && !silhouette && p.x + 1 < (int)w && p.y + 1 < (int)h) {
+    // Between colours: where the albedo changes (one pixel out, so thinner than the outline).
+    const float3 a0 = albedo_tex.Load(int3(p, 0)).rgb;
+    float k = 0;
+    [unroll] for (int s = 0; s < 2; ++s) {
+      const int2 q = p + (s == 0 ? int2(1, 0) : int2(0, 1));
+      if (depth_tex.Load(int3(q, 0)) <= 0) continue;
+      const float3 a1 = albedo_tex.Load(int3(q, 0)).rgb;
+      const float3 d = abs(a0 - a1);
+      if (d.r + d.g + d.b > 0.18 && look_luma(a0) <= look_luma(a1)) k = grade.c.x;
+    }
+    const float4 c = color_tex.Load(int3(p, 0));
+    return float4(c.rgb * (1.0 - 0.72 * k), 1);
   }
   if (!edge) return color_tex.Load(int3(p, 0));
   float3 a = albedo_tex.Load(int3(p, 0)).rgb;

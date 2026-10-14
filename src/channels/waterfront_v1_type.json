@@ -1,0 +1,71 @@
+{
+  "family": "waterfront",
+  "version": 1,
+  "feature": "type",
+  "doc": "A waterfront building's type (design/planner.md, Waterfronts), as a config entry: what it is, its colours, and what it keeps.",
+  "fields": [
+    {
+      "name": "name",
+      "type": "string",
+      "doc": "The type's name (pier, boathouse)."
+    },
+    {
+      "name": "kind",
+      "type": "u32",
+      "doc": "What it is: a pier with moored boats, a boathouse over the water, a quay warehouse with a crane, or a fishery with its nets.",
+      "enum": [
+        "pier",
+        "boathouse",
+        "warehouse",
+        "fishery"
+      ]
+    },
+    {
+      "name": "wood_color",
+      "type": "vec3",
+      "doc": "Decks, posts, and frames."
+    },
+    {
+      "name": "wall_color",
+      "type": "vec3",
+      "doc": "Walls."
+    },
+    {
+      "name": "roof_color",
+      "type": "vec3",
+      "doc": "The roof."
+    },
+    {
+      "name": "accent",
+      "type": "vec3",
+      "doc": "Boats' paint, cloth, and nets."
+    },
+    {
+      "name": "boats",
+      "type": "u32",
+      "doc": "Boats moored at its largest size (fewer when smaller).",
+      "min": 0,
+      "max": 4
+    },
+    {
+      "name": "crane",
+      "type": "bool",
+      "doc": "A crane on the quay, its jib over the water."
+    },
+    {
+      "name": "nets",
+      "type": "bool",
+      "doc": "Racks of drying nets."
+    },
+    {
+      "name": "barrels",
+      "type": "bool",
+      "doc": "Barrels and crates waiting to be loaded."
+    },
+    {
+      "name": "lamp",
+      "type": "bool",
+      "doc": "A lamp at the water's end."
+    }
+  ]
+}

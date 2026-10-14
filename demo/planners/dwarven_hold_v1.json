@@ -1,0 +1,237 @@
+{
+ "kind": "planner",
+ "name": "dwarven_hold_v1",
+ "state": "draft",
+ "system": "plan_settle_v1",
+ "doc": "A dwarven hold's market town: dark dressed stone, flat battlemented roofs, slit windows, brass lanterns, roaring forges, inside a buttressed rampart with gatehouses.",
+ "view": {
+  "seed": 7,
+  "plots": 70,
+  "tier": "town",
+  "shared": {
+   "season": "summer",
+   "wind_speed": 4,
+   "theme": "dwarven"
+  },
+  "nature": "happy_glen_v1"
+ },
+ "config": {
+  "scenario": "market_town",
+  "plots_min": 40,
+  "plots_max": 150,
+  "density": 2.2,
+  "terrain": "gentle",
+  "relief_m": 4,
+  "feature_cells": 40,
+  "entrances": 4,
+  "high_width": 3,
+  "lane_width": 2,
+  "high_grade": 0.08,
+  "lane_grade": 0.12,
+  "block_cells": 12,
+  "alley_every": 14,
+  "square_cells": 4,
+  "share_solo": 0.25,
+  "share_family": 0.55,
+  "share_extended": 0.2,
+  "civic": 2,
+  "shape_wide": 0.2,
+  "shape_deep": 0.3,
+  "shape_round": 0.05,
+  "shape_long": 0.3,
+  "shape_broad": 0.15,
+  "walls": "stone",
+  "river": false,
+  "river_cells": 3,
+  "open_body": "none",
+  "margin_cells": 1,
+  "waterfronts": 0,
+  "centre": true,
+  "halves_market": 0.45,
+  "halves_square": 0.0,
+  "halves_high": 0.12,
+  "halves_lane": 0.04,
+  "halves_quay": 0.0,
+  "fence_share": 0.25,
+  "keep_ward_cells": 0,
+  "castle_parts": 0,
+  "outer_parts": 0,
+  "fence_cells": 3,
+  "wall_reach_cells": 6.0
+ },
+ "lots": {
+  "from": {
+   "pipeline": "house_v1",
+   "class_param": "household",
+   "classes": [
+    "solo",
+    "family",
+    "extended"
+   ],
+   "type_param": "type",
+   "table": "house_v1_types",
+   "shape_param": "footprint",
+   "shape_fields": {
+    "footprint": "usual",
+    "footprint_alt": "alternate"
+   }
+  },
+  "civic": {
+   "pipeline": "civic_v1",
+   "size_param": "size",
+   "type_param": "type",
+   "table": "civic_v1_types",
+   "size_field": "size",
+   "sizes": [
+    "centre",
+    "small",
+    "large",
+    "great"
+   ],
+   "classes": {
+    "centre": "centre"
+   },
+   "class": "civic"
+  },
+  "waterfront": {
+   "pipeline": "waterfront_v1",
+   "size_param": "size",
+   "type_param": "type",
+   "table": "waterfront_v1_types",
+   "sizes": [
+    "small",
+    "medium",
+    "large"
+   ]
+  }
+ },
+ "fill": {
+  "buildings": {
+   "pipeline": "house_v1",
+   "type_param": "type",
+   "stage_param": "stage",
+   "seed_param": "seed",
+   "seeds": 4,
+   "uses": {
+    "home": [
+     "cottage",
+     "farmhouse"
+    ],
+    "store": [
+     "general_store",
+     "bakery",
+     "tailor",
+     "alchemist"
+    ],
+    "workshop": [
+     "smithy",
+     "carpenter",
+     "mill"
+    ],
+    "inn": [
+     "inn"
+    ],
+    "farm": [
+     "farmhouse",
+     "mill"
+    ]
+   },
+   "stage_by_wealth": [
+    [
+     0.72,
+     "premium"
+    ],
+    [
+     0.4,
+     "deluxe"
+    ],
+    [
+     0.0,
+     "basic"
+    ]
+   ]
+  },
+  "roads": {
+   "pipeline": "road_v1",
+   "kind_param": "kind",
+   "seeds": 3,
+   "kinds": {
+    "high": "street",
+    "lane": "street",
+    "alley": "street",
+    "square": "square",
+    "market": "square",
+    "bridge": "bridge",
+    "quay": "quay",
+    "gate": "street"
+   }
+  },
+  "waterfronts": {
+   "pipeline": "waterfront_v1",
+   "type_param": "type",
+   "drop_param": "drop",
+   "types": [
+    "pier",
+    "boathouse",
+    "warehouse",
+    "fishery"
+   ]
+  },
+  "civics": {
+   "pipeline": "civic_v1",
+   "type_param": "type",
+   "grandeur_param": "grandeur",
+   "uses": {
+    "civic": [
+     "church",
+     "guild_hall",
+     "market_hall",
+     "bank"
+    ],
+    "centre": [
+     "market_cross"
+    ]
+   },
+   "grandeur_by_wealth": [
+    [
+     0.7,
+     "grand"
+    ],
+    [
+     0.35,
+     "fine"
+    ],
+    [
+     0.0,
+     "plain"
+    ]
+   ]
+  },
+  "lines": {
+   "fence": {
+    "pipeline": "fence_v1",
+    "kind_param": "kind",
+    "kind": "low_wall",
+    "network_param": "network"
+   },
+   "gates": {
+    "wall": {
+     "pipeline": "gate_v1",
+     "type_param": "type",
+     "wall_param": "wall",
+     "width_param": "width",
+     "type": "gatehouse"
+    }
+   },
+   "wall": {
+    "pipeline": "wall_v1",
+    "kind_param": "kind",
+    "kind": "dwarf_rampart",
+    "network_param": "network"
+   },
+   "chunk_links": 40
+  }
+ },
+ "notes": [],
+ "created_at": "2026-10-14T08:00:00Z"
+}

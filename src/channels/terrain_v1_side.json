@@ -1,0 +1,37 @@
+{
+  "family": "terrain",
+  "version": 1,
+  "feature": "side",
+  "doc": "One side of a shape (design/terrain.md, The shape and its sides): its aspect, what stops the player there and what lies beyond, and its ground.",
+  "fields": [
+    {
+      "name": "edge",
+      "type": "u32",
+      "doc": "What the side is, for the terrain's edge and the boundary beyond it: ledge, ridge, mountain, forest, jungle, sea, or marsh (auto takes the boundary's sectors).",
+      "enum": [
+        "auto",
+        "ledge",
+        "ridge",
+        "mountain",
+        "forest",
+        "jungle",
+        "sea",
+        "marsh"
+      ]
+    },
+    {
+      "name": "height",
+      "type": "f32",
+      "doc": "The ground along the side, metres. It blends along the side into its neighbours' round each corner.",
+      "min": -40,
+      "max": 80
+    },
+    {
+      "name": "rise",
+      "type": "f32",
+      "doc": "How high the land climbs behind it, 0 lowland to 1 the biome's highest peaks (the boundary's).",
+      "min": 0,
+      "max": 1
+    }
+  ]
+}

@@ -3,7 +3,9 @@
 #include <sys/stat.h>
 
 #include <algorithm>
+#include <cmath>
 #include <cstdio>
+#include <map>
 #include <filesystem>
 #include <set>
 
@@ -11,6 +13,7 @@
 #include "core/util.h"
 #include "json/registry.h"
 #include "pipeline/config.h"
+#include "pipeline/terrain.h"
 
 namespace fs = std::filesystem;
 
@@ -27,6 +30,13 @@ struct Model {
   std::shared_ptr<const physics::Collision> collision;
   float footprint_radius = 0;
   uint32_t footprint_cells = 0;
+  bool has_box = false;
+  foundry::vec3 box_min{0, 0, 0}, box_max{0, 0, 0};
+  std::vector<viewport::Line> guides;
+  std::vector<int> lot_cells, wet_cells, door_cells;
+  std::vector<Frame::Place> places;
+  std::vector<runtime::FirePoint> fires;
+  std::shared_ptr<const nlohmann::json> extras;  // the fields draw.nature, surround, and figures name
 };
 
 namespace {
@@ -53,7 +63,7 @@ std::string hex(uint64_t v) {
 // tools/gen_pipelines.py): a model has positions and indices, and may have normals,
 // colors (packed RGBA), and skinning (bone_a, bone_b, bone_w); a pose has matrices
 // (column-major 4x4 per bone) and may say it has settled. Everything else the
-// channel carries is reported as facts.
+// channel carries is reported as facts (a nested channel's scalars as "field.name").
 const std::set<std::string> kMeshFields = {"positions", "normals", "colors", "indices", "bone_a", "bone_b", "bone_w",
                                            "collision"};
 
@@ -63,6 +73,9 @@ nlohmann::json facts_of(const nlohmann::json &j, const std::set<std::string> &sk
     if (skip.count(it.key())) continue;
     if (it.value().is_array()) out[it.key() + "_count"] = it.value().size();
     else if (!it.value().is_object()) out[it.key()] = it.value();
+    else  // a nested channel's own scalars (a terrain's ground report), one level down
+      for (auto f = it.value().begin(); f != it.value().end(); ++f)
+        if (!f.value().is_array() && !f.value().is_object()) out[it.key() + "." + f.key()] = f.value();
   }
   return out;
 }
@@ -97,6 +110,42 @@ std::vector<foundry::vec3> vec3s(const nlohmann::json &j, const char *field) {
   return out;
 }
 
+// The outlines of groups of hex cells (pointy-top, circumradius 1 m): each group's border edges,
+// coloured by its tone, and for tone 0 its inner edges too, faintly.
+std::vector<viewport::Line> guide_lines(const nlohmann::json &cells, const nlohmann::json &tones) {
+  std::vector<viewport::Line> out;
+  if (!cells.is_array() || !tones.is_array()) return out;
+  constexpr float kS3 = 1.7320508f, kPi = 3.14159265f;
+  std::map<int, std::set<std::pair<int, int>>> groups;
+  for (size_t i = 0; i + 2 < cells.size(); i += 3) groups[cells[i].get<int>()].insert({cells[i + 1].get<int>(), cells[i + 2].get<int>()});
+  // Fainter groups first, so the brightest draws on top.
+  for (int tone = 2; tone >= 0; --tone)
+    for (const auto &[g, set] : groups) {
+      if (g < 0 || static_cast<size_t>(g) >= tones.size() || tones[g].get<int>() != tone) continue;
+      const float lift = 0.015f + 0.01f * static_cast<float>(2 - tone);
+      for (const auto &[q, r] : set) {
+        const float x = kS3 * (static_cast<float>(q) + 0.5f * static_cast<float>(r)), z = 1.5f * static_cast<float>(r);
+        for (int k = 0; k < 6; ++k) {
+          const float a0 = kPi / 6.0f + kPi / 3.0f * static_cast<float>(k), a1 = a0 + kPi / 3.0f;
+          const float mx = x + std::cos((a0 + a1) * 0.5f) * kS3, mz = z + std::sin((a0 + a1) * 0.5f) * kS3;
+          const int nq = static_cast<int>(std::lround(kS3 / 3.0f * mx - mz / 3.0f)), nr = static_cast<int>(std::lround(2.0f / 3.0f * mz));
+          const bool border = !set.count({nq, nr});
+          if (!border && tone != 0) continue;
+          viewport::Line l{{x + std::cos(a0), lift, z + std::sin(a0)}, {x + std::cos(a1), lift, z + std::sin(a1)}, 1, 1, 1, 1};
+          if (tone == 0) {
+            l.r = 1.0f, l.g = 0.82f, l.bl = 0.3f, l.alpha = border ? 0.95f : 0.22f;
+          } else if (tone == 1) {
+            l.r = 0.9f, l.g = 0.92f, l.bl = 1.0f, l.alpha = 0.6f;
+          } else {
+            l.r = 0.55f, l.g = 0.8f, l.bl = 1.0f, l.alpha = 0.42f;
+          }
+          out.push_back(l);
+        }
+      }
+    }
+  return out;
+}
+
 std::shared_ptr<const Model> decode_model(const Definition &def, const std::string &channel,
                                           const std::vector<uint8_t> &bytes, std::string &error) {
   nlohmann::json m;
@@ -124,11 +173,71 @@ std::shared_ptr<const Model> decode_model(const Definition &def, const std::stri
   out->radius = scalar(def.conformance_radius);
   out->conformance_height = scalar(def.conformance_height);
   out->facts = facts_of(m, kMeshFields);
+  {  // what the composer needs (draw.nature, draw.surround, draw.figures)
+    auto extras = std::make_shared<nlohmann::json>(nlohmann::json::object());
+    for (const std::string f : {def.nature.value("regions", ""), def.surround.value("hull", ""), def.figures.value("field", "")})
+      if (!f.empty() && m.contains(f)) (*extras)[f] = m[f];
+    if (!extras->empty()) out->extras = extras;
+  }
   out->footprint_radius = scalar(def.footprint_radius);
   out->footprint_cells = static_cast<uint32_t>(scalar(def.footprint_cells));
+  auto vec = [&](const std::string &field, foundry::vec3 &v) {
+    if (field.empty() || !m.contains(field) || !m[field].is_array() || m[field].size() != 3) return false;
+    v = {m[field][0].get<float>(), m[field][1].get<float>(), m[field][2].get<float>()};
+    return true;
+  };
+  out->has_box = vec(def.conformance_box_min, out->box_min) && vec(def.conformance_box_max, out->box_max);
+  if (!def.footprint_lot.empty()) out->lot_cells = numbers<int>(m, def.footprint_lot.c_str());
+  if (!def.footprint_wet.empty()) out->wet_cells = numbers<int>(m, def.footprint_wet.c_str());
+  if (!def.footprint_doors.empty()) out->door_cells = numbers<int>(m, def.footprint_doors.c_str());
+  if (!def.places_positions.empty()) {
+    const auto at = vec3s(m, def.places_positions.c_str());
+    const auto yaw = numbers<float>(m, def.places_yaws.c_str()), size = numbers<float>(m, def.places_sizes.c_str());
+    for (size_t i = 0; i < at.size(); ++i) out->places.push_back({at[i], i < yaw.size() ? yaw[i] : 0.0f, i < size.size() ? size[i] : 0.0f});
+  }
+  if (!def.fire_points.empty()) {
+    const auto at = vec3s(m, def.fire_points.c_str());
+    const auto cfg = numbers<uint32_t>(m, def.fire_configs.c_str()), lit = numbers<uint32_t>(m, def.fire_lit.c_str());
+    for (size_t i = 0; i < at.size() && i < cfg.size(); ++i) {
+      runtime::FirePoint f;
+      f.pos[0] = at[i].x;
+      f.pos[1] = at[i].y;
+      f.pos[2] = at[i].z;
+      f.config = cfg[i];
+      f.lit = i < lit.size() ? lit[i] : runtime::FirePoint::kAlways;
+      out->fires.push_back(f);
+    }
+    for (const auto &f : {def.fire_points, def.fire_configs, def.fire_lit}) out->facts.erase(f + "_count");
+    out->facts["fires"] = out->fires.size();
+  }
+  if (!def.guide_cells.empty() && m.contains(def.guide_cells) && m.contains(def.guide_tones))
+    out->guides = guide_lines(m[def.guide_cells], m[def.guide_tones]);
+  if (!def.guide_lines.empty() && m.contains(def.guide_lines) && m.contains(def.guide_colors)) {
+    const auto pts = vec3s(m, def.guide_lines.c_str());
+    const auto cols = numbers<uint32_t>(m, def.guide_colors.c_str());
+    for (size_t i = 0; i + 1 < pts.size() && i / 2 < cols.size(); i += 2) {
+      const uint32_t c = cols[i / 2];
+      out->guides.push_back({pts[i], pts[i + 1], static_cast<float>(c & 255u) / 255.0f, static_cast<float>((c >> 8) & 255u) / 255.0f,
+                             static_cast<float>((c >> 16) & 255u) / 255.0f, 0.9f});
+    }
+  }
+  for (const auto &f : {def.guide_cells, def.guide_tones, def.guide_lines, def.guide_colors})
+    if (!f.empty()) out->facts.erase(f + "_count");
+  if (!def.terrain.empty()) {
+    // A terrain (draw.terrain): one cut through its quadtree, from a player's eye in the middle of
+    // the region its guides outline.
+    float ground_y = 0, sum = 0;
+    size_t n = 0;
+    for (const auto &g : out->guides) sum += g.a.y, ++n;
+    if (n) ground_y = sum / static_cast<float>(n) - 0.05f;  // the guides float 5 cm over the cells
+    flatten_terrain(m, def.terrain, ground_y, out->rest, out->facts);
+    for (auto it = def.terrain.begin(); it != def.terrain.end(); ++it)
+      if (it.value().is_string()) out->facts.erase(it.value().get<std::string>() + "_count");
+  }
   // Collision (the physics_v1_body convention): checked in the toy Jolt world once per model.
   out->collision = physics::analyze(physics::bodies_from_json(m.value("collision", nlohmann::json::array())),
-                                    def.conformance_radius.empty() ? 0.0f : out->radius, out->conformance_height);
+                                    def.conformance_radius.empty() ? 0.0f : out->radius, out->conformance_height,
+                                    out->has_box ? &out->box_min : nullptr, out->has_box ? &out->box_max : nullptr);
   out->facts["collision"] = out->collision->report;
   return out;
 }
@@ -270,6 +379,10 @@ bool load(const forge::Paths &paths, const std::string &name, Definition &def, s
           return false;
         }
       }
+      if (p.contains("edges")) {
+        param.edge_bits = p["edges"].value("bits", 0);
+        param.edge_values = p["edges"].value("values", std::vector<std::string>());
+      }
       if (p.contains("when")) {
         param.when_param = p["when"].at("param").get<std::string>();
         param.when_field = p["when"].at("field").get<std::string>();
@@ -319,6 +432,30 @@ bool load(const forge::Paths &paths, const std::string &name, Definition &def, s
     const nlohmann::json fp = j.at("draw").value("footprint", nlohmann::json::object());
     def.footprint_radius = fp.value("radius", "");
     def.footprint_cells = fp.value("cells", "");
+    def.footprint_lot = fp.value("lot", "");
+    def.footprint_wet = fp.value("wet", "");
+    def.footprint_doors = fp.value("doors", "");
+    const nlohmann::json places = j.at("draw").value("places", nlohmann::json::object());
+    def.places_positions = places.value("positions", "");
+    def.places_yaws = places.value("yaws", "");
+    def.places_sizes = places.value("sizes", "");
+    const nlohmann::json fires = j.at("draw").value("fires", nlohmann::json::object());
+    def.fire_points = fires.value("points", "");
+    def.fire_configs = fires.value("configs", "");
+    def.fire_lit = fires.value("lit", "");
+    const nlohmann::json box = conf.value("box", nlohmann::json::object());
+    def.conformance_box_min = box.value("min", "");
+    def.conformance_box_max = box.value("max", "");
+    const nlohmann::json guides = j.at("draw").value("guides", nlohmann::json::object());
+    def.guide_cells = guides.value("cells", "");
+    def.guide_tones = guides.value("tones", "");
+    def.guide_lines = guides.value("lines", "");
+    def.guide_colors = guides.value("colors", "");
+    def.frame_m = j.at("draw").value("frame_m", 0.0f);
+    def.terrain = j.at("draw").value("terrain", nlohmann::json::object());
+    def.nature = j.at("draw").value("nature", nlohmann::json::object());
+    def.surround = j.at("draw").value("surround", nlohmann::json::object());
+    def.figures = j.at("draw").value("figures", nlohmann::json::object());
   } catch (const std::exception &e) {
     error = std::string("bad pipeline file: ") + e.what();
     return false;
@@ -336,6 +473,11 @@ nlohmann::json Runner::complete(const Definition &def, const nlohmann::json &val
   nlohmann::json out = nlohmann::json::object();
   for (const auto &p : def.params) {
     nlohmann::json v = values.is_object() && values.contains(p.name) ? values[p.name] : p.fallback;
+    if (p.type == "config" && v.is_object()) {
+      // An entry given inline (a planner's own network, say), as the table's channel would hold it.
+      out[p.name] = v;
+      continue;
+    }
     if (p.type == "enum" || p.type == "config") {
       std::string s = v.is_string() ? v.get<std::string>() : "";
       if (std::find(p.values.begin(), p.values.end(), s) == p.values.end())
@@ -424,6 +566,10 @@ bool Runner::resolve(const Definition &def, const nlohmann::json &values, const 
         return false;
       }
       const nlohmann::json &v = values[p->name];
+      if (p->type == "config" && v.is_object()) {
+        out = v;
+        return true;
+      }
       if (p->type == "config") {
         nlohmann::json e = config::entry(paths_, p->table, v.get<std::string>());
         if (e.is_null()) {
@@ -552,8 +698,10 @@ Runner::Result Runner::run(const Definition &def, const nlohmann::json &input_va
         std::vector<uint8_t> native_out;
         int status = core::run_process({forge::native_path(paths_, st.system)}, err, input.get(), &native_out);
         sr.native_match = status == 0 && native_out == w.output;
-        if (!sr.native_match)
+        if (!sr.native_match) {
           core::log().add("native", def.name + ": " + st.system + " native output differs from WebAssembly");
+          forge::dump_mismatch(st.system, *input, w.output, native_out);
+        }
       }
       if (log && st.phase != "update") {
         char buf[256];
@@ -618,6 +766,24 @@ Runner::Result Runner::run(const Definition &def, const nlohmann::json &input_va
   res.frame.collision = model->collision;
   res.frame.footprint_radius = model->footprint_radius;
   res.frame.footprint_cells = model->footprint_cells;
+  res.frame.lot_cells = model->lot_cells;
+  res.frame.wet_cells = model->wet_cells;
+  res.frame.door_cells = model->door_cells;
+  res.frame.places = model->places;
+  res.frame.has_box = model->has_box;
+  res.frame.box_min = model->box_min;
+  res.frame.box_max = model->box_max;
+  res.frame.guides = model->guides;
+  res.frame.frame_m = def.frame_m;
+  res.frame.terrain = !def.terrain.empty();
+  res.frame.fires = model->fires;
+  res.frame.extras = model->extras;
+  for (const auto &p : def.params) {
+    if (!values.contains(p.name) || !values[p.name].is_number()) continue;
+    if (p.type == "time" && res.frame.time == 0) res.frame.time = values[p.name].get<float>();
+    if (p.name == "wind_speed") res.frame.wind_speed = values[p.name].get<float>();
+    if (p.name == "wind_heading") res.frame.wind_heading = values[p.name].get<float>();
+  }
   res.frame.facts.update(pose_facts);
   res.ok = true;
   return res;

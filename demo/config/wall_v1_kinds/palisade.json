@@ -1,0 +1,44 @@
+{
+  "created_at": "2026-10-13T23:30:00Z",
+  "doc": "A palisade: pointed logs with rails behind, a fighting platform on posts, square timber towers at its corners.",
+  "notes": [],
+  "state": "draft",
+  "value": {
+    "name": "palisade",
+    "material": "logs",
+    "color": [
+      0.5,
+      0.37,
+      0.24
+    ],
+    "trim_color": [
+      0.42,
+      0.3,
+      0.2
+    ],
+    "height": 3.8,
+    "thickness": 0.34,
+    "batter": 0.0,
+    "footing": 0.8,
+    "crenellated": false,
+    "walkway": true,
+    "buttresses": false,
+    "tower": "square",
+    "tower_radius": 1.6,
+    "tower_height": 2.4,
+    "tower_roof": "pyramid",
+    "roof_color": [
+      0.45,
+      0.33,
+      0.22
+    ],
+    "banners": false,
+    "accent": [
+      0.68,
+      0.14,
+      0.14
+    ],
+    "tower_every_m": 0,
+    "tower_turn_deg": 35.0
+  }
+}

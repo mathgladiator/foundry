@@ -56,6 +56,8 @@ World::World(const Config &config, std::string &error) : config_(config) {
     if (!renderer_.init(config.device, config.color_format, config.depth_format, error)) return;
     if (!field_renderer_.init(config.device, config.color_format, config.depth_format, error)) return;
     if (!sky_.init(config.device, config.color_format, config.depth_format, error)) return;
+    if (!fire_renderer_.init(config.device, config.color_format, config.depth_format, error)) return;
+    if (!terrain_renderer_.init(config.device, config.color_format, config.depth_format, error)) return;
     have_renderer_ = true;
   }
   ok_ = true;
@@ -68,11 +70,14 @@ World::~World() {
   for (auto &[key, e] : cache_) {
     if (e.uploaded && e.field) field_renderer_.release(e.fgpu);
     else if (e.uploaded) renderer_.release(e.gpu);
+    if (e.uploaded) terrain_renderer_.release(e.tgpu);
   }
   if (have_renderer_) {
     renderer_.shutdown();
     field_renderer_.shutdown();
     sky_.shutdown();
+    fire_renderer_.shutdown();
+    terrain_renderer_.shutdown();
   }
 }
 
@@ -85,7 +90,21 @@ World::Slot *World::slot(uint64_t handle) {
 
 const World::Slot *World::slot(uint64_t handle) const { return const_cast<World *>(this)->slot(handle); }
 
-World::Entry *World::acquire(const PipelineType *type, const std::vector<uint8_t> &params, uint64_t key, bool far) {
+std::shared_ptr<const Build> World::built(uint64_t handle, float rows[12]) const {
+  const Slot *s = slot(handle);
+  if (!s || !s->entry || !s->entry->build) return nullptr;
+  for (int i = 0; i < 12; ++i) rows[i] = s->rows[i];
+  return s->entry->build;
+}
+
+uint64_t World::key_of(const Slot &s, const std::vector<uint8_t> &params) const {
+  uint64_t key = s.type->build_key(params.data());
+  if (s.payload) key = fnv64(s.payload->data(), s.payload->size(), key ^ 0x51ed270b27df1f5dull);
+  return key ? key : 1;
+}
+
+World::Entry *World::acquire(const PipelineType *type, const std::vector<uint8_t> &params, uint64_t key, bool far,
+                             std::shared_ptr<const std::vector<uint8_t>> payload) {
   auto it = cache_.find(key);
   if (it != cache_.end()) {
     ++it->second.refs;
@@ -104,10 +123,10 @@ World::Entry *World::acquire(const PipelineType *type, const std::vector<uint8_t
     e.dense = next_dense_++;
   }
   auto copy = std::make_shared<std::vector<uint8_t>>(params);
-  builders_->push([this, type, copy, key, far] {
+  builders_->push([this, type, copy, key, far, payload] {
     Finished f;
     f.key = key;
-    f.build = type->build(copy->data(), f.error);
+    f.build = payload ? type->build_with(copy->data(), *payload, f.error) : type->build(copy->data(), f.error);
     if (far && f.build) {  // the far level: the coarsest build, clustered
       simplify(f.build->mesh, kFarCells);
       f.build->triangles = static_cast<uint32_t>(f.build->mesh.indices.size() / 3);
@@ -119,13 +138,13 @@ World::Entry *World::acquire(const PipelineType *type, const std::vector<uint8_t
 }
 
 void World::want(Slot &s) {
-  const uint64_t key = s.type->build_key(s.params.data());
+  const uint64_t key = key_of(s, s.params);
   if (key == s.wanted) return;
   if (s.wanted && s.wanted != s.current) unref(s.wanted);
   s.wanted = key;
   touch(s);
   if (s.has_current && key == s.current) return;
-  acquire(s.type, s.params, key);
+  acquire(s.type, s.params, key, false, s.payload);
   waiting_.push_back(make_handle(static_cast<uint32_t>(&s - slots_.data()), s.generation));
 }
 
@@ -176,7 +195,8 @@ void World::unref(uint64_t key) {
   if (--it->second.refs == 0) it->second.idle_since = clock_;
 }
 
-uint64_t World::spawn(const PipelineType *type, const void *params, const float transform[16]) {
+uint64_t World::spawn(const PipelineType *type, const void *params, const float transform[16],
+                      const std::vector<uint8_t> *payload) {
   uint32_t index;
   if (!free_.empty()) {
     index = free_.back();
@@ -209,6 +229,7 @@ uint64_t World::spawn(const PipelineType *type, const void *params, const float 
   s.touched = false;
   s.wants_lod = false;
   s.forced = -1;
+  s.payload = payload ? std::make_shared<const std::vector<uint8_t>>(*payload) : nullptr;
   want(s);
   return make_handle(index, s.generation);
 }
@@ -387,6 +408,7 @@ Status World::destroy(uint64_t handle) {
   s->pose.reset();
   s->params.clear();
   s->params.shrink_to_fit();
+  s->payload.reset();
   free_.push_back(static_cast<uint32_t>(s - slots_.data()));
   return Status::ok;
 }
@@ -570,7 +592,10 @@ void World::integrate() {
         }
         ++b;
       }
-      if (!have_renderer_) e.build->mesh.clear();
+      if (!have_renderer_) {
+        e.build->mesh.clear();
+        if (e.build->terrain) e.build->terrain->release_upload();
+      }
     }
     if (e.refs == 0) e.idle_since = clock_;
   }
@@ -606,6 +631,7 @@ void World::integrate() {
 void World::evict(std::map<uint64_t, Entry>::iterator it) {
   if (it->second.uploaded && it->second.field) field_renderer_.release(it->second.fgpu);
   else if (it->second.uploaded) renderer_.release(it->second.gpu);
+  if (it->second.uploaded) terrain_renderer_.release(it->second.tgpu);
   free_dense_.push_back(it->second.dense);
   ++counters_.cache_evictions;
   cache_.erase(it);
@@ -716,9 +742,9 @@ void World::classify(bool request) {
     const uint32_t value = detail_value(s.level, levels);
     const bool far = s.level >= levels;
     std::memcpy(params.data() + s.type->detail_offset(), &value, sizeof value);
-    const uint64_t key = s.type->build_key(params.data()) ^ (far ? kFarSalt : 0);
+    const uint64_t key = key_of(s, params) ^ (far ? kFarSalt : 0);
     s.lods[s.level] = key;
-    s.lod_entries[s.level] = acquire(s.type, params, key, far);
+    s.lod_entries[s.level] = acquire(s.type, params, key, far, s.payload);
     if (s.lod_entries[s.level]->pending && s.lod_entries[s.level]->refs == 1) s.lod_entries[s.level]->lod = true;
   }
 }
@@ -900,8 +926,60 @@ void World::update(float dt) {
   }
   touched_.clear();
   release_idle(false);
+  update_fire(dt);
   times_.results_ms = ms_since(t3);
   times_.update_ms = ms_since(t0);
+}
+
+Status World::set_burning(uint64_t handle, float amount) {
+  Slot *s = slot(handle);
+  if (!s) return Status::stale_handle;
+  s->burning = std::clamp(amount, 0.0f, 2.0f);
+  return Status::ok;
+}
+
+Status World::burning(uint64_t handle, float &out) const {
+  const Slot *s = slot(handle);
+  if (!s) return Status::stale_handle;
+  out = s->burning;
+  return Status::ok;
+}
+
+// The fire system's frame: every drawn-near instance's fire points become emitters (its lit fires
+// and chimneys always, its blaze points while it burns), and the particles move on.
+void World::update_fire(float dt) {
+  emitters_.clear();
+  if (fire_.configs().empty()) {
+    counters_.fire_emitters = counters_.fire_particles = 0;
+    return;
+  }
+  for (uint32_t i = 0; i < slots_.size(); ++i) {
+    const Slot &s = slots_[i];
+    if (!s.alive || !s.has_current || !s.entry || !s.entry->build || s.entry->build->fires.empty()) continue;
+    if (have_camera_ && !s.near_view && (cost_ & kCostUnseen)) continue;
+    const uint64_t handle = make_handle(i, s.generation);
+    const std::vector<FirePoint> &points = s.entry->build->fires;
+    for (size_t k = 0; k < points.size(); ++k) {
+      const FirePoint &fp = points[k];
+      fire::Emitter e;
+      if (fp.lit == FirePoint::kBurning) {
+        if (s.burning <= 0) continue;
+        e.strength = s.burning;
+      } else if (fp.lit == FirePoint::kSmoke) {
+        e.show = fire::Show::smoke;
+      }
+      // Lit fires and chimneys burn harder while the building does.
+      if (fp.lit != FirePoint::kBurning && s.burning > 0) e.strength = 1.0f + s.burning;
+      const float *r = s.rows;
+      for (int a = 0; a < 3; ++a) e.pos[a] = r[a * 4] * fp.pos[0] + r[a * 4 + 1] * fp.pos[1] + r[a * 4 + 2] * fp.pos[2] + r[a * 4 + 3];
+      e.config = fp.config;
+      e.key = (handle << 12) ^ k;
+      emitters_.push_back(e);
+    }
+  }
+  fire_.step(dt, emitters_.data(), emitters_.size());
+  counters_.fire_emitters = fire_.emitters();
+  counters_.fire_particles = fire_.particles();
 }
 
 void World::prepare(SDL_GPUCommandBuffer *cmd) {
@@ -913,6 +991,10 @@ void World::prepare(SDL_GPUCommandBuffer *cmd) {
       if (e.pending || e.failed || e.uploaded || !e.build) continue;
       if (e.field) e.fgpu = field_renderer_.upload(copy, e.build->mesh);
       else e.gpu = renderer_.upload(copy, e.build->mesh);
+      if (e.build->terrain) {
+        e.tgpu = terrain_renderer_.upload(copy, *e.build->terrain);
+        e.build->terrain->release_upload();
+      }
       e.uploaded = true;
       e.build->mesh.clear();
     }
@@ -1043,7 +1125,18 @@ void World::prepare(SDL_GPUCommandBuffer *cmd) {
     }
     renderer_.end_frame(copy);
   }
+  {
+    std::vector<uint32_t> terrains;
+    for (const Visible &v : sorted)
+      if (v.entry->build->terrain) terrains.push_back(v.slot);
+    prepare_terrains(copy, terrains);
+  }
   prepare_fields(copy);
+  fire_.sprites(fire_sprites_);
+  fire_.lights(eye_, LightUniform::kFireLights, fire_lights_);
+  counters_.fire_sprites = fire_sprites_.size();
+  counters_.fire_lights = fire_lights_.size();
+  if (copy) fire_renderer_.upload(copy, fire_sprites_);
   if (copy) {
     SDL_EndGPUCopyPass(copy);
     renderer_.scatter(cmd);
@@ -1059,10 +1152,90 @@ void World::prepare(SDL_GPUCommandBuffer *cmd) {
   counters_.culled = culled;
   counters_.too_small = small;
   for (int l = 0; l < 4; ++l) counters_.by_level[l] = by_level[l];
-  counters_.triangles = triangles + field_triangles_;
+  counters_.triangles = triangles + field_triangles_ + counters_.terrain_triangles;
   counters_.bones_uploaded = copy ? dirty_bones : 0;
   prepare_sky(cmd);
   times_.prepare_ms = ms_since(t0);
+}
+
+// Terrains (design/boundary.md, "Levels"): each terrain instance's cut through its quadtree, from
+// the eye in the instance's own space: a node is refined while the eye is nearer its box than the
+// quality's multiple of its spacing (and it has children), else drawn. Each node drawn morphs toward
+// its parent over the last stretch before its parent's distance, so the switch to the parent is
+// seamless.
+void World::prepare_terrains(SDL_GPUCopyPass *copy, const std::vector<uint32_t> &slots) {
+  terrain_draws_.clear();
+  counters_.terrains = counters_.terrain_nodes = counters_.terrain_triangles = 0;
+  struct Pick {
+    uint32_t slot, node;
+  };
+  std::vector<Pick> picks;
+  const float k = Terrain::kRefine[std::clamp(quality_, 0, 2)];
+  for (uint32_t i : slots) {
+    const Slot &s = slots_[i];
+    const Entry *e = s.entry;
+    if (!e || !e->build || !e->build->terrain || (have_renderer_ && !e->tgpu.vertices)) continue;
+    const Terrain &t = *e->build->terrain;
+    if (t.nodes.empty()) continue;
+    ++counters_.terrains;
+    // The eye in the instance's space (its rows are a 3 x 4 transform; invert the 3 x 3 part).
+    const float *r = s.rows;
+    const float a = r[0], b = r[1], c = r[2], d = r[4], ee = r[5], f = r[6], g = r[8], h = r[9], ii = r[10];
+    const float det = a * (ee * ii - f * h) - b * (d * ii - f * g) + c * (d * h - ee * g);
+    const float px = eye_[0] - r[3], py = eye_[1] - r[7], pz = eye_[2] - r[11];
+    float local[3] = {px, py, pz};
+    if (std::fabs(det) > 1e-12f) {
+      const float inv = 1.0f / det;
+      local[0] = ((ee * ii - f * h) * px - (b * ii - c * h) * py + (b * f - c * ee) * pz) * inv;
+      local[1] = (-(d * ii - f * g) * px + (a * ii - c * g) * py - (a * f - c * d) * pz) * inv;
+      local[2] = ((d * h - ee * g) * px - (a * h - b * g) * py + (a * ee - b * d) * pz) * inv;
+    }
+    std::vector<uint32_t> stack = {0};
+    while (!stack.empty()) {
+      const uint32_t n = stack.back();
+      stack.pop_back();
+      const TerrainNode &node = t.nodes[n];
+      float d2 = 0;
+      for (int ax = 0; ax < 3; ++ax) {
+        const float dd = std::max({node.min[ax] - local[ax], 0.0f, local[ax] - node.max[ax]});
+        d2 += dd * dd;
+      }
+      bool any = false;
+      for (uint32_t q : node.child) any = any || (q != UINT32_MAX && q < t.nodes.size());
+      if (any && d2 < (k * node.spacing) * (k * node.spacing)) {
+        for (uint32_t q : node.child)
+          if (q != UINT32_MAX && q < t.nodes.size()) stack.push_back(q);
+      } else if (node.count) {
+        picks.push_back({i, n});
+        counters_.terrain_triangles += node.count / 3;
+      }
+    }
+  }
+  counters_.terrain_nodes = picks.size();
+  if (!copy || picks.empty()) return;
+  TerrainInstance *out = terrain_renderer_.begin_frame(static_cast<uint32_t>(picks.size()));
+  if (!out) return;
+  for (size_t p = 0; p < picks.size(); ++p) {
+    const Slot &s = slots_[picks[p].slot];
+    const TerrainMesh &m = s.entry->tgpu;
+    const TerrainNode &node = s.entry->build->terrain->nodes[picks[p].node];
+    TerrainInstance &inst = out[p];
+    std::memcpy(inst.row0, s.rows, 16);
+    std::memcpy(inst.row1, s.rows + 4, 16);
+    std::memcpy(inst.row2, s.rows + 8, 16);
+    const uint32_t n = picks[p].node;
+    inst.tile[0] = static_cast<float>((n % m.columns) * m.tile) / static_cast<float>(m.width);
+    inst.tile[1] = static_cast<float>((n / m.columns) * m.tile) / static_cast<float>(m.height);
+    inst.tile[2] = static_cast<float>(m.tile) / static_cast<float>(m.width);
+    inst.tile[3] = static_cast<float>(m.tile) / static_cast<float>(m.height);
+    // Toward the parent from 60% to 95% of the parent's distance (the root has none).
+    const float parent = n == 0 ? 1e30f : k * 2.0f * node.spacing;
+    inst.morph[0] = 0.6f * parent;
+    inst.morph[1] = 1.0f / (0.35f * parent);
+    inst.morph[2] = inst.morph[3] = 0;
+    terrain_draws_.push_back({&m, node.first, node.count});
+  }
+  terrain_renderer_.end_frame(copy);
 }
 
 // The sky's frame, and the key light's shadow map: what is drawn this frame, seen from the light.
@@ -1276,11 +1449,24 @@ void World::draw(SDL_GPUCommandBuffer *cmd, SDL_GPURenderPass *pass) {
   if (have_renderer_ && cmd && pass) {
     float identity[16] = {1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1};
     const bool sky = observatory_ && have_sky_frame_ && sky_.ready();
-    const LightBinding light = sky ? sky_.light(sky_frame_, sky_state_, eye_, clock_, shadow_drawn_ ? &shadow_ : nullptr)
-                                   : sky_.classic_light();
+    LightBinding light = sky ? sky_.light(sky_frame_, sky_state_, eye_, clock_, shadow_drawn_ ? &shadow_ : nullptr)
+                             : sky_.classic_light();
+    // The fires' lights, nearest and strongest first.
+    light.uniform.fire_count[0] = static_cast<float>(fire_lights_.size());
+    for (size_t i = 0; i < fire_lights_.size(); ++i) {
+      const fire::Light &l = fire_lights_[i];
+      for (int k = 0; k < 3; ++k) {
+        light.uniform.fire_pos[i][k] = l.pos[k];
+        light.uniform.fire_col[i][k] = l.color[k] * l.strength;
+      }
+      light.uniform.fire_pos[i][3] = l.radius;
+    }
     renderer_.draw(cmd, pass, frame_ranges_, have_camera_ ? view_proj_ : identity, &light);
+    terrain_renderer_.draw(cmd, pass, terrain_draws_, have_camera_ ? view_proj_ : identity, eye_, light);
     field_renderer_.draw(cmd, pass, field_ranges_, have_camera_ ? view_proj_ : identity, static_cast<float>(clock_), light);
     if (sky && have_camera_) sky_.draw(cmd, pass, sky_.sky_uniform(sky_frame_, sky_state_, sky_camera(view_, projection_), clock_));
+    // Fire last: smoke over the sky and everything solid, then the flames' light.
+    fire_renderer_.draw(cmd, pass, have_camera_ ? view_proj_ : identity, have_camera_ ? view_ : identity, light);
   }
   times_.draw_ms = ms_since(t0);
 }
@@ -1305,7 +1491,7 @@ Counters World::counters() const {
   if (have_renderer_) {
     c.gpu_buffers_created = renderer_.buffers_created();
     c.gpu_buffers_released = renderer_.buffers_released();
-    c.gpu_bytes = renderer_.gpu_bytes();
+    c.gpu_bytes = renderer_.gpu_bytes() + terrain_renderer_.gpu_bytes();
   }
   return c;
 }

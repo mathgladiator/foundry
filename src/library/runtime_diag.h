@@ -25,6 +25,7 @@ typedef struct foundry_diag_counters {
   uint64_t lod_generations;                 /* of the generations, the runtime's coarser levels of detail */
   uint64_t fields, field_tiles;             /* fields, and their tiles drawn in the last frame */
   uint64_t field_tiles_by_level[4];         /* those tiles, by level of detail */
+  uint64_t terrains, terrain_nodes, terrain_triangles;  /* terrains drawn, their nodes and triangles (design/boundary.md) */
 } foundry_diag_counters;
 
 typedef struct foundry_diag_frame {

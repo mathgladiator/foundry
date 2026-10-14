@@ -1,0 +1,333 @@
+{
+ "build": {
+  "commit": "8e18118+dirty",
+  "dt": 0.016666666666666666,
+  "gpu": "rendered off screen",
+  "resolution": [
+   1920,
+   1080
+  ]
+ },
+ "compared_with": "report-boundary_v1-20261014T070558Z",
+ "failures": [],
+ "finished": "2026-10-14T21:08:09Z",
+ "machine": {
+  "cores": 32,
+  "cpu": "AMD RYZEN AI MAX+ 395 w/ Radeon 8060S",
+  "fingerprint": "deb7535b5a90a4bb",
+  "gpu": "Radeon 8060S Graphics (RADV GFX1151)",
+  "gpu_driver": "vulkan",
+  "memory_gb": 125.0,
+  "os": "Linux 6.18.44+rex+5-amd64"
+ },
+ "pass": true,
+ "phases": [
+  {
+   "data": {
+    "configs": 24,
+    "deterministic": {
+     "of": 20,
+     "same": 20
+    },
+    "failed": 0,
+    "frames": {
+     "draw_ms": {
+      "max": 0.002,
+      "mean": 0.0,
+      "n": 1200,
+      "p50": 0.0,
+      "p95": 0.0,
+      "p99": 0.0
+     },
+     "gpu_wait_ms": {
+      "max": 3.155,
+      "mean": 0.007,
+      "n": 1200,
+      "p50": 0.001,
+      "p95": 0.014,
+      "p99": 0.039
+     },
+     "prepare_ms": {
+      "max": 1.544,
+      "mean": 0.002,
+      "n": 1200,
+      "p50": 0.0,
+      "p95": 0.0,
+      "p99": 0.001
+     },
+     "total_ms": {
+      "max": 3.169,
+      "mean": 0.021,
+      "n": 1200,
+      "p50": 0.015,
+      "p95": 0.023,
+      "p99": 0.052
+     },
+     "update_ms": {
+      "max": 0.015,
+      "mean": 0.001,
+      "n": 1200,
+      "p50": 0.001,
+      "p95": 0.001,
+      "p99": 0.001
+     }
+    },
+    "generation_ms": {
+     "max": 1813.894,
+     "mean": 976.805,
+     "n": 24,
+     "p50": 1076.184,
+     "p95": 1576.294,
+     "p99": 1813.894
+    },
+    "generation_worst": {
+     "biome": "tropical",
+     "blend": 3.9319567680358887,
+     "detail": "high",
+     "figure_range": 83.51874542236328,
+     "hull": "around_highland",
+     "season": "spring",
+     "seed": 551555,
+     "view_distance": 7033.330078125
+    },
+    "reference": null,
+    "seconds": 20.0,
+    "stages": [
+     {
+      "calls": 44,
+      "max_ms": 3.272795,
+      "mean_ms": 0.27945870454545446,
+      "stage": "boundary_v1.rim",
+      "update": false
+     },
+     {
+      "calls": 44,
+      "max_ms": 889.597367,
+      "mean_ms": 407.8684786136364,
+      "stage": "boundary_v1.terrain",
+      "update": false
+     }
+    ],
+    "threads": {
+     "of": 10,
+     "same": 10
+    },
+    "triangles": {
+     "max": 32416.0,
+     "mean": 6127.458,
+     "n": 24,
+     "p50": 3928.0,
+     "p95": 30326.0,
+     "p99": 32416.0
+    },
+    "unsettled": 0,
+    "wall_seconds": 7.606514348983764
+   },
+   "kind": "diversity",
+   "pass": true,
+   "summary": "24 configs  20 s  PASS  native = wasm: no reference  gen p50 1076.2 ms p99 1813.9 ms (tropical high around_highland spring)  frame p95 0.02 ms"
+  },
+  {
+   "data": {
+    "budget_ms": 16.666666666666668,
+    "camera": "walk",
+    "capacity": 2,
+    "capacity_is_lower_bound": true,
+    "capacity_p95_ms": 0.2513120174407959,
+    "expected_generations": 4,
+    "generations": 2,
+    "hit_rate": 0.0,
+    "kb_per_instance": 6963.199999999953,
+    "ms_per_instance": 0.08899999999999997,
+    "samples": [
+     {
+      "bodies": 1,
+      "cache_entries": 1,
+      "cache_gpu_mb": 0.17524337768554688,
+      "count": 1,
+      "culled": 0,
+      "detail_generations": 0,
+      "drawn": 1,
+      "draws": 1,
+      "frames": {
+       "draw_ms": {
+        "max": 0.039,
+        "mean": 0.005,
+        "n": 325,
+        "p50": 0.005,
+        "p95": 0.005,
+        "p99": 0.019
+       },
+       "gpu_frame_ms": {
+        "max": 0.298,
+        "mean": 0.262,
+        "n": 36,
+        "p50": 0.266,
+        "p95": 0.278,
+        "p99": 0.298
+       },
+       "gpu_wait_ms": {
+        "max": 0.55,
+        "mean": 0.092,
+        "n": 325,
+        "p50": 0.115,
+        "p95": 0.131,
+        "p99": 0.241
+       },
+       "prepare_ms": {
+        "max": 0.021,
+        "mean": 0.003,
+        "n": 325,
+        "p50": 0.003,
+        "p95": 0.003,
+        "p99": 0.012
+       },
+       "total_ms": {
+        "max": 0.57,
+        "mean": 0.111,
+        "n": 325,
+        "p50": 0.133,
+        "p95": 0.152,
+        "p99": 0.262
+       },
+       "update_ms": {
+        "max": 0.002,
+        "mean": 0.0,
+        "n": 325,
+        "p50": 0.0,
+        "p95": 0.0,
+        "p99": 0.001
+       }
+      },
+      "generations": 1,
+      "memory": {
+       "heap_mb": 72.82,
+       "hwm_mb": 1310.0,
+       "private_dirty_mb": 652.41,
+       "rss_anon_mb": 652.41,
+       "rss_mb": 707.2
+      },
+      "p95_ms": 0.15152406692504883,
+      "triangles": 373224
+     },
+     {
+      "bodies": 2,
+      "cache_entries": 2,
+      "cache_gpu_mb": 0.2854728698730469,
+      "count": 2,
+      "culled": 0,
+      "detail_generations": 0,
+      "drawn": 2,
+      "draws": 2,
+      "frames": {
+       "draw_ms": {
+        "max": 0.051,
+        "mean": 0.009,
+        "n": 325,
+        "p50": 0.008,
+        "p95": 0.009,
+        "p99": 0.03
+       },
+       "gpu_frame_ms": {
+        "max": 0.466,
+        "mean": 0.438,
+        "n": 36,
+        "p50": 0.444,
+        "p95": 0.459,
+        "p99": 0.466
+       },
+       "gpu_wait_ms": {
+        "max": 0.865,
+        "mean": 0.161,
+        "n": 325,
+        "p50": 0.198,
+        "p95": 0.229,
+        "p99": 0.408
+       },
+       "prepare_ms": {
+        "max": 0.029,
+        "mean": 0.005,
+        "n": 325,
+        "p50": 0.004,
+        "p95": 0.005,
+        "p99": 0.018
+       },
+       "total_ms": {
+        "max": 0.886,
+        "mean": 0.187,
+        "n": 325,
+        "p50": 0.222,
+        "p95": 0.251,
+        "p99": 0.432
+       },
+       "update_ms": {
+        "max": 0.004,
+        "mean": 0.0,
+        "n": 325,
+        "p50": 0.0,
+        "p95": 0.0,
+        "p99": 0.002
+       }
+      },
+      "generations": 2,
+      "memory": {
+       "heap_mb": 93.44,
+       "hwm_mb": 1310.0,
+       "private_dirty_mb": 659.21,
+       "rss_anon_mb": 659.21,
+       "rss_mb": 714.0
+      },
+      "p95_ms": 0.2513120174407959,
+      "triangles": 730024
+     }
+    ],
+    "sets": 4,
+    "superlinear": false,
+    "wall_seconds": 0.7480645759105682
+   },
+   "kind": "forest",
+   "pass": true,
+   "summary": "4 sets  1..2  PASS  budget 16.7 ms holds to at least 2 (p95 0.3 ms)  generations 2/4  hits 0.0%"
+  }
+ ],
+ "pipeline": "boundary_v1",
+ "plan": {
+  "doc": "For pipelines that draw a terrain (a boundary: design/boundary.md), where the generic plans' hundreds of instances side by side mean nothing: two dozen worlds far apart, then a player walking inside one (and inside two overlapping) with the view reaching 12 km.",
+  "name": "terrain",
+  "phases": [
+   {
+    "configs": 24,
+    "kind": "diversity",
+    "seconds": 20,
+    "spacing": 30000
+   },
+   {
+    "camera": "walk",
+    "counts": [
+     1,
+     2
+    ],
+    "far": 12000,
+    "kind": "forest",
+    "seconds": 6,
+    "sets": 4
+   }
+  ],
+  "seed": 7
+ },
+ "plan_name": "terrain",
+ "run_dir": "perf/runs/boundary_v1-20261014T210801Z",
+ "seed": 7,
+ "started": "2026-10-14T21:08:01Z",
+ "state": "draft",
+ "summary": [
+  "stress_boundary_v1 (draft)  plan terrain  seed 7  Linux 6.18.44+rex+5-amd64  AMD RYZEN AI MAX+ 395 w/ Radeon 8060S  Radeon 8060S Graphics (RADV GFX1151) (vulkan)  build 8e18118+dirty",
+  "diversity  24 configs  20 s  PASS  native = wasm: no reference  gen p50 1076.2 ms p99 1813.9 ms (tropical high around_highland spring)  frame p95 0.02 ms",
+  "forest     4 sets  1..2  PASS  budget 16.7 ms holds to at least 2 (p95 0.3 ms)  generations 2/4  hits 0.0%",
+  "vs report-boundary_v1-20261014T070558Z: generation p50 -2%, diversity frame p95 -21%, forest p95 at 2 +4%, capacity +0%"
+ ],
+ "systems": [
+  "boundary_rim_v1",
+  "boundary_terrain_v1"
+ ]
+}

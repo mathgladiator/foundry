@@ -130,7 +130,7 @@ std::vector<runtime::CollisionBody> bodies_from_json(const nlohmann::json &colli
 }
 
 std::shared_ptr<const Collision> analyze(const std::vector<runtime::CollisionBody> &bodies, float conformance_radius,
-                                         float conformance_height) {
+                                         float conformance_height, const foundry::vec3 *box_min, const foundry::vec3 *box_max) {
   auto out = std::make_shared<Collision>();
   out->bodies = bodies;
   nlohmann::json r = nlohmann::json::object();
@@ -172,10 +172,15 @@ std::shared_ptr<const Collision> analyze(const std::vector<runtime::CollisionBod
   // Inside the conformance: every surface point within its radius and below its height
   // (anything below the ground is the model's buried base, and is ignored).
   float reach = 0, top = 0;
+  float lo[3] = {1e9f, 1e9f, 1e9f}, hi[3] = {-1e9f, -1e9f, -1e9f};
   for (const auto &s : out->surfaces)
     for (size_t i = 0; i + 2 < s.triangles.size(); i += 3) {
       reach = std::max(reach, std::hypot(s.triangles[i], s.triangles[i + 2]));
       top = std::max(top, s.triangles[i + 1]);
+      for (int a = 0; a < 3; ++a) {
+        lo[a] = std::min(lo[a], s.triangles[i + a]);
+        hi[a] = std::max(hi[a], s.triangles[i + a]);
+      }
     }
   r["reach_m"] = std::round(reach * 1000) / 1000;
   r["top_m"] = std::round(top * 1000) / 1000;
@@ -186,6 +191,13 @@ std::shared_ptr<const Collision> analyze(const std::vector<runtime::CollisionBod
     r["inside_conformance"] = out->inside;
   } else {
     r["inside_conformance"] = "no conformance";
+  }
+  if (box_min && box_max && !out->surfaces.empty()) {
+    const float slack = 0.03f;  // Jolt's convex radius, as above
+    const bool in_box = lo[0] >= box_min->x - slack && hi[0] <= box_max->x + slack && lo[2] >= box_min->z - slack &&
+                        hi[2] <= box_max->z + slack && hi[1] <= std::max(box_max->y, 0.0f) + slack;
+    r["inside_box"] = in_box;
+    out->inside = out->inside && in_box;
   }
   out->report = r;
   return out;

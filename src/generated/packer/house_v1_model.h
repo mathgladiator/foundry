@@ -10,10 +10,18 @@ namespace foundry {
 inline void pack_fields(Writer &w, const channels::house_v1_model &c) {
   w.f32(c.height);
   w.f32(c.radius);
+  w.array(c.fire_points, [](Writer &w, const auto &x) { w.vec(x); });
+  w.array(c.fire_configs, [](Writer &w, const auto &x) { w.u32(x); });
+  w.array(c.fire_lit, [](Writer &w, const auto &x) { w.u32(x); });
   w.u32(c.footprint);
   w.u32(c.footprint_cells);
   w.f32(c.footprint_radius);
   w.array(c.cells, [](Writer &w, const auto &x) { w.i32(x); });
+  w.array(c.doors, [](Writer &w, const auto &x) { w.i32(x); });
+  w.vec(c.lot_min);
+  w.vec(c.lot_max);
+  w.array(c.guide_cells, [](Writer &w, const auto &x) { w.i32(x); });
+  w.array(c.guide_tones, [](Writer &w, const auto &x) { w.u32(x); });
   w.vec(c.doorway);
   w.f32(c.doorway_heading);
   w.vec(c.marker);
@@ -31,10 +39,18 @@ inline void pack_fields(Writer &w, const channels::house_v1_model &c) {
 inline void unpack_fields(Reader &r, channels::house_v1_model &c) {
   c.height = r.f32();
   c.radius = r.f32();
+  r.array(c.fire_points, 12, [](Reader &r, auto &x) { x = r.vec(); });
+  r.array(c.fire_configs, 4, [](Reader &r, auto &x) { x = r.u32(); });
+  r.array(c.fire_lit, 4, [](Reader &r, auto &x) { x = r.u32(); });
   c.footprint = r.u32();
   c.footprint_cells = r.u32();
   c.footprint_radius = r.f32();
   r.array(c.cells, 4, [](Reader &r, auto &x) { x = r.i32(); });
+  r.array(c.doors, 4, [](Reader &r, auto &x) { x = r.i32(); });
+  c.lot_min = r.vec();
+  c.lot_max = r.vec();
+  r.array(c.guide_cells, 4, [](Reader &r, auto &x) { x = r.i32(); });
+  r.array(c.guide_tones, 4, [](Reader &r, auto &x) { x = r.u32(); });
   c.doorway = r.vec();
   c.doorway_heading = r.f32();
   c.marker = r.vec();

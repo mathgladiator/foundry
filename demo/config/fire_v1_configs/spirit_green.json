@@ -1,0 +1,42 @@
+{
+  "created_at": "2026-10-14T04:30:00Z",
+  "doc": "A druid's fire: green flames that throw no smoke.",
+  "notes": [],
+  "state": "draft",
+  "value": {
+    "name": "spirit_green",
+    "id": 5,
+    "kind": "spirit",
+    "core_color": [
+      0.55,
+      1.0,
+      0.45
+    ],
+    "tip_color": [
+      0.1,
+      0.65,
+      0.3
+    ],
+    "size": 0.3,
+    "height": 0.55,
+    "rate": 45,
+    "flicker": 0.6,
+    "sparks": 3,
+    "smoke_color": [
+      0.5,
+      0.6,
+      0.5
+    ],
+    "smoke_rate": 0,
+    "smoke_size": 0.3,
+    "smoke_life": 4,
+    "smoke_rise": 0.8,
+    "light_color": [
+      0.45,
+      1.0,
+      0.55
+    ],
+    "light_radius": 7,
+    "light_strength": 1.2
+  }
+}

@@ -1,0 +1,57 @@
+{
+  "created_at": "2026-10-14T01:30:00Z",
+  "doc": "A hexagonal enclosure, side 4 links, laid counter-clockwise (its inside on the left), with a gate at a node and a gate on a link.",
+  "notes": [],
+  "state": "draft",
+  "value": {
+    "name": "ring",
+    "nodes": [
+      4,
+      4,
+      -4,
+      8,
+      -8,
+      4,
+      -4,
+      -4,
+      4,
+      -8,
+      8,
+      -4,
+      0,
+      6
+    ],
+    "heights": [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "links": [
+      0,
+      6,
+      6,
+      1,
+      1,
+      2,
+      2,
+      3,
+      3,
+      4,
+      4,
+      5,
+      5,
+      0
+    ],
+    "gate_nodes": [
+      6
+    ],
+    "gate_links": [
+      4
+    ],
+    "towers": []
+  }
+}

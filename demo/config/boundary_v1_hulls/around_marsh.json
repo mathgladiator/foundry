@@ -1,0 +1,27 @@
+{
+  "created_at": "2026-10-14T13:00:00Z",
+  "doc": "Any region beside a marsh: reeds to the east, forest to the west.",
+  "notes": [],
+  "state": "draft",
+  "value": {
+    "name": "around_marsh",
+    "cells": [],
+    "edges": [],
+    "heights": [],
+    "rises": [],
+    "radius": 20,
+    "sectors": [
+      7,
+      4,
+      4,
+      7
+    ],
+    "sector_rises": [
+      0.2,
+      0.3,
+      0.3,
+      0.2
+    ],
+    "rise": 0.4
+  }
+}

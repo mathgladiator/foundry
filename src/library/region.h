@@ -145,6 +145,44 @@ typedef struct foundry_field_cell {
  * region's space. Writes up to max handles into out; returns how many fields the plotter has. The
  * game owns them like any instance; spawn them again after foundry_region_set_regions. */
 uint32_t foundry_region_spawn_fields(foundry_runtime *rt, foundry_region region, foundry_instance *out, uint32_t max);
+/* A boundary (design/boundary.md): what walls a region in so its player can't leave while the world
+ * seems to go on. Its hull is the ring of cells around the region, counterclockwise as seen from
+ * above, each with its edge: what stops the player there and what lies beyond. */
+typedef enum foundry_edge {
+  FOUNDRY_EDGE_AUTO = 0,  /* the boundary's sectors give it, by direction */
+  FOUNDRY_EDGE_LEDGE,     /* walk to it and look out: the land drops away to a valley far below */
+  FOUNDRY_EDGE_RIDGE,     /* a cliff rises */
+  FOUNDRY_EDGE_MOUNTAIN,  /* a steep slope climbs into peaks */
+  FOUNDRY_EDGE_FOREST,    /* trunks too thick to pass */
+  FOUNDRY_EDGE_JUNGLE,
+  FOUNDRY_EDGE_SEA,       /* a beach and open water */
+  FOUNDRY_EDGE_MARSH      /* reeds and pools */
+} foundry_edge;
+typedef struct foundry_hull_cell {
+  int32_t q, r;       /* axial */
+  foundry_edge edge;
+  float height;       /* the ground's height at the centre, metres */
+  float rise;         /* 0 to 1: how high the land climbs behind it (lowland to peaks); < 0: the boundary's */
+  uint32_t opening;   /* 0 none, or what leaves the region through it: 1 a road, 2 a lane, 3 a river in, 4 a river out */
+  uint32_t opening_width;  /* its width, cells */
+} foundry_hull_cell;
+/* The ring of cells just outside a region, counterclockwise as seen from above, each with the
+ * height of the region's cell beside it, edge auto, and rise -1: a boundary's hull for it, for the
+ * game to give edges and rises. Writes up to capacity cells; returns how many there are. */
+uint32_t foundry_region_hull(foundry_runtime *rt, foundry_region region, foundry_hull_cell *out, uint32_t capacity);
+/* Spawns the region's plotter's boundary (its plotter file's boundary: a pipeline with its parameters)
+ * around the region with this hull, in the region's space. FOUNDRY_NO_INSTANCE if it has none. */
+foundry_instance foundry_region_spawn_boundary(foundry_runtime *rt, foundry_region region, const foundry_hull_cell *cells,
+                                               uint32_t count);
+/* Fills a boundary's figures (the trees and bushes it leaves for the game; ground.h) with the systems the
+ * region's plotter's boundary names (its draw.figures), each at its figure's place: what a game does
+ * with its own systems. Spawns nothing until the boundary's build is ready (call again). Writes up to
+ * capacity handles; returns how many it spawned. */
+uint32_t foundry_region_spawn_figures(foundry_runtime *rt, foundry_region region, foundry_instance boundary, foundry_instance *out,
+                                      uint32_t capacity);
+/* A plotter's boundary, as "pipeline param..." (e.g. "boundary_v1 around_valley temperate"), or "" if none. */
+const char *foundry_plotter_boundary_name(foundry_plotter plotter);
+
 /* A plotter's fields, as "pipeline param..." (e.g. "grass_v1 meadow"), and how many it has. */
 const char *foundry_plotter_field_name(foundry_plotter plotter, uint32_t field);
 uint32_t foundry_plotter_field_count(foundry_plotter plotter);

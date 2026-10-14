@@ -1,0 +1,9 @@
+{
+  "name": "terrain",
+  "doc": "For pipelines that draw a terrain (a boundary: design/boundary.md), where the generic plans' hundreds of instances side by side mean nothing: two dozen worlds far apart, then a player walking inside one (and inside two overlapping) with the view reaching 12 km.",
+  "seed": 7,
+  "phases": [
+    {"kind": "diversity", "configs": 24, "seconds": 20, "spacing": 30000},
+    {"kind": "forest", "sets": 4, "counts": [1, 2], "seconds": 6, "camera": "walk", "far": 12000}
+  ]
+}

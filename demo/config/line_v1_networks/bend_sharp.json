@@ -1,0 +1,31 @@
+{
+  "created_at": "2026-10-14T01:30:00Z",
+  "doc": "Two arms 60 degrees apart: a sharp bend.",
+  "notes": [],
+  "state": "draft",
+  "value": {
+    "name": "bend_sharp",
+    "nodes": [
+      0,
+      0,
+      3,
+      3,
+      -3,
+      6
+    ],
+    "heights": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "links": [
+      0,
+      1,
+      0,
+      2
+    ],
+    "gate_nodes": [],
+    "gate_links": [],
+    "towers": []
+  }
+}

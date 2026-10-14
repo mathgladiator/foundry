@@ -14,24 +14,49 @@ namespace channels {
 // A village building, built: its mesh with its moving parts, its conformance and footprint, what collides, and where the player meets it, at the doorway or from the command view.
 struct house_v1_model {
   static constexpr const char *kName = "house_v1_model";
-  static constexpr uint32_t kFootprintFlower7 = 0;
-  static constexpr uint32_t kFootprintRect3x2 = 1;
-  static constexpr uint32_t kFootprintRect3x3 = 2;
-  static constexpr uint32_t kFootprintRect4x3 = 3;
-  static constexpr uint32_t kFootprintRect5x4 = 4;
-  static constexpr uint32_t kFootprintFlower19 = 5;
+  static constexpr uint32_t kFootprintRect5x4 = 0;
+  static constexpr uint32_t kFootprintRect4x5 = 1;
+  static constexpr uint32_t kFootprintFlower19 = 2;
+  static constexpr uint32_t kFootprintRect3x8 = 3;
+  static constexpr uint32_t kFootprintRect7x4 = 4;
+  static constexpr uint32_t kFootprintRect6x5 = 5;
+  static constexpr uint32_t kFootprintRect5x6 = 6;
+  static constexpr uint32_t kFootprintFlower37 = 7;
+  static constexpr uint32_t kFootprintRect4x9 = 8;
+  static constexpr uint32_t kFootprintRect9x5 = 9;
+  static constexpr uint32_t kFootprintRect8x6 = 10;
+  static constexpr uint32_t kFootprintRect6x8 = 11;
+  static constexpr uint32_t kFootprintFlower61 = 12;
+  static constexpr uint32_t kFootprintRect5x11 = 13;
+  static constexpr uint32_t kFootprintRect10x6 = 14;
   // Height, metres (conformance).
   float height = 0.0f;
   // Conformance radius, metres: the farthest the building or its yard reaches from the origin.
   float radius = 0.0f;
-  // Which footprint it stands on.
+  // Where fires burn, metres: hearths, forges, torches, braziers (lit), and points over its roof and walls that burn when it does.
+  std::vector<foundry::vec3> fire_points;
+  // Each fire point's fire config (fire_v1_config's id).
+  std::vector<uint32_t> fire_configs;
+  // Each fire point: 1 always lit (a hearth, a torch), 0 only while the building burns, 2 its smoke only (a chimney or a smoke hole: the hearth's smoke without its flames).
+  std::vector<uint32_t> fire_lit;
+  // Which footprint it stands on: by household (solo, family, extended), its wide, deep, round, long, or broad lot.
   uint32_t footprint = 0;
-  // The round footprint that holds it, for plotters that know only those: 7, 19, or 37 cells.
+  // The round footprint that holds it, for plotters that know only those: 19, 37, 61, 91, or 127 cells.
   uint32_t footprint_cells = 0;
   // The radius its round footprint must hold, metres.
   float footprint_radius = 0.0f;
   // The cells it stands on, as q, r pairs (axial, pointy-top, 1 m cells), relative to the cell under the origin.
   std::vector<int32_t> cells;
+  // The cells just outside its doors, as q, r pairs relative to the cell under the origin (+z its front): the footprint's, so every type on a lot has the same. A planner keeps them a clear way.
+  std::vector<int32_t> doors;
+  // The lot's box, its low corner, metres: the cells' bounds on the ground (the box conformance a planner's plot matches).
+  foundry::vec3 lot_min;
+  // The lot's box, its high corner, metres: the cells' bounds on the ground, up to the building's top.
+  foundry::vec3 lot_max;
+  // Every lot this pipeline has, for the viewer to outline on the ground and compare: group, q, r triples (a group is one lot), relative to the cell under the origin.
+  std::vector<int32_t> guide_cells;
+  // Each guide group's tone: 0 the lot it stands on, 1 the same shape for the other households, 2 the rest.
+  std::vector<uint32_t> guide_tones;
   // Where the player stands to use the door, metres, on the ground just outside it.
   foundry::vec3 doorway;
   // Which way the door faces, degrees from +Z toward +X.

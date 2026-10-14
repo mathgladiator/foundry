@@ -21,5 +21,5 @@ SkyOut sky_vs(uint id : SV_VertexID) {
 float4 sky_ps(SkyOut i) : SV_Target0 {
   const float3 dir = normalize(sky.ray_z.xyz + i.ndc.x * sky.ray_x.xyz + i.ndc.y * sky.ray_y.xyz);
   const float dither = (sky_hash(i.position.xy) - 0.5) / 255.0;
-  return float4(sky_color(dir) + dither, 1.0);
+  return float4(look_apply(sky.look, sky_color(dir)) + dither, 1.0);
 }

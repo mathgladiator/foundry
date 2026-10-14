@@ -1,0 +1,53 @@
+{
+  "created_at": "2026-10-13T23:30:00Z",
+  "doc": "A wayside shrine: a little roofed niche on a plinth, a candle burning, flowers by season.",
+  "notes": [],
+  "state": "draft",
+  "value": {
+    "name": "shrine",
+    "kind": "shrine",
+    "size": "centre",
+    "walls": "stone",
+    "wall_color": [
+      0.74,
+      0.7,
+      0.62
+    ],
+    "trim_color": [
+      0.8,
+      0.78,
+      0.72
+    ],
+    "base_color": [
+      0.42,
+      0.4,
+      0.38
+    ],
+    "roof": "tile",
+    "roof_color": [
+      0.62,
+      0.32,
+      0.22
+    ],
+    "metal_color": [
+      0.55,
+      0.42,
+      0.25
+    ],
+    "accent": [
+      0.85,
+      0.4,
+      0.55
+    ],
+    "roof_pitch": 40,
+    "wall_height": 2.5,
+    "spire": false,
+    "bell": false,
+    "clock": false,
+    "columns": false,
+    "dome": false,
+    "banners": false,
+    "lamps": false,
+    "symbol": "none"
+  }
+}

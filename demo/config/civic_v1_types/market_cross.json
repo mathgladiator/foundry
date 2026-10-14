@@ -1,0 +1,53 @@
+{
+  "created_at": "2026-10-13T23:30:00Z",
+  "doc": "A market cross: three octagonal steps, a tall shaft, and a cross at its head.",
+  "notes": [],
+  "state": "draft",
+  "value": {
+    "name": "market_cross",
+    "kind": "cross",
+    "size": "centre",
+    "walls": "stone",
+    "wall_color": [
+      0.7,
+      0.68,
+      0.62
+    ],
+    "trim_color": [
+      0.78,
+      0.76,
+      0.7
+    ],
+    "base_color": [
+      0.42,
+      0.4,
+      0.38
+    ],
+    "roof": "slate",
+    "roof_color": [
+      0.32,
+      0.34,
+      0.4
+    ],
+    "metal_color": [
+      0.55,
+      0.42,
+      0.25
+    ],
+    "accent": [
+      0.5,
+      0.2,
+      0.2
+    ],
+    "roof_pitch": 40,
+    "wall_height": 2.5,
+    "spire": false,
+    "bell": false,
+    "clock": false,
+    "columns": false,
+    "dome": false,
+    "banners": false,
+    "lamps": false,
+    "symbol": "none"
+  }
+}

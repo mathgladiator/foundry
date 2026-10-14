@@ -15,6 +15,8 @@ typedef enum foundry_rock_v1_material {
   FOUNDRY_ROCK_V1_MATERIAL_SLATE = 7,
   FOUNDRY_ROCK_V1_MATERIAL_COUNT = 8
 } foundry_rock_v1_material;
+/* A material by its name (as a config entry or a figure names it), or -1. */
+int foundry_rock_v1_material_find(const char *name);
 
 typedef enum foundry_rock_v1_size {
   FOUNDRY_ROCK_V1_SIZE_SMALL = 0,
@@ -23,6 +25,8 @@ typedef enum foundry_rock_v1_size {
   FOUNDRY_ROCK_V1_SIZE_HUGE = 3,
   FOUNDRY_ROCK_V1_SIZE_COUNT = 4
 } foundry_rock_v1_size;
+/* A size by its name (as a config entry or a figure names it), or -1. */
+int foundry_rock_v1_size_find(const char *name);
 
 typedef enum foundry_rock_v1_moss {
   FOUNDRY_ROCK_V1_MOSS_NONE = 0,
@@ -30,6 +34,8 @@ typedef enum foundry_rock_v1_moss {
   FOUNDRY_ROCK_V1_MOSS_HEAVY = 2,
   FOUNDRY_ROCK_V1_MOSS_COUNT = 3
 } foundry_rock_v1_moss;
+/* A moss by its name (as a config entry or a figure names it), or -1. */
+int foundry_rock_v1_moss_find(const char *name);
 
 typedef enum foundry_rock_v1_season {
   FOUNDRY_ROCK_V1_SEASON_WINTER = 0,
@@ -38,6 +44,8 @@ typedef enum foundry_rock_v1_season {
   FOUNDRY_ROCK_V1_SEASON_FALL = 3,
   FOUNDRY_ROCK_V1_SEASON_COUNT = 4
 } foundry_rock_v1_season;
+/* A season by its name (as a config entry or a figure names it), or -1. */
+int foundry_rock_v1_season_find(const char *name);
 
 typedef enum foundry_rock_v1_detail {
   FOUNDRY_ROCK_V1_DETAIL_HIGH = 0,
@@ -45,6 +53,8 @@ typedef enum foundry_rock_v1_detail {
   FOUNDRY_ROCK_V1_DETAIL_LOW = 2,
   FOUNDRY_ROCK_V1_DETAIL_COUNT = 3
 } foundry_rock_v1_detail;
+/* A detail by its name (as a config entry or a figure names it), or -1. */
+int foundry_rock_v1_detail_find(const char *name);
 
 typedef struct foundry_rock_v1_params {
   foundry_rock_v1_material material;  /* A material: one entry from config/rock_v1_materials/. */

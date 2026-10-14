@@ -1,0 +1,51 @@
+{
+  "created_at": "2026-10-13T17:00:00Z",
+  "doc": "A harvest village: ochre walls, russet roofs, deep green doors.",
+  "notes": [],
+  "state": "draft",
+  "value": {
+    "name": "autumn",
+    "roof": [
+      0.62,
+      0.3,
+      0.16
+    ],
+    "roof_mix": 0.7,
+    "wall": [
+      0.86,
+      0.68,
+      0.42
+    ],
+    "wall_mix": 0.6,
+    "trim": [
+      0.5,
+      0.5,
+      0.5
+    ],
+    "trim_mix": 0.0,
+    "door": [
+      0.2,
+      0.36,
+      0.22
+    ],
+    "door_mix": 0.9,
+    "shutter": [
+      0.62,
+      0.36,
+      0.14
+    ],
+    "shutter_mix": 0.8,
+    "accent": [
+      0.8,
+      0.46,
+      0.12
+    ],
+    "accent_mix": 0.9,
+    "sign": [
+      0.5,
+      0.5,
+      0.5
+    ],
+    "sign_mix": 0.0
+  }
+}

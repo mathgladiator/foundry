@@ -1,0 +1,47 @@
+{
+  "created_at": "2026-10-14T04:30:00Z",
+  "doc": "A grove village: round wattle-and-daub huts under tall conical thatch, standing stones, green spirit fire, a henge for a wall.",
+  "notes": [],
+  "state": "draft",
+  "value": {
+    "name": "druidic",
+    "roof": "cone",
+    "plan": "round",
+    "walls": "wattle",
+    "windows": "round",
+    "foundation": "none",
+    "ornament": "standing_stones",
+    "wall_color": [
+      0.72,
+      0.64,
+      0.5
+    ],
+    "trim_color": [
+      0.4,
+      0.3,
+      0.2
+    ],
+    "roof_color": [
+      0.56,
+      0.48,
+      0.3
+    ],
+    "accent": [
+      0.45,
+      0.85,
+      0.45
+    ],
+    "mix": 0.85,
+    "moss": 0.5,
+    "smoke_hole": true,
+    "hearth_fire": 5,
+    "torch_fire": 5,
+    "blaze_fire": 4,
+    "road_lane": "moss_path",
+    "road_high": "moss_path",
+    "road_square": "square",
+    "wall_kind": "stone_circle",
+    "fence_kind": "living_willow",
+    "gate_type": "wooden_gate"
+  }
+}

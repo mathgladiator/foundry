@@ -1,0 +1,40 @@
+{
+  "created_at": "2026-10-14T06:00:00Z",
+  "doc": "Flax: slender stems, sky-blue flowers.",
+  "notes": [],
+  "state": "draft",
+  "value": {
+    "name": "flax",
+    "kind": "flowering",
+    "height": 0.8,
+    "spacing": 0.35,
+    "row_spacing": 0.5,
+    "stem_color": [
+      0.48,
+      0.62,
+      0.34
+    ],
+    "leaf_color": [
+      0.46,
+      0.62,
+      0.36
+    ],
+    "fruit_color": [
+      0.6,
+      0.7,
+      0.95
+    ],
+    "flower_color": [
+      0.55,
+      0.7,
+      0.98
+    ],
+    "ripe_color": [
+      0.75,
+      0.68,
+      0.42
+    ],
+    "fruit_size": 0.04,
+    "sway": 0.7
+  }
+}

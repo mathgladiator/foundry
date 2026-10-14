@@ -1,0 +1,44 @@
+{
+  "created_at": "2026-10-13T23:30:00Z",
+  "doc": "A town wall: battered stone, a wall-walk behind a battlemented parapet, round towers with cone roofs at its corners and every 30 m.",
+  "notes": [],
+  "state": "draft",
+  "value": {
+    "name": "town_wall",
+    "material": "stone",
+    "color": [
+      0.66,
+      0.64,
+      0.6
+    ],
+    "trim_color": [
+      0.76,
+      0.74,
+      0.7
+    ],
+    "height": 5.5,
+    "thickness": 1.8,
+    "batter": 0.3,
+    "footing": 1.2,
+    "crenellated": true,
+    "walkway": true,
+    "buttresses": false,
+    "tower": "round",
+    "tower_radius": 2.4,
+    "tower_height": 3.0,
+    "tower_roof": "cone",
+    "roof_color": [
+      0.32,
+      0.34,
+      0.4
+    ],
+    "banners": true,
+    "accent": [
+      0.68,
+      0.14,
+      0.14
+    ],
+    "tower_every_m": 30.0,
+    "tower_turn_deg": 25.0
+  }
+}

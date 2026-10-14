@@ -6,8 +6,8 @@
   "value": {
     "name": "inn",
     "kind": "store",
-    "footprint": "flower19",
-    "footprint_alt": "rect5x4",
+    "footprint": "wide",
+    "footprint_alt": "deep",
     "walls": "timber",
     "wall_color": [
       0.95,

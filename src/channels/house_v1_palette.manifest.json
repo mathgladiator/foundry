@@ -1,0 +1,8 @@
+{
+  "kind": "channel",
+  "name": "house_v1_palette",
+  "state": "draft",
+  "reason": "Colour schemes for house_v1 as config entries (approved 2026-10-13): the human wants palettes (players' colours, village themes) vibed up as config and mixed over any type, which house_v1_type, one scheme per type, can't do.",
+  "notes": [],
+  "created_at": "2026-10-13T17:00:00Z"
+}

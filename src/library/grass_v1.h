@@ -12,6 +12,8 @@ typedef enum foundry_grass_v1_species {
   FOUNDRY_GRASS_V1_SPECIES_SEDGE = 4,
   FOUNDRY_GRASS_V1_SPECIES_COUNT = 5
 } foundry_grass_v1_species;
+/* A species by its name (as a config entry or a figure names it), or -1. */
+int foundry_grass_v1_species_find(const char *name);
 
 typedef enum foundry_grass_v1_season {
   FOUNDRY_GRASS_V1_SEASON_WINTER = 0,
@@ -20,6 +22,8 @@ typedef enum foundry_grass_v1_season {
   FOUNDRY_GRASS_V1_SEASON_FALL = 3,
   FOUNDRY_GRASS_V1_SEASON_COUNT = 4
 } foundry_grass_v1_season;
+/* A season by its name (as a config entry or a figure names it), or -1. */
+int foundry_grass_v1_season_find(const char *name);
 
 typedef enum foundry_grass_v1_detail {
   FOUNDRY_GRASS_V1_DETAIL_HIGH = 0,
@@ -28,6 +32,8 @@ typedef enum foundry_grass_v1_detail {
   FOUNDRY_GRASS_V1_DETAIL_MAT = 3,
   FOUNDRY_GRASS_V1_DETAIL_COUNT = 4
 } foundry_grass_v1_detail;
+/* A detail by its name (as a config entry or a figure names it), or -1. */
+int foundry_grass_v1_detail_find(const char *name);
 
 typedef enum foundry_grass_v1_ground {
   FOUNDRY_GRASS_V1_GROUND_SOIL = 0,
@@ -37,6 +43,8 @@ typedef enum foundry_grass_v1_ground {
   FOUNDRY_GRASS_V1_GROUND_PATH = 4,
   FOUNDRY_GRASS_V1_GROUND_COUNT = 5
 } foundry_grass_v1_ground;
+/* A ground by its name (as a config entry or a figure names it), or -1. */
+int foundry_grass_v1_ground_find(const char *name);
 
 typedef struct foundry_grass_v1_params {
   foundry_grass_v1_species species;  /* A grass: one genome from config/grass_v1_genomes/. */

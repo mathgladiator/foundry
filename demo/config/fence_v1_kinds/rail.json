@@ -1,0 +1,28 @@
+{
+  "created_at": "2026-10-13T23:30:00Z",
+  "doc": "A post-and-rail fence: three weathered rails between posts.",
+  "notes": [],
+  "state": "draft",
+  "value": {
+    "name": "rail",
+    "style": "rail",
+    "color": [
+      0.55,
+      0.43,
+      0.3
+    ],
+    "post_color": [
+      0.46,
+      0.35,
+      0.24
+    ],
+    "height": 1.15,
+    "thickness": 0.12,
+    "module_m": 1.5,
+    "gate_color": [
+      0.5,
+      0.38,
+      0.25
+    ]
+  }
+}

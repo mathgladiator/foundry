@@ -1,0 +1,45 @@
+{
+  "created_at": "2026-10-13T23:30:00Z",
+  "doc": "The barracks: a long two-storey range against the wall, doors along it, chimneys smoking.",
+  "notes": [],
+  "state": "draft",
+  "value": {
+    "name": "barracks",
+    "kind": "range",
+    "size": "large",
+    "stone_color": [
+      0.66,
+      0.64,
+      0.6
+    ],
+    "trim_color": [
+      0.76,
+      0.74,
+      0.7
+    ],
+    "roof": "tile",
+    "roof_color": [
+      0.62,
+      0.32,
+      0.22
+    ],
+    "door_color": [
+      0.38,
+      0.26,
+      0.16
+    ],
+    "accent": [
+      0.68,
+      0.14,
+      0.14
+    ],
+    "stories": 2,
+    "story_height": 3.0,
+    "crenellated": false,
+    "turrets": false,
+    "banners": true,
+    "chimneys": true,
+    "windows": "slits",
+    "doors": "door"
+  }
+}

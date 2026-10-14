@@ -1,0 +1,44 @@
+{
+  "created_at": "2026-10-14T04:30:00Z",
+  "doc": "A druid's ring: standing stones capped with lintels, a henge round the village.",
+  "notes": [],
+  "state": "draft",
+  "value": {
+    "name": "stone_circle",
+    "material": "megalith",
+    "color": [
+      0.58,
+      0.58,
+      0.55
+    ],
+    "trim_color": [
+      0.5,
+      0.52,
+      0.48
+    ],
+    "height": 3.6,
+    "thickness": 1.0,
+    "batter": 0.0,
+    "footing": 0.4,
+    "crenellated": false,
+    "walkway": false,
+    "buttresses": false,
+    "tower": "square",
+    "tower_radius": 1.3,
+    "tower_height": 1.2,
+    "tower_roof": "none",
+    "roof_color": [
+      0.32,
+      0.34,
+      0.4
+    ],
+    "banners": false,
+    "accent": [
+      0.68,
+      0.14,
+      0.14
+    ],
+    "tower_every_m": 24.0,
+    "tower_turn_deg": 25.0
+  }
+}

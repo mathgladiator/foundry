@@ -1,0 +1,80 @@
+{
+  "created_at": "2026-10-14T19:00:00Z",
+  "doc": "A hexagon by its sides: a ledge, a forest with a road out, a ridge, a mountain, a forest, and a sea, each swappable (the shape's sides), with a river leaving over the ledge.",
+  "notes": [],
+  "state": "draft",
+  "value": {
+    "name": "shape_hexagon",
+    "cells": [],
+    "edges": [],
+    "heights": [],
+    "rises": [],
+    "radius": 3,
+    "sectors": [],
+    "sector_rises": [],
+    "rise": 0.3,
+    "opening_cells": [],
+    "opening_kinds": [],
+    "opening_widths": [],
+    "shape": {
+      "name": "shape_hexagon",
+      "kind": "hexagon",
+      "radius": 28,
+      "width": 60,
+      "depth": 40,
+      "notch": 40,
+      "corners": [],
+      "rotation": 0,
+      "wobble": 2.5,
+      "seed": 7,
+      "sides": [
+        {
+          "edge": "ledge",
+          "height": 0,
+          "rise": 0.2
+        },
+        {
+          "edge": "forest",
+          "height": 2,
+          "rise": 0.4
+        },
+        {
+          "edge": "ridge",
+          "height": 4,
+          "rise": 0.7
+        },
+        {
+          "edge": "mountain",
+          "height": 6,
+          "rise": 0.9
+        },
+        {
+          "edge": "forest",
+          "height": 3,
+          "rise": 0.5
+        },
+        {
+          "edge": "sea",
+          "height": 0,
+          "rise": 0.1
+        }
+      ],
+      "openings": [
+        {
+          "kind": "road",
+          "side": 1,
+          "at": 0.5,
+          "width": 2,
+          "name": ""
+        },
+        {
+          "kind": "river_out",
+          "side": 0,
+          "at": 0.4,
+          "width": 2,
+          "name": ""
+        }
+      ]
+    }
+  }
+}

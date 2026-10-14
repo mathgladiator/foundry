@@ -1,0 +1,11 @@
+{
+  "name": "terrain_mesh",
+  "version": 1,
+  "kind": "system",
+  "doc": "Draws a terrain's ground (design/terrain.md) by the hexbound rules (design/import.hexbound.world.md): every top and bottom a 13-point fan whose corners are shared by fused groups and whose midpoints follow the fused or unfused formula, walls as solid minus solid on each half-edge facing the lower side, coloured by material from the biome with the season; water at its levels; collision as convex columns; guides for the sides, openings, flats, roads, rivers, and bridge mounts; and the hull, nature ground, and ground passed on.",
+  "input": "terrain_v1_mesh_spec",
+  "output": "terrain_v1_model",
+  "state": "draft",
+  "notes": [],
+  "created_at": "2026-10-14T17:00:00Z"
+}

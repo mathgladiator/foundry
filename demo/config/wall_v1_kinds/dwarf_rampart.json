@@ -1,0 +1,44 @@
+{
+  "created_at": "2026-10-14T04:30:00Z",
+  "doc": "A dwarven rampart: dark dressed stone, buttressed, square towers.",
+  "notes": [],
+  "state": "draft",
+  "value": {
+    "name": "dwarf_rampart",
+    "material": "stone",
+    "color": [
+      0.42,
+      0.4,
+      0.4
+    ],
+    "trim_color": [
+      0.58,
+      0.48,
+      0.3
+    ],
+    "height": 6.0,
+    "thickness": 2.2,
+    "batter": 0.4,
+    "footing": 1.4,
+    "crenellated": true,
+    "walkway": true,
+    "buttresses": true,
+    "tower": "square",
+    "tower_radius": 2.6,
+    "tower_height": 3.0,
+    "tower_roof": "none",
+    "roof_color": [
+      0.32,
+      0.34,
+      0.4
+    ],
+    "banners": true,
+    "accent": [
+      0.75,
+      0.55,
+      0.15
+    ],
+    "tower_every_m": 30.0,
+    "tower_turn_deg": 25.0
+  }
+}

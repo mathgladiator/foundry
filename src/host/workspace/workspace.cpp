@@ -42,6 +42,9 @@ void Workspace::scan() {
   each(root / "plotters", [&](const fs::path &p) {
     if (p.extension() == ".json") add("plotter", p.stem().string(), p, p);
   });
+  each(root / "planners", [&](const fs::path &p) {
+    if (p.extension() == ".json") add("planner", p.stem().string(), p, p);
+  });
   each(root / "observatories", [&](const fs::path &p) {
     if (p.extension() == ".json") add("observatory", p.stem().string(), p, p);
   });

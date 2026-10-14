@@ -1,0 +1,8 @@
+{
+  "kind": "channel",
+  "name": "line_v1_network",
+  "state": "draft",
+  "notes": [],
+  "created_at": "2026-10-14T01:30:00Z",
+  "reason": "Wall and fence lines as lattice networks (approved 2026-10-14): the human wants walls and fences on lines through opposite hex vertices, given as segments so they form topologies with proper joins, and examples to see them by."
+}

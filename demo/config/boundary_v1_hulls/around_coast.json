@@ -1,0 +1,31 @@
+{
+  "created_at": "2026-10-14T13:00:00Z",
+  "doc": "Any region on a coast: the sea to the south, forest and a mountain behind to the north.",
+  "notes": [],
+  "state": "draft",
+  "value": {
+    "name": "around_coast",
+    "cells": [],
+    "edges": [],
+    "heights": [],
+    "rises": [],
+    "radius": 20,
+    "sectors": [
+      4,
+      3,
+      3,
+      4,
+      6,
+      6
+    ],
+    "sector_rises": [
+      0.5,
+      1.0,
+      1.0,
+      0.5,
+      0.2,
+      0.2
+    ],
+    "rise": 0.4
+  }
+}

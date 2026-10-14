@@ -82,6 +82,37 @@ void foundry_set_viewport(foundry_runtime *rt, uint32_t width, uint32_t height);
  * farther out, draws smaller things, and animates small things more often. */
 void foundry_set_quality(foundry_runtime *rt, foundry_quality quality);
 
+/* The look (design/submit.md, "The look"): a per-pixel grade the runtime applies last to everything
+ * it draws, for accessibility and effects, whatever the models are. A game sets it from its
+ * settings (colour vision, contrast) and may change it any frame (a buff's tint, a cutscene's
+ * greyscale). The default changes nothing. */
+typedef enum foundry_vision {
+  FOUNDRY_VISION_TYPICAL = 0,
+  FOUNDRY_VISION_PROTANOPIA = 1,   /* red-blind: reds and greens are moved toward blue and brightness */
+  FOUNDRY_VISION_DEUTERANOPIA = 2, /* green-blind */
+  FOUNDRY_VISION_TRITANOPIA = 3    /* blue-blind: blues and yellows are moved into red and green */
+} foundry_vision;
+
+typedef enum foundry_look_effect {
+  FOUNDRY_LOOK_EFFECT_NONE = 0,
+  FOUNDRY_LOOK_EFFECT_GREYSCALE = 1, /* black and white */
+  FOUNDRY_LOOK_EFFECT_TINT = 2       /* greyscale toward one hue (all red), keeping brightness */
+} foundry_look_effect;
+
+typedef struct foundry_look {
+  foundry_vision vision;
+  float contrast;           /* 0 as made, 1 the strongest: an S-curve on brightness, and a little more colour */
+  float saturation;         /* 1 as made, 0 grey, 2 doubled */
+  float edges;              /* 0..1: lines between colours, where the game draws a pass that sees neighbours */
+  foundry_look_effect effect;
+  float tint[3];            /* the tint's hue (rgb, 0..1) */
+  float strength;           /* the effect's, 0..1: fade it in and out */
+} foundry_look;
+
+void foundry_look_default(foundry_look *look);
+void foundry_set_look(foundry_runtime *rt, const foundry_look *look);
+void foundry_get_look(foundry_runtime *rt, foundry_look *look);
+
 foundry_status foundry_set_transform(foundry_runtime *rt, foundry_instance instance, const float transform[16]);
 foundry_status foundry_is_sleeping(foundry_runtime *rt, foundry_instance instance, bool *sleeping);
 /* The instances whose update results changed in the last update (an animation

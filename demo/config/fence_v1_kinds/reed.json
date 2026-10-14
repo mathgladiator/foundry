@@ -1,0 +1,28 @@
+{
+  "created_at": "2026-10-14T04:30:00Z",
+  "doc": "Reeds bundled and lashed between stakes.",
+  "notes": [],
+  "state": "draft",
+  "value": {
+    "name": "reed",
+    "style": "reed",
+    "color": [
+      0.76,
+      0.68,
+      0.44
+    ],
+    "post_color": [
+      0.48,
+      0.38,
+      0.26
+    ],
+    "height": 1.3,
+    "thickness": 0.1,
+    "module_m": 1.5,
+    "gate_color": [
+      0.5,
+      0.4,
+      0.26
+    ]
+  }
+}

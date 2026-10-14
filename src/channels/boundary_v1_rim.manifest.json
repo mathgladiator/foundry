@@ -1,0 +1,10 @@
+{
+  "kind": "channel",
+  "name": "boundary_v1_rim",
+  "state": "draft",
+  "reason": "boundary_rim_v1's output and boundary_terrain_v1's input (2026-10-14): the hull as a smooth rim with blended edges, so transitions between edge types are smooth and the cells seed the world beyond. Approved 2026-10-14.",
+  "notes": [
+    "2026-10-14: shapes, openings, and figures added (the terrain builder's request); approved 2026-10-14."
+  ],
+  "created_at": "2026-10-14T12:00:00Z"
+}

@@ -1,0 +1,39 @@
+{
+  "created_at": "2026-10-14T04:30:00Z",
+  "doc": "A stone-dome village's way: flat slabs, drystone kerbs.",
+  "notes": [],
+  "state": "draft",
+  "value": {
+    "name": "drystone_way",
+    "surface": "flagstone",
+    "surface_color": [
+      0.62,
+      0.6,
+      0.55
+    ],
+    "detail_color": [
+      0.48,
+      0.47,
+      0.44
+    ],
+    "paved": 0.8,
+    "verge": "kerb",
+    "ruts": false,
+    "half": "bench",
+    "half_color": [
+      0.55,
+      0.53,
+      0.5
+    ],
+    "lamps": 0.03,
+    "lamp_color": [
+      1.0,
+      0.82,
+      0.45
+    ],
+    "signs": false,
+    "clutter": 0.08,
+    "planters": 0.0,
+    "quay": false
+  }
+}

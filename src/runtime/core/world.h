@@ -17,9 +17,12 @@
 
 #include "core/pipeline.h"
 #include "core/threads.h"
+#include "fire/fire.h"
 #include "render/field_renderer.h"
+#include "render/fire_renderer.h"
 #include "render/skinned_renderer.h"
 #include "render/sky_renderer.h"
+#include "render/terrain_renderer.h"
 #include "sky/sky.h"
 
 namespace runtime {
@@ -73,6 +76,12 @@ struct Counters {
   uint64_t lod_generations = 0;         // of the generations, the runtime's coarser levels of detail
   uint64_t fields = 0, field_tiles = 0;  // fields, and the tiles of theirs drawn in the last frame
   uint64_t field_tiles_by_level[4] = {0, 0, 0, 0};
+  // Fire (design/submit.md, "Fire"): emitters burning, particles alive, sprites drawn, and lights
+  // the mega shader took, in the last frame.
+  uint64_t fire_emitters = 0, fire_particles = 0, fire_sprites = 0, fire_lights = 0;
+  // Terrains (design/boundary.md): instances with a terrain drawn, and their nodes and triangles in
+  // the last frame.
+  uint64_t terrains = 0, terrain_nodes = 0, terrain_triangles = 0;
 };
 
 struct FrameTimes {
@@ -107,7 +116,10 @@ class World {
   ~World();
   bool ok() const { return ok_; }
 
-  uint64_t spawn(const PipelineType *type, const void *params, const float transform[16]);
+  // payload: the game's own data for a parameter (a boundary's hull as cells), built with
+  // PipelineType::build_with; part of the build's key.
+  uint64_t spawn(const PipelineType *type, const void *params, const float transform[16],
+                 const std::vector<uint8_t> *payload = nullptr);
   // A field (design/plotter.md, "Fields"): one instance over many hex cells, each showing the tile
   // its cell chooses (the pipeline's cell stage, run here for every cell), drawn instanced by chunk.
   uint64_t spawn_field(const PipelineType *type, const void *params, const float transform[16], const FieldCell *cells,
@@ -126,16 +138,30 @@ class World {
   // kResultReady says the build it asked for is the one drawn.
   static constexpr uint32_t kResultReady = 1u << 31;
   Status result(uint64_t handle, uint32_t &bits) const;
+  // The build an instance draws now (null while none is ready) and its transform's rows (3 x 4).
+  std::shared_ptr<const Build> built(uint64_t handle, float rows[12]) const;
   // The instances whose results changed in the last update.
   const std::vector<uint64_t> &changed() const { return changed_; }
   void set_camera(const float view[16], const float projection[16]);
   void set_viewport(uint32_t width, uint32_t height);
   void set_quality(int quality);  // 0 low, 1 medium, 2 high
+  // The game's look (render/look.h): every mesh, field, and sky shader applies it last.
+  void set_look(const Look &look) { sky_.set_look(look); }
+  const Look &look() const { return sky_.look(); }
   void set_cost(uint32_t flags) { cost_ = flags; }
   // Diagnostics: draw an instance at one level of detail (its pipeline's levels, then the far level),
   // whatever its size; -1 lets its size pick again.
   Status force_level(uint64_t handle, int level);
   uint32_t cost() const { return cost_; }
+
+  // Fire (design/submit.md, "Fire"): the fire configs (compiled in), the wind that carries smoke
+  // (metres per second toward a heading in degrees from +Z toward +X), and how much an instance
+  // burns (0 none; 1 its blaze points alight; up to 2 a raging blaze).
+  void set_fire_configs(const std::vector<fire::Config> &configs) { fire_.set_configs(configs); }
+  const std::vector<fire::Config> &fire_configs() const { return fire_.configs(); }
+  void set_wind(float speed, float heading_deg) { fire_.set_wind(speed, heading_deg); }
+  Status set_burning(uint64_t handle, float amount);
+  Status burning(uint64_t handle, float &out) const;
 
   // The sky (design/observatory.md): an observatory (null: none, the classic fixed light), the state
   // a game sets on it, and where its shadow map looks (radius 0: ahead of the camera, 60 m).
@@ -178,6 +204,7 @@ class World {
     bool lod = false;    // made for a coarser level of detail (the runtime's choice, not the game's)
     bool field = false;  // a field's tile: drawn by the field renderer
     FieldMesh fgpu;
+    TerrainMesh tgpu;    // its terrain's nodes, when its build has one
     // As a coarser level of detail: whether it poses like the finer build of that key (its bones
     // and their motion are the same, so it can share that instance's pose).
     std::vector<std::pair<uint64_t, bool>> poses_like;
@@ -217,6 +244,8 @@ class World {
     int8_t lod_ok[4] = {-1, -1, -1, -1};  // whether each coarser build poses like its own (-1: not checked yet)
     int8_t forced = -1;            // diagnostics: the level it is drawn at, whatever its size (-1: its size picks)
     std::unique_ptr<Field> field;  // a field's cells and chunks (null: an ordinary instance)
+    std::shared_ptr<const std::vector<uint8_t>> payload;  // the game's own data for a parameter (spawn)
+    float burning = 0;             // how much it burns (set_burning)
   };
   // A field: its tiles by chunk (8 x 8 cells), each chunk's tiles in runs of one variant, and the
   // tile builds it uses, by variant and level.
@@ -243,7 +272,9 @@ class World {
   Slot *slot(uint64_t handle);
   const Slot *slot(uint64_t handle) const;
   void want(Slot &s);
-  Entry *acquire(const PipelineType *type, const std::vector<uint8_t> &params, uint64_t key, bool far = false);
+  Entry *acquire(const PipelineType *type, const std::vector<uint8_t> &params, uint64_t key, bool far = false,
+                 std::shared_ptr<const std::vector<uint8_t>> payload = nullptr);
+  uint64_t key_of(const Slot &s, const std::vector<uint8_t> &params) const;
   void unref(uint64_t key);
   void drop_lods(Slot &s);
   void bind_pose(Slot &s, const Entry &e);
@@ -304,6 +335,18 @@ class World {
   uint64_t field_triangles_ = 0;       // drawn by fields in the last frame
   std::vector<uint32_t> free_dense_;
   uint32_t next_dense_ = 0;
+
+  // Terrains: this frame's nodes, picked by distance from each terrain instance in view.
+  TerrainRenderer terrain_renderer_;
+  std::vector<TerrainDraw> terrain_draws_;
+  void prepare_terrains(SDL_GPUCopyPass *copy, const std::vector<uint32_t> &slots);
+
+  fire::Sim fire_;
+  FireRenderer fire_renderer_;
+  std::vector<fire::Emitter> emitters_;
+  std::vector<fire::Sprite> fire_sprites_;
+  std::vector<fire::Light> fire_lights_;
+  void update_fire(float dt);
 
   std::vector<uint64_t> changed_;  // handles whose results changed in the last update
   // Work lists, so a frame touches only what can change: slots waiting for a build, and slots
