@@ -2,6 +2,7 @@
 #pragma once
 
 #include "core/config.h"
+#include "map/view.h"
 #include "forge/forge.h"
 #include "mcp/handler.h"
 #include "mcp/server.h"
@@ -24,6 +25,7 @@ struct Services {
   pipeline::Live *live = nullptr;  // the pipeline instance the workspace shows
   plot::View *plot = nullptr;      // the plotter region the workspace shows
   plan::View *plan = nullptr;      // the planner the workspace shows
+  map::View *map = nullptr;        // the map the workspace shows (design/map.md)
 };
 
 // Runs the windowed workspace UI until the window closes. Returns an exit code.

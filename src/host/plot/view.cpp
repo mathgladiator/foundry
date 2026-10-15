@@ -605,8 +605,8 @@ nlohmann::json View::request(bool regrow, uint32_t max, const nlohmann::json &ex
 
 bool View::run_plot(const nlohmann::json &req, nlohmann::json &result, bool verify_native, bool &native_match,
                     double &ms, std::string &error) {
-  const auto *in = foundry::json::find_channel("plot_v1_request");
-  const auto *out = foundry::json::find_channel("plot_v1_result");
+  const auto *in = foundry::json::find_channel("plot_request");
+  const auto *out = foundry::json::find_channel("plot_result");
   if (!in || !out) {
     error = "the plot channels aren't in the registry";
     return false;
@@ -615,7 +615,7 @@ bool View::run_plot(const nlohmann::json &req, nlohmann::json &result, bool veri
   try {
     in->from_json(req, bytes);
   } catch (const std::exception &e) {
-    error = std::string("the request doesn't match plot_v1_request: ") + e.what();
+    error = std::string("the request doesn't match plot_request: ") + e.what();
     return false;
   }
   std::string system;
@@ -638,7 +638,7 @@ bool View::run_plot(const nlohmann::json &req, nlohmann::json &result, bool veri
     if (!native_match) core::log().add("native", system + ": native output differs from WebAssembly");
   }
   if (!out->to_json(w.output.data(), w.output.size(), result)) {
-    error = "the output doesn't unpack as plot_v1_result";
+    error = "the output doesn't unpack as plot_result";
     return false;
   }
   return true;

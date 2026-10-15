@@ -28,8 +28,8 @@ uint32_t grow(const forge::Paths &paths, pipeline::Runner &runner, wasm::Runner 
               const nlohmann::json &regions, uint32_t seed, const nlohmann::json &shared, runtime::Mesh &mesh, std::string &error) {
   Plotter pl;
   if (!load(paths, runner, plotter, pl, error)) return 0;
-  const auto *in = foundry::json::find_channel("plot_v1_request");
-  const auto *out = foundry::json::find_channel("plot_v1_result");
+  const auto *in = foundry::json::find_channel("plot_request");
+  const auto *out = foundry::json::find_channel("plot_result");
   if (!in || !out) {
     error = "the plot channels aren't in the registry";
     return 0;
@@ -42,7 +42,7 @@ uint32_t grow(const forge::Paths &paths, pipeline::Runner &runner, wasm::Runner 
   try {
     in->from_json(req, bytes);
   } catch (const std::exception &e) {
-    error = std::string("the request doesn't match plot_v1_request: ") + e.what();
+    error = std::string("the request doesn't match plot_request: ") + e.what();
     return 0;
   }
   wasm::RunResult w = wasm.run(forge::wasm_path(paths, pl.system), bytes);

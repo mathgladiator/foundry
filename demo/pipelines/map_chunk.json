@@ -1,0 +1,23 @@
+{
+  "kind": "pipeline",
+  "name": "map_chunk",
+  "state": "draft",
+  "doc": "One chunk of a map (design/map.md): its ground built from the map's plan (map_ground: every height a function of the cell's world place, so chunks meet exactly) and drawn by the hexbound rules (terrain_mesh). The map's executor spawns one per chunk near the camera, the chunk given inline (or packed, foundry_map_chunk_spawn_packed); a sample entry shows one alone.",
+  "notes": [],
+  "created_at": "2026-10-15T00:30:00Z",
+  "params": [
+    {"name": "chunk", "type": "config", "table": "map_chunks", "default": "realm_m64_0", "doc": "The chunk: cut from a map's plan (a game passes it packed)."},
+    {"name": "biome", "type": "config", "table": "boundary_biomes", "default": "temperate", "doc": "The biome: the colours."},
+    {"name": "season", "type": "enum", "values": ["winter", "spring", "summer", "fall"], "default": "summer"}
+  ],
+  "stages": [
+    {"id": "ground", "system": "map_ground", "input": "$chunk"},
+    {"id": "mesh", "system": "terrain_mesh", "input": {"ground": "@ground", "biome": "$biome", "season": "$season"}}
+  ],
+  "draw": {
+    "model": "mesh",
+    "guides": {"lines": "guide_lines", "colors": "guide_colors"},
+    "ground": {"field": "ground"},
+    "payload": {"param": "chunk"}
+  }
+}

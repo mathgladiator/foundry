@@ -1,0 +1,172 @@
+{
+  "kind": "pipeline",
+  "name": "castle",
+  "state": "draft",
+  "doc": "A part of a castle (design/planner.md, Castles): the game asks for a part (a config entry: the keep, a great hall, a chapel, barracks, stables, a kitchen, storehouses, a tower), its lot's size, and the season; build makes it on its lot, and the house animator sways its banners, swings its bell, raises its smoke, and opens its door.",
+  "notes": [],
+  "created_at": "2026-10-13T23:30:00Z",
+  "params": [
+    {
+      "name": "part",
+      "type": "config",
+      "table": "castle_parts",
+      "default": "keep",
+      "doc": "A part: one entry from config/castle_parts/."
+    },
+    {
+      "name": "size",
+      "type": "enum",
+      "values": [
+        "small",
+        "medium",
+        "large",
+        "keep"
+      ],
+      "default": "keep",
+      "doc": "Its lot: small (rect6x5), medium (rect8x6), large (rect10x7), or keep (rect8x8). A planner gives the part's own size."
+    },
+    {
+      "name": "theme",
+      "type": "config",
+      "table": "village_themes",
+      "default": "heartland",
+      "doc": "The village's theme from config/village_themes/: its roofs, turrets' tops, colours, ornaments, and fires (heartland keeps the part's own)."
+    },
+    {
+      "name": "stage",
+      "type": "enum",
+      "values": [
+        "planning",
+        "half",
+        "finished",
+        "ruin"
+      ],
+      "default": "finished",
+      "doc": "How far it has come: planning (staked out, its trench dug, stone piled), half (walls half up in scaffolding), finished, or a ruin (broken, roofless, overgrown)."
+    },
+    {
+      "name": "season",
+      "type": "enum",
+      "values": [
+        "winter",
+        "spring",
+        "summer",
+        "fall"
+      ],
+      "default": "summer"
+    },
+    {
+      "name": "seed",
+      "type": "u32",
+      "min": 1,
+      "max": 1000,
+      "default": 1,
+      "doc": "Which of the distinct builds."
+    },
+    {
+      "name": "detail",
+      "type": "enum",
+      "values": [
+        "high",
+        "medium",
+        "low"
+      ],
+      "default": "high",
+      "doc": "Level of detail; the runtime picks it from distance and quality."
+    },
+    {
+      "name": "wind_speed",
+      "type": "f32",
+      "min": 0,
+      "max": 25,
+      "default": 6,
+      "unit": "m/s"
+    },
+    {
+      "name": "wind_heading",
+      "type": "f32",
+      "min": 0,
+      "max": 360,
+      "default": 90,
+      "unit": "deg",
+      "doc": "Toward which the wind blows, from +Z toward +X."
+    },
+    {
+      "name": "gust_damping",
+      "type": "f32",
+      "min": 0,
+      "max": 1,
+      "default": 0.3
+    },
+    {
+      "name": "time",
+      "type": "time",
+      "default": 0,
+      "unit": "s"
+    },
+    {
+      "name": "door_time",
+      "type": "event",
+      "default": -1,
+      "unit": "s",
+      "doc": "Seconds since its door opened; negative while shut. The game starts it when someone comes through; it opens, stays a moment, and closes."
+    }
+  ],
+  "stages": [
+    {
+      "id": "build",
+      "system": "castle_build",
+      "input": {
+        "part": "$part",
+        "size": "$size",
+        "season": "$season",
+        "seed": "$seed",
+        "detail": "$detail",
+        "theme": "$theme",
+        "stage": "$stage"
+      }
+    },
+    {
+      "id": "animate",
+      "system": "house_animate",
+      "phase": "update",
+      "input": {
+        "bones": "@build.bones",
+        "wind_speed": "$wind_speed",
+        "wind_heading": "$wind_heading",
+        "gust_damping": "$gust_damping",
+        "time": "$time",
+        "door_time": "$door_time",
+        "seed": "$seed"
+      }
+    }
+  ],
+  "draw": {
+    "model": "build",
+    "pose": "animate",
+    "frame_m": 26,
+    "conformance": {
+      "radius": "radius",
+      "height": "height",
+      "box": {
+        "min": "lot_min",
+        "max": "lot_max"
+      }
+    },
+    "guides": {
+      "cells": "guide_cells",
+      "tones": "guide_tones"
+    },
+    "footprint": {
+      "radius": "footprint_radius",
+      "cells": "footprint_cells",
+      "lot": "cells",
+      "doors": "doors"
+    },
+    "fires": {
+      "points": "fire_points",
+      "configs": "fire_configs",
+      "lit": "fire_lit"
+    }
+  }
+}

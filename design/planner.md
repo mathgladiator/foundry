@@ -15,7 +15,7 @@ The planner is the plotter's sibling and shares its spirit: a pure, versioned sy
 
 The two work together: **a plan is a refinement of a plotter's region.** The plan's shape is stamped into a larger spot of ground, its open land and an apron round it go to a plotter, and the plotter grows nature in every gap. So a village gathers round an open body (a green, a pond, a lake) or strings along a road, and the woods, meadows, and gardens between and round its plots are the plotter's.
 
-This document is a design, written on 2026-10-13 from the human's request and run on stated assumptions (see "Assumptions" at the end), then reshaped the same day by the human's feedback on the first version: no mounts, only open land; the village's own shape rather than a hex; roads as governed plots with their own system and config; water and waterfronts as plots. A second round the same day, and a third on 2026-10-14, made the plan stricter about being a plan: walls and gates are only tiles and lines (built by their own systems), a road only builds what stands at its edges and keeps its flow open (an edge piece takes at most half a cell), a square's centre is a building its road rings, civic buildings and castles are systems of their own, a castle is a keep's ward (a small village inside its own wall), buildings' doors are strict ways, and walls and fences run on lines through hexagons' opposite corners, as networks of segments, hugging what they enclose. A first version of all of it is built so it can be judged by eye: the plan system `plan_settle_v1`, ten planners, the road, waterfront, civic, castle, wall, fence, and gate pipelines, and the planner view with nature from a plotter (`book/planners.md` and the pipelines' books). The runtime's API, compiled planners, a planner stress plan, merged navigation polygons, and the city are not built, and none of it is in the current milestone.
+This document is a design, written on 2026-10-13 from the human's request and run on stated assumptions (see "Assumptions" at the end), then reshaped the same day by the human's feedback on the first version: no mounts, only open land; the village's own shape rather than a hex; roads as governed plots with their own system and config; water and waterfronts as plots. A second round the same day, and a third on 2026-10-14, made the plan stricter about being a plan: walls and gates are only tiles and lines (built by their own systems), a road only builds what stands at its edges and keeps its flow open (an edge piece takes at most half a cell), a square's centre is a building its road rings, civic buildings and castles are systems of their own, a castle is a keep's ward (a small village inside its own wall), buildings' doors are strict ways, and walls and fences run on lines through hexagons' opposite corners, as networks of segments, hugging what they enclose. A first version of all of it is built so it can be judged by eye: the plan system `plan_settle`, ten planners, the road, waterfront, civic, castle, wall, fence, and gate pipelines, and the planner view with nature from a plotter (`book/planners.md` and the pipelines' books). The runtime's API, compiled planners, a planner stress plan, merged navigation polygons, and the city are not built, and none of it is in the current milestone.
 
 ## Vocabulary
 
@@ -30,14 +30,14 @@ This document is a design, written on 2026-10-13 from the human's request and ru
 | **Open** | Shape cells no plot holds: gardens, greens, backs, the margin. Unreserved: they pass to a plotter. |
 | **Entrance** | Where the settlement meets the world: a **gate** tile, where a road leaves the shape (a gate in its wall, or where its plots end along a road). Every plot must be reachable from every entrance. |
 | **Wall** | A wall tile: the cells of a ring round a walled settlement (or a keep's ward: the keep's wall), crossed only at gates. A wall has no shape in the plan: it is its tiles and its line. |
-| **Line** | Where a wall, the keep's wall, or a fence would go, as a network on the hex grid's diagonal lattice (`line_v1_network`): nodes (cells two apart across a corner) and links between them along lines through hexagons' opposite corners, with gate nodes, gate links, and towers. The game builds it with `wall_v1` or `fence_v1`, and `gate_v1` in a wall's openings. |
+| **Line** | Where a wall, the keep's wall, or a fence would go, as a network on the hex grid's diagonal lattice (`line_network`): nodes (cells two apart across a corner) and links between them along lines through hexagons' opposite corners, with gate nodes, gate links, and towers. The game builds it with `wall` or `fence`, and `gate` in a wall's openings. |
 | **Door** | A building's door cells: the cells just outside its door, fixed by its footprint. A road cell there is a strict way. |
-| **Road** | Cells of the road network, each with a class (high, lane, alley, square, market, bridge, quay, gate), grouped into road plots. The road system (`road_v1`) builds each cell from its class's kind, its neighbours, its half, and its fence edges. |
+| **Road** | Cells of the road network, each with a class (high, lane, alley, square, market, bridge, quay, gate), grouped into road plots. The road system (`road`) builds each cell from its class's kind, its neighbours, its half, and its fence edges. |
 | **Flow** | A road cell's edges a walker or cart passes through. A **half** is the half of a cell an edge piece (a stall, a bench, crates) takes; it never closes the flow. |
 | **Centre** | A building at a square's middle (a well, a market cross, a fountain), which the square's road rings. |
 | **Keep's ward** | A circle inside the keep's own wall: the keep at its middle, a bailey round it, the castle's parts round the bailey, a gate facing the town. |
 | **Node** | Where roads meet and people gather: a square, a crossroads, a green, a pond, a lake. |
-| **Lot** | A shape a plot can take, measured from the pipeline that fills it: a house's footprint (`house_v1`'s, by household and shape), a waterfront's (with its wet cells), a civic building's or a centre's (`civic_v1`'s sizes), a castle part's (`castle_v1`'s sizes). |
+| **Lot** | A shape a plot can take, measured from the pipeline that fills it: a house's footprint (`house`'s, by household and shape), a waterfront's (with its wet cells), a civic building's or a centre's (`civic`'s sizes), a castle part's (`castle`'s sizes). |
 | **Pad** | A building's or waterfront's single ground height. Models stand flat at y = 0 (`style.md` §2). |
 | **Tier** | A step of growth (hamlet, village, town). Every plot and road has the tier it opens at; a tier's plan is always complete and reachable on its own. |
 | **Navigation mesh** | Walkable polygons over the plan's roads, with areas, flags, and links, which the planner exports and checks. |
@@ -45,7 +45,7 @@ This document is a design, written on 2026-10-13 from the human's request and ru
 ## The key scenario
 
 1. A designer writes: *"A walled market town of about 80 households at a ford, a keep on the hill to its north, a market square by the bridge, craftsmen by the east gate, a quay with warehouses along the river."*
-2. The agent picks the closest scenario config, sets its size and site, and tunes its ranges. It plays the plan in the foundry with a preview fill (houses from `house_v1`, roads from `road_v1`, waterfronts from `waterfront_v1`) and nature from a plotter on the open land, until it reads right from the gate, from the square, and from above.
+2. The agent picks the closest scenario config, sets its size and site, and tunes its ranges. It plays the plan in the foundry with a preview fill (houses from `house`, roads from `road`, waterfronts from `waterfront`) and nature from a plotter on the open land, until it reads right from the gate, from the square, and from above.
 3. The human play tests the planner: walks in from each gate, looks along the streets, steps through the tiers, and approves it or rejects it.
 4. The approved planner is compiled into the runtime. The game creates a plan from a seed, stamps its shape into its world, hands its nature ground to the biome's plotter, and fills the plots it wants as the settlement grows.
 
@@ -54,17 +54,17 @@ This document is a design, written on 2026-10-13 from the human's request and ru
 | Part | What it is |
 |---|---|
 | **Cells** | The shape's cells only: axial `(q, r)`, height (metres, in 5 cm steps), use (building, road, water, waterfront, wall, gate, open, keep's wall), road class, plot, tier. |
-| **Plots** | Each plot's kind, cells (with each cell's height, its neighbours as road_v1's mask, a road's role, half, flow, and fence edges), and for buildings and waterfronts its lot, anchor, turn, pad, size class (solo, family, extended, civic, castle, waterfront, centre), shape, suggested use, wealth, frontage, and how far below its pad the water lies. |
+| **Plots** | Each plot's kind, cells (with each cell's height, its neighbours as road's mask, a road's role, half, flow, and fence edges), and for buildings and waterfronts its lot, anchor, turn, pad, size class (solo, family, extended, civic, castle, waterfront, centre), shape, suggested use, wealth, frontage, and how far below its pad the water lies. |
 | **Entrances** | The gate tiles. |
 | **Lines** | The wall's, the keep's wall's, and the fences': kind, closed or not, points, gate points, and the cells they run through or beside. |
 | **Navigation** | Polygons over the roads (a hex, or a half's free half) with areas and flags, links between them only where both cells' flows cross, per tier; and the reachability report that proves it. |
-| **Nature** | The ground for a plotter (`plot_v1_regions`): the shape and an apron round it, open land available (with its heights and moisture, wetter by water), water as water, and everything built unavailable. |
+| **Nature** | The ground for a plotter (`plot_regions`): the shape and an apron round it, open land available (with its heights and moisture, wetter by water), water as water, and everything built unavailable. |
 
 The plan never names a pipeline. Plots carry kinds, classes, shapes, uses, and road classes; what goes there is the game's.
 
 ## Scenarios: ways settlements are laid out
 
-Each scenario is a settlement config for `plan_settle_v1`. The ranges below are the configs' starting points, assumptions to tune.
+Each scenario is a settlement config for `plan_settle`. The ranges below are the configs' starting points, assumptions to tune.
 
 | Scenario | Pattern | Plots | Entrances | Node | Roads | Walls | Terrain, water |
 |---|---|---|---|---|---|---|---|
@@ -86,16 +86,16 @@ A scenario's rules are data, so variants are config entries. A layout the plan s
 
 ### Building plots
 
-Plot classes are ranges, and the first three match `house_v1`'s households (`book/house_v1.md`):
+Plot classes are ranges, and the first three match `house`'s households (`book/house.md`):
 
 | Class | Cells | Lots (wide, deep, round, long, broad) | For |
 |---|---|---|---|
 | `solo` | 19 to 28 | `rect5x4`, `rect4x5`, `flower19`, `rect3x8`, `rect7x4` | One person: a cottage, a small shop |
 | `family` | 30 to 45 | `rect6x5`, `rect5x6`, `flower37`, `rect4x9`, `rect9x5` | A family; most shops and workshops |
 | `extended` | 48 to 61 | `rect8x6`, `rect6x8`, `flower61`, `rect5x11`, `rect10x6` | Several generations; the inn; a farmhouse |
-| `civic` | 30 to 108 | `rect6x5`, `rect9x7`, `rect12x9` (civic_v1's small, large, great) | A church, a court, a bank, a town hall |
-| `centre` | 7 | `flower7` (civic_v1's centre) | A well, a market cross, a fountain at a square's middle |
-| `castle` | 30 to 70 | `rect6x5`, `rect8x6`, `rect10x7`, and the keep's `rect8x8` (castle_v1's sizes) | The keep, a great hall, a chapel, ranges, a tower |
+| `civic` | 30 to 108 | `rect6x5`, `rect9x7`, `rect12x9` (civic's small, large, great) | A church, a court, a bank, a town hall |
+| `centre` | 7 | `flower7` (civic's centre) | A well, a market cross, a fountain at a square's middle |
+| `castle` | 30 to 70 | `rect6x5`, `rect8x6`, `rect10x7`, and the keep's `rect8x8` (castle's sizes) | The keep, a great hall, a chapel, ranges, a tower |
 
 A planner's file measures its household lots from a building pipeline: for each household and shape, a config entry whose usual or alternate lot has that shape is built once, and its cells become the lot. Civic, centre, castle, and waterfront lots are measured by size the same way, each size built once from its pipeline. A building is placed by the plot's lot and turn: spawned at the plot's anchor, at its pad, turned the same, so its front (`+z`) faces the road.
 
@@ -103,20 +103,20 @@ A planner's file measures its household lots from a building pipeline: for each 
 
 Roads are governed plots. Each road cell has a class, and the plan groups them into segments (each square as one, the rest as runs of one class of at most 16 cells). Every cell carries its neighbours as six 3-bit edges (road, a building's front, open land, water, wall, gate, a waterfront, a building's side or back), its role (a path or a bridge), its **flow** (the edges a walker or cart passes through), its **half** (if an edge piece takes one), and its **fence edges**.
 
-A road only builds what stands at its edges. The road system `road_v1` builds each cell from its class's **kind** (a config entry: surface, verges, the half's piece, lamps, sign posts, planters and clutter against buildings, a quay) and the cell's mask, half, and fences:
+A road only builds what stands at its edges. The road system `road` builds each cell from its class's **kind** (a config entry: surface, verges, the half's piece, lamps, sign posts, planters and clutter against buildings, a quay) and the cell's mask, half, and fences:
 
 - **The half rule.** An edge piece (a market stall, a bench, crates, a planter, a cart) takes at most half a cell: the half holding two neighbouring edges whole, cut through the middles of the edges either side. The other half keeps every way through the cell's remaining flow open. The orientation is the plan's: a half's two edges leave the cell's flow, and the plan gives a half only where it keeps every place reached that was reached before.
 - **A plain road upgrades.** Every cell is a plain way first; a kind adds what stands at its edges, and the plan adds halves by each class's share. So a high street gets planters and benches against its fronts without changing its flow, and **a market is built up stall by stall**: on a square, halves may take ways too, in rows, as long as every cell is still reached from every entrance on foot and by cart.
-- **Fences.** A road never builds a fence. The plan marks fence edges (runs of road edges to open land, by `fence_share`) and gives each run as a fence line; the road keeps those edges clear for `fence_v1`.
-- **Centres.** A square's centre is a building (a `civic_v1` centre on a 7-cell lot), so the square's road rings it rather than a road cell carrying a focal.
+- **Fences.** A road never builds a fence. The plan marks fence edges (runs of road edges to open land, by `fence_share`) and gives each run as a fence line; the road keeps those edges clear for `fence`.
+- **Centres.** A square's centre is a building (a `civic` centre on a 7-cell lot), so the square's road rings it rather than a road cell carrying a focal.
 
 A planner's fill maps road classes to kinds; a village's high street can be a lane, a town's a flagstone high street.
 
 ### Civic buildings, centres, and castles
 
-- **Civic buildings** (`civic_v1`): what a settlement holds in common: a church or chapel, a temple, a court, a town hall, a guild hall, a library, a bank, a mage's tower, a market hall. Civic plots go as near the node as they fit, the first on the largest civic lot. Types are config entries with a usual size; a planner's fill maps a plot's use to the types it allows, and its grandeur to wealth.
-- **Centres** (`civic_v1`'s centre size): a well, a market cross, a fountain, a maypole, a statue, a shrine, on a 7-cell lot at a square's middle, with a ring of square round it.
-- **Castles** (`castle_v1`): a keep's ward is a small village of its own: the keep (a great tower) at its middle, a bailey ring round it, and the castle's parts (a great hall, a chapel, barracks, stables, a kitchen, storehouses, a tower) round the bailey, backing onto the keep's wall. A castle's outer ward holds more parts beside its households, inside the curtain.
+- **Civic buildings** (`civic`): what a settlement holds in common: a church or chapel, a temple, a court, a town hall, a guild hall, a library, a bank, a mage's tower, a market hall. Civic plots go as near the node as they fit, the first on the largest civic lot. Types are config entries with a usual size; a planner's fill maps a plot's use to the types it allows, and its grandeur to wealth.
+- **Centres** (`civic`'s centre size): a well, a market cross, a fountain, a maypole, a statue, a shrine, on a 7-cell lot at a square's middle, with a ring of square round it.
+- **Castles** (`castle`): a keep's ward is a small village of its own: the keep (a great tower) at its middle, a bailey ring round it, and the castle's parts (a great hall, a chapel, barracks, stables, a kitchen, storehouses, a tower) round the bailey, backing onto the keep's wall. A castle's outer ward holds more parts beside its households, inside the curtain.
 
 ### Doors
 
@@ -126,29 +126,29 @@ A building's lot carries its door cells, measured from the pipeline that fills i
 
 A wall or fence is a network the game builds; the plan only says where.
 
-- **The lattice.** Walls and fences run along lines through a hexagon's opposite corners: vertex to vertex through one cell, along the edge between the next two, vertex to vertex through the next. Such a line stays straight however long it runs, and lines meet at 60 and 120 degrees. Nodes are the cells on one diagonal sublattice (two apart across a corner); a link joins nodes along one line (`line_v1_network`).
+- **The lattice.** Walls and fences run along lines through a hexagon's opposite corners: vertex to vertex through one cell, along the edge between the next two, vertex to vertex through the next. Such a line stays straight however long it runs, and lines meet at 60 and 120 degrees. Nodes are the cells on one diagonal sublattice (two apart across a corner); a link joins nodes along one line (`line_network`).
 - **Networks, not lists.** A wall or fence is a set of links, so lines can branch and cross: T, Y, and X junctions, shared fences between paddocks. Gates are nodes (3 m centred on one) or links (their middle 3 m).
 - **Walls hug the plan.** A metaball of what's built picks the lattice nodes a wall encloses. Because a lattice line can only run in three directions, the wall is the union of lattice hexagons round the metaball's lobes: straight sides and 120 degree corners, tight round each lobe. Where a road crosses, a gate.
 - **Fences enclose yards.** A share of household plots get a yard behind them, each its lattice hexagon; neighbouring yards share their fence.
-- **Walls** (`wall_v1`): a whole network (or a chunk of it) as one model, its joins by each node's arms (an end's pier, a bend's pier or tower, a junction's tower, towers along straight runs), by kind (a palisade, a town wall, a castle's curtain, a keep's wall, an earth bank, a brick wall). It reports where its gates go.
-- **Fences** (`fence_v1`): a whole network with a post at every node and a swinging gate in each opening, by kind (pickets, rails, split rails, wattle, a hedge, a low stone wall, iron).
-- **Gates** (`gate_v1`): a gate, an arch, a gatehouse, a tower gate, or a postern, in each opening a wall reports. A gate takes the wall's own kind, so it matches any wall: its piers or towers stand just into the opening and over the wall's ends.
+- **Walls** (`wall`): a whole network (or a chunk of it) as one model, its joins by each node's arms (an end's pier, a bend's pier or tower, a junction's tower, towers along straight runs), by kind (a palisade, a town wall, a castle's curtain, a keep's wall, an earth bank, a brick wall). It reports where its gates go.
+- **Fences** (`fence`): a whole network with a post at every node and a swinging gate in each opening, by kind (pickets, rails, split rails, wattle, a hedge, a low stone wall, iron).
+- **Gates** (`gate`): a gate, an arch, a gatehouse, a tower gate, or a postern, in each opening a wall reports. A gate takes the wall's own kind, so it matches any wall: its piers or towers stand just into the opening and over the wall's ends.
 
 ### Themes
 
-A **village theme** (`village_v1_theme`, a config table, `config/village_v1_themes/`) sets the architecture a settlement's buildings share, so one planner can be a druids' grove or a dwarven hold without new systems: its roof form (the type's own, a gable, a hip, a cone, a dome, a flat roof with a parapet, a turf roof, or a sweeping roof with upturned eaves), its plan (rectangular, or round: a roundhouse, a beehive hut, a druid's great hall), its walls' material (adding wattle and daub, drystone, adobe, living wood, and marble to the types' own), its windows (square, round, arched, slits), what its buildings stand on (a stone base, stilts with steps, an earth mound), its ornaments (carved posts, standing stones, dragon heads on the gables, crystals, prayer flags, lanterns), its colours mixed over every type's, how much moss grows, whether smoke leaves by a smoke hole, the fires its hearths, torches, and blazes burn, and the road, wall, fence, and gate kinds that suit it.
+A **village theme** (`village_theme`, a config table, `config/village_themes/`) sets the architecture a settlement's buildings share, so one planner can be a druids' grove or a dwarven hold without new systems: its roof form (the type's own, a gable, a hip, a cone, a dome, a flat roof with a parapet, a turf roof, or a sweeping roof with upturned eaves), its plan (rectangular, or round: a roundhouse, a beehive hut, a druid's great hall), its walls' material (adding wattle and daub, drystone, adobe, living wood, and marble to the types' own), its windows (square, round, arched, slits), what its buildings stand on (a stone base, stilts with steps, an earth mound), its ornaments (carved posts, standing stones, dragon heads on the gables, crystals, prayer flags, lanterns), its colours mixed over every type's, how much moss grows, whether smoke leaves by a smoke hole, the fires its hearths, torches, and blazes burn, and the road, wall, fence, and gate kinds that suit it.
 
 - **Who takes it.** Houses, civic buildings, castles, and waterfronts take a `theme` parameter; a planner sets it once for everything it fills (its view's shared values apply to every pipeline that has them, by name). Roads, walls, fences, and gates are themed by their kinds: the planner's fill names them, as the theme suggests.
 - **The themes:** heartland (the types' own), druidic, stone_dome, nordic, desert, elven, dwarven, marsh. The new kinds that suit them: moss stepping stones, sand, a boardwalk, and pale elven ways for roads; a henge of trilithons, drystone, living willow, adobe, and a dwarven rampart for walls (a dome on a tower); living willow, stone slabs, and reeds for fences.
-- **Themed planners:** `druid_grove_v1`, `stone_dome_v1`, `nordic_steading_v1`, `desert_oasis_v1`, `elven_glade_v1`, `dwarven_hold_v1`, and `marsh_village_v1`, each an existing scenario with its theme, its kinds, and its crops.
+- **Themed planners:** `druid_grove`, `stone_dome`, `nordic_steading`, `desert_oasis`, `elven_glade`, `dwarven_hold`, and `marsh_village`, each an existing scenario with its theme, its kinds, and its crops.
 
 ### Ruins and building
 
-Every village system has a ruin: houses (a `ruin` stage), civic buildings and castles (a `stage`: planning, half, finished, or ruin), and waterfronts, roads, walls, fences, and gates (a `condition`: intact or ruin). A ruin is the whole building made and then broken down (each system's `condition.h`): its moving parts and lit fires gone, its roofs and floors fallen in, its walls broken off at a ragged height (a little over a tenth to three quarters of what stood), weathered and mossed, rubble about it (a wall's and a fence's beside its line, over its ground's slope). Civic buildings and castles are also built in steps: **planning** (stakes, string, the trench dug, a surveyor's table, stone and timber piled), **half** (its walls half up in scaffolding with a ladder and its materials), and **finished**. A planner makes a ruined settlement by sharing `stage: ruin` and `condition: ruin` (`ruined_keep_v1`).
+Every village system has a ruin: houses (a `ruin` stage), civic buildings and castles (a `stage`: planning, half, finished, or ruin), and waterfronts, roads, walls, fences, and gates (a `condition`: intact or ruin). A ruin is the whole building made and then broken down (each system's `condition.h`): its moving parts and lit fires gone, its roofs and floors fallen in, its walls broken off at a ragged height (a little over a tenth to three quarters of what stood), weathered and mossed, rubble about it (a wall's and a fence's beside its line, over its ground's slope). Civic buildings and castles are also built in steps: **planning** (stakes, string, the trench dug, a surveyor's table, stone and timber piled), **half** (its walls half up in scaffolding with a ladder and its materials), and **finished**. A planner makes a ruined settlement by sharing `stage: ruin` and `condition: ruin` (`ruined_keep`).
 
 ### Crops
 
-A **crop field** (`crop_v1`) is a plot like a building's: a lot (small rect6x4, medium rect8x6, large rect12x8) measured from the crop pipeline, fronting a road. A planner's `crop_fields` places up to that many at the settlement's edge, the farthest frontages first (use `field`), and its fill names the crops to sow (`fill.crops`). A field is one instance: its plants along its rows, each riding one of a few wind groups (`wind_groups`, 7 by default), so a field of hundreds of plants poses with a handful of wind computations and draws as one mesh. Crops are config entries (`config/crop_v1_types/`, 16 of them) by how they grow: grain, a tall stalk, a leafy head, root tops, gourds, a pole vine, a trellis vine, or flowering bushes; a field is sown, sprouting, growing, ripe, or harvested (stubble and stooks).
+A **crop field** (`crop`) is a plot like a building's: a lot (small rect6x4, medium rect8x6, large rect12x8) measured from the crop pipeline, fronting a road. A planner's `crop_fields` places up to that many at the settlement's edge, the farthest frontages first (use `field`), and its fill names the crops to sow (`fill.crops`). A field is one instance: its plants along its rows, each riding one of a few wind groups (`wind_groups`, 7 by default), so a field of hundreds of plants poses with a handful of wind computations and draws as one mesh. Crops are config entries (`config/crop_types/`, 16 of them) by how they grow: grain, a tall stalk, a leafy head, root tops, gourds, a pole vine, a trellis vine, or flowering bushes; a field is sown, sprouting, growing, ripe, or harvested (stubble and stooks).
 
 ## Planning, step by step
 
@@ -182,7 +182,7 @@ Inside its shape, a plan sets every cell's height, and the game takes those heig
 
 ## Nature and the plotter
 
-The plan's nature ground is `plot_v1_regions`, so any plotter grows in it as in its own ground: trees, bushes, and flowers in the gardens, greens, and backs, reeds by the water, and the wild round the shape, and none on roads, plots, or walls. In the foundry the planner view grows a plotter of your choice on it. In a game, the biome's plotter grows the plan's ground inside its own region: the plan refines a spot of the plotter's region. A plan that crosses two biomes would be grown by both plotters, each in the part inside its own region (the game intersects each plotter's region with the plan's nature ground); this edge case isn't built.
+The plan's nature ground is `plot_regions`, so any plotter grows in it as in its own ground: trees, bushes, and flowers in the gardens, greens, and backs, reeds by the water, and the wild round the shape, and none on roads, plots, or walls. In the foundry the planner view grows a plotter of your choice on it. In a game, the biome's plotter grows the plan's ground inside its own region: the plan refines a spot of the plotter's region. A plan that crosses two biomes would be grown by both plotters, each in the part inside its own region (the game intersects each plotter's region with the plan's nature ground); this edge case isn't built.
 
 ## Determinism, versions, and saves
 
@@ -200,7 +200,7 @@ Planners would be generated into `runtime.h` like plotters (not built):
 
 ```c
 foundry_plan_desc desc = {
-    .planner   = FOUNDRY_PLANNER_MARKET_TOWN_V1,
+    .planner   = FOUNDRY_PLANNER_MARKET_TOWN,
     .seed      = 0x5eed,
     .transform = grid_to_world,  /* float[16]: the hex grid in the world */
     .plots     = 80,             /* household plots at its final tier; within the scenario's range */
@@ -213,19 +213,19 @@ foundry_plan_get_cells(rt, town, tier, cells, n);    /* the shape: q, r, height,
 foundry_plan_get_plots(rt, town, tier, plots, n);    /* buildings, road segments, waterfronts, water */
 foundry_plan_get_lines(rt, town, tier, lines, n);    /* walls, the keep's wall, fences: points and gates */
 foundry_plan_get_navmesh(rt, town, tier, &navmesh);
-foundry_plan_get_nature(rt, town, tier, &regions);   /* plot_v1_regions for the biome's plotter */
+foundry_plan_get_nature(rt, town, tier, &regions);   /* plot_regions for the biome's plotter */
 
 /* Fill a building plot, a road cell, a waterfront. */
-foundry_house_v1_spawn(rt, &house_params, plots[i].transform);
-foundry_road_v1_spawn(rt, &(foundry_road_v1_params){.kind = FOUNDRY_ROAD_V1_KIND_MARKET, .mask = canonical_mask, .seed = 1}, cell_transform);
-foundry_waterfront_v1_spawn(rt, &(foundry_waterfront_v1_params){.type = FOUNDRY_WATERFRONT_V1_TYPE_PIER, .drop = plots[j].drop}, plots[j].transform);
+foundry_house_spawn(rt, &house_params, plots[i].transform);
+foundry_road_spawn(rt, &(foundry_road_params){.kind = FOUNDRY_ROAD_KIND_MARKET, .mask = canonical_mask, .seed = 1}, cell_transform);
+foundry_waterfront_spawn(rt, &(foundry_waterfront_params){.type = FOUNDRY_WATERFRONT_TYPE_PIER, .drop = plots[j].drop}, plots[j].transform);
 
 /* Build a wall's network in chunks, and a gate in each opening it reports. */
 for (uint32_t c = 0; c < chunks; ++c) {
-  foundry_instance w = foundry_wall_v1_spawn_network(rt, &(foundry_wall_v1_params){.kind = FOUNDRY_WALL_V1_KIND_TOWN_WALL, .chunks = chunks, .chunk = c},
+  foundry_instance w = foundry_wall_spawn_network(rt, &(foundry_wall_params){.kind = FOUNDRY_WALL_KIND_TOWN_WALL, .chunks = chunks, .chunk = c},
                                                      &lines[k].network, identity);
-  for (gate in foundry_wall_v1_gates(rt, w))  /* the model's gate_positions, gate_yaws, gate_widths */
-    foundry_gate_v1_spawn(rt, &(foundry_gate_v1_params){.type = FOUNDRY_GATE_V1_TYPE_TOWN_GATE, .wall = FOUNDRY_WALL_V1_KIND_TOWN_WALL, .width = gate.width}, gate.transform);
+  for (gate in foundry_wall_gates(rt, w))  /* the model's gate_positions, gate_yaws, gate_widths */
+    foundry_gate_spawn(rt, &(foundry_gate_params){.type = FOUNDRY_GATE_TYPE_TOWN_GATE, .wall = FOUNDRY_WALL_KIND_TOWN_WALL, .width = gate.width}, gate.transform);
 }
 ```
 
@@ -239,9 +239,9 @@ The planner view shows the shape filled (or coloured by use, height, tier, or we
 
 ## What this adds
 
-- **Channels** (approved 2026-10-13): `plan_v1_config`, `plan_v1_request`, `plan_v1_plan`, `plan_v1_cell`, `plan_v1_plot`, `plan_v1_line`; `road_v1_kind`, `road_v1_spec`, `road_v1_model`; `waterfront_v1_type`, `waterfront_v1_spec`, `waterfront_v1_model`; `civic_v1_type`, `civic_v1_spec`, `civic_v1_model`; `castle_v1_part`, `castle_v1_spec`, `castle_v1_model`; `wall_v1_kind`, `wall_v1_spec`, `wall_v1_model`; `fence_v1_kind`, `fence_v1_spec`, `fence_v1_model`; `gate_v1_type`, `gate_v1_spec`, `gate_v1_model`; `line_v1_network` (2026-10-14, replacing the first version's line request, piece, and layout).
-- **Systems:** `plan_settle_v1`, and the builders `road_build_v1`, `waterfront_build_v1`, `civic_build_v1`, `castle_build_v1`, `wall_build_v1`, `fence_build_v1`, `gate_build_v1` (all animated by `house_animate_v1`).
-- **Pipelines:** `road_v1`, `waterfront_v1`, `civic_v1`, `castle_v1`, `wall_v1`, `fence_v1`, `gate_v1`, with config tables of road kinds, waterfront types, civic types, castle parts, wall kinds, fence kinds, and gate types.
+- **Channels** (approved 2026-10-13): `plan_config`, `plan_request`, `plan_plan`, `plan_cell`, `plan_plot`, `plan_line`; `road_kind`, `road_spec`, `road_model`; `waterfront_type`, `waterfront_spec`, `waterfront_model`; `civic_type`, `civic_spec`, `civic_model`; `castle_part`, `castle_spec`, `castle_model`; `wall_kind`, `wall_spec`, `wall_model`; `fence_kind`, `fence_spec`, `fence_model`; `gate_type`, `gate_spec`, `gate_model`; `line_network` (2026-10-14, replacing the first version's line request, piece, and layout).
+- **Systems:** `plan_settle`, and the builders `road_build`, `waterfront_build`, `civic_build`, `castle_build`, `wall_build`, `fence_build`, `gate_build` (all animated by `house_animate`).
+- **Pipelines:** `road`, `waterfront`, `civic`, `castle`, `wall`, `fence`, `gate`, with config tables of road kinds, waterfront types, civic types, castle parts, wall kinds, fence kinds, and gate types.
 - **Runtime (not built):** plans beside regions, compiled planners, the API above (with a network as an array parameter and a model's places read back), drawing a road plot as one instance.
 - **The foundry:** planners as a workspace primitive, the planner view with nature, MCP tools, and the books.
 
@@ -253,8 +253,8 @@ Run with on 2026-10-13, to be confirmed or corrected in review:
 2. **The planner owns the heights inside its shape;** the plotter and the game's terrain meet it at its apron.
 3. **Plots are flat pads,** and a road cell is flat at its own height.
 4. **Roads run on hex lines,** cell to cell; no road cuts across cells at an arbitrary angle.
-5. **Plot sizes come from the buildings that fill them:** `house_v1`'s households, and `waterfront_v1`'s, `civic_v1`'s, and `castle_v1`'s sizes.
+5. **Plot sizes come from the buildings that fill them:** `house`'s households, and `waterfront`'s, `civic`'s, and `castle`'s sizes.
 6. **The navigation guarantee ends at the frontage.**
 7. **Only plots are reserved.** Buildings, roads, waterfronts, and water are plots; walls and gates are tiles and lines; everything else is open and the plotter's. What stands at a road's edges comes with the road system's kinds (in at most half a cell); fences, walls, and gates with their own systems on the plan's lines.
 8. **The walker and the cart are the agents.**
-9. **One plan system first.** `plan_settle_v1` covers every scenario but the city by config.
+9. **One plan system first.** `plan_settle` covers every scenario but the city by config.

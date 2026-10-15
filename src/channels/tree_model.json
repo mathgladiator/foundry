@@ -1,0 +1,83 @@
+{
+  "family": "tree",
+  "version": 1,
+  "feature": "model",
+  "doc": "A finished, coloured tree, ready to draw and to skin with a tree_pose.",
+  "fields": [
+    {
+      "name": "height",
+      "type": "f32",
+      "doc": "Height, metres."
+    },
+    {
+      "name": "stump_radius",
+      "type": "f32",
+      "doc": "Conformance stump radius, metres."
+    },
+    {
+      "name": "footprint_radius",
+      "type": "f32",
+      "doc": "Radius of the ground contact of this species at its largest age, metres: what its footprint must hold (design/plotter.md, Footprints and conformance)."
+    },
+    {
+      "name": "footprint_cells",
+      "type": "u32",
+      "doc": "The footprint on the hex grid at the largest age: 1 (single), 7 (flower7), 19 (flower19), or 37 cells."
+    },
+    {
+      "name": "crown_base",
+      "type": "f32",
+      "doc": "Conformance stump height, metres."
+    },
+    {
+      "name": "bones",
+      "type": "tree_bone[]",
+      "doc": "Wind bones, for skinning."
+    },
+    {
+      "name": "pieces",
+      "type": "tree_piece[]",
+      "doc": "Break pieces."
+    },
+    {
+      "name": "positions",
+      "type": "vec3[]",
+      "doc": "Vertex positions, rest pose, metres."
+    },
+    {
+      "name": "normals",
+      "type": "vec3[]",
+      "doc": "Vertex normals."
+    },
+    {
+      "name": "indices",
+      "type": "u32[]",
+      "doc": "Triangle list."
+    },
+    {
+      "name": "bone_a",
+      "type": "u32[]",
+      "doc": "First bone per vertex."
+    },
+    {
+      "name": "bone_b",
+      "type": "u32[]",
+      "doc": "Second bone per vertex (smooth bends along a branch)."
+    },
+    {
+      "name": "bone_w",
+      "type": "f32[]",
+      "doc": "Weight of bone_b per vertex (0 = all bone_a)."
+    },
+    {
+      "name": "colors",
+      "type": "u32[]",
+      "doc": "Vertex colour, packed RGBA (red in the lowest byte)."
+    },
+    {
+      "name": "collision",
+      "type": "physics_body[]",
+      "doc": "What collides (design/spine.md, Layer 1): static for the build, inside the conformance."
+    }
+  ]
+}

@@ -1,0 +1,194 @@
+{
+  "config": {
+    "grove_octaves": 2,
+    "grove_scale_cells": 9,
+    "layers": [
+      {
+        "density": 0.8,
+        "ground": [
+          "soil"
+        ],
+        "grove": [
+          0.15,
+          1.8
+        ],
+        "kinds": [
+          {
+            "footprint_cells": 1,
+            "footprint_m": 0.3240000009536743,
+            "on_regrow": {
+              "age": "sapling"
+            },
+            "params": {
+              "species": "birch"
+            },
+            "pipeline": "tree",
+            "vary": {
+              "age": {
+                "ancient": 0.15,
+                "mature": 0.6,
+                "young": 0.25
+              }
+            },
+            "weight": 0.7
+          },
+          {
+            "footprint_cells": 1,
+            "footprint_m": 0.5709999799728394,
+            "on_regrow": {
+              "age": "sapling"
+            },
+            "params": {
+              "species": "cherry"
+            },
+            "pipeline": "tree",
+            "vary": {
+              "age": {
+                "ancient": 0.15,
+                "mature": 0.6,
+                "young": 0.25
+              }
+            },
+            "weight": 0.3
+          }
+        ],
+        "max_height_delta_m": 1.0,
+        "name": "trees",
+        "regrows": true,
+        "spacing_m": 14.0
+      },
+      {
+        "density": 2.2,
+        "ground": [
+          "soil"
+        ],
+        "grove": [
+          0.5,
+          1.4
+        ],
+        "keep_clear": {
+          "trees": 2.0
+        },
+        "kinds": [
+          {
+            "footprint_cells": 1,
+            "footprint_m": 0.5910000205039978,
+            "params": {
+              "species": "juniper"
+            },
+            "pipeline": "bush",
+            "vary": {
+              "age": {
+                "mature": 0.6,
+                "old": 0.2,
+                "young": 0.2
+              }
+            },
+            "weight": 0.6
+          },
+          {
+            "footprint_cells": 1,
+            "footprint_m": 0.5699999928474426,
+            "params": {
+              "species": "sagebrush"
+            },
+            "pipeline": "bush",
+            "vary": {
+              "age": {
+                "mature": 0.6,
+                "old": 0.2,
+                "young": 0.2
+              }
+            },
+            "weight": 0.4
+          }
+        ],
+        "max_height_delta_m": 1.0,
+        "name": "scrub",
+        "regrows": true,
+        "spacing_m": 3.5
+      },
+      {
+        "density": 10,
+        "ground": [
+          "soil"
+        ],
+        "keep_clear": {
+          "scrub": 0.8,
+          "trees": 1.0
+        },
+        "kinds": [
+          {
+            "footprint_cells": 0,
+            "footprint_m": 0.0,
+            "params": {
+              "species": "lavender"
+            },
+            "pipeline": "flower",
+            "weight": 0.55
+          },
+          {
+            "footprint_cells": 0,
+            "footprint_m": 0.0,
+            "params": {
+              "species": "lupine"
+            },
+            "pipeline": "flower",
+            "weight": 0.45
+          }
+        ],
+        "max_height_delta_m": 1.0,
+        "name": "heath",
+        "regrows": true,
+        "spacing_m": 1.4
+      },
+      {
+        "density": 0.7,
+        "ground": [
+          "soil",
+          "rock",
+          "path"
+        ],
+        "kinds": [
+          {
+            "footprint_cells": 7,
+            "footprint_m": 0.8130000233650208,
+            "params": {
+              "material": "granite",
+              "moss": "light"
+            },
+            "pipeline": "rock",
+            "weight": 1.0
+          }
+        ],
+        "max_height_delta_m": 2.0,
+        "name": "tors",
+        "regrows": false,
+        "spacing_m": 6.0
+      }
+    ]
+  },
+  "distinct_seeds": 4,
+  "doc": "A high moor: open grass with lavender and lupine, juniper scrub, lone birches and rowan-like cherries, and granite tors.",
+  "fields": [
+    {
+      "params": {
+        "species": "prairie"
+      },
+      "pipeline": "grass"
+    }
+  ],
+  "kind": "plotter",
+  "name": "moor",
+  "state": "draft",
+  "system": "plot_scatter",
+  "view": {
+    "preset": "glen",
+    "radius": 14,
+    "seed": 7,
+    "shared": {
+      "season": "summer",
+      "wind_speed": 3
+    }
+  }
+}

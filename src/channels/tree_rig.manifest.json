@@ -1,0 +1,8 @@
+{
+  "kind": "channel",
+  "name": "tree_rig",
+  "state": "draft",
+  "reason": "tree_rig's output and tree_mesh's input (design/systems.md: Skeleton, then Body).",
+  "notes": [],
+  "created_at": "2026-10-11T00:00:00Z"
+}

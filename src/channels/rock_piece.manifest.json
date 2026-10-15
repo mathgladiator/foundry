@@ -1,0 +1,8 @@
+{
+  "kind": "channel",
+  "name": "rock_piece",
+  "state": "draft",
+  "reason": "Break pieces cross from rock_body to rock_animate: just what the faux physics needs (centre, mass, size, and support points to keep each piece on top of the ground), not the mesh.",
+  "notes": [],
+  "created_at": "2026-10-12T08:00:00Z"
+}

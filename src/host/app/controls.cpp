@@ -48,7 +48,7 @@ bool orbit_input(viewport::Camera &camera, const Pad &pad, float dt, bool hovere
   // Along the ground, as the camera faces: forward and right.
   const float fx = -std::sin(camera.yaw), fz = -std::cos(camera.yaw);
   const float rx = std::cos(camera.yaw), rz = -std::sin(camera.yaw);
-  const float per_pixel = scale * 0.0025f / std::max(camera.zoom, 0.05f);
+  const float per_pixel = scale * 0.0025f / std::max(camera.zoom, 0.01f);
   if (hovered) {
     const ImVec2 d = io.MouseDelta;
     const bool pan = ImGui::IsMouseDragging(ImGuiMouseButton_Right) || (io.KeyShift && ImGui::IsMouseDragging(ImGuiMouseButton_Left));
@@ -66,11 +66,11 @@ bool orbit_input(viewport::Camera &camera, const Pad &pad, float dt, bool hovere
     camera.view = viewport::View::Orbit;
     camera.yaw -= pad.rx * 2.0f * dt;
     camera.pitch = std::clamp(camera.pitch + pad.ry * 1.5f * dt, -1.4f, 1.4f);
-    const float step = scale * 0.8f * dt / std::max(camera.zoom, 0.05f);
+    const float step = scale * 0.8f * dt / std::max(camera.zoom, 0.01f);
     camera.pan[0] += (fx * pad.ly + rx * pad.lx) * step;
     camera.pan[2] += (fz * pad.ly + rz * pad.lx) * step;
     camera.pan[1] += ((pad.rb ? 1.0f : 0.0f) - (pad.lb ? 1.0f : 0.0f)) * step * 0.6f;
-    camera.zoom = std::clamp(camera.zoom * std::pow(2.0f, (pad.rt - pad.lt) * dt * 1.5f), 0.05f, 30.0f);
+    camera.zoom = std::clamp(camera.zoom * std::pow(2.0f, (pad.rt - pad.lt) * dt * 1.5f), 0.01f, 60.0f);
     moved = true;
   }
   return moved;
@@ -122,7 +122,7 @@ void Play::update(float dt, bool hovered, const Pad &pad) {
   // Behind or at the eyes: the wheel brings the camera in (past 1 m, to the eyes) and out; Y swaps.
   if (hovered && io.MouseWheel != 0) {
     if (distance_ <= 0 && io.MouseWheel < 0) distance_ = 1.2f;
-    else if (distance_ > 0) distance_ = std::min(12.0f, distance_ / std::pow(1.15f, io.MouseWheel));
+    else if (distance_ > 0) distance_ = std::min(60.0f, distance_ / std::pow(1.15f, io.MouseWheel));
     if (distance_ > 0 && distance_ < 1.0f) distance_ = 0;
   }
   if (pad.north_pressed) distance_ = distance_ > 0 ? 0 : 4.5f;
@@ -134,7 +134,10 @@ void Play::update(float dt, bool hovered, const Pad &pad) {
     in.right = (ImGui::IsKeyDown(ImGuiKey_D) ? 1.0f : 0.0f) - (ImGui::IsKeyDown(ImGuiKey_A) ? 1.0f : 0.0f);
     in.jump = ImGui::IsKeyPressed(ImGuiKey_Space, false);
     in.run = io.KeyShift;
+    if (ImGui::IsKeyPressed(ImGuiKey_Equal) || ImGui::IsKeyPressed(ImGuiKey_KeypadAdd)) speed = std::min(16.0f, speed * 1.5f);
+    if (ImGui::IsKeyPressed(ImGuiKey_Minus) || ImGui::IsKeyPressed(ImGuiKey_KeypadSubtract)) speed = std::max(0.25f, speed / 1.5f);
   }
+  in.speed = speed;
   in.forward = std::clamp(in.forward + pad.ly, -1.0f, 1.0f);
   in.right = std::clamp(in.right + pad.lx, -1.0f, 1.0f);
   in.jump = in.jump || pad.south_pressed;
@@ -205,7 +208,7 @@ void Play::lines(std::vector<viewport::Line> &out) const {
 }
 
 const char *Play::help() const {
-  return "WASD or the left stick walks, Shift or RT runs, Space or A jumps, drag or the right stick looks, "
+  return "WASD or the left stick walks, Shift or RT runs, + and - change the speed, Space or A jumps, drag or the right stick looks, "
          "the wheel or Y moves between behind and the eyes; Escape or Back stops.";
 }
 

@@ -1,0 +1,35 @@
+{
+  "family": "plan",
+  "version": 1,
+  "feature": "request",
+  "doc": "One call to a plan system (design/planner.md, Planning): the bound config, a seed, how many plots, and the tier to return.",
+  "fields": [
+    {
+      "name": "config",
+      "type": "plan_config",
+      "doc": "The planner's bound config."
+    },
+    {
+      "name": "seed",
+      "type": "u32",
+      "doc": "The settlement's seed."
+    },
+    {
+      "name": "plots",
+      "type": "u32",
+      "doc": "Plots at the final tier (0: the middle of the config's range).",
+      "min": 0,
+      "max": 3000
+    },
+    {
+      "name": "tier",
+      "type": "u32",
+      "doc": "The tier to return: everything open at or before it.",
+      "enum": [
+        "hamlet",
+        "village",
+        "town"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,89 @@
+{
+  "family": "terrain",
+  "version": 1,
+  "feature": "shape",
+  "doc": "A shape (design/terrain.md, The shape and its sides): a polygon of hex corners from a kind and its sizes or given corner by corner, its sides' aspects, and its openings. The terrain builds inside it; a boundary's hull may name it instead of listing cells (design/boundary.md).",
+  "fields": [
+    {
+      "name": "name",
+      "type": "string",
+      "doc": "The shape's name (an example in config/terrain_shapes/)."
+    },
+    {
+      "name": "kind",
+      "type": "u32",
+      "doc": "How the corners are made: a hexagon (radius), a rectangle (width, depth), a triangle (radius), an L (width, depth, notch), or a polygon (corners).",
+      "enum": [
+        "hexagon",
+        "rectangle",
+        "triangle",
+        "l_shape",
+        "polygon"
+      ]
+    },
+    {
+      "name": "radius",
+      "type": "u32",
+      "doc": "A hexagon's or triangle's size, cells from the middle to a corner.",
+      "min": 4,
+      "max": 2000
+    },
+    {
+      "name": "width",
+      "type": "u32",
+      "doc": "A rectangle's or L's width (along x), cells.",
+      "min": 4,
+      "max": 4000
+    },
+    {
+      "name": "depth",
+      "type": "u32",
+      "doc": "A rectangle's or L's depth (along z), cells.",
+      "min": 4,
+      "max": 4000
+    },
+    {
+      "name": "notch",
+      "type": "u32",
+      "doc": "How much of the L's corner is cut away, as a percentage of each size.",
+      "min": 10,
+      "max": 80
+    },
+    {
+      "name": "corners",
+      "type": "i32[]",
+      "doc": "A polygon's corners, as q, r pairs, in order (either way round; turned counterclockwise as seen from above)."
+    },
+    {
+      "name": "rotation",
+      "type": "u32",
+      "doc": "Turns the shape in 60 degree steps, counterclockwise as seen from above.",
+      "min": 0,
+      "max": 5
+    },
+    {
+      "name": "wobble",
+      "type": "f32",
+      "doc": "How far each side meanders, cells (its corners stay put).",
+      "min": 0,
+      "max": 60
+    },
+    {
+      "name": "seed",
+      "type": "u32",
+      "doc": "The wobble's seed, so the terrain and its boundary agree.",
+      "min": 1,
+      "max": 1000000
+    },
+    {
+      "name": "sides",
+      "type": "terrain_side[]",
+      "doc": "Each side's aspect, from corner i to corner i + 1; missing sides repeat the last (none: a forest at height 0)."
+    },
+    {
+      "name": "openings",
+      "type": "terrain_opening[]",
+      "doc": "Its openings: entrances and exits, and water in and out."
+    }
+  ]
+}

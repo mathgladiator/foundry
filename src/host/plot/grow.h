@@ -14,7 +14,7 @@
 
 namespace plot {
 
-// Returns how many placements stood; regions is a plot_v1_region array.
+// Returns how many placements stood; regions is a plot_region array.
 uint32_t grow(const forge::Paths &paths, pipeline::Runner &runner, wasm::Runner &wasm, const std::string &plotter,
               const nlohmann::json &regions, uint32_t seed, const nlohmann::json &shared, runtime::Mesh &mesh, std::string &error);
 

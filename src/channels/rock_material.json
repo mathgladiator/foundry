@@ -1,0 +1,161 @@
+{
+  "family": "rock",
+  "version": 1,
+  "feature": "material",
+  "doc": "A rock material: everything that makes granite granite, from its shape and surface to its colours and how it breaks. Materials are data (the workspace's config/rock_materials/).",
+  "fields": [
+    {
+      "name": "name",
+      "type": "string",
+      "doc": "Display name, e.g. Granite."
+    },
+    {
+      "name": "kind",
+      "type": "string",
+      "doc": "What it is, geologically (igneous, sedimentary, metamorphic, volcanic glass, ...)."
+    },
+    {
+      "name": "facets",
+      "type": "u32",
+      "doc": "Flat faces the rock is chiselled from: few for blocky, many for rounded.",
+      "min": 5,
+      "max": 48
+    },
+    {
+      "name": "roundness",
+      "type": "f32",
+      "doc": "How far the facets are worn round, as water and weather do (0 = sharp, 1 = a river cobble).",
+      "min": 0,
+      "max": 1
+    },
+    {
+      "name": "elongation",
+      "type": "f32",
+      "doc": "Length over width.",
+      "min": 1,
+      "max": 2.5
+    },
+    {
+      "name": "flatness",
+      "type": "f32",
+      "doc": "Height over width (slabs are low).",
+      "min": 0.25,
+      "max": 1.2
+    },
+    {
+      "name": "roughness",
+      "type": "f32",
+      "doc": "Surface relief, as a fraction of the rock's size.",
+      "min": 0,
+      "max": 0.2
+    },
+    {
+      "name": "relief_scale",
+      "type": "f32",
+      "doc": "Size of the surface relief's lumps, as a fraction of the rock's size (small is grainy).",
+      "min": 0.05,
+      "max": 1
+    },
+    {
+      "name": "fracture",
+      "type": "u32",
+      "doc": "How it breaks: voronoi chunks, slab plates along its layers, columnar prisms, splinter shards, crumble into many small pieces, impact (fine near the blow, coarse away), or split into a few halves.",
+      "enum": [
+        "voronoi",
+        "slab",
+        "columnar",
+        "splinter",
+        "crumble",
+        "impact",
+        "split"
+      ]
+    },
+    {
+      "name": "pieces",
+      "type": "u32",
+      "doc": "Pieces a medium rock breaks into; smaller rocks break into fewer, larger into more.",
+      "min": 2,
+      "max": 32
+    },
+    {
+      "name": "grain",
+      "type": "vec3",
+      "doc": "The fracture's preferred direction (layers' normal for slabs, the long axis for splinters and columns), in rock space before its random turn."
+    },
+    {
+      "name": "grain_strength",
+      "type": "f32",
+      "doc": "How strongly pieces follow the grain (0 = not at all).",
+      "min": 0,
+      "max": 1
+    },
+    {
+      "name": "pattern",
+      "type": "u32",
+      "doc": "Surface pattern: plain, speckled (granite's crystals), banded (sandstone's strata), veined (marble), layered (slate's cleavage), jointed (basalt's columns), glassy (obsidian's sheen), or pitted (limestone).",
+      "enum": [
+        "plain",
+        "speckled",
+        "banded",
+        "veined",
+        "layered",
+        "jointed",
+        "glassy",
+        "pitted"
+      ]
+    },
+    {
+      "name": "pattern_scale",
+      "type": "f32",
+      "doc": "Size of the pattern's features, metres.",
+      "min": 0.01,
+      "max": 1
+    },
+    {
+      "name": "color_light",
+      "type": "vec3",
+      "doc": "Main colour on high and weathered surfaces, sRGB 0..1."
+    },
+    {
+      "name": "color_dark",
+      "type": "vec3",
+      "doc": "Main colour in hollows, sRGB 0..1."
+    },
+    {
+      "name": "accent",
+      "type": "vec3",
+      "doc": "Pattern colour: crystals, bands, veins, or sheen, sRGB 0..1."
+    },
+    {
+      "name": "fresh",
+      "type": "vec3",
+      "doc": "Colour of a freshly broken face, sRGB 0..1."
+    },
+    {
+      "name": "lichen",
+      "type": "f32",
+      "doc": "How readily moss and lichen take on it (porous rock more), scaling the request's moss.",
+      "min": 0,
+      "max": 1.5
+    },
+    {
+      "name": "moss_color",
+      "type": "vec3",
+      "doc": "Moss colour, sRGB 0..1."
+    },
+    {
+      "name": "snow",
+      "type": "f32",
+      "doc": "How much snow settles on it in winter.",
+      "min": 0,
+      "max": 1
+    },
+    {
+      "name": "density",
+      "type": "f32",
+      "doc": "Density, g/cm3: heavier pieces fly less far.",
+      "min": 1,
+      "max": 3.5
+    }
+  ]
+}

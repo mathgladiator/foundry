@@ -12,6 +12,7 @@
 
 #include "app/capture.h"
 #include "app/services.h"
+#include "map/tools.h"
 #include "plan/tools.h"
 #include "viewport/tools.h"
 #include "plot/tools.h"
@@ -112,6 +113,8 @@ int main(int argc, char **argv) {
   plot::register_tools(registry, plot_view);
   plan::View plan_view(s.paths, pipelines, runner);
   plan::register_tools(registry, plan_view);
+  map::View map_view(s.paths, pipelines, runner);
+  map::register_tools(registry, map_view);
   viewport::register_tools(registry);
   sky::observatories().set_root(s.config.workspace);
   sky::register_tools(registry);
@@ -194,6 +197,7 @@ int main(int argc, char **argv) {
   s.live = &live;
   s.plot = &plot_view;
   s.plan = &plan_view;
+  s.map = &map_view;
 
   int rc = 0;
   if (headless) {

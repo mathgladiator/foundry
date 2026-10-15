@@ -1,0 +1,8 @@
+{
+  "kind": "channel",
+  "name": "wall_kind",
+  "state": "draft",
+  "reason": "Wall kinds as config entries for wall (approved 2026-10-13): the human wants a wall system that fills a line of points with geometry, chunked and optimized, for town walls, keep walls, and sprawling castles. Patched 2026-10-14: theme materials (approved).",
+  "notes": [],
+  "created_at": "2026-10-13T23:30:00Z"
+}

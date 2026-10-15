@@ -1,0 +1,36 @@
+{
+  "family": "map",
+  "version": 1,
+  "feature": "far_spec",
+  "doc": "map_far's input (design/map.md): a map's plan, how it looks, and how far below the ground the far land lies.",
+  "fields": [
+    {
+      "name": "plan",
+      "type": "map_plan",
+      "doc": "The map's macro plan."
+    },
+    {
+      "name": "biome",
+      "type": "boundary_biome",
+      "doc": "The biome: the colours."
+    },
+    {
+      "name": "season",
+      "type": "u32",
+      "doc": "The season.",
+      "enum": [
+        "winter",
+        "spring",
+        "summer",
+        "fall"
+      ]
+    },
+    {
+      "name": "sink",
+      "type": "f32",
+      "doc": "How far below the ground the far land lies, metres (the chunks near the player cover it).",
+      "min": 0,
+      "max": 10
+    }
+  ]
+}

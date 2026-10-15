@@ -1,7 +1,7 @@
 // The runtime's fire (design/submit.md, "Fire"): buildings' fire points become emitters, and a
 // particle system on the CPU turns them into flames, sparks, embers' glow, and smoke the wind
 // carries, as camera-facing sprites (render/fire_renderer.h draws them; the foundry's viewport
-// draws the same sprites). Each fire config (fire_v1_config, compiled in) sets a fire's colours,
+// draws the same sprites). Each fire config (fire_config, compiled in) sets a fire's colours,
 // size, flicker, smoke, and the light it throws, which the mega shader adds (light.hlsli).
 //
 // Fire is for looks: it never feeds back into a pipeline's output, so it needn't match bit for bit
@@ -15,7 +15,7 @@
 namespace runtime {
 namespace fire {
 
-// fire_v1_config, as the runtime keeps it.
+// fire_config, as the runtime keeps it.
 struct Config {
   uint32_t id = 0;
   uint32_t kind = 0;  // kFlame, kEmber, kSpirit

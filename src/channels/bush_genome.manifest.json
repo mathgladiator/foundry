@@ -1,0 +1,8 @@
+{
+  "kind": "channel",
+  "name": "bush_genome",
+  "state": "draft",
+  "reason": "The bush pipeline's genome: a smaller sibling of tree_genome for shrubs, with several stems, seasonal bloom, and berry clusters. Read only by bush_grow; compiled into the runtime from config/bush_genomes/.",
+  "notes": [],
+  "created_at": "2026-10-12T10:00:00Z"
+}

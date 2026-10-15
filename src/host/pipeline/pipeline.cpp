@@ -234,7 +234,7 @@ std::shared_ptr<const Model> decode_model(const Definition &def, const std::stri
     for (auto it = def.terrain.begin(); it != def.terrain.end(); ++it)
       if (it.value().is_string()) out->facts.erase(it.value().get<std::string>() + "_count");
   }
-  // Collision (the physics_v1_body convention): checked in the toy Jolt world once per model.
+  // Collision (the physics_body convention): checked in the toy Jolt world once per model.
   out->collision = physics::analyze(physics::bodies_from_json(m.value("collision", nlohmann::json::array())),
                                     def.conformance_radius.empty() ? 0.0f : out->radius, out->conformance_height,
                                     out->has_box ? &out->box_min : nullptr, out->has_box ? &out->box_max : nullptr);

@@ -34,7 +34,7 @@ struct Param {
   std::string name;
   std::string type;                 // enum, config, u32, f32, time, event
   std::vector<std::string> values;  // enum values, or the entries of a config table
-  std::string table;                // config: the table it picks from (config/<table>/), e.g. tree_v1_genomes
+  std::string table;                // config: the table it picks from (config/<table>/), e.g. tree_genomes
   double min = 0, max = 1;
   nlohmann::json fallback;          // the default value
   std::string unit, doc;
@@ -43,7 +43,7 @@ struct Param {
   std::string when_param, when_field;
   std::vector<std::string> when_on;  // the entries of when_param where it applies
   // "edges": a u32 that packs a value per hex edge (edge_bits each, six edges in the hex
-  // directions' order), edited as six choices named by edge_values (road_v1's mask, its fences).
+  // directions' order), edited as six choices named by edge_values (road's mask, its fences).
   int edge_bits = 0;
   std::vector<std::string> edge_values;
 };
@@ -55,7 +55,7 @@ struct Stage {
 };
 
 struct Definition {
-  std::string name;  // e.g. tree_v1
+  std::string name;  // e.g. tree
   std::string doc;
   std::vector<Param> params;
   std::vector<Stage> stages;

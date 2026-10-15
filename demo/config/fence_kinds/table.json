@@ -1,0 +1,37 @@
+{
+  "channel": "fence_kind",
+  "doc": "Fence kinds for fence: each entry is one kind of fence, its style, size, colours, and post spacing. A planner's fill maps its fence lines to these; the native runtime compiles every entry in.",
+  "label": "kind",
+  "editor": {
+    "groups": [
+      {
+        "label": "Style",
+        "fields": [
+          "name",
+          "style",
+          "color",
+          "post_color",
+          "gate_color"
+        ]
+      },
+      {
+        "label": "Shape",
+        "fields": [
+          "height",
+          "thickness"
+        ]
+      },
+      {
+        "label": "Laying",
+        "fields": [
+          "module_m"
+        ]
+      }
+    ],
+    "colors": [
+      "color",
+      "post_color",
+      "gate_color"
+    ]
+  }
+}

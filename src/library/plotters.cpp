@@ -4,7 +4,7 @@
 
 #include "plotters_internal.h"
 
-#include "channels/plot_v1_config.h"
+#include "channels/plot_config.h"
 
 namespace {
 
@@ -19,16 +19,297 @@ uint32_t plot_hash(uint32_t x) {
 
 }  // namespace
 
-// happy_glen_v1: compiled from plotters/happy_glen_v1.json.
-namespace plot_scatter_v1 {
-bool run(const channels::plot_v1_request &in, channels::plot_v1_result &out, std::string &error);
+// fen: compiled from plotters/fen.json.
+namespace plot_scatter {
+bool run(const channels::plot_request &in, channels::plot_result &out, std::string &error);
 }
 
 namespace {
 
-const channels::plot_v1_config &config_happy_glen_v1() {
-  static const channels::plot_v1_config c = [] {
-    channels::plot_v1_config g;
+const channels::plot_config &config_fen() {
+  static const channels::plot_config c = [] {
+    channels::plot_config g;
+    g.grove_scale_cells = 0x1.2000000000000p+3f;
+    g.grove_octaves = 2u;
+    g.layers.resize(3);
+    g.layers[0].name = std::string("canopy");
+    g.layers[0].spacing_m = 0x1.0000000000000p+3f;
+    g.layers[0].density = 0x1.6666660000000p+0f;
+    g.layers[0].grove_low = 0x1.3333340000000p-2f;
+    g.layers[0].grove_high = 0x1.99999a0000000p+0f;
+    g.layers[0].edge_low = 0x1.0000000000000p+0f;
+    g.layers[0].edge_cells = 0u;
+    g.layers[0].ground = 1u;
+    g.layers[0].max_height_delta_m = 0x1.3333340000000p-1f;
+    g.layers[0].keep_clear.resize(0);
+    g.layers[0].prefer_near.resize(0);
+    g.layers[0].regrows = true;
+    g.layers[0].kinds.resize(3);
+    g.layers[0].kinds[0].id = 0u;
+    g.layers[0].kinds[0].weight = 0x1.cccccc0000000p-2f;
+    g.layers[0].kinds[0].footprint_m = 0x1.8d70a40000000p+1f;
+    g.layers[0].kinds[0].footprint_cells = 19u;
+    g.layers[0].kinds[0].max_share = 0x1.0000000000000p+0f;
+    g.layers[0].kinds[0].ground = 0u;
+    g.layers[0].kinds[1].id = 1u;
+    g.layers[0].kinds[1].weight = 0x1.3333340000000p-2f;
+    g.layers[0].kinds[1].footprint_m = 0x1.3e147a0000000p+1f;
+    g.layers[0].kinds[1].footprint_cells = 19u;
+    g.layers[0].kinds[1].max_share = 0x1.0000000000000p+0f;
+    g.layers[0].kinds[1].ground = 0u;
+    g.layers[0].kinds[2].id = 2u;
+    g.layers[0].kinds[2].weight = 0x1.0000000000000p-2f;
+    g.layers[0].kinds[2].footprint_m = 0x1.2a3d700000000p+0f;
+    g.layers[0].kinds[2].footprint_cells = 7u;
+    g.layers[0].kinds[2].max_share = 0x1.0000000000000p+0f;
+    g.layers[0].kinds[2].ground = 0u;
+    g.layers[0].regrow_kinds.resize(0);
+    g.layers[1].name = std::string("thickets");
+    g.layers[1].spacing_m = 0x1.8000000000000p+1f;
+    g.layers[1].density = 0x1.8000000000000p+1f;
+    g.layers[1].grove_low = 0x1.0000000000000p+0f;
+    g.layers[1].grove_high = 0x1.0000000000000p+0f;
+    g.layers[1].edge_low = 0x1.0000000000000p+0f;
+    g.layers[1].edge_cells = 0u;
+    g.layers[1].ground = 1u;
+    g.layers[1].max_height_delta_m = 0x1.3333340000000p-1f;
+    g.layers[1].keep_clear.resize(1);
+    g.layers[1].keep_clear[0].layer = 0u;
+    g.layers[1].keep_clear[0].metres = 0x1.0000000000000p+1f;
+    g.layers[1].prefer_near.resize(0);
+    g.layers[1].regrows = true;
+    g.layers[1].kinds.resize(2);
+    g.layers[1].kinds[0].id = 3u;
+    g.layers[1].kinds[0].weight = 0x1.6666660000000p-1f;
+    g.layers[1].kinds[0].footprint_m = 0x1.2c8b440000000p+0f;
+    g.layers[1].kinds[0].footprint_cells = 7u;
+    g.layers[1].kinds[0].max_share = 0x1.0000000000000p+0f;
+    g.layers[1].kinds[0].ground = 0u;
+    g.layers[1].kinds[1].id = 4u;
+    g.layers[1].kinds[1].weight = 0x1.3333340000000p-2f;
+    g.layers[1].kinds[1].footprint_m = 0x1.849ba60000000p-1f;
+    g.layers[1].kinds[1].footprint_cells = 1u;
+    g.layers[1].kinds[1].max_share = 0x1.0000000000000p+0f;
+    g.layers[1].kinds[1].ground = 0u;
+    g.layers[1].regrow_kinds.resize(0);
+    g.layers[2].name = std::string("reeds");
+    g.layers[2].spacing_m = 0x1.0000000000000p+0f;
+    g.layers[2].density = 0x1.c000000000000p+3f;
+    g.layers[2].grove_low = 0x1.0000000000000p+0f;
+    g.layers[2].grove_high = 0x1.0000000000000p+0f;
+    g.layers[2].edge_low = 0x1.0000000000000p+0f;
+    g.layers[2].edge_cells = 0u;
+    g.layers[2].ground = 1u;
+    g.layers[2].max_height_delta_m = 0x1.3333340000000p-1f;
+    g.layers[2].keep_clear.resize(2);
+    g.layers[2].keep_clear[0].layer = 0u;
+    g.layers[2].keep_clear[0].metres = 0x1.0000000000000p+0f;
+    g.layers[2].keep_clear[1].layer = 1u;
+    g.layers[2].keep_clear[1].metres = 0x1.99999a0000000p-1f;
+    g.layers[2].prefer_near.resize(0);
+    g.layers[2].regrows = true;
+    g.layers[2].kinds.resize(2);
+    g.layers[2].kinds[0].id = 5u;
+    g.layers[2].kinds[0].weight = 0x1.6666660000000p-1f;
+    g.layers[2].kinds[0].footprint_m = 0.0f;
+    g.layers[2].kinds[0].footprint_cells = 0u;
+    g.layers[2].kinds[0].max_share = 0x1.0000000000000p+0f;
+    g.layers[2].kinds[0].ground = 0u;
+    g.layers[2].kinds[1].id = 6u;
+    g.layers[2].kinds[1].weight = 0x1.3333340000000p-2f;
+    g.layers[2].kinds[1].footprint_m = 0.0f;
+    g.layers[2].kinds[1].footprint_cells = 0u;
+    g.layers[2].kinds[1].max_share = 0x1.0000000000000p+0f;
+    g.layers[2].kinds[1].ground = 0u;
+    g.layers[2].regrow_kinds.resize(0);
+    return g;
+  }();
+  return c;
+}
+
+foundry_instance spawn_fen_0(foundry_runtime *rt, uint32_t seed, bool regrown, const float t[16]) {
+  foundry_tree_params p;
+  foundry_tree_default_params(&p);
+  p.species = FOUNDRY_TREE_SPECIES_BALDCYPRESS;
+  uint32_t h = plot_hash(seed ^ 0x51ed270bu);
+  (void)h;
+  {
+    float total = 0.0f;
+    total += 0x1.3333340000000p-3f;
+    total += 0x1.3333340000000p-1f;
+    total += 0x1.0000000000000p-2f;
+    h = plot_hash(h + 0x9e3779b9u);
+    float pick = static_cast<float>(h >> 8) / 16777216.0f * total;
+    if (pick < 0x1.3333340000000p-3f) p.age = FOUNDRY_TREE_AGE_ANCIENT;
+    else if ((pick -= 0x1.3333340000000p-3f), false) {}
+    else if (pick < 0x1.3333340000000p-1f) p.age = FOUNDRY_TREE_AGE_MATURE;
+    else if ((pick -= 0x1.3333340000000p-1f), false) {}
+    else if (true) p.age = FOUNDRY_TREE_AGE_YOUNG;
+  }
+  if (regrown) {
+    p.age = FOUNDRY_TREE_AGE_SAPLING;
+  }
+  p.seed = 1u + (seed % 4u);
+  return foundry_tree_spawn(rt, &p, t);
+}
+
+foundry_instance spawn_fen_1(foundry_runtime *rt, uint32_t seed, bool regrown, const float t[16]) {
+  foundry_tree_params p;
+  foundry_tree_default_params(&p);
+  p.species = FOUNDRY_TREE_SPECIES_TUPELO;
+  uint32_t h = plot_hash(seed ^ 0x51ed270bu);
+  (void)h;
+  {
+    float total = 0.0f;
+    total += 0x1.3333340000000p-3f;
+    total += 0x1.3333340000000p-1f;
+    total += 0x1.0000000000000p-2f;
+    h = plot_hash(h + 0x9e3779b9u);
+    float pick = static_cast<float>(h >> 8) / 16777216.0f * total;
+    if (pick < 0x1.3333340000000p-3f) p.age = FOUNDRY_TREE_AGE_ANCIENT;
+    else if ((pick -= 0x1.3333340000000p-3f), false) {}
+    else if (pick < 0x1.3333340000000p-1f) p.age = FOUNDRY_TREE_AGE_MATURE;
+    else if ((pick -= 0x1.3333340000000p-1f), false) {}
+    else if (true) p.age = FOUNDRY_TREE_AGE_YOUNG;
+  }
+  if (regrown) {
+    p.age = FOUNDRY_TREE_AGE_SAPLING;
+  }
+  p.seed = 1u + (seed % 4u);
+  return foundry_tree_spawn(rt, &p, t);
+}
+
+foundry_instance spawn_fen_2(foundry_runtime *rt, uint32_t seed, bool regrown, const float t[16]) {
+  foundry_tree_params p;
+  foundry_tree_default_params(&p);
+  p.species = FOUNDRY_TREE_SPECIES_WILLOW;
+  uint32_t h = plot_hash(seed ^ 0x51ed270bu);
+  (void)h;
+  {
+    float total = 0.0f;
+    total += 0x1.3333340000000p-3f;
+    total += 0x1.3333340000000p-1f;
+    total += 0x1.0000000000000p-2f;
+    h = plot_hash(h + 0x9e3779b9u);
+    float pick = static_cast<float>(h >> 8) / 16777216.0f * total;
+    if (pick < 0x1.3333340000000p-3f) p.age = FOUNDRY_TREE_AGE_ANCIENT;
+    else if ((pick -= 0x1.3333340000000p-3f), false) {}
+    else if (pick < 0x1.3333340000000p-1f) p.age = FOUNDRY_TREE_AGE_MATURE;
+    else if ((pick -= 0x1.3333340000000p-1f), false) {}
+    else if (true) p.age = FOUNDRY_TREE_AGE_YOUNG;
+  }
+  if (regrown) {
+    p.age = FOUNDRY_TREE_AGE_SAPLING;
+  }
+  p.seed = 1u + (seed % 4u);
+  return foundry_tree_spawn(rt, &p, t);
+}
+
+foundry_instance spawn_fen_3(foundry_runtime *rt, uint32_t seed, bool regrown, const float t[16]) {
+  foundry_bush_params p;
+  foundry_bush_default_params(&p);
+  p.species = FOUNDRY_BUSH_SPECIES_BUTTONBUSH;
+  uint32_t h = plot_hash(seed ^ 0x51ed270bu);
+  (void)h;
+  {
+    float total = 0.0f;
+    total += 0x1.3333340000000p-1f;
+    total += 0x1.99999a0000000p-3f;
+    total += 0x1.99999a0000000p-3f;
+    h = plot_hash(h + 0x9e3779b9u);
+    float pick = static_cast<float>(h >> 8) / 16777216.0f * total;
+    if (pick < 0x1.3333340000000p-1f) p.age = FOUNDRY_BUSH_AGE_MATURE;
+    else if ((pick -= 0x1.3333340000000p-1f), false) {}
+    else if (pick < 0x1.99999a0000000p-3f) p.age = FOUNDRY_BUSH_AGE_OLD;
+    else if ((pick -= 0x1.99999a0000000p-3f), false) {}
+    else if (true) p.age = FOUNDRY_BUSH_AGE_YOUNG;
+  }
+  (void)regrown;
+  p.seed = 1u + (seed % 4u);
+  return foundry_bush_spawn(rt, &p, t);
+}
+
+foundry_instance spawn_fen_4(foundry_runtime *rt, uint32_t seed, bool regrown, const float t[16]) {
+  foundry_bush_params p;
+  foundry_bush_default_params(&p);
+  p.species = FOUNDRY_BUSH_SPECIES_PALMETTO;
+  uint32_t h = plot_hash(seed ^ 0x51ed270bu);
+  (void)h;
+  {
+    float total = 0.0f;
+    total += 0x1.3333340000000p-1f;
+    total += 0x1.99999a0000000p-3f;
+    total += 0x1.99999a0000000p-3f;
+    h = plot_hash(h + 0x9e3779b9u);
+    float pick = static_cast<float>(h >> 8) / 16777216.0f * total;
+    if (pick < 0x1.3333340000000p-1f) p.age = FOUNDRY_BUSH_AGE_MATURE;
+    else if ((pick -= 0x1.3333340000000p-1f), false) {}
+    else if (pick < 0x1.99999a0000000p-3f) p.age = FOUNDRY_BUSH_AGE_OLD;
+    else if ((pick -= 0x1.99999a0000000p-3f), false) {}
+    else if (true) p.age = FOUNDRY_BUSH_AGE_YOUNG;
+  }
+  (void)regrown;
+  p.seed = 1u + (seed % 4u);
+  return foundry_bush_spawn(rt, &p, t);
+}
+
+foundry_instance spawn_fen_5(foundry_runtime *rt, uint32_t seed, bool regrown, const float t[16]) {
+  foundry_flower_params p;
+  foundry_flower_default_params(&p);
+  p.species = FOUNDRY_FLOWER_SPECIES_CATTAIL;
+  uint32_t h = plot_hash(seed ^ 0x51ed270bu);
+  (void)h;
+  (void)regrown;
+  p.seed = 1u + (seed % 4u);
+  return foundry_flower_spawn(rt, &p, t);
+}
+
+foundry_instance spawn_fen_6(foundry_runtime *rt, uint32_t seed, bool regrown, const float t[16]) {
+  foundry_flower_params p;
+  foundry_flower_default_params(&p);
+  p.species = FOUNDRY_FLOWER_SPECIES_IRIS;
+  uint32_t h = plot_hash(seed ^ 0x51ed270bu);
+  (void)h;
+  (void)regrown;
+  p.seed = 1u + (seed % 4u);
+  return foundry_flower_spawn(rt, &p, t);
+}
+
+foundry_instance field_fen_0(foundry_runtime *rt, uint32_t world_seed, const float t[16],
+                                    const foundry_field_cell *cells, uint32_t count) {
+  foundry_grass_params p;
+  foundry_grass_default_params(&p);
+  p.species = FOUNDRY_GRASS_SPECIES_SEDGE;
+  p.world_seed = world_seed;
+  return foundry_grass_spawn_field(rt, &p, t, cells, count);
+}
+
+const plotters::Field fields_fen[] = {
+    {"grass sedge", field_fen_0},
+};
+
+const plotters::Kind kinds_fen[] = {
+    {"tree baldcypress", spawn_fen_0},
+    {"tree tupelo", spawn_fen_1},
+    {"tree willow", spawn_fen_2},
+    {"bush buttonbush", spawn_fen_3},
+    {"bush palmetto", spawn_fen_4},
+    {"flower cattail", spawn_fen_5},
+    {"flower iris", spawn_fen_6},
+};
+
+}  // namespace
+
+// happy_glen: compiled from plotters/happy_glen.json.
+namespace plot_scatter {
+bool run(const channels::plot_request &in, channels::plot_result &out, std::string &error);
+}
+
+namespace {
+
+const channels::plot_config &config_happy_glen() {
+  static const channels::plot_config c = [] {
+    channels::plot_config g;
     g.grove_scale_cells = 0x1.c000000000000p+2f;
     g.grove_octaves = 2u;
     g.layers.resize(5);
@@ -205,10 +486,10 @@ const channels::plot_v1_config &config_happy_glen_v1() {
   return c;
 }
 
-foundry_instance spawn_happy_glen_v1_0(foundry_runtime *rt, uint32_t seed, bool regrown, const float t[16]) {
-  foundry_tree_v1_params p;
-  foundry_tree_v1_default_params(&p);
-  p.species = FOUNDRY_TREE_V1_SPECIES_OAK;
+foundry_instance spawn_happy_glen_0(foundry_runtime *rt, uint32_t seed, bool regrown, const float t[16]) {
+  foundry_tree_params p;
+  foundry_tree_default_params(&p);
+  p.species = FOUNDRY_TREE_SPECIES_OAK;
   uint32_t h = plot_hash(seed ^ 0x51ed270bu);
   (void)h;
   {
@@ -218,23 +499,23 @@ foundry_instance spawn_happy_glen_v1_0(foundry_runtime *rt, uint32_t seed, bool 
     total += 0x1.99999a0000000p-3f;
     h = plot_hash(h + 0x9e3779b9u);
     float pick = static_cast<float>(h >> 8) / 16777216.0f * total;
-    if (pick < 0x1.0000000000000p-2f) p.age = FOUNDRY_TREE_V1_AGE_ANCIENT;
+    if (pick < 0x1.0000000000000p-2f) p.age = FOUNDRY_TREE_AGE_ANCIENT;
     else if ((pick -= 0x1.0000000000000p-2f), false) {}
-    else if (pick < 0x1.19999a0000000p-1f) p.age = FOUNDRY_TREE_V1_AGE_MATURE;
+    else if (pick < 0x1.19999a0000000p-1f) p.age = FOUNDRY_TREE_AGE_MATURE;
     else if ((pick -= 0x1.19999a0000000p-1f), false) {}
-    else if (true) p.age = FOUNDRY_TREE_V1_AGE_YOUNG;
+    else if (true) p.age = FOUNDRY_TREE_AGE_YOUNG;
   }
   if (regrown) {
-    p.age = FOUNDRY_TREE_V1_AGE_SAPLING;
+    p.age = FOUNDRY_TREE_AGE_SAPLING;
   }
   p.seed = 1u + (seed % 4u);
-  return foundry_tree_v1_spawn(rt, &p, t);
+  return foundry_tree_spawn(rt, &p, t);
 }
 
-foundry_instance spawn_happy_glen_v1_1(foundry_runtime *rt, uint32_t seed, bool regrown, const float t[16]) {
-  foundry_tree_v1_params p;
-  foundry_tree_v1_default_params(&p);
-  p.species = FOUNDRY_TREE_V1_SPECIES_APPLE;
+foundry_instance spawn_happy_glen_1(foundry_runtime *rt, uint32_t seed, bool regrown, const float t[16]) {
+  foundry_tree_params p;
+  foundry_tree_default_params(&p);
+  p.species = FOUNDRY_TREE_SPECIES_APPLE;
   uint32_t h = plot_hash(seed ^ 0x51ed270bu);
   (void)h;
   {
@@ -243,21 +524,21 @@ foundry_instance spawn_happy_glen_v1_1(foundry_runtime *rt, uint32_t seed, bool 
     total += 0x1.3333340000000p-2f;
     h = plot_hash(h + 0x9e3779b9u);
     float pick = static_cast<float>(h >> 8) / 16777216.0f * total;
-    if (pick < 0x1.6666660000000p-1f) p.age = FOUNDRY_TREE_V1_AGE_MATURE;
+    if (pick < 0x1.6666660000000p-1f) p.age = FOUNDRY_TREE_AGE_MATURE;
     else if ((pick -= 0x1.6666660000000p-1f), false) {}
-    else if (true) p.age = FOUNDRY_TREE_V1_AGE_YOUNG;
+    else if (true) p.age = FOUNDRY_TREE_AGE_YOUNG;
   }
   if (regrown) {
-    p.age = FOUNDRY_TREE_V1_AGE_SAPLING;
+    p.age = FOUNDRY_TREE_AGE_SAPLING;
   }
   p.seed = 1u + (seed % 4u);
-  return foundry_tree_v1_spawn(rt, &p, t);
+  return foundry_tree_spawn(rt, &p, t);
 }
 
-foundry_instance spawn_happy_glen_v1_2(foundry_runtime *rt, uint32_t seed, bool regrown, const float t[16]) {
-  foundry_tree_v1_params p;
-  foundry_tree_v1_default_params(&p);
-  p.species = FOUNDRY_TREE_V1_SPECIES_WILLOW;
+foundry_instance spawn_happy_glen_2(foundry_runtime *rt, uint32_t seed, bool regrown, const float t[16]) {
+  foundry_tree_params p;
+  foundry_tree_default_params(&p);
+  p.species = FOUNDRY_TREE_SPECIES_WILLOW;
   uint32_t h = plot_hash(seed ^ 0x51ed270bu);
   (void)h;
   {
@@ -265,45 +546,45 @@ foundry_instance spawn_happy_glen_v1_2(foundry_runtime *rt, uint32_t seed, bool 
     total += 0x1.0000000000000p+0f;
     h = plot_hash(h + 0x9e3779b9u);
     float pick = static_cast<float>(h >> 8) / 16777216.0f * total;
-    if (true) p.age = FOUNDRY_TREE_V1_AGE_MATURE;
+    if (true) p.age = FOUNDRY_TREE_AGE_MATURE;
   }
   if (regrown) {
-    p.age = FOUNDRY_TREE_V1_AGE_SAPLING;
+    p.age = FOUNDRY_TREE_AGE_SAPLING;
   }
   p.seed = 1u + (seed % 4u);
-  return foundry_tree_v1_spawn(rt, &p, t);
+  return foundry_tree_spawn(rt, &p, t);
 }
 
-foundry_instance spawn_happy_glen_v1_3(foundry_runtime *rt, uint32_t seed, bool regrown, const float t[16]) {
-  foundry_tree_v1_params p;
-  foundry_tree_v1_default_params(&p);
-  p.species = FOUNDRY_TREE_V1_SPECIES_OAK;
+foundry_instance spawn_happy_glen_3(foundry_runtime *rt, uint32_t seed, bool regrown, const float t[16]) {
+  foundry_tree_params p;
+  foundry_tree_default_params(&p);
+  p.species = FOUNDRY_TREE_SPECIES_OAK;
   uint32_t h = plot_hash(seed ^ 0x51ed270bu);
   (void)h;
   if (regrown) {
-    p.age = FOUNDRY_TREE_V1_AGE_SAPLING;
+    p.age = FOUNDRY_TREE_AGE_SAPLING;
   }
   p.seed = 1u + (seed % 4u);
-  return foundry_tree_v1_spawn(rt, &p, t);
+  return foundry_tree_spawn(rt, &p, t);
 }
 
-foundry_instance spawn_happy_glen_v1_4(foundry_runtime *rt, uint32_t seed, bool regrown, const float t[16]) {
-  foundry_tree_v1_params p;
-  foundry_tree_v1_default_params(&p);
-  p.species = FOUNDRY_TREE_V1_SPECIES_BIRCH;
+foundry_instance spawn_happy_glen_4(foundry_runtime *rt, uint32_t seed, bool regrown, const float t[16]) {
+  foundry_tree_params p;
+  foundry_tree_default_params(&p);
+  p.species = FOUNDRY_TREE_SPECIES_BIRCH;
   uint32_t h = plot_hash(seed ^ 0x51ed270bu);
   (void)h;
   if (regrown) {
-    p.age = FOUNDRY_TREE_V1_AGE_SAPLING;
+    p.age = FOUNDRY_TREE_AGE_SAPLING;
   }
   p.seed = 1u + (seed % 4u);
-  return foundry_tree_v1_spawn(rt, &p, t);
+  return foundry_tree_spawn(rt, &p, t);
 }
 
-foundry_instance spawn_happy_glen_v1_5(foundry_runtime *rt, uint32_t seed, bool regrown, const float t[16]) {
-  foundry_bush_v1_params p;
-  foundry_bush_v1_default_params(&p);
-  p.species = FOUNDRY_BUSH_V1_SPECIES_HAZEL;
+foundry_instance spawn_happy_glen_5(foundry_runtime *rt, uint32_t seed, bool regrown, const float t[16]) {
+  foundry_bush_params p;
+  foundry_bush_default_params(&p);
+  p.species = FOUNDRY_BUSH_SPECIES_HAZEL;
   uint32_t h = plot_hash(seed ^ 0x51ed270bu);
   (void)h;
   {
@@ -313,23 +594,23 @@ foundry_instance spawn_happy_glen_v1_5(foundry_runtime *rt, uint32_t seed, bool 
     total += 0x1.99999a0000000p-3f;
     h = plot_hash(h + 0x9e3779b9u);
     float pick = static_cast<float>(h >> 8) / 16777216.0f * total;
-    if (pick < 0x1.4ccccc0000000p-1f) p.age = FOUNDRY_BUSH_V1_AGE_MATURE;
+    if (pick < 0x1.4ccccc0000000p-1f) p.age = FOUNDRY_BUSH_AGE_MATURE;
     else if ((pick -= 0x1.4ccccc0000000p-1f), false) {}
-    else if (pick < 0x1.3333340000000p-3f) p.age = FOUNDRY_BUSH_V1_AGE_OLD;
+    else if (pick < 0x1.3333340000000p-3f) p.age = FOUNDRY_BUSH_AGE_OLD;
     else if ((pick -= 0x1.3333340000000p-3f), false) {}
-    else if (true) p.age = FOUNDRY_BUSH_V1_AGE_YOUNG;
+    else if (true) p.age = FOUNDRY_BUSH_AGE_YOUNG;
   }
   if (regrown) {
-    p.age = FOUNDRY_BUSH_V1_AGE_YOUNG;
+    p.age = FOUNDRY_BUSH_AGE_YOUNG;
   }
   p.seed = 1u + (seed % 4u);
-  return foundry_bush_v1_spawn(rt, &p, t);
+  return foundry_bush_spawn(rt, &p, t);
 }
 
-foundry_instance spawn_happy_glen_v1_6(foundry_runtime *rt, uint32_t seed, bool regrown, const float t[16]) {
-  foundry_bush_v1_params p;
-  foundry_bush_v1_default_params(&p);
-  p.species = FOUNDRY_BUSH_V1_SPECIES_BLACKBERRY;
+foundry_instance spawn_happy_glen_6(foundry_runtime *rt, uint32_t seed, bool regrown, const float t[16]) {
+  foundry_bush_params p;
+  foundry_bush_default_params(&p);
+  p.species = FOUNDRY_BUSH_SPECIES_BLACKBERRY;
   uint32_t h = plot_hash(seed ^ 0x51ed270bu);
   (void)h;
   {
@@ -338,21 +619,21 @@ foundry_instance spawn_happy_glen_v1_6(foundry_runtime *rt, uint32_t seed, bool 
     total += 0x1.0000000000000p-2f;
     h = plot_hash(h + 0x9e3779b9u);
     float pick = static_cast<float>(h >> 8) / 16777216.0f * total;
-    if (pick < 0x1.8000000000000p-1f) p.age = FOUNDRY_BUSH_V1_AGE_MATURE;
+    if (pick < 0x1.8000000000000p-1f) p.age = FOUNDRY_BUSH_AGE_MATURE;
     else if ((pick -= 0x1.8000000000000p-1f), false) {}
-    else if (true) p.age = FOUNDRY_BUSH_V1_AGE_YOUNG;
+    else if (true) p.age = FOUNDRY_BUSH_AGE_YOUNG;
   }
   if (regrown) {
-    p.age = FOUNDRY_BUSH_V1_AGE_YOUNG;
+    p.age = FOUNDRY_BUSH_AGE_YOUNG;
   }
   p.seed = 1u + (seed % 4u);
-  return foundry_bush_v1_spawn(rt, &p, t);
+  return foundry_bush_spawn(rt, &p, t);
 }
 
-foundry_instance spawn_happy_glen_v1_7(foundry_runtime *rt, uint32_t seed, bool regrown, const float t[16]) {
-  foundry_bush_v1_params p;
-  foundry_bush_v1_default_params(&p);
-  p.species = FOUNDRY_BUSH_V1_SPECIES_ELDERBERRY;
+foundry_instance spawn_happy_glen_7(foundry_runtime *rt, uint32_t seed, bool regrown, const float t[16]) {
+  foundry_bush_params p;
+  foundry_bush_default_params(&p);
+  p.species = FOUNDRY_BUSH_SPECIES_ELDERBERRY;
   uint32_t h = plot_hash(seed ^ 0x51ed270bu);
   (void)h;
   {
@@ -361,66 +642,66 @@ foundry_instance spawn_happy_glen_v1_7(foundry_runtime *rt, uint32_t seed, bool 
     total += 0x1.99999a0000000p-3f;
     h = plot_hash(h + 0x9e3779b9u);
     float pick = static_cast<float>(h >> 8) / 16777216.0f * total;
-    if (pick < 0x1.99999a0000000p-1f) p.age = FOUNDRY_BUSH_V1_AGE_MATURE;
+    if (pick < 0x1.99999a0000000p-1f) p.age = FOUNDRY_BUSH_AGE_MATURE;
     else if ((pick -= 0x1.99999a0000000p-1f), false) {}
-    else if (true) p.age = FOUNDRY_BUSH_V1_AGE_YOUNG;
+    else if (true) p.age = FOUNDRY_BUSH_AGE_YOUNG;
   }
   if (regrown) {
-    p.age = FOUNDRY_BUSH_V1_AGE_YOUNG;
+    p.age = FOUNDRY_BUSH_AGE_YOUNG;
   }
   p.seed = 1u + (seed % 4u);
-  return foundry_bush_v1_spawn(rt, &p, t);
+  return foundry_bush_spawn(rt, &p, t);
 }
 
-foundry_instance spawn_happy_glen_v1_8(foundry_runtime *rt, uint32_t seed, bool regrown, const float t[16]) {
-  foundry_flower_v1_params p;
-  foundry_flower_v1_default_params(&p);
-  p.species = FOUNDRY_FLOWER_V1_SPECIES_BLUEBELL;
+foundry_instance spawn_happy_glen_8(foundry_runtime *rt, uint32_t seed, bool regrown, const float t[16]) {
+  foundry_flower_params p;
+  foundry_flower_default_params(&p);
+  p.species = FOUNDRY_FLOWER_SPECIES_BLUEBELL;
   uint32_t h = plot_hash(seed ^ 0x51ed270bu);
   (void)h;
   (void)regrown;
   p.seed = 1u + (seed % 4u);
-  return foundry_flower_v1_spawn(rt, &p, t);
+  return foundry_flower_spawn(rt, &p, t);
 }
 
-foundry_instance spawn_happy_glen_v1_9(foundry_runtime *rt, uint32_t seed, bool regrown, const float t[16]) {
-  foundry_flower_v1_params p;
-  foundry_flower_v1_default_params(&p);
-  p.species = FOUNDRY_FLOWER_V1_SPECIES_FOXGLOVE;
+foundry_instance spawn_happy_glen_9(foundry_runtime *rt, uint32_t seed, bool regrown, const float t[16]) {
+  foundry_flower_params p;
+  foundry_flower_default_params(&p);
+  p.species = FOUNDRY_FLOWER_SPECIES_FOXGLOVE;
   uint32_t h = plot_hash(seed ^ 0x51ed270bu);
   (void)h;
   (void)regrown;
   p.seed = 1u + (seed % 4u);
-  return foundry_flower_v1_spawn(rt, &p, t);
+  return foundry_flower_spawn(rt, &p, t);
 }
 
-foundry_instance spawn_happy_glen_v1_10(foundry_runtime *rt, uint32_t seed, bool regrown, const float t[16]) {
-  foundry_flower_v1_params p;
-  foundry_flower_v1_default_params(&p);
-  p.species = FOUNDRY_FLOWER_V1_SPECIES_DAISY;
+foundry_instance spawn_happy_glen_10(foundry_runtime *rt, uint32_t seed, bool regrown, const float t[16]) {
+  foundry_flower_params p;
+  foundry_flower_default_params(&p);
+  p.species = FOUNDRY_FLOWER_SPECIES_DAISY;
   uint32_t h = plot_hash(seed ^ 0x51ed270bu);
   (void)h;
   (void)regrown;
   p.seed = 1u + (seed % 4u);
-  return foundry_flower_v1_spawn(rt, &p, t);
+  return foundry_flower_spawn(rt, &p, t);
 }
 
-foundry_instance spawn_happy_glen_v1_11(foundry_runtime *rt, uint32_t seed, bool regrown, const float t[16]) {
-  foundry_flower_v1_params p;
-  foundry_flower_v1_default_params(&p);
-  p.species = FOUNDRY_FLOWER_V1_SPECIES_POPPY;
+foundry_instance spawn_happy_glen_11(foundry_runtime *rt, uint32_t seed, bool regrown, const float t[16]) {
+  foundry_flower_params p;
+  foundry_flower_default_params(&p);
+  p.species = FOUNDRY_FLOWER_SPECIES_POPPY;
   uint32_t h = plot_hash(seed ^ 0x51ed270bu);
   (void)h;
   (void)regrown;
   p.seed = 1u + (seed % 4u);
-  return foundry_flower_v1_spawn(rt, &p, t);
+  return foundry_flower_spawn(rt, &p, t);
 }
 
-foundry_instance spawn_happy_glen_v1_12(foundry_runtime *rt, uint32_t seed, bool regrown, const float t[16]) {
-  foundry_rock_v1_params p;
-  foundry_rock_v1_default_params(&p);
-  p.material = FOUNDRY_ROCK_V1_MATERIAL_RIVERSTONE;
-  p.moss = FOUNDRY_ROCK_V1_MOSS_LIGHT;
+foundry_instance spawn_happy_glen_12(foundry_runtime *rt, uint32_t seed, bool regrown, const float t[16]) {
+  foundry_rock_params p;
+  foundry_rock_default_params(&p);
+  p.material = FOUNDRY_ROCK_MATERIAL_RIVERSTONE;
+  p.moss = FOUNDRY_ROCK_MOSS_LIGHT;
   uint32_t h = plot_hash(seed ^ 0x51ed270bu);
   (void)h;
   {
@@ -429,60 +710,60 @@ foundry_instance spawn_happy_glen_v1_12(foundry_runtime *rt, uint32_t seed, bool
     total += 0x1.8000000000000p-1f;
     h = plot_hash(h + 0x9e3779b9u);
     float pick = static_cast<float>(h >> 8) / 16777216.0f * total;
-    if (pick < 0x1.0000000000000p-2f) p.size = FOUNDRY_ROCK_V1_SIZE_MEDIUM;
+    if (pick < 0x1.0000000000000p-2f) p.size = FOUNDRY_ROCK_SIZE_MEDIUM;
     else if ((pick -= 0x1.0000000000000p-2f), false) {}
-    else if (true) p.size = FOUNDRY_ROCK_V1_SIZE_SMALL;
+    else if (true) p.size = FOUNDRY_ROCK_SIZE_SMALL;
   }
   (void)regrown;
   p.seed = 1u + (seed % 4u);
-  return foundry_rock_v1_spawn(rt, &p, t);
+  return foundry_rock_spawn(rt, &p, t);
 }
 
-foundry_instance field_happy_glen_v1_0(foundry_runtime *rt, uint32_t world_seed, const float t[16],
+foundry_instance field_happy_glen_0(foundry_runtime *rt, uint32_t world_seed, const float t[16],
                                     const foundry_field_cell *cells, uint32_t count) {
-  foundry_grass_v1_params p;
-  foundry_grass_v1_default_params(&p);
-  p.species = FOUNDRY_GRASS_V1_SPECIES_MEADOW;
+  foundry_grass_params p;
+  foundry_grass_default_params(&p);
+  p.species = FOUNDRY_GRASS_SPECIES_MEADOW;
   p.world_seed = world_seed;
-  return foundry_grass_v1_spawn_field(rt, &p, t, cells, count);
+  return foundry_grass_spawn_field(rt, &p, t, cells, count);
 }
 
-const plotters::Field fields_happy_glen_v1[] = {
-    {"grass_v1 meadow", field_happy_glen_v1_0},
+const plotters::Field fields_happy_glen[] = {
+    {"grass meadow", field_happy_glen_0},
 };
 
-foundry_instance boundary_happy_glen_v1(foundry_runtime *rt, uint32_t world_seed, const float t[16],
+foundry_instance boundary_happy_glen(foundry_runtime *rt, uint32_t world_seed, const float t[16],
                                     const foundry_hull_cell *cells, uint32_t count) {
-  foundry_boundary_v1_params p;
-  foundry_boundary_v1_default_params(&p);
-  p.biome = FOUNDRY_BOUNDARY_V1_BIOME_TEMPERATE;
-  p.detail = FOUNDRY_BOUNDARY_V1_DETAIL_HIGH;
-  p.hull = FOUNDRY_BOUNDARY_V1_HULL_AROUND_VALLEY;
+  foundry_boundary_params p;
+  foundry_boundary_default_params(&p);
+  p.biome = FOUNDRY_BOUNDARY_BIOME_TEMPERATE;
+  p.detail = FOUNDRY_BOUNDARY_DETAIL_HIGH;
+  p.hull = FOUNDRY_BOUNDARY_HULL_AROUND_VALLEY;
   p.view_distance = 0x1.7700000000000p+11f;
   p.seed = 1u + (world_seed % 1000000u);
-  return foundry_boundary_v1_spawn_hull(rt, &p, t, cells, count);
+  return foundry_boundary_spawn_hull(rt, &p, t, cells, count);
 }
 
-foundry_instance figure_happy_glen_v1(foundry_runtime *rt, const foundry_figure *f, const float t[16]) {
+foundry_instance figure_happy_glen(foundry_runtime *rt, const foundry_figure *f, const float t[16]) {
   if (f->kind == 0u) {
-    foundry_tree_v1_params p;
-    foundry_tree_v1_default_params(&p);
-    const int s = foundry_tree_v1_species_find(f->species);
+    foundry_tree_params p;
+    foundry_tree_default_params(&p);
+    const int s = foundry_tree_species_find(f->species);
     if (s < 0) return FOUNDRY_NO_INSTANCE;
-    p.species = static_cast<foundry_tree_v1_species>(s);
-    p.age = static_cast<foundry_tree_v1_age>(f->age < 4u ? f->age : 3u);
+    p.species = static_cast<foundry_tree_species>(s);
+    p.age = static_cast<foundry_tree_age>(f->age < 4u ? f->age : 3u);
     p.seed = 1u + (f->seed % 4u);
-    return foundry_tree_v1_spawn(rt, &p, t);
+    return foundry_tree_spawn(rt, &p, t);
   }
   if (f->kind == 1u) {
-    foundry_bush_v1_params p;
-    foundry_bush_v1_default_params(&p);
-    const int s = foundry_bush_v1_species_find(f->species);
+    foundry_bush_params p;
+    foundry_bush_default_params(&p);
+    const int s = foundry_bush_species_find(f->species);
     if (s < 0) return FOUNDRY_NO_INSTANCE;
-    p.species = static_cast<foundry_bush_v1_species>(s);
-    p.age = static_cast<foundry_bush_v1_age>(f->age < 3u ? f->age : 2u);
+    p.species = static_cast<foundry_bush_species>(s);
+    p.age = static_cast<foundry_bush_age>(f->age < 3u ? f->age : 2u);
     p.seed = 1u + (f->seed % 4u);
-    return foundry_bush_v1_spawn(rt, &p, t);
+    return foundry_bush_spawn(rt, &p, t);
   }
   (void)rt;
   (void)f;
@@ -490,22 +771,1248 @@ foundry_instance figure_happy_glen_v1(foundry_runtime *rt, const foundry_figure 
   return FOUNDRY_NO_INSTANCE;
 }
 
-const plotters::Boundary boundary_info_happy_glen_v1 = {"boundary_v1 temperate high around_valley", boundary_happy_glen_v1, figure_happy_glen_v1};
+const plotters::Boundary boundary_info_happy_glen = {"boundary temperate high around_valley", boundary_happy_glen, figure_happy_glen};
 
-const plotters::Kind kinds_happy_glen_v1[] = {
-    {"tree_v1 oak", spawn_happy_glen_v1_0},
-    {"tree_v1 apple", spawn_happy_glen_v1_1},
-    {"tree_v1 willow", spawn_happy_glen_v1_2},
-    {"tree_v1 oak", spawn_happy_glen_v1_3},
-    {"tree_v1 birch", spawn_happy_glen_v1_4},
-    {"bush_v1 hazel", spawn_happy_glen_v1_5},
-    {"bush_v1 blackberry", spawn_happy_glen_v1_6},
-    {"bush_v1 elderberry", spawn_happy_glen_v1_7},
-    {"flower_v1 bluebell", spawn_happy_glen_v1_8},
-    {"flower_v1 foxglove", spawn_happy_glen_v1_9},
-    {"flower_v1 daisy", spawn_happy_glen_v1_10},
-    {"flower_v1 poppy", spawn_happy_glen_v1_11},
-    {"rock_v1 riverstone light", spawn_happy_glen_v1_12},
+const plotters::Kind kinds_happy_glen[] = {
+    {"tree oak", spawn_happy_glen_0},
+    {"tree apple", spawn_happy_glen_1},
+    {"tree willow", spawn_happy_glen_2},
+    {"tree oak", spawn_happy_glen_3},
+    {"tree birch", spawn_happy_glen_4},
+    {"bush hazel", spawn_happy_glen_5},
+    {"bush blackberry", spawn_happy_glen_6},
+    {"bush elderberry", spawn_happy_glen_7},
+    {"flower bluebell", spawn_happy_glen_8},
+    {"flower foxglove", spawn_happy_glen_9},
+    {"flower daisy", spawn_happy_glen_10},
+    {"flower poppy", spawn_happy_glen_11},
+    {"rock riverstone light", spawn_happy_glen_12},
+};
+
+}  // namespace
+
+// moor: compiled from plotters/moor.json.
+namespace plot_scatter {
+bool run(const channels::plot_request &in, channels::plot_result &out, std::string &error);
+}
+
+namespace {
+
+const channels::plot_config &config_moor() {
+  static const channels::plot_config c = [] {
+    channels::plot_config g;
+    g.grove_scale_cells = 0x1.2000000000000p+3f;
+    g.grove_octaves = 2u;
+    g.layers.resize(4);
+    g.layers[0].name = std::string("trees");
+    g.layers[0].spacing_m = 0x1.c000000000000p+3f;
+    g.layers[0].density = 0x1.99999a0000000p-1f;
+    g.layers[0].grove_low = 0x1.3333340000000p-3f;
+    g.layers[0].grove_high = 0x1.cccccc0000000p+0f;
+    g.layers[0].edge_low = 0x1.0000000000000p+0f;
+    g.layers[0].edge_cells = 0u;
+    g.layers[0].ground = 1u;
+    g.layers[0].max_height_delta_m = 0x1.0000000000000p+0f;
+    g.layers[0].keep_clear.resize(0);
+    g.layers[0].prefer_near.resize(0);
+    g.layers[0].regrows = true;
+    g.layers[0].kinds.resize(2);
+    g.layers[0].kinds[0].id = 0u;
+    g.layers[0].kinds[0].weight = 0x1.6666660000000p-1f;
+    g.layers[0].kinds[0].footprint_m = 0x1.4bc6a80000000p-2f;
+    g.layers[0].kinds[0].footprint_cells = 1u;
+    g.layers[0].kinds[0].max_share = 0x1.0000000000000p+0f;
+    g.layers[0].kinds[0].ground = 0u;
+    g.layers[0].kinds[1].id = 1u;
+    g.layers[0].kinds[1].weight = 0x1.3333340000000p-2f;
+    g.layers[0].kinds[1].footprint_m = 0x1.245a1c0000000p-1f;
+    g.layers[0].kinds[1].footprint_cells = 1u;
+    g.layers[0].kinds[1].max_share = 0x1.0000000000000p+0f;
+    g.layers[0].kinds[1].ground = 0u;
+    g.layers[0].regrow_kinds.resize(0);
+    g.layers[1].name = std::string("scrub");
+    g.layers[1].spacing_m = 0x1.c000000000000p+1f;
+    g.layers[1].density = 0x1.19999a0000000p+1f;
+    g.layers[1].grove_low = 0x1.0000000000000p-1f;
+    g.layers[1].grove_high = 0x1.6666660000000p+0f;
+    g.layers[1].edge_low = 0x1.0000000000000p+0f;
+    g.layers[1].edge_cells = 0u;
+    g.layers[1].ground = 1u;
+    g.layers[1].max_height_delta_m = 0x1.0000000000000p+0f;
+    g.layers[1].keep_clear.resize(1);
+    g.layers[1].keep_clear[0].layer = 0u;
+    g.layers[1].keep_clear[0].metres = 0x1.0000000000000p+1f;
+    g.layers[1].prefer_near.resize(0);
+    g.layers[1].regrows = true;
+    g.layers[1].kinds.resize(2);
+    g.layers[1].kinds[0].id = 2u;
+    g.layers[1].kinds[0].weight = 0x1.3333340000000p-1f;
+    g.layers[1].kinds[0].footprint_m = 0x1.2e978e0000000p-1f;
+    g.layers[1].kinds[0].footprint_cells = 1u;
+    g.layers[1].kinds[0].max_share = 0x1.0000000000000p+0f;
+    g.layers[1].kinds[0].ground = 0u;
+    g.layers[1].kinds[1].id = 3u;
+    g.layers[1].kinds[1].weight = 0x1.99999a0000000p-2f;
+    g.layers[1].kinds[1].footprint_m = 0x1.23d70a0000000p-1f;
+    g.layers[1].kinds[1].footprint_cells = 1u;
+    g.layers[1].kinds[1].max_share = 0x1.0000000000000p+0f;
+    g.layers[1].kinds[1].ground = 0u;
+    g.layers[1].regrow_kinds.resize(0);
+    g.layers[2].name = std::string("heath");
+    g.layers[2].spacing_m = 0x1.6666660000000p+0f;
+    g.layers[2].density = 0x1.4000000000000p+3f;
+    g.layers[2].grove_low = 0x1.0000000000000p+0f;
+    g.layers[2].grove_high = 0x1.0000000000000p+0f;
+    g.layers[2].edge_low = 0x1.0000000000000p+0f;
+    g.layers[2].edge_cells = 0u;
+    g.layers[2].ground = 1u;
+    g.layers[2].max_height_delta_m = 0x1.0000000000000p+0f;
+    g.layers[2].keep_clear.resize(2);
+    g.layers[2].keep_clear[0].layer = 1u;
+    g.layers[2].keep_clear[0].metres = 0x1.99999a0000000p-1f;
+    g.layers[2].keep_clear[1].layer = 0u;
+    g.layers[2].keep_clear[1].metres = 0x1.0000000000000p+0f;
+    g.layers[2].prefer_near.resize(0);
+    g.layers[2].regrows = true;
+    g.layers[2].kinds.resize(2);
+    g.layers[2].kinds[0].id = 4u;
+    g.layers[2].kinds[0].weight = 0x1.19999a0000000p-1f;
+    g.layers[2].kinds[0].footprint_m = 0.0f;
+    g.layers[2].kinds[0].footprint_cells = 0u;
+    g.layers[2].kinds[0].max_share = 0x1.0000000000000p+0f;
+    g.layers[2].kinds[0].ground = 0u;
+    g.layers[2].kinds[1].id = 5u;
+    g.layers[2].kinds[1].weight = 0x1.cccccc0000000p-2f;
+    g.layers[2].kinds[1].footprint_m = 0.0f;
+    g.layers[2].kinds[1].footprint_cells = 0u;
+    g.layers[2].kinds[1].max_share = 0x1.0000000000000p+0f;
+    g.layers[2].kinds[1].ground = 0u;
+    g.layers[2].regrow_kinds.resize(0);
+    g.layers[3].name = std::string("tors");
+    g.layers[3].spacing_m = 0x1.8000000000000p+2f;
+    g.layers[3].density = 0x1.6666660000000p-1f;
+    g.layers[3].grove_low = 0x1.0000000000000p+0f;
+    g.layers[3].grove_high = 0x1.0000000000000p+0f;
+    g.layers[3].edge_low = 0x1.0000000000000p+0f;
+    g.layers[3].edge_cells = 0u;
+    g.layers[3].ground = 21u;
+    g.layers[3].max_height_delta_m = 0x1.0000000000000p+1f;
+    g.layers[3].keep_clear.resize(0);
+    g.layers[3].prefer_near.resize(0);
+    g.layers[3].regrows = false;
+    g.layers[3].kinds.resize(1);
+    g.layers[3].kinds[0].id = 6u;
+    g.layers[3].kinds[0].weight = 0x1.0000000000000p+0f;
+    g.layers[3].kinds[0].footprint_m = 0x1.a0418a0000000p-1f;
+    g.layers[3].kinds[0].footprint_cells = 7u;
+    g.layers[3].kinds[0].max_share = 0x1.0000000000000p+0f;
+    g.layers[3].kinds[0].ground = 0u;
+    g.layers[3].regrow_kinds.resize(0);
+    return g;
+  }();
+  return c;
+}
+
+foundry_instance spawn_moor_0(foundry_runtime *rt, uint32_t seed, bool regrown, const float t[16]) {
+  foundry_tree_params p;
+  foundry_tree_default_params(&p);
+  p.species = FOUNDRY_TREE_SPECIES_BIRCH;
+  uint32_t h = plot_hash(seed ^ 0x51ed270bu);
+  (void)h;
+  {
+    float total = 0.0f;
+    total += 0x1.3333340000000p-3f;
+    total += 0x1.3333340000000p-1f;
+    total += 0x1.0000000000000p-2f;
+    h = plot_hash(h + 0x9e3779b9u);
+    float pick = static_cast<float>(h >> 8) / 16777216.0f * total;
+    if (pick < 0x1.3333340000000p-3f) p.age = FOUNDRY_TREE_AGE_ANCIENT;
+    else if ((pick -= 0x1.3333340000000p-3f), false) {}
+    else if (pick < 0x1.3333340000000p-1f) p.age = FOUNDRY_TREE_AGE_MATURE;
+    else if ((pick -= 0x1.3333340000000p-1f), false) {}
+    else if (true) p.age = FOUNDRY_TREE_AGE_YOUNG;
+  }
+  if (regrown) {
+    p.age = FOUNDRY_TREE_AGE_SAPLING;
+  }
+  p.seed = 1u + (seed % 4u);
+  return foundry_tree_spawn(rt, &p, t);
+}
+
+foundry_instance spawn_moor_1(foundry_runtime *rt, uint32_t seed, bool regrown, const float t[16]) {
+  foundry_tree_params p;
+  foundry_tree_default_params(&p);
+  p.species = FOUNDRY_TREE_SPECIES_CHERRY;
+  uint32_t h = plot_hash(seed ^ 0x51ed270bu);
+  (void)h;
+  {
+    float total = 0.0f;
+    total += 0x1.3333340000000p-3f;
+    total += 0x1.3333340000000p-1f;
+    total += 0x1.0000000000000p-2f;
+    h = plot_hash(h + 0x9e3779b9u);
+    float pick = static_cast<float>(h >> 8) / 16777216.0f * total;
+    if (pick < 0x1.3333340000000p-3f) p.age = FOUNDRY_TREE_AGE_ANCIENT;
+    else if ((pick -= 0x1.3333340000000p-3f), false) {}
+    else if (pick < 0x1.3333340000000p-1f) p.age = FOUNDRY_TREE_AGE_MATURE;
+    else if ((pick -= 0x1.3333340000000p-1f), false) {}
+    else if (true) p.age = FOUNDRY_TREE_AGE_YOUNG;
+  }
+  if (regrown) {
+    p.age = FOUNDRY_TREE_AGE_SAPLING;
+  }
+  p.seed = 1u + (seed % 4u);
+  return foundry_tree_spawn(rt, &p, t);
+}
+
+foundry_instance spawn_moor_2(foundry_runtime *rt, uint32_t seed, bool regrown, const float t[16]) {
+  foundry_bush_params p;
+  foundry_bush_default_params(&p);
+  p.species = FOUNDRY_BUSH_SPECIES_JUNIPER;
+  uint32_t h = plot_hash(seed ^ 0x51ed270bu);
+  (void)h;
+  {
+    float total = 0.0f;
+    total += 0x1.3333340000000p-1f;
+    total += 0x1.99999a0000000p-3f;
+    total += 0x1.99999a0000000p-3f;
+    h = plot_hash(h + 0x9e3779b9u);
+    float pick = static_cast<float>(h >> 8) / 16777216.0f * total;
+    if (pick < 0x1.3333340000000p-1f) p.age = FOUNDRY_BUSH_AGE_MATURE;
+    else if ((pick -= 0x1.3333340000000p-1f), false) {}
+    else if (pick < 0x1.99999a0000000p-3f) p.age = FOUNDRY_BUSH_AGE_OLD;
+    else if ((pick -= 0x1.99999a0000000p-3f), false) {}
+    else if (true) p.age = FOUNDRY_BUSH_AGE_YOUNG;
+  }
+  (void)regrown;
+  p.seed = 1u + (seed % 4u);
+  return foundry_bush_spawn(rt, &p, t);
+}
+
+foundry_instance spawn_moor_3(foundry_runtime *rt, uint32_t seed, bool regrown, const float t[16]) {
+  foundry_bush_params p;
+  foundry_bush_default_params(&p);
+  p.species = FOUNDRY_BUSH_SPECIES_SAGEBRUSH;
+  uint32_t h = plot_hash(seed ^ 0x51ed270bu);
+  (void)h;
+  {
+    float total = 0.0f;
+    total += 0x1.3333340000000p-1f;
+    total += 0x1.99999a0000000p-3f;
+    total += 0x1.99999a0000000p-3f;
+    h = plot_hash(h + 0x9e3779b9u);
+    float pick = static_cast<float>(h >> 8) / 16777216.0f * total;
+    if (pick < 0x1.3333340000000p-1f) p.age = FOUNDRY_BUSH_AGE_MATURE;
+    else if ((pick -= 0x1.3333340000000p-1f), false) {}
+    else if (pick < 0x1.99999a0000000p-3f) p.age = FOUNDRY_BUSH_AGE_OLD;
+    else if ((pick -= 0x1.99999a0000000p-3f), false) {}
+    else if (true) p.age = FOUNDRY_BUSH_AGE_YOUNG;
+  }
+  (void)regrown;
+  p.seed = 1u + (seed % 4u);
+  return foundry_bush_spawn(rt, &p, t);
+}
+
+foundry_instance spawn_moor_4(foundry_runtime *rt, uint32_t seed, bool regrown, const float t[16]) {
+  foundry_flower_params p;
+  foundry_flower_default_params(&p);
+  p.species = FOUNDRY_FLOWER_SPECIES_LAVENDER;
+  uint32_t h = plot_hash(seed ^ 0x51ed270bu);
+  (void)h;
+  (void)regrown;
+  p.seed = 1u + (seed % 4u);
+  return foundry_flower_spawn(rt, &p, t);
+}
+
+foundry_instance spawn_moor_5(foundry_runtime *rt, uint32_t seed, bool regrown, const float t[16]) {
+  foundry_flower_params p;
+  foundry_flower_default_params(&p);
+  p.species = FOUNDRY_FLOWER_SPECIES_LUPINE;
+  uint32_t h = plot_hash(seed ^ 0x51ed270bu);
+  (void)h;
+  (void)regrown;
+  p.seed = 1u + (seed % 4u);
+  return foundry_flower_spawn(rt, &p, t);
+}
+
+foundry_instance spawn_moor_6(foundry_runtime *rt, uint32_t seed, bool regrown, const float t[16]) {
+  foundry_rock_params p;
+  foundry_rock_default_params(&p);
+  p.material = FOUNDRY_ROCK_MATERIAL_GRANITE;
+  p.moss = FOUNDRY_ROCK_MOSS_LIGHT;
+  uint32_t h = plot_hash(seed ^ 0x51ed270bu);
+  (void)h;
+  (void)regrown;
+  p.seed = 1u + (seed % 4u);
+  return foundry_rock_spawn(rt, &p, t);
+}
+
+foundry_instance field_moor_0(foundry_runtime *rt, uint32_t world_seed, const float t[16],
+                                    const foundry_field_cell *cells, uint32_t count) {
+  foundry_grass_params p;
+  foundry_grass_default_params(&p);
+  p.species = FOUNDRY_GRASS_SPECIES_PRAIRIE;
+  p.world_seed = world_seed;
+  return foundry_grass_spawn_field(rt, &p, t, cells, count);
+}
+
+const plotters::Field fields_moor[] = {
+    {"grass prairie", field_moor_0},
+};
+
+const plotters::Kind kinds_moor[] = {
+    {"tree birch", spawn_moor_0},
+    {"tree cherry", spawn_moor_1},
+    {"bush juniper", spawn_moor_2},
+    {"bush sagebrush", spawn_moor_3},
+    {"flower lavender", spawn_moor_4},
+    {"flower lupine", spawn_moor_5},
+    {"rock granite light", spawn_moor_6},
+};
+
+}  // namespace
+
+// oakwood: compiled from plotters/oakwood.json.
+namespace plot_scatter {
+bool run(const channels::plot_request &in, channels::plot_result &out, std::string &error);
+}
+
+namespace {
+
+const channels::plot_config &config_oakwood() {
+  static const channels::plot_config c = [] {
+    channels::plot_config g;
+    g.grove_scale_cells = 0x1.2000000000000p+3f;
+    g.grove_octaves = 2u;
+    g.layers.resize(4);
+    g.layers[0].name = std::string("canopy");
+    g.layers[0].spacing_m = 0x1.8000000000000p+2f;
+    g.layers[0].density = 0x1.19999a0000000p+1f;
+    g.layers[0].grove_low = 0x1.3333340000000p-1f;
+    g.layers[0].grove_high = 0x1.6666660000000p+0f;
+    g.layers[0].edge_low = 0x1.0000000000000p+0f;
+    g.layers[0].edge_cells = 0u;
+    g.layers[0].ground = 1u;
+    g.layers[0].max_height_delta_m = 0x1.3333340000000p-1f;
+    g.layers[0].keep_clear.resize(0);
+    g.layers[0].prefer_near.resize(0);
+    g.layers[0].regrows = true;
+    g.layers[0].kinds.resize(4);
+    g.layers[0].kinds[0].id = 0u;
+    g.layers[0].kinds[0].weight = 0x1.0000000000000p-1f;
+    g.layers[0].kinds[0].footprint_m = 0x1.b4fdf40000000p+0f;
+    g.layers[0].kinds[0].footprint_cells = 7u;
+    g.layers[0].kinds[0].max_share = 0x1.0000000000000p+0f;
+    g.layers[0].kinds[0].ground = 0u;
+    g.layers[0].kinds[1].id = 1u;
+    g.layers[0].kinds[1].weight = 0x1.0000000000000p-2f;
+    g.layers[0].kinds[1].footprint_m = 0x1.cc49ba0000000p-1f;
+    g.layers[0].kinds[1].footprint_cells = 7u;
+    g.layers[0].kinds[1].max_share = 0x1.0000000000000p+0f;
+    g.layers[0].kinds[1].ground = 0u;
+    g.layers[0].kinds[2].id = 2u;
+    g.layers[0].kinds[2].weight = 0x1.3333340000000p-3f;
+    g.layers[0].kinds[2].footprint_m = 0x1.b4fdf40000000p+0f;
+    g.layers[0].kinds[2].footprint_cells = 7u;
+    g.layers[0].kinds[2].max_share = 0x1.0000000000000p+0f;
+    g.layers[0].kinds[2].ground = 0u;
+    g.layers[0].kinds[3].id = 3u;
+    g.layers[0].kinds[3].weight = 0x1.99999a0000000p-4f;
+    g.layers[0].kinds[3].footprint_m = 0x1.3ced920000000p-1f;
+    g.layers[0].kinds[3].footprint_cells = 1u;
+    g.layers[0].kinds[3].max_share = 0x1.0000000000000p+0f;
+    g.layers[0].kinds[3].ground = 0u;
+    g.layers[0].regrow_kinds.resize(0);
+    g.layers[1].name = std::string("understory");
+    g.layers[1].spacing_m = 0x1.4ccccc0000000p+1f;
+    g.layers[1].density = 0x1.0000000000000p+2f;
+    g.layers[1].grove_low = 0x1.0000000000000p+0f;
+    g.layers[1].grove_high = 0x1.0000000000000p+0f;
+    g.layers[1].edge_low = 0x1.0000000000000p+0f;
+    g.layers[1].edge_cells = 0u;
+    g.layers[1].ground = 1u;
+    g.layers[1].max_height_delta_m = 0x1.3333340000000p-1f;
+    g.layers[1].keep_clear.resize(1);
+    g.layers[1].keep_clear[0].layer = 0u;
+    g.layers[1].keep_clear[0].metres = 0x1.19999a0000000p+1f;
+    g.layers[1].prefer_near.resize(1);
+    g.layers[1].prefer_near[0].layer = 0u;
+    g.layers[1].prefer_near[0].within_m = 0x1.8000000000000p+2f;
+    g.layers[1].prefer_near[0].boost = 0x1.0000000000000p+1f;
+    g.layers[1].regrows = true;
+    g.layers[1].kinds.resize(3);
+    g.layers[1].kinds[0].id = 4u;
+    g.layers[1].kinds[0].weight = 0x1.0000000000000p-1f;
+    g.layers[1].kinds[0].footprint_m = 0x1.7ef9dc0000000p+0f;
+    g.layers[1].kinds[0].footprint_cells = 7u;
+    g.layers[1].kinds[0].max_share = 0x1.0000000000000p+0f;
+    g.layers[1].kinds[0].ground = 0u;
+    g.layers[1].kinds[1].id = 5u;
+    g.layers[1].kinds[1].weight = 0x1.3333340000000p-2f;
+    g.layers[1].kinds[1].footprint_m = 0x1.1374bc0000000p+0f;
+    g.layers[1].kinds[1].footprint_cells = 7u;
+    g.layers[1].kinds[1].max_share = 0x1.0000000000000p+0f;
+    g.layers[1].kinds[1].ground = 0u;
+    g.layers[1].kinds[2].id = 6u;
+    g.layers[1].kinds[2].weight = 0x1.99999a0000000p-3f;
+    g.layers[1].kinds[2].footprint_m = 0x1.e28f5c0000000p+0f;
+    g.layers[1].kinds[2].footprint_cells = 7u;
+    g.layers[1].kinds[2].max_share = 0x1.0000000000000p+0f;
+    g.layers[1].kinds[2].ground = 0u;
+    g.layers[1].regrow_kinds.resize(0);
+    g.layers[2].name = std::string("shade_flowers");
+    g.layers[2].spacing_m = 0x1.8000000000000p+0f;
+    g.layers[2].density = 0x1.8000000000000p+2f;
+    g.layers[2].grove_low = 0x1.0000000000000p+0f;
+    g.layers[2].grove_high = 0x1.0000000000000p+0f;
+    g.layers[2].edge_low = 0x1.0000000000000p+0f;
+    g.layers[2].edge_cells = 0u;
+    g.layers[2].ground = 1u;
+    g.layers[2].max_height_delta_m = 0x1.3333340000000p-1f;
+    g.layers[2].keep_clear.resize(2);
+    g.layers[2].keep_clear[0].layer = 0u;
+    g.layers[2].keep_clear[0].metres = 0x1.3333340000000p+0f;
+    g.layers[2].keep_clear[1].layer = 1u;
+    g.layers[2].keep_clear[1].metres = 0x1.cccccc0000000p-1f;
+    g.layers[2].prefer_near.resize(1);
+    g.layers[2].prefer_near[0].layer = 0u;
+    g.layers[2].prefer_near[0].within_m = 0x1.4000000000000p+2f;
+    g.layers[2].prefer_near[0].boost = 0x1.8000000000000p+1f;
+    g.layers[2].regrows = true;
+    g.layers[2].kinds.resize(2);
+    g.layers[2].kinds[0].id = 7u;
+    g.layers[2].kinds[0].weight = 0x1.6666660000000p-1f;
+    g.layers[2].kinds[0].footprint_m = 0.0f;
+    g.layers[2].kinds[0].footprint_cells = 0u;
+    g.layers[2].kinds[0].max_share = 0x1.0000000000000p+0f;
+    g.layers[2].kinds[0].ground = 0u;
+    g.layers[2].kinds[1].id = 8u;
+    g.layers[2].kinds[1].weight = 0x1.3333340000000p-2f;
+    g.layers[2].kinds[1].footprint_m = 0.0f;
+    g.layers[2].kinds[1].footprint_cells = 0u;
+    g.layers[2].kinds[1].max_share = 0x1.0000000000000p+0f;
+    g.layers[2].kinds[1].ground = 0u;
+    g.layers[2].regrow_kinds.resize(0);
+    g.layers[3].name = std::string("stones");
+    g.layers[3].spacing_m = 0x1.4000000000000p+2f;
+    g.layers[3].density = 0x1.3333340000000p-1f;
+    g.layers[3].grove_low = 0x1.0000000000000p+0f;
+    g.layers[3].grove_high = 0x1.0000000000000p+0f;
+    g.layers[3].edge_low = 0x1.0000000000000p+0f;
+    g.layers[3].edge_cells = 0u;
+    g.layers[3].ground = 17u;
+    g.layers[3].max_height_delta_m = 0x1.3333340000000p-1f;
+    g.layers[3].keep_clear.resize(1);
+    g.layers[3].keep_clear[0].layer = 0u;
+    g.layers[3].keep_clear[0].metres = 0x1.0000000000000p+1f;
+    g.layers[3].prefer_near.resize(0);
+    g.layers[3].regrows = false;
+    g.layers[3].kinds.resize(1);
+    g.layers[3].kinds[0].id = 9u;
+    g.layers[3].kinds[0].weight = 0x1.0000000000000p+0f;
+    g.layers[3].kinds[0].footprint_m = 0x1.6353f80000000p-1f;
+    g.layers[3].kinds[0].footprint_cells = 1u;
+    g.layers[3].kinds[0].max_share = 0x1.0000000000000p+0f;
+    g.layers[3].kinds[0].ground = 0u;
+    g.layers[3].regrow_kinds.resize(0);
+    return g;
+  }();
+  return c;
+}
+
+foundry_instance spawn_oakwood_0(foundry_runtime *rt, uint32_t seed, bool regrown, const float t[16]) {
+  foundry_tree_params p;
+  foundry_tree_default_params(&p);
+  p.species = FOUNDRY_TREE_SPECIES_OAK;
+  uint32_t h = plot_hash(seed ^ 0x51ed270bu);
+  (void)h;
+  {
+    float total = 0.0f;
+    total += 0x1.3333340000000p-3f;
+    total += 0x1.3333340000000p-1f;
+    total += 0x1.0000000000000p-2f;
+    h = plot_hash(h + 0x9e3779b9u);
+    float pick = static_cast<float>(h >> 8) / 16777216.0f * total;
+    if (pick < 0x1.3333340000000p-3f) p.age = FOUNDRY_TREE_AGE_ANCIENT;
+    else if ((pick -= 0x1.3333340000000p-3f), false) {}
+    else if (pick < 0x1.3333340000000p-1f) p.age = FOUNDRY_TREE_AGE_MATURE;
+    else if ((pick -= 0x1.3333340000000p-1f), false) {}
+    else if (true) p.age = FOUNDRY_TREE_AGE_YOUNG;
+  }
+  if (regrown) {
+    p.age = FOUNDRY_TREE_AGE_SAPLING;
+  }
+  p.seed = 1u + (seed % 4u);
+  return foundry_tree_spawn(rt, &p, t);
+}
+
+foundry_instance spawn_oakwood_1(foundry_runtime *rt, uint32_t seed, bool regrown, const float t[16]) {
+  foundry_tree_params p;
+  foundry_tree_default_params(&p);
+  p.species = FOUNDRY_TREE_SPECIES_MAPLE;
+  uint32_t h = plot_hash(seed ^ 0x51ed270bu);
+  (void)h;
+  {
+    float total = 0.0f;
+    total += 0x1.3333340000000p-3f;
+    total += 0x1.3333340000000p-1f;
+    total += 0x1.0000000000000p-2f;
+    h = plot_hash(h + 0x9e3779b9u);
+    float pick = static_cast<float>(h >> 8) / 16777216.0f * total;
+    if (pick < 0x1.3333340000000p-3f) p.age = FOUNDRY_TREE_AGE_ANCIENT;
+    else if ((pick -= 0x1.3333340000000p-3f), false) {}
+    else if (pick < 0x1.3333340000000p-1f) p.age = FOUNDRY_TREE_AGE_MATURE;
+    else if ((pick -= 0x1.3333340000000p-1f), false) {}
+    else if (true) p.age = FOUNDRY_TREE_AGE_YOUNG;
+  }
+  if (regrown) {
+    p.age = FOUNDRY_TREE_AGE_SAPLING;
+  }
+  p.seed = 1u + (seed % 4u);
+  return foundry_tree_spawn(rt, &p, t);
+}
+
+foundry_instance spawn_oakwood_2(foundry_runtime *rt, uint32_t seed, bool regrown, const float t[16]) {
+  foundry_tree_params p;
+  foundry_tree_default_params(&p);
+  p.species = FOUNDRY_TREE_SPECIES_ELM;
+  uint32_t h = plot_hash(seed ^ 0x51ed270bu);
+  (void)h;
+  {
+    float total = 0.0f;
+    total += 0x1.3333340000000p-3f;
+    total += 0x1.3333340000000p-1f;
+    total += 0x1.0000000000000p-2f;
+    h = plot_hash(h + 0x9e3779b9u);
+    float pick = static_cast<float>(h >> 8) / 16777216.0f * total;
+    if (pick < 0x1.3333340000000p-3f) p.age = FOUNDRY_TREE_AGE_ANCIENT;
+    else if ((pick -= 0x1.3333340000000p-3f), false) {}
+    else if (pick < 0x1.3333340000000p-1f) p.age = FOUNDRY_TREE_AGE_MATURE;
+    else if ((pick -= 0x1.3333340000000p-1f), false) {}
+    else if (true) p.age = FOUNDRY_TREE_AGE_YOUNG;
+  }
+  if (regrown) {
+    p.age = FOUNDRY_TREE_AGE_SAPLING;
+  }
+  p.seed = 1u + (seed % 4u);
+  return foundry_tree_spawn(rt, &p, t);
+}
+
+foundry_instance spawn_oakwood_3(foundry_runtime *rt, uint32_t seed, bool regrown, const float t[16]) {
+  foundry_tree_params p;
+  foundry_tree_default_params(&p);
+  p.species = FOUNDRY_TREE_SPECIES_HICKORY;
+  uint32_t h = plot_hash(seed ^ 0x51ed270bu);
+  (void)h;
+  {
+    float total = 0.0f;
+    total += 0x1.3333340000000p-3f;
+    total += 0x1.3333340000000p-1f;
+    total += 0x1.0000000000000p-2f;
+    h = plot_hash(h + 0x9e3779b9u);
+    float pick = static_cast<float>(h >> 8) / 16777216.0f * total;
+    if (pick < 0x1.3333340000000p-3f) p.age = FOUNDRY_TREE_AGE_ANCIENT;
+    else if ((pick -= 0x1.3333340000000p-3f), false) {}
+    else if (pick < 0x1.3333340000000p-1f) p.age = FOUNDRY_TREE_AGE_MATURE;
+    else if ((pick -= 0x1.3333340000000p-1f), false) {}
+    else if (true) p.age = FOUNDRY_TREE_AGE_YOUNG;
+  }
+  if (regrown) {
+    p.age = FOUNDRY_TREE_AGE_SAPLING;
+  }
+  p.seed = 1u + (seed % 4u);
+  return foundry_tree_spawn(rt, &p, t);
+}
+
+foundry_instance spawn_oakwood_4(foundry_runtime *rt, uint32_t seed, bool regrown, const float t[16]) {
+  foundry_bush_params p;
+  foundry_bush_default_params(&p);
+  p.species = FOUNDRY_BUSH_SPECIES_HAZEL;
+  uint32_t h = plot_hash(seed ^ 0x51ed270bu);
+  (void)h;
+  {
+    float total = 0.0f;
+    total += 0x1.3333340000000p-1f;
+    total += 0x1.99999a0000000p-3f;
+    total += 0x1.99999a0000000p-3f;
+    h = plot_hash(h + 0x9e3779b9u);
+    float pick = static_cast<float>(h >> 8) / 16777216.0f * total;
+    if (pick < 0x1.3333340000000p-1f) p.age = FOUNDRY_BUSH_AGE_MATURE;
+    else if ((pick -= 0x1.3333340000000p-1f), false) {}
+    else if (pick < 0x1.99999a0000000p-3f) p.age = FOUNDRY_BUSH_AGE_OLD;
+    else if ((pick -= 0x1.99999a0000000p-3f), false) {}
+    else if (true) p.age = FOUNDRY_BUSH_AGE_YOUNG;
+  }
+  (void)regrown;
+  p.seed = 1u + (seed % 4u);
+  return foundry_bush_spawn(rt, &p, t);
+}
+
+foundry_instance spawn_oakwood_5(foundry_runtime *rt, uint32_t seed, bool regrown, const float t[16]) {
+  foundry_bush_params p;
+  foundry_bush_default_params(&p);
+  p.species = FOUNDRY_BUSH_SPECIES_HOLLY;
+  uint32_t h = plot_hash(seed ^ 0x51ed270bu);
+  (void)h;
+  {
+    float total = 0.0f;
+    total += 0x1.3333340000000p-1f;
+    total += 0x1.99999a0000000p-3f;
+    total += 0x1.99999a0000000p-3f;
+    h = plot_hash(h + 0x9e3779b9u);
+    float pick = static_cast<float>(h >> 8) / 16777216.0f * total;
+    if (pick < 0x1.3333340000000p-1f) p.age = FOUNDRY_BUSH_AGE_MATURE;
+    else if ((pick -= 0x1.3333340000000p-1f), false) {}
+    else if (pick < 0x1.99999a0000000p-3f) p.age = FOUNDRY_BUSH_AGE_OLD;
+    else if ((pick -= 0x1.99999a0000000p-3f), false) {}
+    else if (true) p.age = FOUNDRY_BUSH_AGE_YOUNG;
+  }
+  (void)regrown;
+  p.seed = 1u + (seed % 4u);
+  return foundry_bush_spawn(rt, &p, t);
+}
+
+foundry_instance spawn_oakwood_6(foundry_runtime *rt, uint32_t seed, bool regrown, const float t[16]) {
+  foundry_bush_params p;
+  foundry_bush_default_params(&p);
+  p.species = FOUNDRY_BUSH_SPECIES_ELDERBERRY;
+  uint32_t h = plot_hash(seed ^ 0x51ed270bu);
+  (void)h;
+  {
+    float total = 0.0f;
+    total += 0x1.3333340000000p-1f;
+    total += 0x1.99999a0000000p-3f;
+    total += 0x1.99999a0000000p-3f;
+    h = plot_hash(h + 0x9e3779b9u);
+    float pick = static_cast<float>(h >> 8) / 16777216.0f * total;
+    if (pick < 0x1.3333340000000p-1f) p.age = FOUNDRY_BUSH_AGE_MATURE;
+    else if ((pick -= 0x1.3333340000000p-1f), false) {}
+    else if (pick < 0x1.99999a0000000p-3f) p.age = FOUNDRY_BUSH_AGE_OLD;
+    else if ((pick -= 0x1.99999a0000000p-3f), false) {}
+    else if (true) p.age = FOUNDRY_BUSH_AGE_YOUNG;
+  }
+  (void)regrown;
+  p.seed = 1u + (seed % 4u);
+  return foundry_bush_spawn(rt, &p, t);
+}
+
+foundry_instance spawn_oakwood_7(foundry_runtime *rt, uint32_t seed, bool regrown, const float t[16]) {
+  foundry_flower_params p;
+  foundry_flower_default_params(&p);
+  p.species = FOUNDRY_FLOWER_SPECIES_BLUEBELL;
+  uint32_t h = plot_hash(seed ^ 0x51ed270bu);
+  (void)h;
+  (void)regrown;
+  p.seed = 1u + (seed % 4u);
+  return foundry_flower_spawn(rt, &p, t);
+}
+
+foundry_instance spawn_oakwood_8(foundry_runtime *rt, uint32_t seed, bool regrown, const float t[16]) {
+  foundry_flower_params p;
+  foundry_flower_default_params(&p);
+  p.species = FOUNDRY_FLOWER_SPECIES_FOXGLOVE;
+  uint32_t h = plot_hash(seed ^ 0x51ed270bu);
+  (void)h;
+  (void)regrown;
+  p.seed = 1u + (seed % 4u);
+  return foundry_flower_spawn(rt, &p, t);
+}
+
+foundry_instance spawn_oakwood_9(foundry_runtime *rt, uint32_t seed, bool regrown, const float t[16]) {
+  foundry_rock_params p;
+  foundry_rock_default_params(&p);
+  p.material = FOUNDRY_ROCK_MATERIAL_LIMESTONE;
+  p.moss = FOUNDRY_ROCK_MOSS_HEAVY;
+  uint32_t h = plot_hash(seed ^ 0x51ed270bu);
+  (void)h;
+  (void)regrown;
+  p.seed = 1u + (seed % 4u);
+  return foundry_rock_spawn(rt, &p, t);
+}
+
+foundry_instance field_oakwood_0(foundry_runtime *rt, uint32_t world_seed, const float t[16],
+                                    const foundry_field_cell *cells, uint32_t count) {
+  foundry_grass_params p;
+  foundry_grass_default_params(&p);
+  p.species = FOUNDRY_GRASS_SPECIES_MEADOW;
+  p.world_seed = world_seed;
+  return foundry_grass_spawn_field(rt, &p, t, cells, count);
+}
+
+const plotters::Field fields_oakwood[] = {
+    {"grass meadow", field_oakwood_0},
+};
+
+const plotters::Kind kinds_oakwood[] = {
+    {"tree oak", spawn_oakwood_0},
+    {"tree maple", spawn_oakwood_1},
+    {"tree elm", spawn_oakwood_2},
+    {"tree hickory", spawn_oakwood_3},
+    {"bush hazel", spawn_oakwood_4},
+    {"bush holly", spawn_oakwood_5},
+    {"bush elderberry", spawn_oakwood_6},
+    {"flower bluebell", spawn_oakwood_7},
+    {"flower foxglove", spawn_oakwood_8},
+    {"rock limestone heavy", spawn_oakwood_9},
+};
+
+}  // namespace
+
+// pine_woods: compiled from plotters/pine_woods.json.
+namespace plot_scatter {
+bool run(const channels::plot_request &in, channels::plot_result &out, std::string &error);
+}
+
+namespace {
+
+const channels::plot_config &config_pine_woods() {
+  static const channels::plot_config c = [] {
+    channels::plot_config g;
+    g.grove_scale_cells = 0x1.2000000000000p+3f;
+    g.grove_octaves = 2u;
+    g.layers.resize(4);
+    g.layers[0].name = std::string("canopy");
+    g.layers[0].spacing_m = 0x1.6000000000000p+2f;
+    g.layers[0].density = 0x1.0000000000000p+1f;
+    g.layers[0].grove_low = 0x1.99999a0000000p-2f;
+    g.layers[0].grove_high = 0x1.99999a0000000p+0f;
+    g.layers[0].edge_low = 0x1.0000000000000p+0f;
+    g.layers[0].edge_cells = 0u;
+    g.layers[0].ground = 1u;
+    g.layers[0].max_height_delta_m = 0x1.3333340000000p+0f;
+    g.layers[0].keep_clear.resize(0);
+    g.layers[0].prefer_near.resize(0);
+    g.layers[0].regrows = true;
+    g.layers[0].kinds.resize(3);
+    g.layers[0].kinds[0].id = 0u;
+    g.layers[0].kinds[0].weight = 0x1.0000000000000p-1f;
+    g.layers[0].kinds[0].footprint_m = 0x1.26e9780000000p-1f;
+    g.layers[0].kinds[0].footprint_cells = 1u;
+    g.layers[0].kinds[0].max_share = 0x1.0000000000000p+0f;
+    g.layers[0].kinds[0].ground = 0u;
+    g.layers[0].kinds[1].id = 1u;
+    g.layers[0].kinds[1].weight = 0x1.6666660000000p-2f;
+    g.layers[0].kinds[1].footprint_m = 0x1.570a3e0000000p-1f;
+    g.layers[0].kinds[1].footprint_cells = 1u;
+    g.layers[0].kinds[1].max_share = 0x1.0000000000000p+0f;
+    g.layers[0].kinds[1].ground = 0u;
+    g.layers[0].kinds[2].id = 2u;
+    g.layers[0].kinds[2].weight = 0x1.3333340000000p-3f;
+    g.layers[0].kinds[2].footprint_m = 0x1.570a3e0000000p-1f;
+    g.layers[0].kinds[2].footprint_cells = 1u;
+    g.layers[0].kinds[2].max_share = 0x1.0000000000000p+0f;
+    g.layers[0].kinds[2].ground = 0u;
+    g.layers[0].regrow_kinds.resize(0);
+    g.layers[1].name = std::string("understory");
+    g.layers[1].spacing_m = 0x1.99999a0000000p+1f;
+    g.layers[1].density = 0x1.0000000000000p+1f;
+    g.layers[1].grove_low = 0x1.0000000000000p+0f;
+    g.layers[1].grove_high = 0x1.0000000000000p+0f;
+    g.layers[1].edge_low = 0x1.0000000000000p+0f;
+    g.layers[1].edge_cells = 0u;
+    g.layers[1].ground = 1u;
+    g.layers[1].max_height_delta_m = 0x1.3333340000000p+0f;
+    g.layers[1].keep_clear.resize(1);
+    g.layers[1].keep_clear[0].layer = 0u;
+    g.layers[1].keep_clear[0].metres = 0x1.0000000000000p+1f;
+    g.layers[1].prefer_near.resize(0);
+    g.layers[1].regrows = true;
+    g.layers[1].kinds.resize(2);
+    g.layers[1].kinds[0].id = 3u;
+    g.layers[1].kinds[0].weight = 0x1.6666660000000p-1f;
+    g.layers[1].kinds[0].footprint_m = 0x1.2e978e0000000p-1f;
+    g.layers[1].kinds[0].footprint_cells = 1u;
+    g.layers[1].kinds[0].max_share = 0x1.0000000000000p+0f;
+    g.layers[1].kinds[0].ground = 0u;
+    g.layers[1].kinds[1].id = 4u;
+    g.layers[1].kinds[1].weight = 0x1.3333340000000p-2f;
+    g.layers[1].kinds[1].footprint_m = 0x1.69fbe80000000p-1f;
+    g.layers[1].kinds[1].footprint_cells = 1u;
+    g.layers[1].kinds[1].max_share = 0x1.0000000000000p+0f;
+    g.layers[1].kinds[1].ground = 0u;
+    g.layers[1].regrow_kinds.resize(0);
+    g.layers[2].name = std::string("flowers");
+    g.layers[2].spacing_m = 0x1.0000000000000p+1f;
+    g.layers[2].density = 0x1.8000000000000p+1f;
+    g.layers[2].grove_low = 0x1.0000000000000p+0f;
+    g.layers[2].grove_high = 0x1.0000000000000p+0f;
+    g.layers[2].edge_low = 0x1.0000000000000p+0f;
+    g.layers[2].edge_cells = 0u;
+    g.layers[2].ground = 1u;
+    g.layers[2].max_height_delta_m = 0x1.3333340000000p+0f;
+    g.layers[2].keep_clear.resize(2);
+    g.layers[2].keep_clear[0].layer = 0u;
+    g.layers[2].keep_clear[0].metres = 0x1.8000000000000p+0f;
+    g.layers[2].keep_clear[1].layer = 1u;
+    g.layers[2].keep_clear[1].metres = 0x1.cccccc0000000p-1f;
+    g.layers[2].prefer_near.resize(0);
+    g.layers[2].regrows = true;
+    g.layers[2].kinds.resize(2);
+    g.layers[2].kinds[0].id = 5u;
+    g.layers[2].kinds[0].weight = 0x1.0000000000000p-1f;
+    g.layers[2].kinds[0].footprint_m = 0.0f;
+    g.layers[2].kinds[0].footprint_cells = 0u;
+    g.layers[2].kinds[0].max_share = 0x1.0000000000000p+0f;
+    g.layers[2].kinds[0].ground = 0u;
+    g.layers[2].kinds[1].id = 6u;
+    g.layers[2].kinds[1].weight = 0x1.0000000000000p-1f;
+    g.layers[2].kinds[1].footprint_m = 0.0f;
+    g.layers[2].kinds[1].footprint_cells = 0u;
+    g.layers[2].kinds[1].max_share = 0x1.0000000000000p+0f;
+    g.layers[2].kinds[1].ground = 0u;
+    g.layers[2].regrow_kinds.resize(0);
+    g.layers[3].name = std::string("boulders");
+    g.layers[3].spacing_m = 0x1.0000000000000p+2f;
+    g.layers[3].density = 0x1.6666660000000p+0f;
+    g.layers[3].grove_low = 0x1.0000000000000p+0f;
+    g.layers[3].grove_high = 0x1.0000000000000p+0f;
+    g.layers[3].edge_low = 0x1.0000000000000p+0f;
+    g.layers[3].edge_cells = 0u;
+    g.layers[3].ground = 21u;
+    g.layers[3].max_height_delta_m = 0x1.0000000000000p+1f;
+    g.layers[3].keep_clear.resize(1);
+    g.layers[3].keep_clear[0].layer = 0u;
+    g.layers[3].keep_clear[0].metres = 0x1.0000000000000p+1f;
+    g.layers[3].prefer_near.resize(0);
+    g.layers[3].regrows = false;
+    g.layers[3].kinds.resize(1);
+    g.layers[3].kinds[0].id = 7u;
+    g.layers[3].kinds[0].weight = 0x1.0000000000000p+0f;
+    g.layers[3].kinds[0].footprint_m = 0x1.a0418a0000000p-1f;
+    g.layers[3].kinds[0].footprint_cells = 7u;
+    g.layers[3].kinds[0].max_share = 0x1.0000000000000p+0f;
+    g.layers[3].kinds[0].ground = 0u;
+    g.layers[3].regrow_kinds.resize(0);
+    return g;
+  }();
+  return c;
+}
+
+foundry_instance spawn_pine_woods_0(foundry_runtime *rt, uint32_t seed, bool regrown, const float t[16]) {
+  foundry_tree_params p;
+  foundry_tree_default_params(&p);
+  p.species = FOUNDRY_TREE_SPECIES_PINE;
+  uint32_t h = plot_hash(seed ^ 0x51ed270bu);
+  (void)h;
+  {
+    float total = 0.0f;
+    total += 0x1.3333340000000p-3f;
+    total += 0x1.3333340000000p-1f;
+    total += 0x1.0000000000000p-2f;
+    h = plot_hash(h + 0x9e3779b9u);
+    float pick = static_cast<float>(h >> 8) / 16777216.0f * total;
+    if (pick < 0x1.3333340000000p-3f) p.age = FOUNDRY_TREE_AGE_ANCIENT;
+    else if ((pick -= 0x1.3333340000000p-3f), false) {}
+    else if (pick < 0x1.3333340000000p-1f) p.age = FOUNDRY_TREE_AGE_MATURE;
+    else if ((pick -= 0x1.3333340000000p-1f), false) {}
+    else if (true) p.age = FOUNDRY_TREE_AGE_YOUNG;
+  }
+  if (regrown) {
+    p.age = FOUNDRY_TREE_AGE_SAPLING;
+  }
+  p.seed = 1u + (seed % 4u);
+  return foundry_tree_spawn(rt, &p, t);
+}
+
+foundry_instance spawn_pine_woods_1(foundry_runtime *rt, uint32_t seed, bool regrown, const float t[16]) {
+  foundry_tree_params p;
+  foundry_tree_default_params(&p);
+  p.species = FOUNDRY_TREE_SPECIES_SPRUCE;
+  uint32_t h = plot_hash(seed ^ 0x51ed270bu);
+  (void)h;
+  {
+    float total = 0.0f;
+    total += 0x1.3333340000000p-3f;
+    total += 0x1.3333340000000p-1f;
+    total += 0x1.0000000000000p-2f;
+    h = plot_hash(h + 0x9e3779b9u);
+    float pick = static_cast<float>(h >> 8) / 16777216.0f * total;
+    if (pick < 0x1.3333340000000p-3f) p.age = FOUNDRY_TREE_AGE_ANCIENT;
+    else if ((pick -= 0x1.3333340000000p-3f), false) {}
+    else if (pick < 0x1.3333340000000p-1f) p.age = FOUNDRY_TREE_AGE_MATURE;
+    else if ((pick -= 0x1.3333340000000p-1f), false) {}
+    else if (true) p.age = FOUNDRY_TREE_AGE_YOUNG;
+  }
+  if (regrown) {
+    p.age = FOUNDRY_TREE_AGE_SAPLING;
+  }
+  p.seed = 1u + (seed % 4u);
+  return foundry_tree_spawn(rt, &p, t);
+}
+
+foundry_instance spawn_pine_woods_2(foundry_runtime *rt, uint32_t seed, bool regrown, const float t[16]) {
+  foundry_tree_params p;
+  foundry_tree_default_params(&p);
+  p.species = FOUNDRY_TREE_SPECIES_LARCH;
+  uint32_t h = plot_hash(seed ^ 0x51ed270bu);
+  (void)h;
+  {
+    float total = 0.0f;
+    total += 0x1.3333340000000p-3f;
+    total += 0x1.3333340000000p-1f;
+    total += 0x1.0000000000000p-2f;
+    h = plot_hash(h + 0x9e3779b9u);
+    float pick = static_cast<float>(h >> 8) / 16777216.0f * total;
+    if (pick < 0x1.3333340000000p-3f) p.age = FOUNDRY_TREE_AGE_ANCIENT;
+    else if ((pick -= 0x1.3333340000000p-3f), false) {}
+    else if (pick < 0x1.3333340000000p-1f) p.age = FOUNDRY_TREE_AGE_MATURE;
+    else if ((pick -= 0x1.3333340000000p-1f), false) {}
+    else if (true) p.age = FOUNDRY_TREE_AGE_YOUNG;
+  }
+  if (regrown) {
+    p.age = FOUNDRY_TREE_AGE_SAPLING;
+  }
+  p.seed = 1u + (seed % 4u);
+  return foundry_tree_spawn(rt, &p, t);
+}
+
+foundry_instance spawn_pine_woods_3(foundry_runtime *rt, uint32_t seed, bool regrown, const float t[16]) {
+  foundry_bush_params p;
+  foundry_bush_default_params(&p);
+  p.species = FOUNDRY_BUSH_SPECIES_JUNIPER;
+  uint32_t h = plot_hash(seed ^ 0x51ed270bu);
+  (void)h;
+  {
+    float total = 0.0f;
+    total += 0x1.3333340000000p-1f;
+    total += 0x1.99999a0000000p-3f;
+    total += 0x1.99999a0000000p-3f;
+    h = plot_hash(h + 0x9e3779b9u);
+    float pick = static_cast<float>(h >> 8) / 16777216.0f * total;
+    if (pick < 0x1.3333340000000p-1f) p.age = FOUNDRY_BUSH_AGE_MATURE;
+    else if ((pick -= 0x1.3333340000000p-1f), false) {}
+    else if (pick < 0x1.99999a0000000p-3f) p.age = FOUNDRY_BUSH_AGE_OLD;
+    else if ((pick -= 0x1.99999a0000000p-3f), false) {}
+    else if (true) p.age = FOUNDRY_BUSH_AGE_YOUNG;
+  }
+  (void)regrown;
+  p.seed = 1u + (seed % 4u);
+  return foundry_bush_spawn(rt, &p, t);
+}
+
+foundry_instance spawn_pine_woods_4(foundry_runtime *rt, uint32_t seed, bool regrown, const float t[16]) {
+  foundry_bush_params p;
+  foundry_bush_default_params(&p);
+  p.species = FOUNDRY_BUSH_SPECIES_BLUEBERRY;
+  uint32_t h = plot_hash(seed ^ 0x51ed270bu);
+  (void)h;
+  {
+    float total = 0.0f;
+    total += 0x1.3333340000000p-1f;
+    total += 0x1.99999a0000000p-3f;
+    total += 0x1.99999a0000000p-3f;
+    h = plot_hash(h + 0x9e3779b9u);
+    float pick = static_cast<float>(h >> 8) / 16777216.0f * total;
+    if (pick < 0x1.3333340000000p-1f) p.age = FOUNDRY_BUSH_AGE_MATURE;
+    else if ((pick -= 0x1.3333340000000p-1f), false) {}
+    else if (pick < 0x1.99999a0000000p-3f) p.age = FOUNDRY_BUSH_AGE_OLD;
+    else if ((pick -= 0x1.99999a0000000p-3f), false) {}
+    else if (true) p.age = FOUNDRY_BUSH_AGE_YOUNG;
+  }
+  (void)regrown;
+  p.seed = 1u + (seed % 4u);
+  return foundry_bush_spawn(rt, &p, t);
+}
+
+foundry_instance spawn_pine_woods_5(foundry_runtime *rt, uint32_t seed, bool regrown, const float t[16]) {
+  foundry_flower_params p;
+  foundry_flower_default_params(&p);
+  p.species = FOUNDRY_FLOWER_SPECIES_EDELWEISS;
+  uint32_t h = plot_hash(seed ^ 0x51ed270bu);
+  (void)h;
+  (void)regrown;
+  p.seed = 1u + (seed % 4u);
+  return foundry_flower_spawn(rt, &p, t);
+}
+
+foundry_instance spawn_pine_woods_6(foundry_runtime *rt, uint32_t seed, bool regrown, const float t[16]) {
+  foundry_flower_params p;
+  foundry_flower_default_params(&p);
+  p.species = FOUNDRY_FLOWER_SPECIES_LUPINE;
+  uint32_t h = plot_hash(seed ^ 0x51ed270bu);
+  (void)h;
+  (void)regrown;
+  p.seed = 1u + (seed % 4u);
+  return foundry_flower_spawn(rt, &p, t);
+}
+
+foundry_instance spawn_pine_woods_7(foundry_runtime *rt, uint32_t seed, bool regrown, const float t[16]) {
+  foundry_rock_params p;
+  foundry_rock_default_params(&p);
+  p.material = FOUNDRY_ROCK_MATERIAL_GRANITE;
+  p.moss = FOUNDRY_ROCK_MOSS_LIGHT;
+  uint32_t h = plot_hash(seed ^ 0x51ed270bu);
+  (void)h;
+  (void)regrown;
+  p.seed = 1u + (seed % 4u);
+  return foundry_rock_spawn(rt, &p, t);
+}
+
+foundry_instance field_pine_woods_0(foundry_runtime *rt, uint32_t world_seed, const float t[16],
+                                    const foundry_field_cell *cells, uint32_t count) {
+  foundry_grass_params p;
+  foundry_grass_default_params(&p);
+  p.species = FOUNDRY_GRASS_SPECIES_PRAIRIE;
+  p.world_seed = world_seed;
+  return foundry_grass_spawn_field(rt, &p, t, cells, count);
+}
+
+const plotters::Field fields_pine_woods[] = {
+    {"grass prairie", field_pine_woods_0},
+};
+
+const plotters::Kind kinds_pine_woods[] = {
+    {"tree pine", spawn_pine_woods_0},
+    {"tree spruce", spawn_pine_woods_1},
+    {"tree larch", spawn_pine_woods_2},
+    {"bush juniper", spawn_pine_woods_3},
+    {"bush blueberry", spawn_pine_woods_4},
+    {"flower edelweiss", spawn_pine_woods_5},
+    {"flower lupine", spawn_pine_woods_6},
+    {"rock granite light", spawn_pine_woods_7},
+};
+
+}  // namespace
+
+// shore: compiled from plotters/shore.json.
+namespace plot_scatter {
+bool run(const channels::plot_request &in, channels::plot_result &out, std::string &error);
+}
+
+namespace {
+
+const channels::plot_config &config_shore() {
+  static const channels::plot_config c = [] {
+    channels::plot_config g;
+    g.grove_scale_cells = 0x1.2000000000000p+3f;
+    g.grove_octaves = 2u;
+    g.layers.resize(4);
+    g.layers[0].name = std::string("trees");
+    g.layers[0].spacing_m = 0x1.0000000000000p+4f;
+    g.layers[0].density = 0x1.0000000000000p-1f;
+    g.layers[0].grove_low = 0x1.99999a0000000p-3f;
+    g.layers[0].grove_high = 0x1.cccccc0000000p+0f;
+    g.layers[0].edge_low = 0x1.0000000000000p+0f;
+    g.layers[0].edge_cells = 0u;
+    g.layers[0].ground = 1u;
+    g.layers[0].max_height_delta_m = 0x1.0000000000000p+0f;
+    g.layers[0].keep_clear.resize(0);
+    g.layers[0].prefer_near.resize(0);
+    g.layers[0].regrows = true;
+    g.layers[0].kinds.resize(1);
+    g.layers[0].kinds[0].id = 0u;
+    g.layers[0].kinds[0].weight = 0x1.0000000000000p+0f;
+    g.layers[0].kinds[0].footprint_m = 0x1.26e9780000000p-1f;
+    g.layers[0].kinds[0].footprint_cells = 1u;
+    g.layers[0].kinds[0].max_share = 0x1.0000000000000p+0f;
+    g.layers[0].kinds[0].ground = 0u;
+    g.layers[0].regrow_kinds.resize(0);
+    g.layers[1].name = std::string("scrub");
+    g.layers[1].spacing_m = 0x1.0000000000000p+2f;
+    g.layers[1].density = 0x1.3333340000000p+0f;
+    g.layers[1].grove_low = 0x1.0000000000000p+0f;
+    g.layers[1].grove_high = 0x1.0000000000000p+0f;
+    g.layers[1].edge_low = 0x1.0000000000000p+0f;
+    g.layers[1].edge_cells = 0u;
+    g.layers[1].ground = 1u;
+    g.layers[1].max_height_delta_m = 0x1.0000000000000p+0f;
+    g.layers[1].keep_clear.resize(1);
+    g.layers[1].keep_clear[0].layer = 0u;
+    g.layers[1].keep_clear[0].metres = 0x1.0000000000000p+1f;
+    g.layers[1].prefer_near.resize(0);
+    g.layers[1].regrows = true;
+    g.layers[1].kinds.resize(2);
+    g.layers[1].kinds[0].id = 1u;
+    g.layers[1].kinds[0].weight = 0x1.0000000000000p-1f;
+    g.layers[1].kinds[0].footprint_m = 0x1.23d70a0000000p-1f;
+    g.layers[1].kinds[0].footprint_cells = 1u;
+    g.layers[1].kinds[0].max_share = 0x1.0000000000000p+0f;
+    g.layers[1].kinds[0].ground = 0u;
+    g.layers[1].kinds[1].id = 2u;
+    g.layers[1].kinds[1].weight = 0x1.0000000000000p-1f;
+    g.layers[1].kinds[1].footprint_m = 0x1.3b22d00000000p+0f;
+    g.layers[1].kinds[1].footprint_cells = 7u;
+    g.layers[1].kinds[1].max_share = 0x1.0000000000000p+0f;
+    g.layers[1].kinds[1].ground = 0u;
+    g.layers[1].regrow_kinds.resize(0);
+    g.layers[2].name = std::string("flowers");
+    g.layers[2].spacing_m = 0x1.99999a0000000p+0f;
+    g.layers[2].density = 0x1.4000000000000p+2f;
+    g.layers[2].grove_low = 0x1.0000000000000p+0f;
+    g.layers[2].grove_high = 0x1.0000000000000p+0f;
+    g.layers[2].edge_low = 0x1.0000000000000p+0f;
+    g.layers[2].edge_cells = 0u;
+    g.layers[2].ground = 1u;
+    g.layers[2].max_height_delta_m = 0x1.0000000000000p+0f;
+    g.layers[2].keep_clear.resize(1);
+    g.layers[2].keep_clear[0].layer = 1u;
+    g.layers[2].keep_clear[0].metres = 0x1.99999a0000000p-1f;
+    g.layers[2].prefer_near.resize(0);
+    g.layers[2].regrows = true;
+    g.layers[2].kinds.resize(2);
+    g.layers[2].kinds[0].id = 3u;
+    g.layers[2].kinds[0].weight = 0x1.0000000000000p-1f;
+    g.layers[2].kinds[0].footprint_m = 0.0f;
+    g.layers[2].kinds[0].footprint_cells = 0u;
+    g.layers[2].kinds[0].max_share = 0x1.0000000000000p+0f;
+    g.layers[2].kinds[0].ground = 0u;
+    g.layers[2].kinds[1].id = 4u;
+    g.layers[2].kinds[1].weight = 0x1.0000000000000p-1f;
+    g.layers[2].kinds[1].footprint_m = 0.0f;
+    g.layers[2].kinds[1].footprint_cells = 0u;
+    g.layers[2].kinds[1].max_share = 0x1.0000000000000p+0f;
+    g.layers[2].kinds[1].ground = 0u;
+    g.layers[2].regrow_kinds.resize(0);
+    g.layers[3].name = std::string("stones");
+    g.layers[3].spacing_m = 0x1.4000000000000p+2f;
+    g.layers[3].density = 0x1.cccccc0000000p-1f;
+    g.layers[3].grove_low = 0x1.0000000000000p+0f;
+    g.layers[3].grove_high = 0x1.0000000000000p+0f;
+    g.layers[3].edge_low = 0x1.0000000000000p+0f;
+    g.layers[3].edge_cells = 0u;
+    g.layers[3].ground = 25u;
+    g.layers[3].max_height_delta_m = 0x1.0000000000000p+1f;
+    g.layers[3].keep_clear.resize(0);
+    g.layers[3].prefer_near.resize(0);
+    g.layers[3].regrows = false;
+    g.layers[3].kinds.resize(1);
+    g.layers[3].kinds[0].id = 5u;
+    g.layers[3].kinds[0].weight = 0x1.0000000000000p+0f;
+    g.layers[3].kinds[0].footprint_m = 0x1.68f5c20000000p-1f;
+    g.layers[3].kinds[0].footprint_cells = 1u;
+    g.layers[3].kinds[0].max_share = 0x1.0000000000000p+0f;
+    g.layers[3].kinds[0].ground = 0u;
+    g.layers[3].regrow_kinds.resize(0);
+    return g;
+  }();
+  return c;
+}
+
+foundry_instance spawn_shore_0(foundry_runtime *rt, uint32_t seed, bool regrown, const float t[16]) {
+  foundry_tree_params p;
+  foundry_tree_default_params(&p);
+  p.species = FOUNDRY_TREE_SPECIES_PINE;
+  uint32_t h = plot_hash(seed ^ 0x51ed270bu);
+  (void)h;
+  {
+    float total = 0.0f;
+    total += 0x1.6666660000000p-1f;
+    total += 0x1.3333340000000p-2f;
+    h = plot_hash(h + 0x9e3779b9u);
+    float pick = static_cast<float>(h >> 8) / 16777216.0f * total;
+    if (pick < 0x1.6666660000000p-1f) p.age = FOUNDRY_TREE_AGE_MATURE;
+    else if ((pick -= 0x1.6666660000000p-1f), false) {}
+    else if (true) p.age = FOUNDRY_TREE_AGE_YOUNG;
+  }
+  if (regrown) {
+    p.age = FOUNDRY_TREE_AGE_SAPLING;
+  }
+  p.seed = 1u + (seed % 4u);
+  return foundry_tree_spawn(rt, &p, t);
+}
+
+foundry_instance spawn_shore_1(foundry_runtime *rt, uint32_t seed, bool regrown, const float t[16]) {
+  foundry_bush_params p;
+  foundry_bush_default_params(&p);
+  p.species = FOUNDRY_BUSH_SPECIES_SAGEBRUSH;
+  uint32_t h = plot_hash(seed ^ 0x51ed270bu);
+  (void)h;
+  {
+    float total = 0.0f;
+    total += 0x1.3333340000000p-1f;
+    total += 0x1.99999a0000000p-3f;
+    total += 0x1.99999a0000000p-3f;
+    h = plot_hash(h + 0x9e3779b9u);
+    float pick = static_cast<float>(h >> 8) / 16777216.0f * total;
+    if (pick < 0x1.3333340000000p-1f) p.age = FOUNDRY_BUSH_AGE_MATURE;
+    else if ((pick -= 0x1.3333340000000p-1f), false) {}
+    else if (pick < 0x1.99999a0000000p-3f) p.age = FOUNDRY_BUSH_AGE_OLD;
+    else if ((pick -= 0x1.99999a0000000p-3f), false) {}
+    else if (true) p.age = FOUNDRY_BUSH_AGE_YOUNG;
+  }
+  (void)regrown;
+  p.seed = 1u + (seed % 4u);
+  return foundry_bush_spawn(rt, &p, t);
+}
+
+foundry_instance spawn_shore_2(foundry_runtime *rt, uint32_t seed, bool regrown, const float t[16]) {
+  foundry_bush_params p;
+  foundry_bush_default_params(&p);
+  p.species = FOUNDRY_BUSH_SPECIES_OLEANDER;
+  uint32_t h = plot_hash(seed ^ 0x51ed270bu);
+  (void)h;
+  {
+    float total = 0.0f;
+    total += 0x1.3333340000000p-1f;
+    total += 0x1.99999a0000000p-3f;
+    total += 0x1.99999a0000000p-3f;
+    h = plot_hash(h + 0x9e3779b9u);
+    float pick = static_cast<float>(h >> 8) / 16777216.0f * total;
+    if (pick < 0x1.3333340000000p-1f) p.age = FOUNDRY_BUSH_AGE_MATURE;
+    else if ((pick -= 0x1.3333340000000p-1f), false) {}
+    else if (pick < 0x1.99999a0000000p-3f) p.age = FOUNDRY_BUSH_AGE_OLD;
+    else if ((pick -= 0x1.99999a0000000p-3f), false) {}
+    else if (true) p.age = FOUNDRY_BUSH_AGE_YOUNG;
+  }
+  (void)regrown;
+  p.seed = 1u + (seed % 4u);
+  return foundry_bush_spawn(rt, &p, t);
+}
+
+foundry_instance spawn_shore_3(foundry_runtime *rt, uint32_t seed, bool regrown, const float t[16]) {
+  foundry_flower_params p;
+  foundry_flower_default_params(&p);
+  p.species = FOUNDRY_FLOWER_SPECIES_MARIGOLD;
+  uint32_t h = plot_hash(seed ^ 0x51ed270bu);
+  (void)h;
+  (void)regrown;
+  p.seed = 1u + (seed % 4u);
+  return foundry_flower_spawn(rt, &p, t);
+}
+
+foundry_instance spawn_shore_4(foundry_runtime *rt, uint32_t seed, bool regrown, const float t[16]) {
+  foundry_flower_params p;
+  foundry_flower_default_params(&p);
+  p.species = FOUNDRY_FLOWER_SPECIES_DAISY;
+  uint32_t h = plot_hash(seed ^ 0x51ed270bu);
+  (void)h;
+  (void)regrown;
+  p.seed = 1u + (seed % 4u);
+  return foundry_flower_spawn(rt, &p, t);
+}
+
+foundry_instance spawn_shore_5(foundry_runtime *rt, uint32_t seed, bool regrown, const float t[16]) {
+  foundry_rock_params p;
+  foundry_rock_default_params(&p);
+  p.material = FOUNDRY_ROCK_MATERIAL_SANDSTONE;
+  p.moss = FOUNDRY_ROCK_MOSS_NONE;
+  uint32_t h = plot_hash(seed ^ 0x51ed270bu);
+  (void)h;
+  (void)regrown;
+  p.seed = 1u + (seed % 4u);
+  return foundry_rock_spawn(rt, &p, t);
+}
+
+foundry_instance field_shore_0(foundry_runtime *rt, uint32_t world_seed, const float t[16],
+                                    const foundry_field_cell *cells, uint32_t count) {
+  foundry_grass_params p;
+  foundry_grass_default_params(&p);
+  p.species = FOUNDRY_GRASS_SPECIES_DUNE;
+  p.world_seed = world_seed;
+  return foundry_grass_spawn_field(rt, &p, t, cells, count);
+}
+
+const plotters::Field fields_shore[] = {
+    {"grass dune", field_shore_0},
+};
+
+const plotters::Kind kinds_shore[] = {
+    {"tree pine", spawn_shore_0},
+    {"bush sagebrush", spawn_shore_1},
+    {"bush oleander", spawn_shore_2},
+    {"flower marigold", spawn_shore_3},
+    {"flower daisy", spawn_shore_4},
+    {"rock sandstone none", spawn_shore_5},
 };
 
 }  // namespace
@@ -514,11 +2021,16 @@ namespace plotters {
 
 namespace {
 const Info kInfos[] = {
-    {"happy_glen_v1", config_happy_glen_v1, plot_scatter_v1::run, kinds_happy_glen_v1, 13u, fields_happy_glen_v1, 1u, &boundary_info_happy_glen_v1},
+    {"fen", config_fen, plot_scatter::run, kinds_fen, 7u, fields_fen, 1u, nullptr},
+    {"happy_glen", config_happy_glen, plot_scatter::run, kinds_happy_glen, 13u, fields_happy_glen, 1u, &boundary_info_happy_glen},
+    {"moor", config_moor, plot_scatter::run, kinds_moor, 7u, fields_moor, 1u, nullptr},
+    {"oakwood", config_oakwood, plot_scatter::run, kinds_oakwood, 10u, fields_oakwood, 1u, nullptr},
+    {"pine_woods", config_pine_woods, plot_scatter::run, kinds_pine_woods, 8u, fields_pine_woods, 1u, nullptr},
+    {"shore", config_shore, plot_scatter::run, kinds_shore, 6u, fields_shore, 1u, nullptr},
 };
 }  // namespace
 
-uint32_t count() { return 1u; }
+uint32_t count() { return 6u; }
 
 const Info *info(foundry_plotter plotter) { return plotter < count() ? &kInfos[plotter] : nullptr; }
 

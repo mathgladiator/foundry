@@ -1,0 +1,435 @@
+{
+  "family": "tree",
+  "version": 1,
+  "feature": "genome",
+  "doc": "A tree species: everything that makes a pine a pine. Genomes are data (the workspace's config/tree_genomes/), shared by every tree system so the species, age, and season stay consistent between skeleton, body, and colour.",
+  "fields": [
+    {
+      "name": "name",
+      "type": "string",
+      "doc": "Display name, e.g. Pine."
+    },
+    {
+      "name": "latin",
+      "type": "string",
+      "doc": "Botanical name, for reference."
+    },
+    {
+      "name": "excurrent",
+      "type": "bool",
+      "doc": "Strong apical dominance: the stem runs to the top (pine, hickory, ebony). Otherwise decurrent: the stem gives way to leaders in the crown (oak, apple)."
+    },
+    {
+      "name": "deciduous",
+      "type": "bool",
+      "doc": "Drops its leaves for winter."
+    },
+    {
+      "name": "height",
+      "type": "f32",
+      "doc": "Mature height in the game, metres. Game heights sit below wild ones so trees frame a hex map without hiding it (hero 1.8 m).",
+      "min": 2,
+      "max": 16
+    },
+    {
+      "name": "slender",
+      "type": "f32",
+      "doc": "Height over trunk diameter of an open-grown mature tree (Pretzsch 2009); lower is stockier.",
+      "min": 10,
+      "max": 80
+    },
+    {
+      "name": "trunk_diameter",
+      "type": "f32",
+      "doc": "Diameter of a mature tree's trunk at the ground, metres, from nature (before any swell or flare). It sets the trunk's width, the stump's collision, and the footprint (design/systems.md, Trees).",
+      "min": 0.05,
+      "max": 8
+    },
+    {
+      "name": "crown_ratio",
+      "type": "f32",
+      "doc": "Live crown length over height: where branches start.",
+      "min": 0.1,
+      "max": 0.95
+    },
+    {
+      "name": "crown_shape",
+      "type": "u32",
+      "doc": "Envelope of first-order branch lengths along the stem (Weber and Penn 1995).",
+      "enum": [
+        "conical",
+        "spherical",
+        "hemispherical",
+        "cylindrical",
+        "tapered",
+        "flame",
+        "inverse_conical",
+        "tend_flame"
+      ]
+    },
+    {
+      "name": "lean",
+      "type": "f32",
+      "doc": "Largest random lean of the trunk, radians.",
+      "min": 0,
+      "max": 0.4
+    },
+    {
+      "name": "twist",
+      "type": "f32",
+      "doc": "Gnarliness of the trunk: random turn per segment, radians.",
+      "min": 0,
+      "max": 0.4
+    },
+    {
+      "name": "flare",
+      "type": "f32",
+      "doc": "Root flare: how much wider the base is than the pipe model gives (0 = none).",
+      "min": 0,
+      "max": 1.5
+    },
+    {
+      "name": "branches",
+      "type": "u32",
+      "doc": "First-order branches on the stem of a mature tree.",
+      "min": 2,
+      "max": 48
+    },
+    {
+      "name": "branch_angle",
+      "type": "f32",
+      "doc": "First-order angle from the stem, degrees.",
+      "min": 5,
+      "max": 110
+    },
+    {
+      "name": "branch_angle_var",
+      "type": "f32",
+      "doc": "Random spread of that angle, degrees.",
+      "min": 0,
+      "max": 40
+    },
+    {
+      "name": "branch_length",
+      "type": "f32",
+      "doc": "Longest first-order branch over stem length.",
+      "min": 0.1,
+      "max": 1.2
+    },
+    {
+      "name": "whorl",
+      "type": "u32",
+      "doc": "Branches per whorl (pines grow tiers); 0 = one at a time on a spiral.",
+      "min": 0,
+      "max": 6
+    },
+    {
+      "name": "divergence",
+      "type": "f32",
+      "doc": "Turn between successive branches or whorls around the stem, degrees (137.5 is the golden angle).",
+      "min": 0,
+      "max": 180
+    },
+    {
+      "name": "branch_curve",
+      "type": "f32",
+      "doc": "Bend over a first-order branch, radians: positive turns up, negative droops.",
+      "min": -2.5,
+      "max": 2
+    },
+    {
+      "name": "tip_up",
+      "type": "f32",
+      "doc": "Extra upturn concentrated near branch tips, radians.",
+      "min": -1,
+      "max": 1
+    },
+    {
+      "name": "twigs",
+      "type": "u32",
+      "doc": "Second-order branches on the longest first-order branch.",
+      "min": 0,
+      "max": 12
+    },
+    {
+      "name": "twig_angle",
+      "type": "f32",
+      "doc": "Second-order angle from its parent, degrees.",
+      "min": 5,
+      "max": 90
+    },
+    {
+      "name": "twig_length",
+      "type": "f32",
+      "doc": "Second-order length over its parent's length.",
+      "min": 0.1,
+      "max": 1
+    },
+    {
+      "name": "twig_curve",
+      "type": "f32",
+      "doc": "Bend over a second-order branch, radians.",
+      "min": -2.5,
+      "max": 2
+    },
+    {
+      "name": "sprigs",
+      "type": "u32",
+      "doc": "Third-order branches per second-order branch.",
+      "min": 0,
+      "max": 6
+    },
+    {
+      "name": "sprig_length",
+      "type": "f32",
+      "doc": "Third-order length over its parent's length.",
+      "min": 0.1,
+      "max": 1
+    },
+    {
+      "name": "cluster",
+      "type": "f32",
+      "doc": "Pushes children toward their parent's tip (0 = spread along, 1 = all at the tip); high values give the forking umbrella of a dragon tree.",
+      "min": 0,
+      "max": 1
+    },
+    {
+      "name": "wobble",
+      "type": "f32",
+      "doc": "Gnarliness of branches: random turn per segment, radians.",
+      "min": 0,
+      "max": 0.5
+    },
+    {
+      "name": "foliage",
+      "type": "u32",
+      "doc": "How foliage is built: broadleaf clumps (displaced icospheres), needle tufts (cones around the tips), rosettes, or palm fronds (pinnate leaflets along each first-order limb, which then carry no clumps; fruit hangs in a cluster under the crown).",
+      "enum": [
+        "clumps",
+        "needles",
+        "rosettes",
+        "fronds"
+      ]
+    },
+    {
+      "name": "clump",
+      "type": "f32",
+      "doc": "Foliage clump radius over mature height.",
+      "min": 0.02,
+      "max": 0.2
+    },
+    {
+      "name": "leafiness",
+      "type": "f32",
+      "doc": "Foliage clumps per branch tip region; 1 is a normal crown.",
+      "min": 0.2,
+      "max": 3
+    },
+    {
+      "name": "fall_drop",
+      "type": "f32",
+      "doc": "Share of leaves already fallen in fall.",
+      "min": 0,
+      "max": 0.9
+    },
+    {
+      "name": "winter_keep",
+      "type": "f32",
+      "doc": "Share of dead leaves a deciduous tree keeps through winter (oaks hold theirs: marcescence).",
+      "min": 0,
+      "max": 0.6
+    },
+    {
+      "name": "blossom",
+      "type": "f32",
+      "doc": "Spring blossom: share of foliage clumps that flower (0 = none).",
+      "min": 0,
+      "max": 1
+    },
+    {
+      "name": "blossom_leaf",
+      "type": "f32",
+      "doc": "Share of leaves already out while it blossoms (cherries flower on bare wood).",
+      "min": 0,
+      "max": 1
+    },
+    {
+      "name": "fruit",
+      "type": "f32",
+      "doc": "Fruit (or cones) per foliage clump in the seasons it bears (0 = none).",
+      "min": 0,
+      "max": 3
+    },
+    {
+      "name": "fruit_size",
+      "type": "f32",
+      "doc": "Fruit radius, metres (style.md section 3 wants it chunky).",
+      "min": 0.03,
+      "max": 0.2
+    },
+    {
+      "name": "fruit_seasons",
+      "type": "f32[]",
+      "doc": "How ripe the fruit is per season (winter, spring, summer, fall; 4 values): 0 none, then unripe (just above 0) to ripe (1). Cones and pods that stay on the tree are fruit here too.",
+      "min": 0,
+      "max": 1
+    },
+    {
+      "name": "pickable",
+      "type": "bool",
+      "doc": "Its fruit can be picked: the pipeline's fruit parameter applies, and the game can offer picking. Otherwise the parameter is disabled and whatever it bears (cones, propagules, seed pods) stays on."
+    },
+    {
+      "name": "bark",
+      "type": "u32",
+      "doc": "Bark relief and pattern: ringed is a palm's leaf-scar rings; papery is a birch's pale bark with dark lenticel dashes and patches.",
+      "enum": [
+        "smooth",
+        "furrowed",
+        "plated",
+        "shaggy",
+        "mottled",
+        "fluted",
+        "ringed",
+        "papery"
+      ]
+    },
+    {
+      "name": "dead_limbs",
+      "type": "f32",
+      "doc": "Share of first-order limbs that are dead and bare on an ancient tree.",
+      "min": 0,
+      "max": 0.6
+    },
+    {
+      "name": "snow",
+      "type": "f32",
+      "doc": "How much snow settles on it in winter (0 for tropical trees).",
+      "min": 0,
+      "max": 1
+    },
+    {
+      "name": "swell",
+      "type": "f32",
+      "min": 0,
+      "max": 2,
+      "doc": "Swollen lower trunk, as on water tupelo and bald cypress: how much wider the bottom quarter of the stem grows, tapering up (0 = none)."
+    },
+    {
+      "name": "knees",
+      "type": "u32",
+      "min": 0,
+      "max": 40,
+      "doc": "Cypress knees: woody cones rising from the roots around the trunk of a mature tree (0 = none)."
+    },
+    {
+      "name": "prop_roots",
+      "type": "u32",
+      "min": 0,
+      "max": 24,
+      "doc": "Prop roots: arching roots from the lower trunk down into the ground, as on a red mangrove (0 = none)."
+    },
+    {
+      "name": "hanging_moss",
+      "type": "f32",
+      "min": 0,
+      "max": 1,
+      "doc": "Spanish moss (an epiphyte) hanging in strands from the limbs, in every season (0 = none)."
+    },
+    {
+      "name": "moss_color",
+      "type": "vec3",
+      "doc": "Colour of the hanging moss, sRGB 0..1."
+    },
+    {
+      "name": "age_height",
+      "type": "f32[]",
+      "doc": "Height of a sapling, young, mature, and ancient tree, as fractions of the mature height (4 values).",
+      "min": 0.05,
+      "max": 1.6
+    },
+    {
+      "name": "age_girth",
+      "type": "f32[]",
+      "doc": "Trunk thickness multiplier for each age (4 values), on top of slenderness.",
+      "min": 0.3,
+      "max": 3
+    },
+    {
+      "name": "flex",
+      "type": "f32",
+      "doc": "Wind flexibility: willows flutter, oaks are stiff.",
+      "min": 0.2,
+      "max": 2.5
+    },
+    {
+      "name": "density",
+      "type": "f32",
+      "doc": "Green wood specific gravity (Wood Handbook): heavier wood falls harder and sways slower.",
+      "min": 0.25,
+      "max": 1.4
+    },
+    {
+      "name": "stiffness",
+      "type": "f32",
+      "doc": "Green modulus of elasticity, GPa (Wood Handbook).",
+      "min": 3,
+      "max": 25
+    },
+    {
+      "name": "bark_light",
+      "type": "vec3",
+      "doc": "Bark colour on ridges, sRGB 0..1."
+    },
+    {
+      "name": "bark_dark",
+      "type": "vec3",
+      "doc": "Bark colour in furrows, sRGB 0..1."
+    },
+    {
+      "name": "wood",
+      "type": "vec3",
+      "doc": "Heartwood colour for cut and broken faces, sRGB 0..1."
+    },
+    {
+      "name": "leaf_spring",
+      "type": "vec3",
+      "doc": "Leaf colour in spring, sRGB 0..1."
+    },
+    {
+      "name": "leaf_summer",
+      "type": "vec3",
+      "doc": "Leaf colour in summer, sRGB 0..1."
+    },
+    {
+      "name": "leaf_fall",
+      "type": "vec3",
+      "doc": "Leaf colour in fall, sRGB 0..1."
+    },
+    {
+      "name": "leaf_fall_alt",
+      "type": "vec3",
+      "doc": "Second fall colour, mixed in per clump for variety, sRGB 0..1."
+    },
+    {
+      "name": "leaf_winter",
+      "type": "vec3",
+      "doc": "Leaf colour in winter: an evergreen's winter tint, or a deciduous tree's dead leaves, sRGB 0..1."
+    },
+    {
+      "name": "blossom_color",
+      "type": "vec3",
+      "doc": "Blossom colour, sRGB 0..1."
+    },
+    {
+      "name": "fruit_unripe",
+      "type": "vec3",
+      "doc": "Fruit colour in summer, sRGB 0..1."
+    },
+    {
+      "name": "fruit_ripe",
+      "type": "vec3",
+      "doc": "Fruit colour in fall, sRGB 0..1."
+    }
+  ]
+}

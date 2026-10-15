@@ -1,9 +1,12 @@
+#include <vector>
+#include <cstdlib>
 #include <algorithm>
 #include <cstring>
 #include <string>
 
 #include "fires.h"
 #include "internal.h"
+#include "pipelines_internal.h"
 #include "runtime_diag.h"
 
 namespace {
@@ -203,6 +206,50 @@ void foundry_diag_set_cost(foundry_runtime *rt, uint32_t flags) { rt->world.set_
 
 foundry_status foundry_diag_set_param(foundry_runtime *rt, foundry_instance instance, const char *name, const char *value) {
   return foundry_status_of(rt->world.set_named(instance, name, value));
+}
+
+foundry_instance foundry_diag_spawn(foundry_runtime *rt, const char *pipeline, const char *const *names, const char *const *values,
+                                    uint32_t count, const float transform[16]) {
+  const pipelines::Entry *e = pipelines::find(pipeline);
+  if (!rt || !e) return FOUNDRY_NO_INSTANCE;
+  const runtime::PipelineType *type = e->type();
+  std::vector<uint8_t> params(type->params_size(), 0);
+  e->defaults(params.data());
+  size_t n = 0;
+  const runtime::ParamInfo *table = type->param_table(n);
+  for (uint32_t a = 0; a < count; ++a) {
+    const runtime::ParamInfo *p = nullptr;
+    for (size_t i = 0; i < n; ++i)
+      if (std::strcmp(table[i].name, names[a]) == 0) p = &table[i];
+    if (!p) return FOUNDRY_NO_INSTANCE;
+    uint8_t *at = params.data() + p->offset;
+    switch (p->kind) {
+      case runtime::ParamInfo::kEnum: {
+        uint32_t v = p->count;
+        for (uint32_t k = 0; k < p->count; ++k)
+          if (std::strcmp(p->values[k], values[a]) == 0) v = k;
+        if (v == p->count) return FOUNDRY_NO_INSTANCE;
+        std::memcpy(at, &v, sizeof v);
+        break;
+      }
+      case runtime::ParamInfo::kU32: {
+        const uint32_t v = static_cast<uint32_t>(std::clamp(std::strtod(values[a], nullptr), p->min, p->max));
+        std::memcpy(at, &v, sizeof v);
+        break;
+      }
+      case runtime::ParamInfo::kF32: {
+        const float v = static_cast<float>(std::clamp(std::strtod(values[a], nullptr), p->min, p->max));
+        std::memcpy(at, &v, sizeof v);
+        break;
+      }
+      case runtime::ParamInfo::kBool: {
+        const bool v = std::strcmp(values[a], "true") == 0 || std::strcmp(values[a], "1") == 0;
+        std::memcpy(at, &v, sizeof v);
+        break;
+      }
+    }
+  }
+  return rt->world.spawn(type, params.data(), transform);
 }
 
 foundry_status foundry_diag_force_level(foundry_runtime *rt, foundry_instance instance, int level) {

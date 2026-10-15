@@ -1,8 +1,0 @@
-{
-  "kind": "channel",
-  "name": "rock_v1_motion",
-  "state": "draft",
-  "reason": "The input to rock_animate_v1: the pieces from the body and the break event's clock, so only a break reruns the animator.",
-  "notes": [],
-  "created_at": "2026-10-12T08:00:00Z"
-}

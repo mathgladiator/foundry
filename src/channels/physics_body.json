@@ -1,0 +1,29 @@
+{
+  "family": "physics",
+  "version": 1,
+  "feature": "body",
+  "doc": "One collision body a build outputs (design/spine.md, Layer 1): static for the build, what collides with the world or reports to it. The runtime adds it to the game's Jolt world under the object layer the game maps its purpose to.",
+  "fields": [
+    {
+      "name": "purpose",
+      "type": "u32",
+      "doc": "What the body is for: solid (a trunk, a rock), soft (a bush a player can push into), query (found by rays and clicks, collides with nothing: a flower), or sensor (reports what touches it).",
+      "enum": [
+        "solid",
+        "soft",
+        "query",
+        "sensor"
+      ]
+    },
+    {
+      "name": "name",
+      "type": "string",
+      "doc": "A sensor's purpose, such as reach_pick or reach_chop; empty for other bodies."
+    },
+    {
+      "name": "shapes",
+      "type": "physics_shape[]",
+      "doc": "The body's shapes, a compound."
+    }
+  ]
+}

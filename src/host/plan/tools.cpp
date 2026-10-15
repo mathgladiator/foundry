@@ -38,7 +38,7 @@ namespace {
 bool ensure(View &view, const json &args, std::string &error) {
   const std::string name = args.value("planner", view.name());
   if (name.empty()) {
-    error = "no planner shown; pass planner (e.g. market_town_v1)";
+    error = "no planner shown; pass planner (e.g. market_town)";
     return false;
   }
   return view.show(name, error);
@@ -75,7 +75,7 @@ void register_tools(mcp::Registry &registry, View &view) {
                 "and the waterfront, civic, centre, and castle lots measured from theirs), the view's settings (seed, plots, tier, "
                 "what's drawn), and the last plan's report (plots by kind, class, shape, use, and tier; road cells by class; "
                 "halves and fenced edges; lines; open cells; reachability; grades; timing).",
-                mcp::schema({{"planner", {{"type", "string"}, {"description", "e.g. market_town_v1"}}}}),
+                mcp::schema({{"planner", {{"type", "string"}, {"description", "e.g. market_town"}}}}),
                 [&view](const json &args) {
                   std::string error;
                   if (!ensure(view, args, error)) return mcp::Result::error(error);
@@ -85,7 +85,7 @@ void register_tools(mcp::Registry &registry, View &view) {
                 "Change the shown planner's view and plan: seed, plots (0: the middle of the config's range), tier "
                 "(hamlet, village, town), what's drawn (fill: houses, civic buildings, castle parts, road pieces, and waterfronts on "
                 "plots; lines: walls, the keep's wall, and fences laid by the fill's line system with their gates; nature: a plotter "
-                "(e.g. happy_glen_v1) grown on the open land, or \"\" for none; outlines; nav: the navigation "
+                "(e.g. happy_glen) grown on the open land, or \"\" for none; outlines; nav: the navigation "
                 "mesh; collision; colour: use, height, tier, or wealth), shared values for every building (season, "
                 "wind_speed), and config fields to try (merged over the file's; null removes one). save: true writes the "
                 "tried config, seed, plots, and tier into the planner's file. Re-plans, and returns the report.",

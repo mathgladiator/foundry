@@ -1,0 +1,239 @@
+{
+  "kind": "planner",
+  "name": "walled_town",
+  "state": "draft",
+  "system": "plan_settle",
+  "doc": "A planned town inside a stone wall (a bastide): straight streets from the gates to a central square, ring lane inside the wall, towers.",
+  "view": {
+    "seed": 7,
+    "plots": 100,
+    "tier": "town",
+    "shared": {
+      "season": "summer",
+      "wind_speed": 4
+    },
+    "nature": "happy_glen"
+  },
+  "config": {
+    "scenario": "walled_town",
+    "plots_min": 60,
+    "plots_max": 300,
+    "density": 2.0,
+    "terrain": "flat",
+    "relief_m": 1.5,
+    "feature_cells": 25.0,
+    "entrances": 4,
+    "high_width": 3,
+    "lane_width": 2,
+    "high_grade": 0.08,
+    "lane_grade": 0.12,
+    "block_cells": 10,
+    "alley_every": 12,
+    "square_cells": 4,
+    "share_solo": 0.3,
+    "share_family": 0.5,
+    "share_extended": 0.2,
+    "civic": 3,
+    "shape_wide": 0.25,
+    "shape_deep": 0.3,
+    "shape_round": 0.0,
+    "shape_long": 0.3,
+    "shape_broad": 0.15,
+    "walls": "stone",
+    "river": false,
+    "river_cells": 3,
+    "open_body": "none",
+    "margin_cells": 1,
+    "waterfronts": 0,
+    "centre": true,
+    "halves_market": 0.45,
+    "halves_square": 0.0,
+    "halves_high": 0.12,
+    "halves_lane": 0.04,
+    "halves_quay": 0.0,
+    "fence_share": 0.0,
+    "keep_ward_cells": 0,
+    "castle_parts": 0,
+    "outer_parts": 0,
+    "fence_cells": 3,
+    "wall_reach_cells": 6.0
+  },
+  "lots": {
+    "from": {
+      "pipeline": "house",
+      "class_param": "household",
+      "classes": [
+        "solo",
+        "family",
+        "extended"
+      ],
+      "type_param": "type",
+      "table": "house_types",
+      "shape_param": "footprint",
+      "shape_fields": {
+        "footprint": "usual",
+        "footprint_alt": "alternate"
+      }
+    },
+    "civic": {
+      "pipeline": "civic",
+      "size_param": "size",
+      "type_param": "type",
+      "table": "civic_types",
+      "size_field": "size",
+      "sizes": [
+        "centre",
+        "small",
+        "large",
+        "great"
+      ],
+      "classes": {
+        "centre": "centre"
+      },
+      "class": "civic"
+    },
+    "waterfront": {
+      "pipeline": "waterfront",
+      "size_param": "size",
+      "type_param": "type",
+      "table": "waterfront_types",
+      "sizes": [
+        "small",
+        "medium",
+        "large"
+      ]
+    }
+  },
+  "fill": {
+    "buildings": {
+      "pipeline": "house",
+      "type_param": "type",
+      "stage_param": "stage",
+      "seed_param": "seed",
+      "seeds": 4,
+      "uses": {
+        "home": [
+          "cottage",
+          "farmhouse"
+        ],
+        "store": [
+          "general_store",
+          "bakery",
+          "tailor",
+          "alchemist"
+        ],
+        "workshop": [
+          "smithy",
+          "carpenter",
+          "mill"
+        ],
+        "inn": [
+          "inn"
+        ],
+        "farm": [
+          "farmhouse",
+          "mill"
+        ]
+      },
+      "stage_by_wealth": [
+        [
+          0.72,
+          "premium"
+        ],
+        [
+          0.4,
+          "deluxe"
+        ],
+        [
+          0.0,
+          "basic"
+        ]
+      ]
+    },
+    "roads": {
+      "pipeline": "road",
+      "kind_param": "kind",
+      "seeds": 3,
+      "kinds": {
+        "high": "high_street",
+        "lane": "street",
+        "alley": "alley",
+        "square": "square",
+        "market": "market",
+        "bridge": "bridge",
+        "quay": "quay",
+        "gate": "gate"
+      }
+    },
+    "waterfronts": {
+      "pipeline": "waterfront",
+      "type_param": "type",
+      "drop_param": "drop",
+      "types": [
+        "pier",
+        "boathouse",
+        "warehouse",
+        "fishery"
+      ]
+    },
+    "civics": {
+      "pipeline": "civic",
+      "type_param": "type",
+      "grandeur_param": "grandeur",
+      "uses": {
+        "civic": [
+          "church",
+          "court",
+          "town_hall",
+          "library",
+          "bank",
+          "temple",
+          "mage_tower"
+        ],
+        "centre": [
+          "fountain"
+        ]
+      },
+      "grandeur_by_wealth": [
+        [
+          0.7,
+          "grand"
+        ],
+        [
+          0.35,
+          "fine"
+        ],
+        [
+          0.0,
+          "plain"
+        ]
+      ]
+    },
+    "lines": {
+      "fence": {
+        "pipeline": "fence",
+        "kind_param": "kind",
+        "kind": "iron",
+        "network_param": "network"
+      },
+      "gates": {
+        "wall": {
+          "pipeline": "gate",
+          "type_param": "type",
+          "wall_param": "wall",
+          "width_param": "width",
+          "type": "town_gate"
+        }
+      },
+      "wall": {
+        "pipeline": "wall",
+        "kind_param": "kind",
+        "kind": "town_wall",
+        "network_param": "network"
+      },
+      "chunk_links": 40
+    }
+  },
+  "notes": [],
+  "created_at": "2026-10-13T16:00:00Z"
+}

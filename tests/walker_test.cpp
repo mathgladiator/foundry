@@ -126,6 +126,32 @@ int main() {
     std::printf("on the floor: %d at %.2f, %.2f, %.2f\n", floor_fit, f[0], f[1], f[2]);
     CHECK(floor_fit && std::fabs(f[1] - 0.1f) < 0.05f);
   }
+  {  // a map chunk's ground: solid convex columns (a hex prism per cell), the ground with solid_ground
+    Walker w;
+    std::vector<runtime::CollisionBody> bodies(1);
+    bodies[0].purpose = runtime::CollisionBody::kSolid;
+    for (int q = -6; q <= 6; ++q)
+      for (int r = -6; r <= 6; ++r) {
+        runtime::CollisionShape sh;
+        sh.type = runtime::CollisionShape::kConvexHull;
+        const float x = 1.7320508f * (q + r * 0.5f), z = 1.5f * r, top = 2.0f + 0.1f * static_cast<float>((q * 7 + r * 3) % 4);
+        for (int j = 0; j < 6; ++j) {
+          const float a = 3.14159265f / 6.0f + j * 3.14159265f / 3.0f;
+          for (float y : {top, -3.0f}) {
+            sh.points.push_back(x + std::cos(a));
+            sh.points.push_back(y);
+            sh.points.push_back(z - std::sin(a));
+          }
+        }
+        bodies[0].shapes.push_back(sh);
+      }
+    const float at[3] = {0, 0, 0};
+    w.add_bodies(bodies, at, 0);
+    const bool solid = w.find_spawn(0, 0, 6, false, f, true);
+    std::printf("on solid columns: %d at %.2f, %.2f, %.2f\n", solid, f[0], f[1], f[2]);
+    CHECK(solid && f[1] > 2.0f && f[1] < 2.6f);
+    CHECK(!w.find_spawn(0, 0, 6, false, f, false));  // not without solid_ground
+  }
   if (failures) std::printf("%d failed\n", failures);
   else std::printf("ok\n");
   return failures ? 1 : 0;

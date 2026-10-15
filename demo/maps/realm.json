@@ -1,0 +1,388 @@
+{
+  "biome": "temperate",
+  "chunk_size": 64,
+  "doc": "The first playable region: a green vale under a northern range, a lake town at its heart, a fen to the south-east running to the sea, oak woods to the west, and a keep on the eastern hills.",
+  "links": [
+    {
+      "from": "Ashford",
+      "kind": "road",
+      "to": "Brookhollow",
+      "via": []
+    },
+    {
+      "from": "Ashford",
+      "kind": "road",
+      "to": "Saltmere",
+      "via": []
+    },
+    {
+      "from": "Ashford",
+      "kind": "road",
+      "to": "exit:0",
+      "via": []
+    },
+    {
+      "from": "Brookhollow",
+      "kind": "road",
+      "to": "exit:1",
+      "via": []
+    },
+    {
+      "from": "Brookhollow",
+      "kind": "road",
+      "to": "Greyspire Keep",
+      "via": []
+    },
+    {
+      "from": "Brookhollow",
+      "kind": "lane",
+      "to": "Fenwick",
+      "via": []
+    },
+    {
+      "from": "Ashford",
+      "kind": "lane",
+      "to": "Old Mill Farm",
+      "via": []
+    },
+    {
+      "from": "Old Mill Farm",
+      "kind": "path",
+      "to": "Ruined Watchtower",
+      "via": []
+    },
+    {
+      "from": "Saltmere",
+      "kind": "path",
+      "to": "Bandit Camp",
+      "via": []
+    },
+    {
+      "from": "Bandit Camp",
+      "kind": "path",
+      "to": "Hermit's Cottage",
+      "via": []
+    }
+  ],
+  "name": "realm",
+  "parcels": [
+    {
+      "caves": 0.5,
+      "cliffs": 0.7,
+      "height": 42,
+      "hill_size": 520,
+      "kind": "mountains",
+      "moisture": 0.4,
+      "name": "northern peaks",
+      "plotter": "pine_woods",
+      "q": 250,
+      "r": -820,
+      "reach": 260,
+      "relief": 140,
+      "ridges": 0.8,
+      "roughness": 0.6,
+      "woods": 0.45
+    },
+    {
+      "cliffs": 0.35,
+      "height": 30,
+      "hill_size": 380,
+      "kind": "highlands",
+      "moisture": 0.45,
+      "name": "high moor",
+      "plotter": "moor",
+      "q": -520,
+      "r": -430,
+      "reach": 80,
+      "relief": 28,
+      "ridges": 0.35,
+      "woods": 0.08
+    },
+    {
+      "cliffs": 0.05,
+      "height": 9,
+      "hill_size": 300,
+      "kind": "valley",
+      "moisture": 0.55,
+      "name": "greenvale",
+      "plotter": "happy_glen",
+      "q": 60,
+      "r": -60,
+      "reach": 160,
+      "relief": 7,
+      "ridges": 0.1,
+      "woods": 0.25
+    },
+    {
+      "cliffs": 0.25,
+      "height": 16,
+      "hill_size": 260,
+      "kind": "hills",
+      "moisture": 0.6,
+      "name": "oakwood",
+      "plotter": "oakwood",
+      "q": -720,
+      "r": 380,
+      "reach": 120,
+      "relief": 22,
+      "ridges": 0.25,
+      "woods": 0.85
+    },
+    {
+      "caves": 0.3,
+      "cliffs": 0.45,
+      "height": 20,
+      "hill_size": 240,
+      "kind": "hills",
+      "moisture": 0.5,
+      "name": "eastern hills",
+      "plotter": "happy_glen",
+      "q": 640,
+      "r": -160,
+      "reach": 90,
+      "relief": 30,
+      "ridges": 0.45,
+      "woods": 0.45
+    },
+    {
+      "height": 2.5,
+      "hill_size": 200,
+      "kind": "marsh",
+      "moisture": 0.95,
+      "name": "the fen",
+      "plotter": "fen",
+      "q": 420,
+      "r": 470,
+      "reach": -20,
+      "relief": 2,
+      "woods": 0.3
+    },
+    {
+      "height": 4,
+      "hill_size": 200,
+      "kind": "lake",
+      "moisture": 1,
+      "name": "mirror lake",
+      "q": -150,
+      "r": 300,
+      "reach": -230,
+      "relief": 2,
+      "woods": 0
+    },
+    {
+      "height": 0,
+      "hill_size": 200,
+      "kind": "coast",
+      "moisture": 0.7,
+      "name": "south shore",
+      "plotter": "shore",
+      "q": 80,
+      "r": 1010,
+      "reach": -150,
+      "relief": 3,
+      "woods": 0.05
+    },
+    {
+      "cliffs": 0.05,
+      "height": 7,
+      "hill_size": 220,
+      "kind": "plains",
+      "moisture": 0.55,
+      "name": "south downs",
+      "plotter": "happy_glen",
+      "q": -380,
+      "r": 720,
+      "reach": 40,
+      "relief": 6,
+      "ridges": 0.1,
+      "woods": 0.2
+    }
+  ],
+  "rivers": [
+    {
+      "name": "Coldwater",
+      "q": 150,
+      "r": -900,
+      "to": "mirror lake",
+      "width": 3
+    },
+    {
+      "name": "Lakeflow",
+      "q": -140,
+      "r": 340,
+      "to": "exit:3",
+      "width": 4
+    }
+  ],
+  "seed": 11,
+  "shape": {
+    "corners": [],
+    "depth": 100,
+    "kind": "hexagon",
+    "name": "realm",
+    "notch": 40,
+    "openings": [
+      {
+        "at": 0.45,
+        "kind": "road",
+        "name": "the west road",
+        "side": 3,
+        "width": 2
+      },
+      {
+        "at": 0.5,
+        "kind": "road",
+        "name": "the east road",
+        "side": 5,
+        "width": 2
+      },
+      {
+        "at": 0.42,
+        "kind": "river_in",
+        "name": "",
+        "side": 1,
+        "width": 3
+      },
+      {
+        "at": 0.6,
+        "kind": "river_out",
+        "name": "",
+        "side": 4,
+        "width": 4
+      }
+    ],
+    "radius": 1000,
+    "rotation": 0,
+    "seed": 5,
+    "sides": [
+      {
+        "edge": "mountain",
+        "height": 45,
+        "rise": 0.95
+      },
+      {
+        "edge": "mountain",
+        "height": 55,
+        "rise": 1.0
+      },
+      {
+        "edge": "forest",
+        "height": 25,
+        "rise": 0.6
+      },
+      {
+        "edge": "forest",
+        "height": 12,
+        "rise": 0.45
+      },
+      {
+        "edge": "sea",
+        "height": 0,
+        "rise": 0.1
+      },
+      {
+        "edge": "ledge",
+        "height": 6,
+        "rise": 0.3
+      }
+    ],
+    "width": 100,
+    "wobble": 22
+  },
+  "sites": [
+    {
+      "kind": "town",
+      "name": "Ashford",
+      "planner": "market_town",
+      "q": -40,
+      "r": 40,
+      "radius": 46,
+      "seed": 3,
+      "yaw": -1
+    },
+    {
+      "kind": "village",
+      "name": "Brookhollow",
+      "planner": "green_village",
+      "q": 420,
+      "r": 120,
+      "radius": 32,
+      "seed": 5,
+      "yaw": -1
+    },
+    {
+      "kind": "hamlet",
+      "name": "Fenwick",
+      "planner": "marsh_village",
+      "q": 230,
+      "r": 560,
+      "radius": 20,
+      "seed": 2,
+      "yaw": -1
+    },
+    {
+      "kind": "village",
+      "name": "Saltmere",
+      "planner": "river_town",
+      "q": -180,
+      "r": 870,
+      "radius": 32,
+      "seed": 4,
+      "yaw": -1
+    },
+    {
+      "kind": "castle",
+      "name": "Greyspire Keep",
+      "planner": "hill_keep",
+      "q": 700,
+      "r": -420,
+      "radius": 28,
+      "seed": 6,
+      "yaw": -1
+    },
+    {
+      "kind": "farm",
+      "name": "Old Mill Farm",
+      "params": "{\"household\":\"extended\",\"stage\":\"deluxe\",\"type\":\"farmhouse\"}",
+      "pipeline": "house",
+      "q": -470,
+      "r": -120,
+      "radius": 11,
+      "seed": 2,
+      "yaw": -1
+    },
+    {
+      "kind": "house",
+      "name": "Hermit's Cottage",
+      "params": "{\"household\":\"solo\",\"stage\":\"basic\",\"type\":\"cottage\"}",
+      "pipeline": "house",
+      "q": -860,
+      "r": 520,
+      "radius": 7,
+      "seed": 7,
+      "yaw": -1
+    },
+    {
+      "kind": "ruin",
+      "name": "Ruined Watchtower",
+      "params": "{\"part\":\"tower\",\"stage\":\"ruin\"}",
+      "pipeline": "castle",
+      "q": 80,
+      "r": -560,
+      "radius": 9,
+      "seed": 3,
+      "yaw": -1
+    },
+    {
+      "kind": "camp",
+      "name": "Bandit Camp",
+      "params": "{\"household\":\"extended\",\"stage\":\"construction\",\"type\":\"cottage\"}",
+      "pipeline": "house",
+      "q": -560,
+      "r": 700,
+      "radius": 6,
+      "seed": 9,
+      "yaw": -1
+    }
+  ]
+}

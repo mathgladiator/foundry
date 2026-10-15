@@ -1,0 +1,247 @@
+{
+ "kind": "planner",
+ "name": "nordic_steading",
+ "state": "draft",
+ "system": "plan_settle",
+ "doc": "A fjord steading along its road: log longhouses under turf roofs with dragon heads on the gables, split-rail fences, peat fires.",
+ "view": {
+  "seed": 7,
+  "plots": 24,
+  "tier": "town",
+  "shared": {
+   "season": "fall",
+   "wind_speed": 4,
+   "theme": "nordic"
+  },
+  "nature": "happy_glen"
+ },
+ "config": {
+  "scenario": "street_village",
+  "plots_min": 10,
+  "plots_max": 40,
+  "density": 2.8,
+  "terrain": "valley",
+  "relief_m": 6,
+  "feature_cells": 30,
+  "entrances": 2,
+  "high_width": 2,
+  "lane_width": 1,
+  "high_grade": 0.08,
+  "lane_grade": 0.14,
+  "block_cells": 12,
+  "alley_every": 18,
+  "square_cells": 2,
+  "share_solo": 0.25,
+  "share_family": 0.5,
+  "share_extended": 0.25,
+  "civic": 1,
+  "shape_wide": 0.25,
+  "shape_deep": 0.3,
+  "shape_round": 0.05,
+  "shape_long": 0.35,
+  "shape_broad": 0.05,
+  "walls": "none",
+  "river": false,
+  "river_cells": 3,
+  "open_body": "none",
+  "margin_cells": 2,
+  "waterfronts": 0,
+  "centre": true,
+  "halves_market": 0.0,
+  "halves_square": 0.3,
+  "halves_high": 0.15,
+  "halves_lane": 0.05,
+  "halves_quay": 0.0,
+  "fence_share": 0.6,
+  "keep_ward_cells": 0,
+  "castle_parts": 0,
+  "outer_parts": 0,
+  "fence_cells": 4,
+  "wall_reach_cells": 6.0,
+  "crop_fields": 4
+ },
+ "lots": {
+  "from": {
+   "pipeline": "house",
+   "class_param": "household",
+   "classes": [
+    "solo",
+    "family",
+    "extended"
+   ],
+   "type_param": "type",
+   "table": "house_types",
+   "shape_param": "footprint",
+   "shape_fields": {
+    "footprint": "usual",
+    "footprint_alt": "alternate"
+   }
+  },
+  "civic": {
+   "pipeline": "civic",
+   "size_param": "size",
+   "type_param": "type",
+   "table": "civic_types",
+   "size_field": "size",
+   "sizes": [
+    "centre",
+    "small",
+    "large",
+    "great"
+   ],
+   "classes": {
+    "centre": "centre"
+   },
+   "class": "civic"
+  },
+  "waterfront": {
+   "pipeline": "waterfront",
+   "size_param": "size",
+   "type_param": "type",
+   "table": "waterfront_types",
+   "sizes": [
+    "small",
+    "medium",
+    "large"
+   ]
+  },
+  "field": {
+   "pipeline": "crop",
+   "size_param": "size",
+   "type_param": "type",
+   "table": "crop_types",
+   "sizes": [
+    "small",
+    "medium",
+    "large"
+   ],
+   "class": "field"
+  }
+ },
+ "fill": {
+  "buildings": {
+   "pipeline": "house",
+   "type_param": "type",
+   "stage_param": "stage",
+   "seed_param": "seed",
+   "seeds": 4,
+   "uses": {
+    "home": [
+     "cottage",
+     "farmhouse"
+    ],
+    "store": [
+     "general_store",
+     "bakery",
+     "tailor",
+     "alchemist"
+    ],
+    "workshop": [
+     "smithy",
+     "carpenter",
+     "mill"
+    ],
+    "inn": [
+     "inn"
+    ],
+    "farm": [
+     "farmhouse",
+     "mill"
+    ]
+   },
+   "stage_by_wealth": [
+    [
+     0.72,
+     "premium"
+    ],
+    [
+     0.4,
+     "deluxe"
+    ],
+    [
+     0.0,
+     "basic"
+    ]
+   ]
+  },
+  "roads": {
+   "pipeline": "road",
+   "kind_param": "kind",
+   "seeds": 3,
+   "kinds": {
+    "high": "lane",
+    "lane": "lane",
+    "alley": "lane",
+    "square": "square",
+    "market": "square",
+    "bridge": "bridge",
+    "quay": "quay",
+    "gate": "lane"
+   }
+  },
+  "waterfronts": {
+   "pipeline": "waterfront",
+   "type_param": "type",
+   "drop_param": "drop",
+   "types": [
+    "pier",
+    "boathouse",
+    "warehouse",
+    "fishery"
+   ]
+  },
+  "civics": {
+   "pipeline": "civic",
+   "type_param": "type",
+   "grandeur_param": "grandeur",
+   "uses": {
+    "civic": [
+     "chapel",
+     "guild_hall"
+    ],
+    "centre": [
+     "well",
+     "shrine"
+    ]
+   },
+   "grandeur_by_wealth": [
+    [
+     0.7,
+     "grand"
+    ],
+    [
+     0.35,
+     "fine"
+    ],
+    [
+     0.0,
+     "plain"
+    ]
+   ]
+  },
+  "lines": {
+   "fence": {
+    "pipeline": "fence",
+    "kind_param": "kind",
+    "kind": "split_rail",
+    "network_param": "network"
+   },
+   "gates": {},
+   "chunk_links": 40
+  },
+  "crops": {
+   "pipeline": "crop",
+   "type_param": "type",
+   "growth_param": "growth",
+   "types": [
+    "barley",
+    "oats",
+    "cabbage",
+    "potato"
+   ],
+   "growth": "ripe"
+  }
+ },
+ "notes": [],
+ "created_at": "2026-10-14T08:00:00Z"
+}

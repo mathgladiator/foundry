@@ -2,10 +2,10 @@
 """Generates the native runtime's pipeline code from the workspace's pipelines.
 
 For each pipelines/<name>.json in the workspace (default demo/), it writes:
-  src/library/<name>.h                 the pipeline's fragment of runtime.h: its
+  src/library/pipeline_<name>.h        the pipeline's fragment of runtime.h: its
                                        enums, parameter struct, spawn, one setter
                                        per parameter, one trigger per event
-  src/library/<name>.cpp               the native executor behind it: each stage's
+  src/library/pipeline_<name>.cpp      the native executor behind it: each stage's
                                        system called directly with channel
                                        structures (no packers), the bindings from
                                        the pipeline's stages, and its config
@@ -47,7 +47,7 @@ def load_channels():
         if fn.endswith(".json") and not fn.endswith(".manifest.json"):
             with open(os.path.join(CHANNELS, fn)) as f:
                 s = json.load(f)
-            out[f"{s['family']}_v{s['version']}_{s['feature']}"] = s
+            out[f"{s['family']}_{s['feature']}"] = s
     return out
 
 
@@ -135,6 +135,11 @@ class Pipeline:
         # parameter a game may replace with its own hull (foundry_<pipeline>_spawn_hull).
         self.terrain = self.draw.get("terrain")
         self.hull = self.terrain.get("hull") if self.terrain else None
+        # A payload (design/map.md): a config parameter a game may replace with that channel's packed
+        # bytes (foundry_<pipeline>_spawn_packed), such as a map's chunk.
+        self.payload = (self.draw.get("payload") or {}).get("param")
+        if self.payload and not any(p["name"] == self.payload and p["type"] == "config" for p in self.params):
+            sys.exit(f"{self.src}: draw.payload.param names no config parameter")
         if self.hull and not any(p["name"] == self.hull and p["type"] == "config" for p in self.params):
             sys.exit(f"{self.src}: draw.terrain.hull names no config parameter")
         if self.model not in self.by_id:
@@ -234,6 +239,11 @@ class Pipeline:
             o.append(f"foundry_instance {self.C}_spawn_field(foundry_runtime *rt, const {self.C}_params *params,\n"
                      f"                                        const float transform[16], const foundry_field_cell *cells,\n"
                      f"                                        uint32_t count);\n")
+        if self.payload:
+            o.append(f"/* With params' {self.payload} given as its channel's packed bytes (a map's chunk, cut from its plan;\n"
+                     f" * design/map.md) in place of its config entry. */\n")
+            o.append(f"foundry_instance {self.C}_spawn_packed(foundry_runtime *rt, const {self.C}_params *params,\n"
+                     f"                                         const float transform[16], const void *bytes, uint32_t size);\n")
         if self.hull:
             o.append(f"/* A boundary around the game's own region (design/boundary.md): these cells, counterclockwise\n"
                      f" * around it, in place of params' {self.hull} entry's (whose sectors still give auto edges their\n"
@@ -337,6 +347,9 @@ class Pipeline:
                 out.append(f"{indent}config_{p['name']}(static_cast<uint32_t>(p.{p['name']}), {target});\n")
                 if p["name"] == self.hull and where == "build":
                     out.append(f"{indent}if (payload) hull_from_cells(*payload, {target});  // the game's own hull\n")
+                if p["name"] == self.payload and where == "build":
+                    out.append(f"{indent}if (payload && !foundry::unpack(payload->data(), payload->size(), {target})) {{\n"
+                               f"{indent}  error = \"the packed {p['name']} doesn't unpack\";\n{indent}  return nullptr;\n{indent}}}\n")
             elif p["type"] == "enum":
                 out.append(f"{indent}{target} = static_cast<uint32_t>({self.read_cpp(p)});\n")
             else:
@@ -466,6 +479,14 @@ class Pipeline:
         for c in used:
             o.append(f"#include \"channels/{c}.h\"\n")
         o.append(f"#include \"packer/{model['out']}.h\"\n")
+        if self.payload:  # the payload's channel, unpacked natively
+            for st in self.stages:
+                if st["input"] == f"${self.payload}":
+                    o.append(f"#include \"packer/{st['in']}.h\"\n")
+                if isinstance(st["input"], dict):
+                    for k, v in st["input"].items():
+                        if v == f"${self.payload}":
+                            o.append(f"#include \"packer/{field(ch, st['in'], k)['type']}.h\"\n")
         if pose:
             o.append(f"#include \"packer/{pose['out']}.h\"\n")
         o.append("\n// Each system's entry point, from its static library.\n")
@@ -484,6 +505,8 @@ class Pipeline:
         for cp in (p for p in self.params if p["type"] == "config"):
             ctype = None
             for st in self.stages:
+                if st["input"] == f"${cp['name']}":  # the stage's whole input
+                    ctype = st["in"]
                 if isinstance(st["input"], dict):
                     for k, v in st["input"].items():
                         if v == f"${cp['name']}":
@@ -594,7 +617,7 @@ class Pipeline:
         # build()
         o.append("  std::shared_ptr<runtime::Build> build(const void *params, std::string &error) const override {\n"
                  "    return build_impl(params, nullptr, error);\n  }\n\n")
-        if self.hull:
+        if self.hull or self.payload:
             o.append("  std::shared_ptr<runtime::Build> build_with(const void *params, const std::vector<uint8_t> &payload,\n"
                      "                                             std::string &error) const override {\n"
                      "    return build_impl(params, &payload, error);\n  }\n\n")
@@ -640,7 +663,7 @@ class Pipeline:
             if f in mf:
                 o.append(f"    b->mesh.{f} = std::move({self.model}_out.{f});\n")
         if "collision" in mf:
-            # The physics_v1_body convention: what collides, static for the build.
+            # The physics_body convention: what collides, static for the build.
             o.append(f"""    for (const auto &cb : {self.model}_out.collision) {{
       runtime::CollisionBody body;
       body.purpose = cb.purpose;
@@ -796,6 +819,17 @@ class Pipeline:
       g->opening_cells = gs.hull.opening_cells;
       g->opening_kinds = gs.hull.opening_kinds;
       g->opening_widths = gs.hull.opening_widths;
+      for (size_t i = 0; i < gs.nature.regions.size(); ++i) {{
+        const auto &nr = gs.nature.regions[i];
+        runtime::Ground::Region x;
+        x.cells = nr.cells;
+        x.ground = nr.ground;
+        x.available = nr.available;
+        x.height = nr.height;
+        x.moisture = nr.moisture;
+        x.parcel = i < gs.nature_parcels.size() ? gs.nature_parcels[i] : 0u;
+        g->nature.push_back(std::move(x));
+      }}
       g->build_index();
       b->bytes += (g->span_lo.size() + g->span_hi.size() + g->cells.size()) * 4 + g->nav_vertices.size() * 4;
       b->ground = std::move(g);
@@ -917,6 +951,12 @@ class Pipeline:
         o.append(f"foundry_instance {self.C}_spawn(foundry_runtime *rt, const Params *params, const float transform[16]) {{\n"
                  "  if (!rt || !params || !valid(*params)) return FOUNDRY_NO_INSTANCE;\n"
                  "  return rt->world.spawn(&kType, params, transform);\n}\n\n")
+        if self.payload:
+            o.append(f"foundry_instance {self.C}_spawn_packed(foundry_runtime *rt, const Params *params, const float transform[16],\n"
+                     f"                                         const void *bytes, uint32_t size) {{\n"
+                     "  if (!rt || !params || !valid(*params) || (size && !bytes)) return FOUNDRY_NO_INSTANCE;\n"
+                     "  std::vector<uint8_t> payload(static_cast<const uint8_t *>(bytes), static_cast<const uint8_t *>(bytes) + size);\n"
+                     "  return rt->world.spawn(&kType, params, transform, &payload);\n}\n\n")
         if self.hull:
             o.append(f"foundry_instance {self.C}_spawn_hull(foundry_runtime *rt, const Params *params, const float transform[16],\n"
                      f"                                       const foundry_hull_cell *cells, uint32_t count) {{\n"
@@ -968,7 +1008,10 @@ class Pipeline:
         for i, p in enumerate(self.events):
             o.append(f"  out->{self.event_name(p)}_over = (bits & (1u << {i})) != 0;\n")
         o.append("  out->ready = (bits & runtime::World::kResultReady) != 0;\n  return FOUNDRY_OK;\n}\n\n")
-        o.append("}  // extern \"C\"\n")
+        o.append("}  // extern \"C\"\n\n")
+        # For the registry of pipelines by name (foundry_diag_spawn).
+        o.append(f"const runtime::PipelineType *pipeline_type_{self.name}() {{ return &kType; }}\n")
+        o.append(f"void pipeline_defaults_{self.name}(void *out) {{ {self.C}_default_params(static_cast<Params *>(out)); }}\n")
         return "".join(o)
 
     def is_array(self, sid, f):
@@ -1168,12 +1211,12 @@ class PlotterGen:
     def source(self, index_of):
         o = []
         o.append(f"// {self.name}: compiled from {self.src}.\n")
-        o.append(f"namespace {self.system} {{\nbool run(const channels::plot_v1_request &in, channels::plot_v1_result &out, std::string &error);\n}}\n\n")
+        o.append(f"namespace {self.system} {{\nbool run(const channels::plot_request &in, channels::plot_result &out, std::string &error);\n}}\n\n")
         o.append("namespace {\n\n")
-        o.append(f"const channels::plot_v1_config &config_{self.name}() {{\n  static const channels::plot_v1_config c = [] {{\n"
-                 "    channels::plot_v1_config g;\n")
+        o.append(f"const channels::plot_config &config_{self.name}() {{\n  static const channels::plot_config c = [] {{\n"
+                 "    channels::plot_config g;\n")
         body = []
-        self.value_cpp("plot_v1_config", self.config, "g", body, "    ")
+        self.value_cpp("plot_config", self.config, "g", body, "    ")
         o.extend(body)
         o.append("    return g;\n  }();\n  return c;\n}\n\n")
         for k in self.kinds:
@@ -1276,9 +1319,9 @@ def plotters_files(plotters):
          "#include <string>\n\n#include \"plotters_internal.h\"\n\n"]
     used = []
     for p in plotters:
-        if "plot_v1_config" not in used:
-            used.append("plot_v1_config")
-    c.append("#include \"channels/plot_v1_config.h\"\n\n")
+        if "plot_config" not in used:
+            used.append("plot_config")
+    c.append("#include \"channels/plot_config.h\"\n\n")
     c.append("namespace {\n\nuint32_t plot_hash(uint32_t x) {\n  x ^= x >> 16;\n  x *= 0x7feb352du;\n  x ^= x >> 15;\n"
              "  x *= 0x846ca68bu;\n  x ^= x >> 16;\n  return x;\n}\n\n}  // namespace\n\n")
     for i, p in enumerate(plotters):
@@ -1297,8 +1340,8 @@ def plotters_files(plotters):
 
 
 def fires_files(workspace):
-    """The fire configs (config/fire_v1_configs/), compiled in for the runtime's fire system."""
-    tdir = os.path.join(workspace, "config", "fire_v1_configs")
+    """The fire configs (config/fire_configs/), compiled in for the runtime's fire system."""
+    tdir = os.path.join(workspace, "config", "fire_configs")
     entries = []
     if os.path.isdir(tdir):
         for fn in sorted(os.listdir(tdir)):
@@ -1308,11 +1351,11 @@ def fires_files(workspace):
     entries.sort(key=lambda v: v["id"])
     ids = [v["id"] for v in entries]
     if len(set(ids)) != len(ids):
-        sys.exit("config/fire_v1_configs: two fires share an id")
+        sys.exit("config/fire_configs: two fires share an id")
     kinds = {"flame": 0, "ember": 1, "spirit": 2}
-    h = (banner("config/fire_v1_configs") + "// The fire configs compiled in (design/submit.md, \"Fire\").\n#pragma once\n\n#include <vector>\n\n"
+    h = (banner("config/fire_configs") + "// The fire configs compiled in (design/submit.md, \"Fire\").\n#pragma once\n\n#include <vector>\n\n"
          "#include \"fire/fire.h\"\n\nnamespace fires {\nconst std::vector<runtime::fire::Config> &configs();\nconst char *const *names();\n}  // namespace fires\n")
-    c = [banner("config/fire_v1_configs"), "#include \"fires.h\"\n\nnamespace fires {\n\nconst std::vector<runtime::fire::Config> &configs() {\n",
+    c = [banner("config/fire_configs"), "#include \"fires.h\"\n\nnamespace fires {\n\nconst std::vector<runtime::fire::Config> &configs() {\n",
          "  static const std::vector<runtime::fire::Config> c = [] {\n    std::vector<runtime::fire::Config> v;\n"]
     def v3(x):
         return ", ".join(f32(a) for a in x)
@@ -1345,8 +1388,8 @@ def main():
                 for fn in sorted(os.listdir(pdir2)) if fn.endswith(".json")] if os.path.isdir(pdir2) else []
     files = {}
     for p in pipelines:
-        files[os.path.join(LIBRARY, f"{p.name}.h")] = p.header()
-        files[os.path.join(LIBRARY, f"{p.name}.cpp")] = p.executor()
+        files[os.path.join(LIBRARY, f"pipeline_{p.name}.h")] = p.header()
+        files[os.path.join(LIBRARY, f"pipeline_{p.name}.cpp")] = p.executor()
         files[os.path.join(STRESS, f"stress_{p.name}.c")] = p.stress()
     # A region run per plotter (design/quality.perf.md, "Regions").
     for p in plotters:
@@ -1366,6 +1409,19 @@ def main():
     ph, pc = plotters_files(plotters)
     files[os.path.join(LIBRARY, "plotters.h")] = ph
     files[os.path.join(LIBRARY, "plotters.cpp")] = pc
+    # Every pipeline by name: its type and default parameters (foundry_diag_spawn).
+    reg = [banner("the workspace's pipelines/"),
+           "// Every pipeline by name, for spawning by name (runtime_diag.h, foundry_diag_spawn).\n"
+           "#include <cstring>\n\n#include \"pipelines_internal.h\"\n\n"]
+    for p in pipelines:
+        reg.append(f"const runtime::PipelineType *pipeline_type_{p.name}();\nvoid pipeline_defaults_{p.name}(void *out);\n")
+    reg.append("\nnamespace pipelines {\n\nnamespace {\nconst Entry kEntries[] = {\n")
+    for p in pipelines:
+        reg.append(f"    {{{c_string(p.name)}, pipeline_type_{p.name}, pipeline_defaults_{p.name}}},\n")
+    reg.append("};\n}  // namespace\n\nconst Entry *find(const char *name) {\n"
+               "  for (const Entry &e : kEntries)\n    if (name && std::strcmp(e.name, name) == 0) return &e;\n"
+               "  return nullptr;\n}\n\n}  // namespace pipelines\n")
+    files[os.path.join(LIBRARY, "pipelines.cpp")] = "".join(reg)
     with open(os.path.join(LIBRARY, "foundry.h")) as f:
         core = f.read()
     with open(os.path.join(LIBRARY, "region.h")) as f:
@@ -1380,7 +1436,7 @@ def main():
                  " * the fragments in src/library/: foundry.h, region.h, sky.h, fire.h, ground.h, each pipeline by name, then the plotters. Do not edit. */\n"
                  "#pragma once\n\n", core]
     for p in pipelines:
-        runtime_h.append("\n" + files[os.path.join(LIBRARY, f"{p.name}.h")])
+        runtime_h.append("\n" + files[os.path.join(LIBRARY, f"pipeline_{p.name}.h")])
     runtime_h.append("\n" + ph)
     files[os.path.join(LIBRARY, "runtime.h")] = "".join(runtime_h)
     stale = []

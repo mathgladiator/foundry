@@ -1,0 +1,8 @@
+{
+  "kind": "channel",
+  "name": "flower_spec",
+  "state": "draft",
+  "reason": "The input to flower_grow: the game's request plus the runtime's seed and level of detail. Flowers have seasons but no age: a clump is always mature.",
+  "notes": [],
+  "created_at": "2026-10-12T09:00:00Z"
+}

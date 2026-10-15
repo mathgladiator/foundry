@@ -9,7 +9,7 @@ This document describes how the source tree is organized. The host, runtime, and
 | `src/host/$namespace/` | C++ | The foundry application: one directory per vertical slice | No |
 | `src/runtime/$namespace/` | C++ | The engine for dynamic content, including the mega shader | Yes |
 | `src/library/` | C headers, C++ implementation | The game-facing C API: `runtime.h` and its fragments | Yes |
-| `src/systems/$name_$version/` | C++ | One runtime system version, such as `tree_rig_v1`. Static assets are transforms in the host instead (`design/transforms.md`) | Yes, merged into the runtime |
+| `src/systems/$name_$version/` | C++ | One runtime system version, such as `tree_rig`. Static assets are transforms in the host instead (`design/transforms.md`) | Yes, merged into the runtime |
 | `src/channels/` | JSON | Channel schemas: the contracts between runtime systems. The generator turns each into C++ under `src/generated/` | Yes, as generated code |
 | `src/common/` | C++ | Small header-only libraries shared by systems, starting with `boundary.h` | Yes |
 | `src/tools/$tool/` | C++ with a C header | Tools built against the runtime the way a game is, starting with the stress platform (`design/quality.perf.md`) | No |
@@ -34,7 +34,7 @@ The source tree and a project's data are separate. The foundry runs against a **
 |---|---|
 | `foundry.json` | The workspace's configuration: the MCP address, the Meshy keys file, and the Meshy credit budget |
 | `pipelines/`, `conformance/` | Pipeline descriptions and conformance shapes |
-| `config/` | Config tables: named records of one channel that a pipeline picks from by name, such as `tree_v1_genomes/oak.json` (a `tree_v1_genome` value plus state and notes) beside the table's `table.json` (`design/flow.md`, "Config") |
+| `config/` | Config tables: named records of one channel that a pipeline picks from by name, such as `tree_genomes/oak.json` (a `tree_genome` value plus state and notes) beside the table's `table.json` (`design/flow.md`, "Config") |
 | `reference/` | Reference photos (public domain or CC0) with provenance sidecars, which config entries link to and the viewport shows in its corner (`design/flow.md`, "Reference") |
 | `meshy/` | The Meshy scratch pad (`<name>_concept`, `<name>_mesh`) and the credit ledger |
 | `fixed/` | Stamped fixed assets |
@@ -60,7 +60,7 @@ The slices so far:
 | `wasm` | Runs system modules in Wasmtime: a fresh sandboxed instance per run, with fuel and memory limits |
 | `forge` | The system lifecycle: create, write source, build (WebAssembly and native), run, and compare native output with WebAssembly output |
 | `workspace` | The workspace model: items, manifests, approval state, notes, and selection |
-| `viewport` | The viewport's renderers and image encoding: on the GPU (`gpu.h`, `shaders/viewport.hlsl`) when the foundry has a window, and in software (`raster.h`) headless; both share the framing, the overlays, and the game's look (`look_get`, `look_set`) |
+| `viewport` | The viewport's renderers and image encoding: on the GPU (`gpu.h`, `shaders/viewport.hlsl`) when the foundry has a window, and in software (`raster.h`) headless; both share the framing, the overlays, and the game's look (`look_get`, `look_set`); `record.h` reads a view's frames back off the GPU into an H.264 video through ffmpeg |
 | `assets` | The asset-pipeline transforms (`design/transforms.md`): GLB import, sizing and the hull estimator, the progressive mesh, LOD recommendation by image error, vertex-cache optimization (meshoptimizer), the foundry mesh file format, Meshy mesh items, stamping, and fracture (`fracture.h`: Voronoi cuts of LOD1 with capped faces and a baked rigid-body break; `fracture_item.h`: the `fracture:<name>` item beside a fixed asset) |
 | `meshy` | The Meshy client, with the credit budget and ledger |
 | `app` | The entry point, the Dear ImGui workspace UI, window capture, and the viewport's controls (`controls.h`: the gamepad, panning, and the play test) |
@@ -68,6 +68,7 @@ The slices so far:
 | `physics` | The foundry's toy Jolt Physics world (`toy.h`): checks a build's collision (Jolt makes its shapes, the world adds and removes them, they stay inside the conformance) and turns it into wireframe lines for the viewport; and the play test's walker (`walker.h`: the hero's capsule on Jolt's character controller, in a world a runtime can fill as a game's) |
 | `sky` | Observatories (`design/observatory.md`): loading them, each one's state (and playing its day), which observatory each viewer is under, the sundial, and their MCP tools |
 | `plot` | Plotters (`plotter.h`: load, check, measure footprints, compile the biome config), the region the workspace shows (`view.h`: its ground, occupants, growth, clearing, and composed picture), the same region live in the native runtime (`live.h`: the host links `src/library`, finds the plotter by name, and draws it on the workspace's GPU), and their MCP tools |
+| `map` | Maps (design/map.md): the file and its operations, running the macro plan, cutting chunks, the atlas (`map.h`), the view (`view.h`: the plan cached, settlements, the atlas in the background), the map live in the native runtime (`live.h`: streaming chunks, nature, sites round the camera), camera tours for its videos (`tour.h`), and their MCP tools |
 | `plan` | Planners (`planner.h`: load, measure lots from a building pipeline's footprints, compile the settlement config), the plan the workspace shows (`view.h`: planning in the background, the composed picture with its preview fill, stand-ins, outlines, and navigation mesh, and the report), and their MCP tools |
 | `pipeline` | Runs pipelines in WebAssembly: parameter bindings, a cache of each stage's output keyed by system build and input, the live instance the workspace shows (its clock and background rebuilds), CPU skinning for the viewport, contact sheets, config tables (`config.h`: generic; no pipeline is known to the host), and the flow analysis and probe (`flow.h`) |
 
@@ -107,7 +108,7 @@ So far it holds:
 - `src/runtime/shaders/skinned.hlsl` and `src/runtime/render/skinned_renderer.*`: skinned, instanced drawing, with each instance's bones in a slot of a persistent storage buffer, the changed ones scattered there by a compute pass (`src/runtime/shaders/scatter.hlsl`).
 - `src/runtime/render/simplify.*`: the far level of detail, a build's coarsest mesh clustered on a grid.
 - `src/runtime/sky/` and `src/runtime/render/sky_renderer.*`: the sky (`design/observatory.md`): the sun, moons, stars, air, clouds, and aurora computed from an observatory and its state; the star chart, cloud map, and shadow map; and the sky pass (`src/runtime/shaders/sky.hlsl`). `src/runtime/shaders/light.hlsli` is the mega shader's light, shared by every mesh shader (and the foundry's viewport).
-- `src/runtime/fire/`, `src/runtime/render/fire_renderer.*`, and `src/runtime/shaders/fire.hlsl`: the fire system (`design/submit.md`, "Fire"): buildings' fire points as emitters, a CPU particle system (flames, sparks, glows, smoke drifting with the world's wind), sprites drawn after everything solid, and the nearest fires' light (`light.hlsli`'s `fire_light`). Its configs are the runtime's, like an observatory: `config/fire_v1_configs/` is compiled into `src/library/fires.cpp` (generated by `tools/gen_pipelines.py`), and the foundry's views read the same table (`assets/view.cpp`). `src/library/fire.h` is its API fragment.
+- `src/runtime/fire/`, `src/runtime/render/fire_renderer.*`, and `src/runtime/shaders/fire.hlsl`: the fire system (`design/submit.md`, "Fire"): buildings' fire points as emitters, a CPU particle system (flames, sparks, glows, smoke drifting with the world's wind), sprites drawn after everything solid, and the nearest fires' light (`light.hlsli`'s `fire_light`). Its configs are the runtime's, like an observatory: `config/fire_configs/` is compiled into `src/library/fires.cpp` (generated by `tools/gen_pipelines.py`), and the foundry's views read the same table (`assets/view.cpp`). `src/library/fire.h` is its API fragment.
 - `src/runtime/render/terrain_renderer.*` and `src/runtime/shaders/terrain.hlsl`: terrains (`design/boundary.md`, "Levels"; a pipeline's `draw.terrain`): each terrain build's quadtree uploaded once (vertices with their morph, triangles, every node's image in one atlas); each frame the World picks each terrain instance's cut by distance (`World::prepare_terrains`) and the shader morphs, textures, and lights its nodes. `src/host/pipeline/terrain.*` flattens one cut into a vertex-coloured mesh for the foundry's views. Region hulls and plotter boundaries are in `src/library/region.cpp`.
 - A built instance's ground and figures (`design/terrain.md`; `design/boundary.md`, "Figures"): a build keeps a terrain's ground (`runtime::Ground`, from `draw.ground`) and a boundary's figures (`runtime::Figure`, from `draw.figures`), which `src/library/ground.h` and `ground.cpp` hand the game (`World::built`). `foundry_region_spawn_figures` (in `region.cpp`) fills a plotter's boundary figures with its compiled figure spawner. In the host, `src/host/pipeline/compose.*` composes what a pipeline's draw asks for round its model (a plotter over its open land, a surround such as a boundary, figures filled with builds) for the view and `pipeline_view`; the plotter fill grows through `src/host/plot/grow.*`, injected at startup so the pipeline slice knows no plotter.
 - `src/runtime/render/field_renderer.*` and `src/runtime/shaders/field.hlsl`: fields' tiles (`design/plotter.md`, "Fields"), instanced, turned, tinted, and swayed by the wind in the vertex shader.
@@ -146,7 +147,7 @@ Systems are private details of the runtime. A game never sees a system: the API 
 
 ### Isolation with git
 
-Work must never leak into previously approved systems. Each system's manifest records whether it is final, and a check compares the changes in git against those manifests: any change to a file inside a final system's directory fails. The check runs as a pre-commit hook and in the build, so a batch of agent changes can be reviewed with confidence that approved systems are untouched.
+Systems change in place (decided 2026-10-14; `design/spine.md`, "Changing in place"): there are no final systems and no fork check. Git keeps the history; review a batch of agent changes by its diff and the summary that lists them.
 
 ## Build layout
 

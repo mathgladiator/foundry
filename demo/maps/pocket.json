@@ -1,0 +1,50 @@
+{
+  "biome": "temperate",
+  "chunk_size": 64,
+  "doc": "",
+  "links": [],
+  "name": "pocket",
+  "parcels": [
+    {
+      "hill_size": 120,
+      "kind": "hills",
+      "name": "heartland",
+      "plotter": "happy_glen",
+      "q": 0,
+      "r": 0,
+      "relief": 12,
+      "woods": 0.4
+    },
+    {
+      "height": 3,
+      "kind": "lake",
+      "name": "tarn",
+      "q": 40,
+      "r": 30,
+      "reach": -30
+    }
+  ],
+  "rivers": [],
+  "seed": 1,
+  "shape": {
+    "corners": [],
+    "depth": 100,
+    "kind": "hexagon",
+    "name": "pocket",
+    "notch": 40,
+    "openings": [],
+    "radius": 120,
+    "rotation": 0,
+    "seed": 7,
+    "sides": [
+      {
+        "edge": "forest",
+        "height": 4,
+        "rise": 0.5
+      }
+    ],
+    "width": 100,
+    "wobble": 18
+  },
+  "sites": []
+}

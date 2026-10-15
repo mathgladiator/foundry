@@ -1,0 +1,63 @@
+{
+  "channel": "rock_material",
+  "doc": "Rock materials for rock: each entry is one material, everything that makes granite granite, including how it breaks. The pipeline's material parameter picks one by name; the native runtime compiles every entry in (tools/gen_pipelines.py), so the game sees only the names.",
+  "label": "material",
+  "editor": {
+    "groups": [
+      {
+        "label": "Identity",
+        "fields": [
+          "name",
+          "kind"
+        ]
+      },
+      {
+        "label": "Shape",
+        "fields": [
+          "facets",
+          "roundness",
+          "elongation",
+          "flatness",
+          "roughness",
+          "relief_scale"
+        ]
+      },
+      {
+        "label": "Breaking",
+        "fields": [
+          "fracture",
+          "pieces",
+          "grain",
+          "grain_strength",
+          "density"
+        ]
+      },
+      {
+        "label": "Surface",
+        "fields": [
+          "pattern",
+          "pattern_scale",
+          "color_light",
+          "color_dark",
+          "accent",
+          "fresh"
+        ]
+      },
+      {
+        "label": "Weather",
+        "fields": [
+          "lichen",
+          "moss_color",
+          "snow"
+        ]
+      }
+    ],
+    "colors": [
+      "color_light",
+      "color_dark",
+      "accent",
+      "fresh",
+      "moss_color"
+    ]
+  }
+}

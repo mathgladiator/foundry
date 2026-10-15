@@ -14,7 +14,7 @@ The stress tool has three layers:
 | The binding | `src/generated/stress/stress_$pipeline.c` | Generated from the pipeline JSON: a table of the pipeline's parameters, plus thunks that turn generic values into calls on the pipeline's typed C API. It has no logic. |
 | The plan | JSON, passed on the command line | Which phases to run, for how long, at what sizes, with which parameters pinned or narrowed, and the pass thresholds. |
 
-**Why not a single tool driven purely by JSON?** The game-facing API is typed per pipeline (`api.md`): `foundry_tree_v1_spawn` takes a `foundry_tree_v1_params`, and each parameter has its own setter. A generic tool can't call typed functions without a table that says how, and that table is exactly what the generated binding is. So the binding is compiled and mechanical, and everything else is data:
+**Why not a single tool driven purely by JSON?** The game-facing API is typed per pipeline (`api.md`): `foundry_tree_spawn` takes a `foundry_tree_params`, and each parameter has its own setter. A generic tool can't call typed functions without a table that says how, and that table is exactly what the generated binding is. So the binding is compiled and mechanical, and everything else is data:
 
 - **Each pipeline gets a stress binary.** It is generated, never written by hand.
 - **The plan says what to do.** The binary is fed a JSON plan, so the agent or a cloud runner can vary the test without rebuilding anything.
@@ -25,10 +25,10 @@ A binary can hold several bindings. A later scene might mix forests with rocks, 
 
 ### The generated binding
 
-For `pipelines/tree_v1.json`, the generator writes:
+For `pipelines/tree.json`, the generator writes:
 
 ```c
-/* Generated from pipelines/tree_v1.json by tools/gen_pipelines.py. Do not edit. */
+/* Generated from pipelines/tree.json by tools/gen_pipelines.py. Do not edit. */
 #include "runtime.h"
 #include "runtime_diag.h"
 #include "stress.h"
@@ -50,19 +50,19 @@ static const stress_param params[] = {
 };
 
 static foundry_instance spawn(foundry_runtime *rt, const stress_value *v, const float transform[16]) {
-    foundry_tree_v1_params p = {
-        .species = (foundry_tree_v1_species)v[0].u,
-        .age = (foundry_tree_v1_age)v[1].u,
+    foundry_tree_params p = {
+        .species = (foundry_tree_species)v[0].u,
+        .age = (foundry_tree_age)v[1].u,
         .seed = v[2].u,
         .wind_speed = v[3].f,
         /* ... */
     };
-    return foundry_tree_v1_spawn(rt, &p, transform);
+    return foundry_tree_spawn(rt, &p, transform);
 }
 
 static foundry_status set(foundry_runtime *rt, foundry_instance i, int param, const stress_value *v) {
     switch (param) {
-    case 3: return foundry_tree_v1_set_wind_speed(rt, i, v->f);
+    case 3: return foundry_tree_set_wind_speed(rt, i, v->f);
     /* ... one case per settable parameter ... */
     }
     return FOUNDRY_STATUS_BAD_PARAMETER;
@@ -70,15 +70,15 @@ static foundry_status set(foundry_runtime *rt, foundry_instance i, int param, co
 
 static foundry_status trigger(foundry_runtime *rt, foundry_instance i, int param) {
     switch (param) {
-    case 5: return foundry_tree_v1_start_break(rt, i);
+    case 5: return foundry_tree_start_break(rt, i);
     }
     return FOUNDRY_STATUS_BAD_PARAMETER;
 }
 
-static const stress_pipeline tree_v1 = {"tree_v1", params, 11, spawn, set, trigger};
+static const stress_pipeline tree = {"tree", params, 11, spawn, set, trigger};
 
 int main(int argc, char **argv) {
-    return stress_main(argc, argv, &tree_v1, 1);
+    return stress_main(argc, argv, &tree, 1);
 }
 ```
 
@@ -87,20 +87,20 @@ The binding needs the following from the pipeline format and the generated API:
 - **Parameter kinds.** Each kind maps one-to-one onto a pipeline parameter type:
   - enums, genomes, and numbers are values;
   - the `time` parameter is the instance's clock (`STRESS_CLOCK`), which the runtime advances on its own;
-  - an `event` parameter is an event clock (`STRESS_EVENT`), negative until the game starts it, such as `break_time`. The API names its trigger after the parameter without `_time`: `foundry_tree_v1_start_break`.
+  - an `event` parameter is an event clock (`STRESS_EVENT`), negative until the game starts it, such as `break_time`. The API names its trigger after the parameter without `_time`: `foundry_tree_start_break`.
 - **Build or update.** Each parameter is marked as one or the other, using the same rule as the live instance in the foundry. A parameter is "update" when only `"phase": "update"` stages read it. The forest phase depends on this split.
-- **Genomes become enums.** A flattened runtime compiles each pipeline's approved genomes in, and the API names them as an enum (`FOUNDRY_TREE_V1_SPECIES_OAK`). So the stress tool treats a genome exactly like any other enum.
+- **Genomes become enums.** A flattened runtime compiles each pipeline's approved genomes in, and the API names them as an enum (`FOUNDRY_TREE_SPECIES_OAK`). So the stress tool treats a genome exactly like any other enum.
 
 ## The binary
 
 ```sh
-stress_tree_v1 --describe                       # the parameter table and defaults, as JSON
-stress_tree_v1 --plan quick                     # run a preset; writes perf/report-tree_v1-<timestamp>.json
-stress_tree_v1 --plan quick --phase forest --seconds 20   # narrow a plan from the command line
-stress_tree_v1 --plan quick --no-report --snapshot run    # keep it out of the timeline; save a PNG per step
-stress_tree_v1 --plan quick --sample configs.json         # the configs diversity draws, for the reference
-stress_tree_v1 --plan quick --reference reference.json    # compare them with WebAssembly
-stress_tree_v1 --replay perf/runs/<run>/journal.jsonl --until 18342   # rerun a recorded run up to one action
+stress_tree --describe                       # the parameter table and defaults, as JSON
+stress_tree --plan quick                     # run a preset; writes perf/report-tree-<timestamp>.json
+stress_tree --plan quick --phase forest --seconds 20   # narrow a plan from the command line
+stress_tree --plan quick --no-report --snapshot run    # keep it out of the timeline; save a PNG per step
+stress_tree --plan quick --sample configs.json         # the configs diversity draws, for the reference
+stress_tree --plan quick --reference reference.json    # compare them with WebAssembly
+stress_tree --replay perf/runs/<run>/journal.jsonl --until 18342   # rerun a recorded run up to one action
 ```
 
 Exit codes:
@@ -185,7 +185,7 @@ Text is drawn with `stb_truetype` in Roboto, from Dear ImGui's fonts. Videos lan
 
 ```json
 {
-  "pipeline": "tree_v1",
+  "pipeline": "tree",
   "seed": 7,
   "quality": "high",
   "gpu": "auto",
@@ -338,7 +338,7 @@ The stress tool needs counters that a game doesn't, and some of them name things
 |---|---|
 | `foundry_diag_counters_get` | Instances (all, awake, waiting for a build, failed); cache entries, pending builds, CPU and GPU bytes, hits, misses, evictions; generations and failures; GPU buffers created and released, and GPU bytes; the last frame's draws, drawn and culled instances, and triangles |
 | `foundry_diag_frame_get` | The last frame's CPU time in update, prepare (culling, gathering bones, uploads), and draw |
-| `foundry_diag_stages` | Per pipeline stage (`tree_v1.rig`): calls, total and worst time |
+| `foundry_diag_stages` | Per pipeline stage (`tree.rig`): calls, total and worst time |
 | `foundry_diag_instance_get` | One instance: ready, asleep, settled, failed and why (a system's error, or a failed geometry check), triangles, bones, bounds |
 | `foundry_diag_hash` | Hashes of an instance's draw output and of its pose (live, or at given clocks), packed with the generated packers so they compare directly with WebAssembly |
 | `foundry_diag_bad_poses` | Instances whose pose has a non-finite matrix or a bone far outside its bounds |
@@ -346,7 +346,7 @@ The stress tool needs counters that a game doesn't, and some of them name things
 
 The runtime doesn't count its own allocations: the heap in use is read from the allocator instead, which also catches leaks outside the runtime.
 
-Stage labels such as `tree_v1.rig` appear only in diagnostics. That keeps the API rule (no system escapes the runtime) intact for games.
+Stage labels such as `tree.rig` appear only in diagnostics. That keeps the API rule (no system escapes the runtime) intact for games.
 
 ## Reference hashes
 
@@ -355,7 +355,7 @@ Stage labels such as `tree_v1.rig` appear only in diagnostics. That keeps the AP
 2. **Reference.** The foundry runs them through the WebAssembly pipeline (the same `Runner` as `pipeline_view`) and writes `reference.json`. It holds, for each config, the draw output's hash and the pose hash at the plan's fixed times.
 3. **Compare.** The diversity phase compares against that file.
 
-The foundry's stage cache keeps a rerun cheap when only the host changed. `perf_stress` builds the reference on every run unless told not to (`reference: false`); for `tree_v1`, hashing 100 configs at three clocks each takes a few seconds.
+The foundry's stage cache keeps a rerun cheap when only the host changed. `perf_stress` builds the reference on every run unless told not to (`reference: false`); for `tree`, hashing 100 configs at three clocks each takes a few seconds.
 
 This is the pipeline-wide version of the per-system `verify_native` check. It runs on the merged runtime, with its own scheduler, threads, and cache in the path, rather than on a single system's runner.
 
@@ -370,12 +370,12 @@ The shipping runtime contains only final pipelines. Stress and development build
 Each run writes a report to the workspace, at `perf/report-$pipeline-$timestamp.json` (the timestamp in UTC, `20261011T153000Z`), and prints a short summary that an agent can read at a glance:
 
 ```
-stress_tree_v1 (draft)  plan quick  seed 7  linux  AMD Ryzen 9 7950X  RTX 4070 (Vulkan)  build 3f2a91c
+stress_tree (draft)  plan quick  seed 7  linux  AMD Ryzen 9 7950X  RTX 4070 (Vulkan)  build 3f2a91c
 diversity  100 configs  30 s     PASS  native = wasm 100/100  gen p50 4.1 ms p99 11.8 ms (ebony ancient high)
 forest     10 sets  100..1600    PASS  budget 16.7 ms holds to 1600 (p95 14.2 ms)  generations 30/30  hits 99.8%
 events     break_time  100       PASS  spike 3.9 ms over 2.1 ms  all settled in 7.4 s  memory back within 0.4 MB
 soak       5 min  x100           PASS  RSS 212 -> 214 MB  slope +0.6 MB/h (limit 4)  drains 5/5 within 1.1 MB
-vs report-tree_v1-20261010T221500Z: forest p95 at 1600 -12%, events spike +4%, generation p50 -30%
+vs report-tree-20261010T221500Z: forest p95 at 1600 -12%, events spike +4%, generation p50 -30%
 ```
 
 A report holds:
@@ -433,7 +433,7 @@ The intended loop: the agent changes a system, plays it in the foundry, runs `qu
 
 The stress binary drives the native runtime, so the runtime has to exist. In order:
 
-1. **The native executor.** For each pipeline, generated C++ that calls each stage's system directly (`tree_rig_v1::run`) with channel structures, binding inputs exactly as `stages` says. This is the same binding logic as the foundry's `Runner`, compiled instead of interpreted. There are no packers on this path.
+1. **The native executor.** For each pipeline, generated C++ that calls each stage's system directly (`tree_rig::run`) with channel structures, binding inputs exactly as `stages` says. This is the same binding logic as the foundry's `Runner`, compiled instead of interpreted. There are no packers on this path.
 2. **The runtime core** (`src/runtime/core/`). Instances with handles, their timelines, the cache (keyed by the build parameters, reference counted, released on a timer, with a budget for unused builds), generation on background threads with the old build drawn until the new one is ready, the update broadcast across a thread pool, sleep when every update stage votes for it, frustum culling, and submission through a skinned, instanced renderer (`src/runtime/render/skinned_renderer`, `skinned.hlsl`): one draw per distinct build, bones in a storage buffer where each instance keeps a slot and only changed poses are uploaded (`scatter.hlsl`), with the cost decisions of `submit.md`, "Cost". The stress tool needs only what a tree needs: no shadows or transparency.
 3. **The API.** The general fragment (`foundry.h`: runtime, instances, update, prepare, draw, camera, quality), plus each pipeline's generated fragment, assembled into `runtime.h`. A frame is three calls rather than `api.md`'s single `foundry_frame`, because uploads must be recorded before the game's render pass begins.
 4. **Diagnostics.** `runtime_diag.h`.

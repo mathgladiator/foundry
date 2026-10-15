@@ -1,8 +1,0 @@
-{
-  "kind": "channel",
-  "name": "rock_v1_model",
-  "state": "draft",
-  "reason": "The rock's drawable output, following the draw convention (positions, indices, normals, colors, bone_a/b/w) so the host and runtime draw it without knowing rocks. The whole rock and its pieces live in one mesh, switched by the pose, so breaking never rebuilds.",
-  "notes": [],
-  "created_at": "2026-10-12T08:00:00Z"
-}

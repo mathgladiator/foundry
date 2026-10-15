@@ -1,0 +1,493 @@
+{
+ "build": {
+  "commit": "6784438+dirty",
+  "dt": 0.016666666666666666,
+  "gpu": "rendered off screen",
+  "resolution": [
+   1920,
+   1080
+  ]
+ },
+ "compared_with": "report-bush-20261012T071732Z",
+ "failures": [],
+ "finished": "2026-10-13T00:31:44Z",
+ "machine": {
+  "cores": 32,
+  "cpu": "AMD RYZEN AI MAX+ 395 w/ Radeon 8060S",
+  "fingerprint": "deb7535b5a90a4bb",
+  "gpu": "Radeon 8060S Graphics (RADV GFX1151)",
+  "gpu_driver": "vulkan",
+  "memory_gb": 125.0,
+  "os": "Linux 6.18.44+rex+5-amd64"
+ },
+ "pass": true,
+ "phases": [
+  {
+   "data": {
+    "configs": 100,
+    "deterministic": {
+     "of": 20,
+     "same": 20
+    },
+    "failed": 0,
+    "frames": {
+     "draw_ms": {
+      "max": 0.099,
+      "mean": 0.023,
+      "n": 1200,
+      "p50": 0.024,
+      "p95": 0.032,
+      "p99": 0.038
+     },
+     "gpu_wait_ms": {
+      "max": 0.175,
+      "mean": 0.003,
+      "n": 1200,
+      "p50": 0.002,
+      "p95": 0.004,
+      "p99": 0.014
+     },
+     "prepare_ms": {
+      "max": 0.968,
+      "mean": 0.024,
+      "n": 1200,
+      "p50": 0.013,
+      "p95": 0.069,
+      "p99": 0.221
+     },
+     "total_ms": {
+      "max": 1.437,
+      "mean": 0.185,
+      "n": 1200,
+      "p50": 0.17,
+      "p95": 0.262,
+      "p99": 0.442
+     },
+     "update_ms": {
+      "max": 0.418,
+      "mean": 0.118,
+      "n": 1200,
+      "p50": 0.114,
+      "p95": 0.169,
+      "p99": 0.181
+     }
+    },
+    "generation_ms": {
+     "max": 8.22,
+     "mean": 1.704,
+     "n": 100,
+     "p50": 1.321,
+     "p95": 3.708,
+     "p99": 6.421
+    },
+    "generation_worst": {
+     "age": "old",
+     "detail": "high",
+     "fruit": "true",
+     "gust_damping": 0.2983313500881195,
+     "season": "fall",
+     "seed": 548,
+     "species": "elderberry",
+     "wind_heading": 158.65304565429688,
+     "wind_speed": 13.863097190856934
+    },
+    "reference": {
+     "matched": 100,
+     "of": 100
+    },
+    "seconds": 20.0,
+    "stages": [
+     {
+      "calls": 35068,
+      "max_ms": 0.24758,
+      "mean_ms": 0.006424115261777081,
+      "stage": "bush.animate",
+      "update": true
+     },
+     {
+      "calls": 152,
+      "max_ms": 2.184667,
+      "mean_ms": 0.4063913157894737,
+      "stage": "bush.grow",
+      "update": false
+     }
+    ],
+    "threads": {
+     "of": 10,
+     "same": 10
+    },
+    "triangles": {
+     "max": 30344.0,
+     "mean": 6718.91,
+     "n": 100,
+     "p50": 3643.0,
+     "p95": 24464.0,
+     "p99": 26400.0
+    },
+    "unsettled": 0,
+    "wall_seconds": 0.2827228269577026
+   },
+   "kind": "diversity",
+   "pass": true,
+   "summary": "100 configs  20 s  PASS  native = wasm 100/100  gen p50 1.3 ms p99 6.4 ms (old high true fall elderberry)  frame p95 0.26 ms"
+  },
+  {
+   "data": {
+    "budget_ms": 16.666666666666668,
+    "camera": "overview",
+    "capacity": 800,
+    "capacity_is_lower_bound": true,
+    "capacity_p95_ms": 0.4686400890350342,
+    "expected_generations": 10,
+    "generations": 10,
+    "hit_rate": 0.9856711915535445,
+    "kb_per_instance": 6.026971428571435,
+    "ms_per_instance": 0.00033626086956521726,
+    "samples": [
+     {
+      "bodies": 100,
+      "cache_entries": 15,
+      "cache_gpu_mb": 3.1599655151367188,
+      "count": 100,
+      "culled": 0,
+      "detail_generations": 37,
+      "drawn": 100,
+      "draws": 14,
+      "frames": {
+       "draw_ms": {
+        "max": 0.009,
+        "mean": 0.004,
+        "n": 217,
+        "p50": 0.003,
+        "p95": 0.005,
+        "p99": 0.008
+       },
+       "gpu_frame_ms": {
+        "max": 0.337,
+        "mean": 0.315,
+        "n": 24,
+        "p50": 0.316,
+        "p95": 0.324,
+        "p99": 0.337
+       },
+       "gpu_wait_ms": {
+        "max": 0.152,
+        "mean": 0.027,
+        "n": 217,
+        "p50": 0.032,
+        "p95": 0.05,
+        "p99": 0.134
+       },
+       "prepare_ms": {
+        "max": 0.025,
+        "mean": 0.01,
+        "n": 217,
+        "p50": 0.011,
+        "p95": 0.013,
+        "p99": 0.024
+       },
+       "total_ms": {
+        "max": 0.352,
+        "mean": 0.156,
+        "n": 217,
+        "p50": 0.16,
+        "p95": 0.184,
+        "p99": 0.302
+       },
+       "update_ms": {
+        "max": 0.289,
+        "mean": 0.105,
+        "n": 217,
+        "p50": 0.102,
+        "p95": 0.116,
+        "p99": 0.243
+       }
+      },
+      "generations": 10,
+      "memory": {
+       "heap_mb": 55.27,
+       "hwm_mb": 103.85,
+       "private_dirty_mb": 49.31,
+       "rss_anon_mb": 49.31,
+       "rss_mb": 103.85
+      },
+      "p95_ms": 0.18445301055908203,
+      "triangles": 588018
+     },
+     {
+      "bodies": 200,
+      "cache_entries": 16,
+      "cache_gpu_mb": 3.2367897033691406,
+      "count": 200,
+      "culled": 0,
+      "detail_generations": 38,
+      "drawn": 200,
+      "draws": 14,
+      "frames": {
+       "draw_ms": {
+        "max": 0.013,
+        "mean": 0.004,
+        "n": 217,
+        "p50": 0.004,
+        "p95": 0.006,
+        "p99": 0.01
+       },
+       "gpu_frame_ms": {
+        "max": 0.488,
+        "mean": 0.456,
+        "n": 24,
+        "p50": 0.454,
+        "p95": 0.477,
+        "p99": 0.488
+       },
+       "gpu_wait_ms": {
+        "max": 0.132,
+        "mean": 0.025,
+        "n": 217,
+        "p50": 0.007,
+        "p95": 0.079,
+        "p99": 0.097
+       },
+       "prepare_ms": {
+        "max": 0.055,
+        "mean": 0.036,
+        "n": 217,
+        "p50": 0.036,
+        "p95": 0.043,
+        "p99": 0.048
+       },
+       "total_ms": {
+        "max": 0.308,
+        "mean": 0.227,
+        "n": 217,
+        "p50": 0.234,
+        "p95": 0.261,
+        "p99": 0.277
+       },
+       "update_ms": {
+        "max": 0.204,
+        "mean": 0.15,
+        "n": 217,
+        "p50": 0.156,
+        "p95": 0.187,
+        "p99": 0.201
+       }
+      },
+      "generations": 10,
+      "memory": {
+       "heap_mb": 56.09,
+       "hwm_mb": 104.09,
+       "private_dirty_mb": 49.55,
+       "rss_anon_mb": 49.55,
+       "rss_mb": 104.09
+      },
+      "p95_ms": 0.26125597953796387,
+      "triangles": 1010666
+     },
+     {
+      "bodies": 400,
+      "cache_entries": 19,
+      "cache_gpu_mb": 3.6507797241210938,
+      "count": 400,
+      "culled": 1,
+      "detail_generations": 41,
+      "drawn": 398,
+      "draws": 16,
+      "frames": {
+       "draw_ms": {
+        "max": 0.036,
+        "mean": 0.005,
+        "n": 217,
+        "p50": 0.004,
+        "p95": 0.01,
+        "p99": 0.017
+       },
+       "gpu_frame_ms": {
+        "max": 0.701,
+        "mean": 0.625,
+        "n": 24,
+        "p50": 0.626,
+        "p95": 0.669,
+        "p99": 0.701
+       },
+       "gpu_wait_ms": {
+        "max": 0.708,
+        "mean": 0.051,
+        "n": 217,
+        "p50": 0.049,
+        "p95": 0.126,
+        "p99": 0.157
+       },
+       "prepare_ms": {
+        "max": 0.15,
+        "mean": 0.071,
+        "n": 217,
+        "p50": 0.07,
+        "p95": 0.09,
+        "p99": 0.129
+       },
+       "total_ms": {
+        "max": 4.18,
+        "mean": 0.34,
+        "n": 217,
+        "p50": 0.329,
+        "p95": 0.398,
+        "p99": 0.532
+       },
+       "update_ms": {
+        "max": 3.907,
+        "mean": 0.197,
+        "n": 217,
+        "p50": 0.177,
+        "p95": 0.228,
+        "p99": 0.304
+       }
+      },
+      "generations": 10,
+      "memory": {
+       "heap_mb": 57.74,
+       "hwm_mb": 104.9,
+       "private_dirty_mb": 50.36,
+       "rss_anon_mb": 50.36,
+       "rss_mb": 104.9
+      },
+      "p95_ms": 0.3982090950012207,
+      "triangles": 1632681
+     },
+     {
+      "bodies": 800,
+      "cache_entries": 19,
+      "cache_gpu_mb": 3.6507797241210938,
+      "count": 800,
+      "culled": 8,
+      "detail_generations": 41,
+      "drawn": 726,
+      "draws": 13,
+      "frames": {
+       "draw_ms": {
+        "max": 0.024,
+        "mean": 0.005,
+        "n": 217,
+        "p50": 0.004,
+        "p95": 0.01,
+        "p99": 0.011
+       },
+       "gpu_frame_ms": {
+        "max": 0.831,
+        "mean": 0.793,
+        "n": 24,
+        "p50": 0.796,
+        "p95": 0.812,
+        "p99": 0.831
+       },
+       "gpu_wait_ms": {
+        "max": 0.135,
+        "mean": 0.04,
+        "n": 217,
+        "p50": 0.023,
+        "p95": 0.109,
+        "p99": 0.126
+       },
+       "prepare_ms": {
+        "max": 0.163,
+        "mean": 0.106,
+        "n": 217,
+        "p50": 0.105,
+        "p95": 0.122,
+        "p99": 0.149
+       },
+       "total_ms": {
+        "max": 0.575,
+        "mean": 0.408,
+        "n": 217,
+        "p50": 0.408,
+        "p95": 0.469,
+        "p99": 0.501
+       },
+       "update_ms": {
+        "max": 0.392,
+        "mean": 0.241,
+        "n": 217,
+        "p50": 0.235,
+        "p95": 0.283,
+        "p99": 0.306
+       }
+      },
+      "generations": 10,
+      "memory": {
+       "heap_mb": 61.01,
+       "hwm_mb": 107.97,
+       "private_dirty_mb": 53.44,
+       "rss_anon_mb": 53.44,
+       "rss_mb": 107.97
+      },
+      "p95_ms": 0.4686400890350342,
+      "triangles": 2352721
+     }
+    ],
+    "sets": 10,
+    "superlinear": false,
+    "wall_seconds": 0.38503854417800903
+   },
+   "kind": "forest",
+   "pass": true,
+   "summary": "10 sets  100..800  PASS  budget 16.7 ms holds to at least 800 (p95 0.5 ms)  generations 10/10  hits 98.6%"
+  },
+  {
+   "data": {
+    "wall_seconds": 3.0660629272460936e-06
+   },
+   "kind": "events",
+   "pass": true,
+   "summary": "no events"
+  }
+ ],
+ "pipeline": "bush",
+ "plan": {
+  "doc": "About a minute: the agent's default after a change (design/quality.perf.md).",
+  "name": "quick",
+  "phases": [
+   {
+    "configs": 100,
+    "kind": "diversity",
+    "seconds": 20
+   },
+   {
+    "counts": [
+     100,
+     200,
+     400,
+     800
+    ],
+    "kind": "forest",
+    "seconds": 4,
+    "sets": 10
+   },
+   {
+    "counts": [
+     100
+    ],
+    "kind": "events",
+    "seconds": 15,
+    "sets": 10
+   }
+  ],
+  "seed": 7
+ },
+ "plan_name": "quick",
+ "run_dir": "perf/runs/bush-20261013T003143Z",
+ "seed": 7,
+ "started": "2026-10-13T00:31:43Z",
+ "state": "draft",
+ "summary": [
+  "stress_bush (draft)  plan quick  seed 7  Linux 6.18.44+rex+5-amd64  AMD RYZEN AI MAX+ 395 w/ Radeon 8060S  Radeon 8060S Graphics (RADV GFX1151) (vulkan)  build 6784438+dirty",
+  "diversity  100 configs  20 s  PASS  native = wasm 100/100  gen p50 1.3 ms p99 6.4 ms (old high true fall elderberry)  frame p95 0.26 ms",
+  "forest     10 sets  100..800  PASS  budget 16.7 ms holds to at least 800 (p95 0.5 ms)  generations 10/10  hits 98.6%",
+  "events     no events",
+  "vs report-bush-20261012T071732Z: generation p50 -8%, diversity frame p95 -23%, forest p95 at 800 -56%, capacity +0%"
+ ],
+ "systems": [
+  "bush_grow",
+  "bush_animate"
+ ]
+}

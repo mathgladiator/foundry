@@ -1,8 +1,0 @@
-{
-  "kind": "channel",
-  "name": "bush_v1_bone",
-  "state": "draft",
-  "reason": "A shrub's wind bones cross from bush_grow_v1 to bush_animate_v1 inside the model and the motion.",
-  "notes": [],
-  "created_at": "2026-10-12T10:00:00Z"
-}

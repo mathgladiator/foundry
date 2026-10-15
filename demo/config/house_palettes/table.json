@@ -1,0 +1,73 @@
+{
+  "channel": "house_palette",
+  "doc": "Colour schemes for house: each entry mixes its colours over any type's, part by part (a mix of 0 keeps the type's colour). The pipeline's palette parameter picks one by name: a player's colour, or a village's theme.",
+  "label": "palette",
+  "editor": {
+    "groups": [
+      {
+        "label": "Identity",
+        "fields": [
+          "name"
+        ]
+      },
+      {
+        "label": "Roof",
+        "fields": [
+          "roof",
+          "roof_mix"
+        ]
+      },
+      {
+        "label": "Wall",
+        "fields": [
+          "wall",
+          "wall_mix"
+        ]
+      },
+      {
+        "label": "Trim",
+        "fields": [
+          "trim",
+          "trim_mix"
+        ]
+      },
+      {
+        "label": "Door",
+        "fields": [
+          "door",
+          "door_mix"
+        ]
+      },
+      {
+        "label": "Shutter",
+        "fields": [
+          "shutter",
+          "shutter_mix"
+        ]
+      },
+      {
+        "label": "Accent",
+        "fields": [
+          "accent",
+          "accent_mix"
+        ]
+      },
+      {
+        "label": "Sign",
+        "fields": [
+          "sign",
+          "sign_mix"
+        ]
+      }
+    ],
+    "colors": [
+      "roof",
+      "wall",
+      "trim",
+      "door",
+      "shutter",
+      "accent",
+      "sign"
+    ]
+  }
+}

@@ -1,0 +1,1698 @@
+{
+ "failures": [],
+ "headline": null,
+ "kind": "scale",
+ "ladder": [],
+ "looks": {},
+ "machine": {
+  "cores": 32,
+  "cpu": "AMD RYZEN AI MAX+ 395 w/ Radeon 8060S",
+  "fingerprint": "deb7535b5a90a4bb",
+  "gpu": "Radeon 8060S Graphics (RADV GFX1151)",
+  "gpu_driver": "vulkan",
+  "memory_gb": 125.0,
+  "os": "Linux 6.18.44+rex+5-amd64"
+ },
+ "most_trees": {
+  "fps": 79.3,
+  "frame_ms_p95": 14.985,
+  "grid": 64,
+  "instances": 0,
+  "next_grid_fps": 59.5,
+  "placements": 0,
+  "stopped_by": "frame rate",
+  "target_fps": 60.0,
+  "trees_visible": 0,
+  "vista": {
+   "fps": 76.6,
+   "frame_ms_p95": 15.455,
+   "instances": 0,
+   "trees_visible": 0
+  }
+ },
+ "pass": true,
+ "plotter": "happy_glen",
+ "settings": {
+  "fields": true,
+  "find_fps": 60.0,
+  "frames": 240,
+  "gpu": true,
+  "height": 1080,
+  "only_fields": true,
+  "preset": "glen",
+  "quality": "high",
+  "radius": 12,
+  "sizes": [
+   16,
+   32,
+   48,
+   64
+  ],
+  "width": 1920
+ },
+ "sizes": [
+  {
+   "bodies": 0,
+   "builds": 21,
+   "cameras": {
+    "game": {
+     "animated": 0,
+     "awake": 0,
+     "bones_uploaded": 0,
+     "builds": 21,
+     "by_level": [
+      0,
+      0,
+      0
+     ],
+     "by_pipeline": {
+      "bush": {
+       "triangles": 0,
+       "visible": 0
+      },
+      "flower": {
+       "triangles": 0,
+       "visible": 0
+      },
+      "rock": {
+       "triangles": 0,
+       "visible": 0
+      },
+      "tree": {
+       "triangles": 0,
+       "visible": 0
+      }
+     },
+     "culled": 0,
+     "draw_ms": {
+      "max": 0.079,
+      "mean": 0.017,
+      "n": 216,
+      "p50": 0.015,
+      "p95": 0.036,
+      "p99": 0.048
+     },
+     "drawn": 0,
+     "draws": 0,
+     "field_tiles": 29455,
+     "field_tiles_by_level": [
+      155,
+      318,
+      28982,
+      0
+     ],
+     "fps": 1731.9,
+     "fps_at_p95": 1290.3,
+     "frame_ms": {
+      "max": 0.897,
+      "mean": 0.577,
+      "n": 216,
+      "p50": 0.614,
+      "p95": 0.775,
+      "p99": 0.836
+     },
+     "gpu_frame_ms": {
+      "max": 1.121,
+      "mean": 0.937,
+      "n": 24,
+      "p50": 0.934,
+      "p95": 1.115,
+      "p99": 1.121
+     },
+     "gpu_wait_ms": {
+      "max": 0.661,
+      "mean": 0.25,
+      "n": 216,
+      "p50": 0.288,
+      "p95": 0.454,
+      "p99": 0.604
+     },
+     "instances": 256,
+     "not_animated_rate": 0,
+     "not_animated_unseen": 0,
+     "prepare_ms": {
+      "max": 0.463,
+      "mean": 0.27,
+      "n": 216,
+      "p50": 0.279,
+      "p95": 0.32,
+      "p99": 0.351
+     },
+     "too_small": 0,
+     "trees_visible": 0,
+     "triangles": 1334204,
+     "update_ms": {
+      "max": 0.052,
+      "mean": 0.004,
+      "n": 216,
+      "p50": 0.004,
+      "p95": 0.007,
+      "p99": 0.008
+     },
+     "update_parts_ms": {
+      "animate": 0.001,
+      "classify": 0.002,
+      "integrate": 0.001,
+      "results": 0.001
+     },
+     "update_stages": {}
+    },
+    "overview": {
+     "animated": 0,
+     "awake": 0,
+     "bones_uploaded": 0,
+     "builds": 7,
+     "by_level": [
+      0,
+      0,
+      0
+     ],
+     "by_pipeline": {
+      "bush": {
+       "triangles": 0,
+       "visible": 0
+      },
+      "flower": {
+       "triangles": 0,
+       "visible": 0
+      },
+      "rock": {
+       "triangles": 0,
+       "visible": 0
+      },
+      "tree": {
+       "triangles": 0,
+       "visible": 0
+      }
+     },
+     "culled": 0,
+     "draw_ms": {
+      "max": 0.045,
+      "mean": 0.015,
+      "n": 216,
+      "p50": 0.011,
+      "p95": 0.029,
+      "p99": 0.036
+     },
+     "drawn": 0,
+     "draws": 0,
+     "field_tiles": 110079,
+     "field_tiles_by_level": [
+      0,
+      0,
+      110079,
+      0
+     ],
+     "fps": 767.0,
+     "fps_at_p95": 612.0,
+     "frame_ms": {
+      "max": 3.564,
+      "mean": 1.304,
+      "n": 216,
+      "p50": 1.433,
+      "p95": 1.634,
+      "p99": 2.043
+     },
+     "gpu_frame_ms": {
+      "max": 2.358,
+      "mean": 2.292,
+      "n": 24,
+      "p50": 2.302,
+      "p95": 2.353,
+      "p99": 2.358
+     },
+     "gpu_wait_ms": {
+      "max": 1.139,
+      "mean": 0.635,
+      "n": 216,
+      "p50": 0.8,
+      "p95": 0.943,
+      "p99": 0.992
+     },
+     "instances": 256,
+     "not_animated_rate": 0,
+     "not_animated_unseen": 0,
+     "prepare_ms": {
+      "max": 2.569,
+      "mean": 0.592,
+      "n": 216,
+      "p50": 0.578,
+      "p95": 0.689,
+      "p99": 0.935
+     },
+     "too_small": 0,
+     "trees_visible": 0,
+     "triangles": 4397472,
+     "update_ms": {
+      "max": 0.024,
+      "mean": 0.005,
+      "n": 216,
+      "p50": 0.004,
+      "p95": 0.007,
+      "p99": 0.009
+     },
+     "update_parts_ms": {
+      "animate": 0.001,
+      "classify": 0.002,
+      "integrate": 0.001,
+      "results": 0.001
+     },
+     "update_stages": {}
+    },
+    "vista": {
+     "animated": 0,
+     "awake": 0,
+     "bones_uploaded": 0,
+     "builds": 13,
+     "by_level": [
+      0,
+      0,
+      0
+     ],
+     "by_pipeline": {
+      "bush": {
+       "triangles": 0,
+       "visible": 0
+      },
+      "flower": {
+       "triangles": 0,
+       "visible": 0
+      },
+      "rock": {
+       "triangles": 0,
+       "visible": 0
+      },
+      "tree": {
+       "triangles": 0,
+       "visible": 0
+      }
+     },
+     "culled": 0,
+     "draw_ms": {
+      "max": 0.105,
+      "mean": 0.018,
+      "n": 216,
+      "p50": 0.014,
+      "p95": 0.033,
+      "p99": 0.04
+     },
+     "drawn": 0,
+     "draws": 0,
+     "field_tiles": 112132,
+     "field_tiles_by_level": [
+      0,
+      128,
+      112004,
+      0
+     ],
+     "fps": 736.3,
+     "fps_at_p95": 597.6,
+     "frame_ms": {
+      "max": 5.486,
+      "mean": 1.358,
+      "n": 216,
+      "p50": 1.494,
+      "p95": 1.673,
+      "p99": 2.017
+     },
+     "gpu_frame_ms": {
+      "max": 2.581,
+      "mean": 2.392,
+      "n": 24,
+      "p50": 2.394,
+      "p95": 2.528,
+      "p99": 2.581
+     },
+     "gpu_wait_ms": {
+      "max": 1.491,
+      "mean": 0.685,
+      "n": 216,
+      "p50": 0.861,
+      "p95": 1.015,
+      "p99": 1.07
+     },
+     "instances": 256,
+     "not_animated_rate": 0,
+     "not_animated_unseen": 0,
+     "prepare_ms": {
+      "max": 4.265,
+      "mean": 0.6,
+      "n": 216,
+      "p50": 0.58,
+      "p95": 0.677,
+      "p99": 0.894
+     },
+     "too_small": 0,
+     "trees_visible": 0,
+     "triangles": 4495376,
+     "update_ms": {
+      "max": 0.013,
+      "mean": 0.004,
+      "n": 216,
+      "p50": 0.004,
+      "p95": 0.007,
+      "p99": 0.008
+     },
+     "update_parts_ms": {
+      "animate": 0.001,
+      "classify": 0.002,
+      "integrate": 0.001,
+      "results": 0.001
+     },
+     "update_stages": {}
+    }
+   },
+   "grid": 16,
+   "grow_ms": 0.0,
+   "hectares": 31.193542087679997,
+   "memory": {
+    "heap_mb": 425.84,
+    "hwm_mb": 148.32,
+    "private_dirty_mb": 94.39,
+    "rss_anon_mb": 94.39,
+    "rss_mb": 148.32
+   },
+   "placements": 0,
+   "regions": 256,
+   "seconds_to_ready": 0.442546135187149
+  },
+  {
+   "bodies": 0,
+   "builds": 19,
+   "cameras": {
+    "game": {
+     "animated": 0,
+     "awake": 0,
+     "bones_uploaded": 0,
+     "builds": 19,
+     "by_level": [
+      0,
+      0,
+      0
+     ],
+     "by_pipeline": {
+      "bush": {
+       "triangles": 0,
+       "visible": 0
+      },
+      "flower": {
+       "triangles": 0,
+       "visible": 0
+      },
+      "rock": {
+       "triangles": 0,
+       "visible": 0
+      },
+      "tree": {
+       "triangles": 0,
+       "visible": 0
+      }
+     },
+     "culled": 0,
+     "draw_ms": {
+      "max": 0.058,
+      "mean": 0.018,
+      "n": 216,
+      "p50": 0.016,
+      "p95": 0.036,
+      "p99": 0.044
+     },
+     "drawn": 0,
+     "draws": 0,
+     "field_tiles": 56713,
+     "field_tiles_by_level": [
+      155,
+      318,
+      56240,
+      0
+     ],
+     "fps": 1043.8,
+     "fps_at_p95": 851.9,
+     "frame_ms": {
+      "max": 1.418,
+      "mean": 0.958,
+      "n": 216,
+      "p50": 1.002,
+      "p95": 1.174,
+      "p99": 1.311
+     },
+     "gpu_frame_ms": {
+      "max": 1.573,
+      "mean": 1.469,
+      "n": 24,
+      "p50": 1.491,
+      "p95": 1.558,
+      "p99": 1.573
+     },
+     "gpu_wait_ms": {
+      "max": 0.674,
+      "mean": 0.282,
+      "n": 216,
+      "p50": 0.342,
+      "p95": 0.48,
+      "p99": 0.502
+     },
+     "instances": 1024,
+     "not_animated_rate": 0,
+     "not_animated_unseen": 0,
+     "prepare_ms": {
+      "max": 0.839,
+      "mean": 0.52,
+      "n": 216,
+      "p50": 0.526,
+      "p95": 0.602,
+      "p99": 0.668
+     },
+     "too_small": 0,
+     "trees_visible": 0,
+     "triangles": 2431299,
+     "update_ms": {
+      "max": 0.219,
+      "mean": 0.093,
+      "n": 216,
+      "p50": 0.092,
+      "p95": 0.132,
+      "p99": 0.155
+     },
+     "update_parts_ms": {
+      "animate": 0.043,
+      "classify": 0.049,
+      "integrate": 0.001,
+      "results": 0.001
+     },
+     "update_stages": {}
+    },
+    "overview": {
+     "animated": 0,
+     "awake": 0,
+     "bones_uploaded": 0,
+     "builds": 7,
+     "by_level": [
+      0,
+      0,
+      0
+     ],
+     "by_pipeline": {
+      "bush": {
+       "triangles": 0,
+       "visible": 0
+      },
+      "flower": {
+       "triangles": 0,
+       "visible": 0
+      },
+      "rock": {
+       "triangles": 0,
+       "visible": 0
+      },
+      "tree": {
+       "triangles": 0,
+       "visible": 0
+      }
+     },
+     "culled": 0,
+     "draw_ms": {
+      "max": 0.059,
+      "mean": 0.026,
+      "n": 216,
+      "p50": 0.029,
+      "p95": 0.048,
+      "p99": 0.056
+     },
+     "drawn": 0,
+     "draws": 0,
+     "field_tiles": 436058,
+     "field_tiles_by_level": [
+      0,
+      0,
+      436058,
+      0
+     ],
+     "fps": 230.0,
+     "fps_at_p95": 179.6,
+     "frame_ms": {
+      "max": 7.387,
+      "mean": 4.349,
+      "n": 216,
+      "p50": 4.807,
+      "p95": 5.567,
+      "p99": 6.689
+     },
+     "gpu_frame_ms": {
+      "max": 8.285,
+      "mean": 7.84,
+      "n": 24,
+      "p50": 7.791,
+      "p95": 8.139,
+      "p99": 8.285
+     },
+     "gpu_wait_ms": {
+      "max": 3.775,
+      "mean": 2.202,
+      "n": 216,
+      "p50": 2.751,
+      "p95": 3.287,
+      "p99": 3.721
+     },
+     "instances": 1024,
+     "not_animated_rate": 0,
+     "not_animated_unseen": 0,
+     "prepare_ms": {
+      "max": 6.424,
+      "mean": 1.899,
+      "n": 216,
+      "p50": 1.85,
+      "p95": 2.105,
+      "p99": 3.478
+     },
+     "too_small": 0,
+     "trees_visible": 0,
+     "triangles": 17428694,
+     "update_ms": {
+      "max": 0.494,
+      "mean": 0.111,
+      "n": 216,
+      "p50": 0.107,
+      "p95": 0.153,
+      "p99": 0.226
+     },
+     "update_parts_ms": {
+      "animate": 0.049,
+      "classify": 0.059,
+      "integrate": 0.001,
+      "results": 0.001
+     },
+     "update_stages": {}
+    },
+    "vista": {
+     "animated": 0,
+     "awake": 0,
+     "bones_uploaded": 0,
+     "builds": 13,
+     "by_level": [
+      0,
+      0,
+      0
+     ],
+     "by_pipeline": {
+      "bush": {
+       "triangles": 0,
+       "visible": 0
+      },
+      "flower": {
+       "triangles": 0,
+       "visible": 0
+      },
+      "rock": {
+       "triangles": 0,
+       "visible": 0
+      },
+      "tree": {
+       "triangles": 0,
+       "visible": 0
+      }
+     },
+     "culled": 0,
+     "draw_ms": {
+      "max": 0.06,
+      "mean": 0.028,
+      "n": 216,
+      "p50": 0.03,
+      "p95": 0.051,
+      "p99": 0.056
+     },
+     "drawn": 0,
+     "draws": 0,
+     "field_tiles": 442292,
+     "field_tiles_by_level": [
+      0,
+      128,
+      442164,
+      0
+     ],
+     "fps": 261.6,
+     "fps_at_p95": 201.1,
+     "frame_ms": {
+      "max": 5.558,
+      "mean": 3.823,
+      "n": 216,
+      "p50": 4.187,
+      "p95": 4.973,
+      "p99": 5.223
+     },
+     "gpu_frame_ms": {
+      "max": 6.912,
+      "mean": 6.497,
+      "n": 24,
+      "p50": 6.563,
+      "p95": 6.874,
+      "p99": 6.912
+     },
+     "gpu_wait_ms": {
+      "max": 3.225,
+      "mean": 1.758,
+      "n": 216,
+      "p50": 2.099,
+      "p95": 2.814,
+      "p99": 3.127
+     },
+     "instances": 1024,
+     "not_animated_rate": 0,
+     "not_animated_unseen": 0,
+     "prepare_ms": {
+      "max": 2.645,
+      "mean": 1.837,
+      "n": 216,
+      "p50": 1.848,
+      "p95": 2.055,
+      "p99": 2.399
+     },
+     "too_small": 0,
+     "trees_visible": 0,
+     "triangles": 17696531,
+     "update_ms": {
+      "max": 0.248,
+      "mean": 0.11,
+      "n": 216,
+      "p50": 0.105,
+      "p95": 0.17,
+      "p99": 0.222
+     },
+     "update_parts_ms": {
+      "animate": 0.049,
+      "classify": 0.059,
+      "integrate": 0.001,
+      "results": 0.001
+     },
+     "update_stages": {}
+    }
+   },
+   "grid": 32,
+   "grow_ms": 0.0,
+   "hectares": 124.77416835071999,
+   "memory": {
+    "heap_mb": 456.32,
+    "hwm_mb": 181.49,
+    "private_dirty_mb": 127.24,
+    "rss_anon_mb": 127.24,
+    "rss_mb": 181.49
+   },
+   "placements": 0,
+   "regions": 1024,
+   "seconds_to_ready": 1.8028123981952666
+  },
+  {
+   "bodies": 0,
+   "builds": 20,
+   "cameras": {
+    "game": {
+     "animated": 0,
+     "awake": 0,
+     "bones_uploaded": 0,
+     "builds": 20,
+     "by_level": [
+      0,
+      0,
+      0
+     ],
+     "by_pipeline": {
+      "bush": {
+       "triangles": 0,
+       "visible": 0
+      },
+      "flower": {
+       "triangles": 0,
+       "visible": 0
+      },
+      "rock": {
+       "triangles": 0,
+       "visible": 0
+      },
+      "tree": {
+       "triangles": 0,
+       "visible": 0
+      }
+     },
+     "culled": 0,
+     "draw_ms": {
+      "max": 0.056,
+      "mean": 0.019,
+      "n": 216,
+      "p50": 0.016,
+      "p95": 0.039,
+      "p99": 0.051
+     },
+     "drawn": 0,
+     "draws": 0,
+     "field_tiles": 56713,
+     "field_tiles_by_level": [
+      155,
+      318,
+      56240,
+      0
+     ],
+     "fps": 959.3,
+     "fps_at_p95": 806.5,
+     "frame_ms": {
+      "max": 2.589,
+      "mean": 1.042,
+      "n": 216,
+      "p50": 1.044,
+      "p95": 1.24,
+      "p99": 1.508
+     },
+     "gpu_frame_ms": {
+      "max": 2.135,
+      "mean": 1.483,
+      "n": 24,
+      "p50": 1.383,
+      "p95": 1.935,
+      "p99": 2.135
+     },
+     "gpu_wait_ms": {
+      "max": 0.844,
+      "mean": 0.174,
+      "n": 216,
+      "p50": 0.155,
+      "p95": 0.47,
+      "p99": 0.592
+     },
+     "instances": 2304,
+     "not_animated_rate": 0,
+     "not_animated_unseen": 0,
+     "prepare_ms": {
+      "max": 2.354,
+      "mean": 0.693,
+      "n": 216,
+      "p50": 0.7,
+      "p95": 0.809,
+      "p99": 0.85
+     },
+     "too_small": 0,
+     "trees_visible": 0,
+     "triangles": 2430850,
+     "update_ms": {
+      "max": 0.178,
+      "mean": 0.109,
+      "n": 216,
+      "p50": 0.108,
+      "p95": 0.145,
+      "p99": 0.161
+     },
+     "update_parts_ms": {
+      "animate": 0.052,
+      "classify": 0.055,
+      "integrate": 0.001,
+      "results": 0.001
+     },
+     "update_stages": {}
+    },
+    "overview": {
+     "animated": 0,
+     "awake": 0,
+     "bones_uploaded": 0,
+     "builds": 7,
+     "by_level": [
+      0,
+      0,
+      0
+     ],
+     "by_pipeline": {
+      "bush": {
+       "triangles": 0,
+       "visible": 0
+      },
+      "flower": {
+       "triangles": 0,
+       "visible": 0
+      },
+      "rock": {
+       "triangles": 0,
+       "visible": 0
+      },
+      "tree": {
+       "triangles": 0,
+       "visible": 0
+      }
+     },
+     "culled": 0,
+     "draw_ms": {
+      "max": 0.101,
+      "mean": 0.043,
+      "n": 216,
+      "p50": 0.045,
+      "p95": 0.056,
+      "p99": 0.071
+     },
+     "drawn": 0,
+     "draws": 0,
+     "field_tiles": 977555,
+     "field_tiles_by_level": [
+      0,
+      0,
+      977555,
+      0
+     ],
+     "fps": 127.9,
+     "fps_at_p95": 104.5,
+     "frame_ms": {
+      "max": 10.723,
+      "mean": 7.817,
+      "n": 216,
+      "p50": 8.652,
+      "p95": 9.566,
+      "p99": 9.952
+     },
+     "gpu_frame_ms": {
+      "max": 14.755,
+      "mean": 13.798,
+      "n": 24,
+      "p50": 13.709,
+      "p95": 14.543,
+      "p99": 14.755
+     },
+     "gpu_wait_ms": {
+      "max": 5.907,
+      "mean": 3.612,
+      "n": 216,
+      "p50": 4.466,
+      "p95": 5.19,
+      "p99": 5.638
+     },
+     "instances": 2304,
+     "not_animated_rate": 0,
+     "not_animated_unseen": 0,
+     "prepare_ms": {
+      "max": 4.807,
+      "mean": 3.866,
+      "n": 216,
+      "p50": 3.873,
+      "p95": 4.449,
+      "p99": 4.667
+     },
+     "too_small": 0,
+     "trees_visible": 0,
+     "triangles": 39084965,
+     "update_ms": {
+      "max": 0.344,
+      "mean": 0.14,
+      "n": 216,
+      "p50": 0.135,
+      "p95": 0.187,
+      "p99": 0.232
+     },
+     "update_parts_ms": {
+      "animate": 0.065,
+      "classify": 0.072,
+      "integrate": 0.001,
+      "results": 0.002
+     },
+     "update_stages": {}
+    },
+    "vista": {
+     "animated": 0,
+     "awake": 0,
+     "bones_uploaded": 0,
+     "builds": 13,
+     "by_level": [
+      0,
+      0,
+      0
+     ],
+     "by_pipeline": {
+      "bush": {
+       "triangles": 0,
+       "visible": 0
+      },
+      "flower": {
+       "triangles": 0,
+       "visible": 0
+      },
+      "rock": {
+       "triangles": 0,
+       "visible": 0
+      },
+      "tree": {
+       "triangles": 0,
+       "visible": 0
+      }
+     },
+     "culled": 0,
+     "draw_ms": {
+      "max": 0.079,
+      "mean": 0.046,
+      "n": 216,
+      "p50": 0.048,
+      "p95": 0.062,
+      "p99": 0.073
+     },
+     "drawn": 0,
+     "draws": 0,
+     "field_tiles": 989886,
+     "field_tiles_by_level": [
+      0,
+      128,
+      989758,
+      0
+     ],
+     "fps": 128.5,
+     "fps_at_p95": 106.2,
+     "frame_ms": {
+      "max": 10.133,
+      "mean": 7.782,
+      "n": 216,
+      "p50": 8.631,
+      "p95": 9.42,
+      "p99": 9.784
+     },
+     "gpu_frame_ms": {
+      "max": 14.044,
+      "mean": 13.687,
+      "n": 24,
+      "p50": 13.717,
+      "p95": 14.031,
+      "p99": 14.044
+     },
+     "gpu_wait_ms": {
+      "max": 5.986,
+      "mean": 3.716,
+      "n": 216,
+      "p50": 4.594,
+      "p95": 5.297,
+      "p99": 5.744
+     },
+     "instances": 2304,
+     "not_animated_rate": 0,
+     "not_animated_unseen": 0,
+     "prepare_ms": {
+      "max": 4.659,
+      "mean": 3.729,
+      "n": 216,
+      "p50": 3.705,
+      "p95": 4.127,
+      "p99": 4.399
+     },
+     "too_small": 0,
+     "trees_visible": 0,
+     "triangles": 39593748,
+     "update_ms": {
+      "max": 0.357,
+      "mean": 0.14,
+      "n": 216,
+      "p50": 0.133,
+      "p95": 0.186,
+      "p99": 0.29
+     },
+     "update_parts_ms": {
+      "animate": 0.064,
+      "classify": 0.072,
+      "integrate": 0.001,
+      "results": 0.003
+     },
+     "update_stages": {}
+    }
+   },
+   "grid": 48,
+   "grow_ms": 0.0,
+   "hectares": 280.74187878911994,
+   "memory": {
+    "heap_mb": 507.3,
+    "hwm_mb": 234.56,
+    "private_dirty_mb": 180.31,
+    "rss_anon_mb": 180.31,
+    "rss_mb": 234.56
+   },
+   "placements": 0,
+   "regions": 2304,
+   "seconds_to_ready": 3.957195342063904
+  },
+  {
+   "bodies": 0,
+   "builds": 19,
+   "cameras": {
+    "game": {
+     "animated": 0,
+     "awake": 0,
+     "bones_uploaded": 0,
+     "builds": 19,
+     "by_level": [
+      0,
+      0,
+      0
+     ],
+     "by_pipeline": {
+      "bush": {
+       "triangles": 0,
+       "visible": 0
+      },
+      "flower": {
+       "triangles": 0,
+       "visible": 0
+      },
+      "rock": {
+       "triangles": 0,
+       "visible": 0
+      },
+      "tree": {
+       "triangles": 0,
+       "visible": 0
+      }
+     },
+     "culled": 0,
+     "draw_ms": {
+      "max": 0.056,
+      "mean": 0.015,
+      "n": 216,
+      "p50": 0.013,
+      "p95": 0.034,
+      "p99": 0.047
+     },
+     "drawn": 0,
+     "draws": 0,
+     "field_tiles": 56713,
+     "field_tiles_by_level": [
+      155,
+      318,
+      56240,
+      0
+     ],
+     "fps": 970.2,
+     "fps_at_p95": 840.3,
+     "frame_ms": {
+      "max": 2.044,
+      "mean": 1.031,
+      "n": 216,
+      "p50": 1.013,
+      "p95": 1.19,
+      "p99": 1.266
+     },
+     "gpu_frame_ms": {
+      "max": 1.309,
+      "mean": 1.18,
+      "n": 24,
+      "p50": 1.165,
+      "p95": 1.297,
+      "p99": 1.309
+     },
+     "gpu_wait_ms": {
+      "max": 0.836,
+      "mean": 0.047,
+      "n": 216,
+      "p50": 0.006,
+      "p95": 0.164,
+      "p99": 0.233
+     },
+     "instances": 4096,
+     "not_animated_rate": 0,
+     "not_animated_unseen": 0,
+     "prepare_ms": {
+      "max": 1.003,
+      "mean": 0.816,
+      "n": 216,
+      "p50": 0.817,
+      "p95": 0.902,
+      "p99": 0.983
+     },
+     "too_small": 0,
+     "trees_visible": 0,
+     "triangles": 2430333,
+     "update_ms": {
+      "max": 0.591,
+      "mean": 0.112,
+      "n": 216,
+      "p50": 0.106,
+      "p95": 0.146,
+      "p99": 0.178
+     },
+     "update_parts_ms": {
+      "animate": 0.055,
+      "classify": 0.055,
+      "integrate": 0.001,
+      "results": 0.001
+     },
+     "update_stages": {}
+    },
+    "overview": {
+     "animated": 0,
+     "awake": 0,
+     "bones_uploaded": 0,
+     "builds": 7,
+     "by_level": [
+      0,
+      0,
+      0
+     ],
+     "by_pipeline": {
+      "bush": {
+       "triangles": 0,
+       "visible": 0
+      },
+      "flower": {
+       "triangles": 0,
+       "visible": 0
+      },
+      "rock": {
+       "triangles": 0,
+       "visible": 0
+      },
+      "tree": {
+       "triangles": 0,
+       "visible": 0
+      }
+     },
+     "culled": 0,
+     "draw_ms": {
+      "max": 0.088,
+      "mean": 0.053,
+      "n": 216,
+      "p50": 0.053,
+      "p95": 0.062,
+      "p99": 0.066
+     },
+     "drawn": 0,
+     "draws": 0,
+     "field_tiles": 1734063,
+     "field_tiles_by_level": [
+      0,
+      0,
+      1734063,
+      0
+     ],
+     "fps": 79.3,
+     "fps_at_p95": 66.7,
+     "frame_ms": {
+      "max": 17.415,
+      "mean": 12.617,
+      "n": 216,
+      "p50": 13.985,
+      "p95": 14.985,
+      "p99": 15.809
+     },
+     "gpu_frame_ms": {
+      "max": 22.995,
+      "mean": 21.641,
+      "n": 24,
+      "p50": 21.607,
+      "p95": 22.835,
+      "p99": 22.995
+     },
+     "gpu_wait_ms": {
+      "max": 8.221,
+      "mean": 5.436,
+      "n": 216,
+      "p50": 6.874,
+      "p95": 7.601,
+      "p99": 7.935
+     },
+     "instances": 4096,
+     "not_animated_rate": 0,
+     "not_animated_unseen": 0,
+     "prepare_ms": {
+      "max": 10.053,
+      "mean": 6.768,
+      "n": 216,
+      "p50": 6.707,
+      "p95": 7.738,
+      "p99": 8.48
+     },
+     "too_small": 0,
+     "trees_visible": 0,
+     "triangles": 69318509,
+     "update_ms": {
+      "max": 0.26,
+      "mean": 0.158,
+      "n": 216,
+      "p50": 0.152,
+      "p95": 0.226,
+      "p99": 0.251
+     },
+     "update_parts_ms": {
+      "animate": 0.073,
+      "classify": 0.082,
+      "integrate": 0.001,
+      "results": 0.002
+     },
+     "update_stages": {}
+    },
+    "vista": {
+     "animated": 0,
+     "awake": 0,
+     "bones_uploaded": 0,
+     "builds": 13,
+     "by_level": [
+      0,
+      0,
+      0
+     ],
+     "by_pipeline": {
+      "bush": {
+       "triangles": 0,
+       "visible": 0
+      },
+      "flower": {
+       "triangles": 0,
+       "visible": 0
+      },
+      "rock": {
+       "triangles": 0,
+       "visible": 0
+      },
+      "tree": {
+       "triangles": 0,
+       "visible": 0
+      }
+     },
+     "culled": 0,
+     "draw_ms": {
+      "max": 0.11,
+      "mean": 0.061,
+      "n": 216,
+      "p50": 0.061,
+      "p95": 0.074,
+      "p99": 0.095
+     },
+     "drawn": 0,
+     "draws": 0,
+     "field_tiles": 1755284,
+     "field_tiles_by_level": [
+      0,
+      128,
+      1755156,
+      0
+     ],
+     "fps": 76.6,
+     "fps_at_p95": 64.7,
+     "frame_ms": {
+      "max": 16.096,
+      "mean": 13.063,
+      "n": 216,
+      "p50": 14.555,
+      "p95": 15.455,
+      "p99": 15.911
+     },
+     "gpu_frame_ms": {
+      "max": 24.083,
+      "mean": 22.961,
+      "n": 24,
+      "p50": 22.837,
+      "p95": 23.923,
+      "p99": 24.083
+     },
+     "gpu_wait_ms": {
+      "max": 9.084,
+      "mean": 6.063,
+      "n": 216,
+      "p50": 7.573,
+      "p95": 8.337,
+      "p99": 8.79
+     },
+     "instances": 4096,
+     "not_animated_rate": 0,
+     "not_animated_unseen": 0,
+     "prepare_ms": {
+      "max": 8.05,
+      "mean": 6.578,
+      "n": 216,
+      "p50": 6.554,
+      "p95": 7.235,
+      "p99": 7.628
+     },
+     "too_small": 0,
+     "trees_visible": 0,
+     "triangles": 70192562,
+     "update_ms": {
+      "max": 0.738,
+      "mean": 0.164,
+      "n": 216,
+      "p50": 0.152,
+      "p95": 0.223,
+      "p99": 0.309
+     },
+     "update_parts_ms": {
+      "animate": 0.073,
+      "classify": 0.086,
+      "integrate": 0.001,
+      "results": 0.004
+     },
+     "update_stages": {}
+    }
+   },
+   "grid": 64,
+   "grow_ms": 0.0,
+   "hectares": 499.09667340287996,
+   "memory": {
+    "heap_mb": 576.4,
+    "hwm_mb": 307.83,
+    "private_dirty_mb": 253.58,
+    "rss_anon_mb": 253.58,
+    "rss_mb": 307.83
+   },
+   "placements": 0,
+   "regions": 4096,
+   "seconds_to_ready": 7.146267971992493
+  },
+  {
+   "bodies": 0,
+   "builds": 20,
+   "cameras": {
+    "game": {
+     "animated": 0,
+     "awake": 0,
+     "bones_uploaded": 0,
+     "builds": 20,
+     "by_level": [
+      0,
+      0,
+      0
+     ],
+     "by_pipeline": {
+      "bush": {
+       "triangles": 0,
+       "visible": 0
+      },
+      "flower": {
+       "triangles": 0,
+       "visible": 0
+      },
+      "rock": {
+       "triangles": 0,
+       "visible": 0
+      },
+      "tree": {
+       "triangles": 0,
+       "visible": 0
+      }
+     },
+     "culled": 0,
+     "draw_ms": {
+      "max": 0.061,
+      "mean": 0.012,
+      "n": 216,
+      "p50": 0.01,
+      "p95": 0.022,
+      "p99": 0.046
+     },
+     "drawn": 0,
+     "draws": 0,
+     "field_tiles": 56713,
+     "field_tiles_by_level": [
+      155,
+      318,
+      56240,
+      0
+     ],
+     "fps": 902.9,
+     "fps_at_p95": 818.3,
+     "frame_ms": {
+      "max": 2.677,
+      "mean": 1.107,
+      "n": 216,
+      "p50": 1.092,
+      "p95": 1.222,
+      "p99": 1.551
+     },
+     "gpu_frame_ms": {
+      "max": 1.411,
+      "mean": 1.287,
+      "n": 24,
+      "p50": 1.29,
+      "p95": 1.402,
+      "p99": 1.411
+     },
+     "gpu_wait_ms": {
+      "max": 0.246,
+      "mean": 0.048,
+      "n": 216,
+      "p50": 0.032,
+      "p95": 0.142,
+      "p99": 0.178
+     },
+     "instances": 5184,
+     "not_animated_rate": 0,
+     "not_animated_unseen": 0,
+     "prepare_ms": {
+      "max": 1.454,
+      "mean": 0.901,
+      "n": 216,
+      "p50": 0.896,
+      "p95": 0.992,
+      "p99": 1.164
+     },
+     "too_small": 0,
+     "trees_visible": 0,
+     "triangles": 2427465,
+     "update_ms": {
+      "max": 1.836,
+      "mean": 0.115,
+      "n": 216,
+      "p50": 0.103,
+      "p95": 0.139,
+      "p99": 0.171
+     },
+     "update_parts_ms": {
+      "animate": 0.061,
+      "classify": 0.053,
+      "integrate": 0.001,
+      "results": 0.001
+     },
+     "update_stages": {}
+    },
+    "overview": {
+     "animated": 0,
+     "awake": 0,
+     "bones_uploaded": 0,
+     "builds": 7,
+     "by_level": [
+      0,
+      0,
+      0
+     ],
+     "by_pipeline": {
+      "bush": {
+       "triangles": 0,
+       "visible": 0
+      },
+      "flower": {
+       "triangles": 0,
+       "visible": 0
+      },
+      "rock": {
+       "triangles": 0,
+       "visible": 0
+      },
+      "tree": {
+       "triangles": 0,
+       "visible": 0
+      }
+     },
+     "culled": 0,
+     "draw_ms": {
+      "max": 0.082,
+      "mean": 0.054,
+      "n": 216,
+      "p50": 0.054,
+      "p95": 0.064,
+      "p99": 0.076
+     },
+     "drawn": 0,
+     "draws": 0,
+     "field_tiles": 2192832,
+     "field_tiles_by_level": [
+      0,
+      0,
+      2192832,
+      0
+     ],
+     "fps": 59.5,
+     "fps_at_p95": 50.7,
+     "frame_ms": {
+      "max": 21.009,
+      "mean": 16.818,
+      "n": 216,
+      "p50": 17.653,
+      "p95": 19.727,
+      "p99": 20.356
+     },
+     "gpu_frame_ms": {
+      "max": 25.79,
+      "mean": 24.207,
+      "n": 24,
+      "p50": 24.137,
+      "p95": 25.446,
+      "p99": 25.79
+     },
+     "gpu_wait_ms": {
+      "max": 7.336,
+      "mean": 3.968,
+      "n": 216,
+      "p50": 4.887,
+      "p95": 6.457,
+      "p99": 6.963
+     },
+     "instances": 5184,
+     "not_animated_rate": 0,
+     "not_animated_unseen": 0,
+     "prepare_ms": {
+      "max": 17.346,
+      "mean": 12.408,
+      "n": 216,
+      "p50": 12.268,
+      "p95": 14.136,
+      "p99": 15.45
+     },
+     "too_small": 0,
+     "trees_visible": 0,
+     "triangles": 87666026,
+     "update_ms": {
+      "max": 0.582,
+      "mean": 0.178,
+      "n": 216,
+      "p50": 0.169,
+      "p95": 0.236,
+      "p99": 0.325
+     },
+     "update_parts_ms": {
+      "animate": 0.078,
+      "classify": 0.095,
+      "integrate": 0.001,
+      "results": 0.003
+     },
+     "update_stages": {}
+    },
+    "vista": {
+     "animated": 0,
+     "awake": 0,
+     "bones_uploaded": 0,
+     "builds": 13,
+     "by_level": [
+      0,
+      0,
+      0
+     ],
+     "by_pipeline": {
+      "bush": {
+       "triangles": 0,
+       "visible": 0
+      },
+      "flower": {
+       "triangles": 0,
+       "visible": 0
+      },
+      "rock": {
+       "triangles": 0,
+       "visible": 0
+      },
+      "tree": {
+       "triangles": 0,
+       "visible": 0
+      }
+     },
+     "culled": 0,
+     "draw_ms": {
+      "max": 0.101,
+      "mean": 0.059,
+      "n": 216,
+      "p50": 0.06,
+      "p95": 0.07,
+      "p99": 0.08
+     },
+     "drawn": 0,
+     "draws": 0,
+     "field_tiles": 2219613,
+     "field_tiles_by_level": [
+      0,
+      128,
+      2219485,
+      0
+     ],
+     "fps": 59.8,
+     "fps_at_p95": 50.8,
+     "frame_ms": {
+      "max": 21.545,
+      "mean": 16.715,
+      "n": 216,
+      "p50": 18.657,
+      "p95": 19.684,
+      "p99": 20.63
+     },
+     "gpu_frame_ms": {
+      "max": 30.093,
+      "mean": 29.321,
+      "n": 24,
+      "p50": 29.277,
+      "p95": 29.934,
+      "p99": 30.093
+     },
+     "gpu_wait_ms": {
+      "max": 10.672,
+      "mean": 7.666,
+      "n": 216,
+      "p50": 9.605,
+      "p95": 10.46,
+      "p99": 10.621
+     },
+     "instances": 5184,
+     "not_animated_rate": 0,
+     "not_animated_unseen": 0,
+     "prepare_ms": {
+      "max": 11.676,
+      "mean": 8.631,
+      "n": 216,
+      "p50": 8.579,
+      "p95": 9.339,
+      "p99": 10.701
+     },
+     "too_small": 0,
+     "trees_visible": 0,
+     "triangles": 88759134,
+     "update_ms": {
+      "max": 0.32,
+      "mean": 0.167,
+      "n": 216,
+      "p50": 0.158,
+      "p95": 0.22,
+      "p99": 0.276
+     },
+     "update_parts_ms": {
+      "animate": 0.076,
+      "classify": 0.086,
+      "integrate": 0.001,
+      "results": 0.004
+     },
+     "update_stages": {}
+    }
+   },
+   "grid": 72,
+   "grow_ms": 0.0,
+   "hectares": 631.66922727552,
+   "memory": {
+    "heap_mb": 620.53,
+    "hwm_mb": 355.92,
+    "private_dirty_mb": 301.67,
+    "rss_anon_mb": 301.67,
+    "rss_mb": 355.92
+   },
+   "placements": 0,
+   "regions": 5184,
+   "seconds_to_ready": 9.080682578086853
+  }
+ ],
+ "started": "2026-10-13T02:31:37Z",
+ "summary": [
+  "16x16 overview  767.0 fps (p95 frame  1.63 ms)  update  0.00  prepare  0.59  draw 0.02  gpu  2.29 ms       0 drawn (0 trees)  110079 grass tiles    4.4 M triangles  0 draws  0 animated  [update: integrate 0.00 classify 0.00 animate 0.00 results 0.00]",
+  "16x16 vista     736.3 fps (p95 frame  1.67 ms)  update  0.00  prepare  0.60  draw 0.02  gpu  2.39 ms       0 drawn (0 trees)  112132 grass tiles    4.5 M triangles  0 draws  0 animated  [update: integrate 0.00 classify 0.00 animate 0.00 results 0.00]",
+  "16x16 game     1731.9 fps (p95 frame  0.78 ms)  update  0.00  prepare  0.27  draw 0.02  gpu  0.94 ms       0 drawn (0 trees)   29455 grass tiles    1.3 M triangles  0 draws  0 animated  [update: integrate 0.00 classify 0.00 animate 0.00 results 0.00]",
+  "32x32 overview  230.0 fps (p95 frame  5.57 ms)  update  0.11  prepare  1.90  draw 0.03  gpu  7.84 ms       0 drawn (0 trees)  436058 grass tiles   17.4 M triangles  0 draws  0 animated  [update: integrate 0.00 classify 0.06 animate 0.05 results 0.00]",
+  "32x32 vista     261.6 fps (p95 frame  4.97 ms)  update  0.11  prepare  1.84  draw 0.03  gpu  6.50 ms       0 drawn (0 trees)  442292 grass tiles   17.7 M triangles  0 draws  0 animated  [update: integrate 0.00 classify 0.06 animate 0.05 results 0.00]",
+  "32x32 game     1043.8 fps (p95 frame  1.17 ms)  update  0.09  prepare  0.52  draw 0.02  gpu  1.47 ms       0 drawn (0 trees)   56713 grass tiles    2.4 M triangles  0 draws  0 animated  [update: integrate 0.00 classify 0.05 animate 0.04 results 0.00]",
+  "48x48 overview  127.9 fps (p95 frame  9.57 ms)  update  0.14  prepare  3.87  draw 0.04  gpu 13.80 ms       0 drawn (0 trees)  977555 grass tiles   39.1 M triangles  0 draws  0 animated  [update: integrate 0.00 classify 0.07 animate 0.07 results 0.00]",
+  "48x48 vista     128.5 fps (p95 frame  9.42 ms)  update  0.14  prepare  3.73  draw 0.05  gpu 13.69 ms       0 drawn (0 trees)  989886 grass tiles   39.6 M triangles  0 draws  0 animated  [update: integrate 0.00 classify 0.07 animate 0.06 results 0.00]",
+  "48x48 game      959.3 fps (p95 frame  1.24 ms)  update  0.11  prepare  0.69  draw 0.02  gpu  1.48 ms       0 drawn (0 trees)   56713 grass tiles    2.4 M triangles  0 draws  0 animated  [update: integrate 0.00 classify 0.06 animate 0.05 results 0.00]",
+  "64x64 overview   79.3 fps (p95 frame 14.99 ms)  update  0.16  prepare  6.77  draw 0.05  gpu 21.64 ms       0 drawn (0 trees)  1734063 grass tiles   69.3 M triangles  0 draws  0 animated  [update: integrate 0.00 classify 0.08 animate 0.07 results 0.00]",
+  "64x64 vista      76.6 fps (p95 frame 15.46 ms)  update  0.16  prepare  6.58  draw 0.06  gpu 22.96 ms       0 drawn (0 trees)  1755284 grass tiles   70.2 M triangles  0 draws  0 animated  [update: integrate 0.00 classify 0.09 animate 0.07 results 0.00]",
+  "64x64 game      970.2 fps (p95 frame  1.19 ms)  update  0.11  prepare  0.82  draw 0.02  gpu  1.18 ms       0 drawn (0 trees)   56713 grass tiles    2.4 M triangles  0 draws  0 animated  [update: integrate 0.00 classify 0.05 animate 0.06 results 0.00]",
+  "72x72 overview   59.5 fps (p95 frame 19.73 ms)  update  0.18  prepare 12.41  draw 0.05  gpu 24.21 ms       0 drawn (0 trees)  2192832 grass tiles   87.7 M triangles  0 draws  0 animated  [update: integrate 0.00 classify 0.10 animate 0.08 results 0.00]",
+  "72x72 vista      59.8 fps (p95 frame 19.68 ms)  update  0.17  prepare  8.63  draw 0.06  gpu 29.32 ms       0 drawn (0 trees)  2219613 grass tiles   88.8 M triangles  0 draws  0 animated  [update: integrate 0.00 classify 0.09 animate 0.08 results 0.00]",
+  "72x72 game      902.9 fps (p95 frame  1.22 ms)  update  0.12  prepare  0.90  draw 0.01  gpu  1.29 ms       0 drawn (0 trees)   56713 grass tiles    2.4 M triangles  0 draws  0 animated  [update: integrate 0.00 classify 0.05 animate 0.06 results 0.00]"
+ ]
+}

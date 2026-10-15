@@ -1,0 +1,66 @@
+{
+  "family": "crop",
+  "version": 1,
+  "feature": "spec",
+  "doc": "A crop field to build (design/planner.md, Crops): its crop, its lot's size, how far it has grown, the season, and how many wind groups its plants share.",
+  "fields": [
+    {
+      "name": "type",
+      "type": "crop_type",
+      "doc": "The crop."
+    },
+    {
+      "name": "size",
+      "type": "u32",
+      "doc": "Its lot: small (rect6x4), medium (rect8x6), or large (rect12x8).",
+      "enum": [
+        "small",
+        "medium",
+        "large"
+      ]
+    },
+    {
+      "name": "growth",
+      "type": "u32",
+      "doc": "How far it has grown: sown (furrows), sprouting, growing, ripe, or harvested (stubble).",
+      "enum": [
+        "sown",
+        "sprouting",
+        "growing",
+        "ripe",
+        "harvested"
+      ]
+    },
+    {
+      "name": "season",
+      "type": "u32",
+      "doc": "The season.",
+      "enum": [
+        "winter",
+        "spring",
+        "summer",
+        "fall"
+      ]
+    },
+    {
+      "name": "wind_groups",
+      "type": "u32",
+      "doc": "How many wind bones its plants share (1 to 16): the wind is computed this many times, however many plants."
+    },
+    {
+      "name": "seed",
+      "type": "u32",
+      "doc": "Which of the distinct fields."
+    },
+    {
+      "name": "detail",
+      "type": "u32",
+      "doc": "Level of detail.",
+      "enum": [
+        "high",
+        "medium",
+        "low"
+      ]
+    }
+  ]
+}

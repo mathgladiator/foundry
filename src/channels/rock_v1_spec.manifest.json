@@ -1,8 +1,0 @@
-{
-  "kind": "channel",
-  "name": "rock_v1_spec",
-  "state": "draft",
-  "reason": "The input to rock_body_v1: the game's request plus the runtime's seed and level of detail. Enums for size, moss, season, and detail keep the validation space to 4 x 3 x 4 x 3 per material.",
-  "notes": [],
-  "created_at": "2026-10-12T08:00:00Z"
-}

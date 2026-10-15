@@ -2,7 +2,7 @@
 // system to a settlement config. Loading one measures its lots (a building pipeline's footprint
 // for each size class and shape, from the config entries that have that shape), and the
 // waterfront, civic, centre, and castle lots (each size built once from its pipeline), and compiles the config into the plan system's channel
-// (plan_v1_config). The preview fill (what the foundry shows standing on plots) is data in the
+// (plan_config). The preview fill (what the foundry shows standing on plots) is data in the
 // file too; the host names no pipeline.
 #pragma once
 
@@ -35,7 +35,7 @@ struct Lot {
 struct Planner {
   std::string name, system, doc, state;
   nlohmann::json file;     // the planner as written
-  nlohmann::json config;   // the plan_v1_config value, with its lots
+  nlohmann::json config;   // the plan_config value, with its lots
   nlohmann::json fill;     // the preview fill
   std::vector<Lot> lots;
 };

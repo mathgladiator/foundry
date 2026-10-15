@@ -1,0 +1,10 @@
+{
+  "name": "map_ground",
+  "kind": "system",
+  "doc": "One chunk of a map's ground (design/map.md): hexbound columns for its cells and an apron of one cell, every height a function of the cell's world place and the plan's data (the macro grid interpolated, fine relief by parcel, flats, roads, rivers, lakes, outcrops, cave mouths) so chunks agree at their seams; materials, the navigation mesh over its own cells, and the nature ground grouped by parcel.",
+  "input": "map_chunk",
+  "output": "terrain_ground",
+  "state": "draft",
+  "notes": [],
+  "created_at": "2026-10-15T00:30:00Z"
+}

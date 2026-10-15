@@ -1,0 +1,11 @@
+{
+  "name": "road_build",
+  "version": 1,
+  "kind": "system",
+  "doc": "Builds one road cell from its kind (a config entry: surface, verge, ruts, a quay, a half's edge piece, lamps, sign posts, planters, clutter), what each neighbour is (a 6-edge mask: road, a building's front or side, open land, water, wall, gate, a waterfront), which half of the hex an edge piece takes (a market stall, a bench, crates, a planter, a cart, facing the free half so every way through stays open), which edges carry a fence (left clear for fence), and its role (a path, a bridge): paving broken into stones, ruts along the flow, verges, kerbs, planters and crates in the strips along buildings, lamp posts with flickering lanterns, sign posts at junctions, quays and bollards, a bridge deck with rails; its flow, collision, and viewer guides (neighbours, flow, half, fences).",
+  "input": "road_spec",
+  "output": "road_model",
+  "state": "draft",
+  "notes": [],
+  "created_at": "2026-10-13T19:00:00Z"
+}

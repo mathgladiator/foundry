@@ -2,7 +2,7 @@
 
 A **boundary** keeps the player inside a playable region of hex cells while making it look as if the world goes on past it. The game gives a **hull**: the cells around the region, counterclockwise as seen from above, each with an **edge** that says what stops the player there and what lies beyond. The boundary invents everything outside: the ground near the rim, cliffs, trees, beaches, valleys and mountains out to the view distance, and the images that colour them. Invisible walls along the rim keep the player in.
 
-Asked for on 2026-10-14. It is the pipeline `boundary_v1` (`book/boundary_v1.md`), built in the foundry and the runtime; nothing is approved yet.
+Asked for on 2026-10-14. It is the pipeline `boundary` (`book/boundary.md`), built in the foundry and the runtime; nothing is approved yet.
 
 ## The hull and its edges
 
@@ -24,7 +24,7 @@ The hull's cells are the boundary's: their ground is drawn by it, and the region
 
 ### Hulls from shapes
 
-A hull can name a **shape** (`terrain_v1_shape`; `design/terrain.md`, "The shape and its sides") instead of listing cells: a polygon of corners from a kind and its sizes, with each side's aspect (edge, height, rise) and its openings. The hull is the ring of cells just outside the shape, each taking its side's values, blended round the corners. Thinking of a hull this way, you pick a shape and swap aspects side by side. A terrain built in the same shape hands its own ring to the boundary (`foundry_ground_hull`), so the land beyond starts at the heights the terrain ends at.
+A hull can name a **shape** (`terrain_shape`; `design/terrain.md`, "The shape and its sides") instead of listing cells: a polygon of corners from a kind and its sizes, with each side's aspect (edge, height, rise) and its openings. The hull is the ring of cells just outside the shape, each taking its side's values, blended round the corners. Thinking of a hull this way, you pick a shape and swap aspects side by side. A terrain built in the same shape hands its own ring to the boundary (`foundry_ground_hull`), so the land beyond starts at the heights the terrain ends at.
 
 ### Openings
 
@@ -57,8 +57,8 @@ Under the classic light the terrain hazes with distance; under a sky, the sky's 
 
 ## Figures
 
-Within the **figure range** (`figure_range`, 100 m by default) the boundary's trees and bushes are **figures**: control figures the game fills from its own systems, so the near world is the game's real trees while the boundary draws only what is far. A figure is a tree or a bush with a species, an age, a height, a turn, and a seed (`boundary_v1_figure`).
-- **Species:** each biome lists its species by where they grow (forest, jungle, mountain, marsh, and bushes; `figure_forest` and the rest), as tree_v1 and bush_v1 genomes.
+Within the **figure range** (`figure_range`, 100 m by default) the boundary's trees and bushes are **figures**: control figures the game fills from its own systems, so the near world is the game's real trees while the boundary draws only what is far. A figure is a tree or a bush with a species, an age, a height, a turn, and a seed (`boundary_figure`).
+- **Species:** each biome lists its species by where they grow (forest, jungle, mountain, marsh, and bushes; `figure_forest` and the rest), as tree and bush genomes.
 - **The forest's wall:** its rows and its slope pines become figures, and a third of its undergrowth becomes bushes.
 - **Beyond the wall:** rows of figures fill out to the range wherever the land would carry woods.
 - **The canopy:** none within the range, so the figures stand on bare ground. Past it, the canopy and the dressed trees carry on as before.
@@ -89,10 +89,10 @@ The walls are boxes along the rim, 40 m tall (at the lip for a ledge). Each hull
 
 ## The API
 
-- `foundry_boundary_v1_spawn_hull` takes the game's own cells (`foundry_hull_cell`: q, r, edge, height, rise). They replace the hull entry's cells, and its sectors still give auto edges.
+- `foundry_boundary_spawn_hull` takes the game's own cells (`foundry_hull_cell`: q, r, edge, height, rise). They replace the hull entry's cells, and its sectors still give auto edges.
 - `foundry_region_hull` returns a region's ring, with each cell's height and auto edges, for the game to edit.
 - `foundry_region_spawn_boundary` spawns the region's plotter's boundary, and `foundry_region_spawn_figures` fills its figures.
-- `foundry_instance_figures` returns a boundary's figures, for a game to fill from its own systems; `foundry_tree_v1_species_find` turns a species' name into tree_v1's value.
+- `foundry_instance_figures` returns a boundary's figures, for a game to fill from its own systems; `foundry_tree_species_find` turns a species' name into tree's value.
 - A hull cell's `opening` and `opening_width` carry a road or river out through it (a terrain's `foundry_ground_hull` sets them).
 
 ## Not built

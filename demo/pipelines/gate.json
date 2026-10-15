@@ -1,0 +1,157 @@
+{
+  "kind": "pipeline",
+  "name": "gate",
+  "state": "draft",
+  "doc": "A gate in a wall (design/planner.md, Gates): the game asks for a type (a config entry: a palisade's gate, a town gate's arch, a gatehouse, a tower gate, a postern), the wall's kind it stands in (so it matches), and the opening's width (one a wall's model reports); build makes it across the opening, and the house animator opens its doors, sways its banners, and flickers its torches.",
+  "notes": [],
+  "created_at": "2026-10-13T23:30:00Z",
+  "params": [
+    {
+      "name": "type",
+      "type": "config",
+      "table": "gate_types",
+      "default": "gatehouse",
+      "doc": "A type: one entry from config/gate_types/."
+    },
+    {
+      "name": "wall",
+      "type": "config",
+      "table": "wall_kinds",
+      "default": "town_wall",
+      "doc": "The wall it stands in: one entry from config/wall_kinds/."
+    },
+    {
+      "name": "condition",
+      "type": "enum",
+      "values": [
+        "intact",
+        "ruin"
+      ],
+      "default": "intact",
+      "doc": "Intact, or a ruin: its doors and portcullis gone, broken down, overgrown."
+    },
+    {
+      "name": "width",
+      "type": "f32",
+      "min": 0.8,
+      "max": 12,
+      "default": 3.5,
+      "unit": "m",
+      "doc": "The opening along the wall's line (a wall model's gate_widths: 3 m, or more where openings merge)."
+    },
+    {
+      "name": "season",
+      "type": "enum",
+      "values": [
+        "winter",
+        "spring",
+        "summer",
+        "fall"
+      ],
+      "default": "summer"
+    },
+    {
+      "name": "seed",
+      "type": "u32",
+      "min": 1,
+      "max": 1000,
+      "default": 1,
+      "doc": "Which of the distinct builds."
+    },
+    {
+      "name": "detail",
+      "type": "enum",
+      "values": [
+        "high",
+        "medium",
+        "low"
+      ],
+      "default": "high",
+      "doc": "Level of detail; the runtime picks it from distance and quality."
+    },
+    {
+      "name": "wind_speed",
+      "type": "f32",
+      "min": 0,
+      "max": 25,
+      "default": 6,
+      "unit": "m/s"
+    },
+    {
+      "name": "wind_heading",
+      "type": "f32",
+      "min": 0,
+      "max": 360,
+      "default": 90,
+      "unit": "deg",
+      "doc": "Toward which the wind blows, from +Z toward +X."
+    },
+    {
+      "name": "gust_damping",
+      "type": "f32",
+      "min": 0,
+      "max": 1,
+      "default": 0.3
+    },
+    {
+      "name": "time",
+      "type": "time",
+      "default": 0,
+      "unit": "s"
+    },
+    {
+      "name": "door_time",
+      "type": "event",
+      "default": -1,
+      "unit": "s",
+      "doc": "Seconds since its doors opened; negative while shut. The game starts it when someone comes through; it opens, stays a moment, and closes."
+    }
+  ],
+  "stages": [
+    {
+      "id": "build",
+      "system": "gate_build",
+      "input": {
+        "type": "$type",
+        "wall": "$wall",
+        "width": "$width",
+        "season": "$season",
+        "seed": "$seed",
+        "detail": "$detail",
+        "condition": "$condition"
+      }
+    },
+    {
+      "id": "animate",
+      "system": "house_animate",
+      "phase": "update",
+      "input": {
+        "bones": "@build.bones",
+        "wind_speed": "$wind_speed",
+        "wind_heading": "$wind_heading",
+        "gust_damping": "$gust_damping",
+        "time": "$time",
+        "door_time": "$door_time",
+        "seed": "$seed"
+      }
+    }
+  ],
+  "draw": {
+    "model": "build",
+    "pose": "animate",
+    "frame_m": 18,
+    "conformance": {
+      "radius": "radius",
+      "height": "height"
+    },
+    "guides": {
+      "lines": "guide_lines",
+      "colors": "guide_colors"
+    },
+    "fires": {
+      "points": "fire_points",
+      "configs": "fire_configs",
+      "lit": "fire_lit"
+    }
+  }
+}

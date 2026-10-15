@@ -1,0 +1,28 @@
+{
+  "family": "rock",
+  "version": 1,
+  "feature": "motion",
+  "doc": "Everything the rock's animator needs for one frame: the pieces and the break.",
+  "fields": [
+    {
+      "name": "pieces",
+      "type": "rock_piece[]",
+      "doc": "Break pieces, from the body."
+    },
+    {
+      "name": "break_time",
+      "type": "f32",
+      "doc": "Seconds since the rock broke; negative while it is whole."
+    },
+    {
+      "name": "break_heading",
+      "type": "f32",
+      "doc": "Direction the blow sends the pieces, degrees from +Z toward +X."
+    },
+    {
+      "name": "seed",
+      "type": "u32",
+      "doc": "Stable randomness for this instance's spin and scatter."
+    }
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "name": "tree_rig",
+  "version": 1,
+  "kind": "system",
+  "doc": "Grows a tree's skeleton from its genome, age, and season: Weber and Penn style branches, pipe-model radii, wind bones with natural frequencies, break pieces, and foliage anchors.",
+  "input": "tree_spec",
+  "output": "tree_rig",
+  "state": "draft",
+  "notes": [],
+  "created_at": "2026-10-11T00:00:00Z"
+}

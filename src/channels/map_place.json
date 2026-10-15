@@ -1,0 +1,53 @@
+{
+  "family": "map",
+  "version": 1,
+  "feature": "place",
+  "doc": "A site as planned (design/map.md): where it stands, its level, and what fills it.",
+  "fields": [
+    {
+      "name": "name",
+      "type": "string",
+      "doc": "Its name."
+    },
+    {
+      "name": "kind",
+      "type": "u32",
+      "doc": "What it is (map_site's kinds)."
+    },
+    {
+      "name": "position",
+      "type": "vec3",
+      "doc": "Its middle on its flat, metres."
+    },
+    {
+      "name": "radius",
+      "type": "f32",
+      "doc": "Its flat's radius, metres."
+    },
+    {
+      "name": "yaw",
+      "type": "f32",
+      "doc": "Its turn, degrees (toward its first road where it asked)."
+    },
+    {
+      "name": "planner",
+      "type": "string",
+      "doc": "Its planner, if a settlement."
+    },
+    {
+      "name": "pipeline",
+      "type": "string",
+      "doc": "Its pipeline, if one thing."
+    },
+    {
+      "name": "params",
+      "type": "string",
+      "doc": "That pipeline's parameters (JSON)."
+    },
+    {
+      "name": "seed",
+      "type": "u32",
+      "doc": "Its seed."
+    }
+  ]
+}

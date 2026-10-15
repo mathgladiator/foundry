@@ -36,10 +36,16 @@ struct LiveStats {
   std::string error;
 };
 
+// Hands the runtime an observatory (when it differs from what it was last handed, kept in handed) and
+// its state, its shadow map looking at centre (the live plotter's and the live map's).
+void hand_sky(foundry_runtime *rt, std::shared_ptr<const runtime::sky::Observatory> &handed,
+              const std::shared_ptr<const runtime::sky::Observatory> &observatory, const runtime::sky::State &state,
+              const float centre[3], float radius);
+
 class Live {
  public:
   ~Live();
-  // (Re)starts with this plotter, ground (plot_v1_region values), and world seed: a fresh
+  // (Re)starts with this plotter, ground (plot_region values), and world seed: a fresh
   // runtime, the region grown to full, every placement spawned.
   bool start(SDL_GPUDevice *device, const std::string &plotter, const nlohmann::json &regions, uint32_t seed,
              std::string &error);

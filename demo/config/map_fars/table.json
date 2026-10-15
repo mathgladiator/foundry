@@ -1,0 +1,6 @@
+{
+  "channel": "map_far_spec",
+  "doc": "Map far lands (design/map.md): a small map's plan with its biome, as samples to see the map_far pipeline by. The map's executor gives a map's own, packed.",
+  "label": "far",
+  "editor": {"groups": [], "colors": []}
+}

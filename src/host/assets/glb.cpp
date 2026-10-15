@@ -125,7 +125,7 @@ bool import_gltf(const std::string &path, runtime::Mesh &out, std::string &error
     }
   }
   cgltf_free(data);
-  // Keep normals all-or-nothing, as mesh_v1 expects.
+  // Keep normals all-or-nothing, as mesh expects.
   if (out.normals.size() != out.positions.size()) out.normals.clear();
   if (out.positions.empty()) {
     error = "no triangle meshes in " + path;

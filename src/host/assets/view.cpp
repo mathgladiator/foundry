@@ -118,7 +118,7 @@ std::vector<runtime::fire::Config> fire_configs() {
   g_fire_loaded = now;
   g_fire_any = true;
   g_fire_configs.clear();
-  const std::string dir = g_fire_root + "/config/fire_v1_configs";
+  const std::string dir = g_fire_root + "/config/fire_configs";
   std::error_code ec;
   if (g_fire_root.empty() || !std::filesystem::is_directory(dir, ec)) return g_fire_configs;
   const char *kinds[] = {"flame", "ember", "spirit"};

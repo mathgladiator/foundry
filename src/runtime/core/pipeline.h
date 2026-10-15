@@ -29,7 +29,7 @@ struct DrawMesh {
   void clear() { *this = DrawMesh{}; }
 };
 
-// One collision shape (the physics_v1_shape channel's convention, design/spine.md Layer 1), in the
+// One collision shape (the physics_shape channel's convention, design/spine.md Layer 1), in the
 // body's space: metres, +Y up.
 struct CollisionShape {
   enum Type : uint32_t { kSphere = 0, kBox = 1, kCapsule = 2, kTaperedCapsule = 3, kCylinder = 4, kConvexHull = 5 };
@@ -70,7 +70,7 @@ struct TerrainNode {
 };
 struct Terrain {
   // The runtime refines a node nearer than this many of its spacings, by quality (low, medium,
-  // high); a build refines its tree for the highest (boundary_terrain_v1's kRefine).
+  // high); a build refines its tree for the highest (boundary_terrain's kRefine).
   static constexpr float kRefine[3] = {20.0f, 32.0f, 48.0f};
   std::vector<TerrainNode> nodes;   // node 0 is the root
   std::vector<float> vertices;      // per vertex: position xyz, normal xyz, u, v, morph (9 floats)
@@ -123,6 +123,16 @@ struct Ground {
   std::vector<float> hull_heights, hull_rises;
   std::vector<int32_t> opening_cells;  // the hull's cells openings leave through, q, r pairs
   std::vector<uint32_t> opening_kinds, opening_widths;
+  // The nature ground for plotters (plot_region values), each with its parcel (a map chunk's; which
+  // plotter grows it).
+  struct Region {
+    std::vector<int32_t> cells;  // q, r pairs
+    uint32_t ground = 0;
+    bool available = true;
+    float height = 0, moisture = 0.5f;
+    uint32_t parcel = 0;
+  };
+  std::vector<Region> nature;
   // A grid over the cells for lookups: index (r - r0) * w + (q - q0), -1 where none.
   int32_t q0 = 0, r0 = 0, w = 0, h = 0;
   std::vector<int32_t> index;
@@ -221,7 +231,7 @@ struct ParamInfo {
 };
 
 struct StageInfo {
-  std::string label;  // pipeline.stage, e.g. tree_v1.rig
+  std::string label;  // pipeline.stage, e.g. tree.rig
   bool update = false;
 };
 

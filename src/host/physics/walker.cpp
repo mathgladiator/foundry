@@ -81,6 +81,7 @@ struct WalkerWorld {
   JPH::Ref<JPH::CharacterVirtual> character;
   JPH::RVec3 spawn_at = JPH::RVec3::sZero();
   bool bodies_changed = false;
+  JPH::uint optimized_bodies = 0;  // the world's body count when its broadphase was last optimized
 };
 
 Walker::Walker() {
@@ -178,7 +179,10 @@ bool Walker::find_spawn(float x, float z, float radius, bool on_floor, float fee
   const auto layers = w_->system.GetDefaultLayerFilter(kMoving);  // what stops the walker: solid bodies and ground
   const JPH::AABox bounds = w_->system.GetBounds();
   if (!bounds.IsValid()) return false;
-  const float top = bounds.mMax.GetY() + 1, depth = top - bounds.mMin.GetY() + 1;
+  // Within a sane height range: one unbounded body (a plane, an empty shape) would make the world's
+  // box endless, and a ray across it loses every bit of precision.
+  const float top = std::min(static_cast<float>(bounds.mMax.GetY()), 5000.0f) + 1;
+  const float depth = top - std::max(static_cast<float>(bounds.mMin.GetY()), -2000.0f) + 1;
   const JPH::RefConst<JPH::Shape> shape = capsule();
   const float walkable = std::cos(JPH::DegreesToRadians(50.0f));  // the character's steepest slope
 
@@ -251,17 +255,16 @@ void Walker::spawn(const float feet[3]) {
 
 void Walker::step(float dt, const Input &in) {
   if (!w_->character || dt <= 0) return;
-  if (w_->bodies_changed) {
-    w_->system.OptimizeBroadPhase();
-    w_->bodies_changed = false;
-  }
+  // A runtime adds and removes bodies one by one (a map streaming its chunks), which leaves the
+  // broadphase's trees unbalanced and every query slow: rebuild them when the world has changed.
+  tidy();
   JPH::CharacterVirtual &ch = *w_->character;
   const JPH::Vec3 up = JPH::Vec3::sAxisY(), gravity(0, kGravity, 0);
   // What the stick asks: along the heading and across it, no faster than full speed diagonally.
   const JPH::Vec3 fwd(std::sin(in.heading), 0, -std::cos(in.heading)), right(std::cos(in.heading), 0, std::sin(in.heading));
   JPH::Vec3 want = fwd * in.forward + right * in.right;
   if (want.LengthSq() > 1) want = want.Normalized();
-  want *= in.run ? kRun : kWalk;
+  want *= (in.run ? kRun : kWalk) * std::clamp(in.speed, 0.1f, 20.0f);
 
   ch.UpdateGroundVelocity();
   const JPH::Vec3 velocity = ch.GetLinearVelocity();
@@ -281,6 +284,50 @@ void Walker::step(float dt, const Input &in) {
   ch.ExtendedUpdate(dt, gravity, settings, w_->system.GetDefaultBroadPhaseLayerFilter(kMoving),
                     w_->system.GetDefaultLayerFilter(kMoving), {}, {}, w_->temp);
   if (ch.GetPosition().GetY() < -60) spawn(std::array<float, 3>{float(w_->spawn_at.GetX()), float(w_->spawn_at.GetY()), float(w_->spawn_at.GetZ())}.data());
+}
+
+uint32_t Walker::body_count() const { return w_->system.GetNumBodies(); }
+
+void Walker::tidy() {
+  if (w_->bodies_changed || w_->system.GetNumBodies() != w_->optimized_bodies) {
+    w_->system.OptimizeBroadPhase();
+    w_->bodies_changed = false;
+    w_->optimized_bodies = w_->system.GetNumBodies();
+  }
+}
+
+std::string Walker::probe(float x, float z) {
+  const JPH::NarrowPhaseQuery &query = w_->system.GetNarrowPhaseQuery();
+  const auto broad = w_->system.GetDefaultBroadPhaseLayerFilter(kMoving);
+  const auto layers = w_->system.GetDefaultLayerFilter(kMoving);
+  const JPH::AABox bounds = w_->system.GetBounds();
+  if (!bounds.IsValid()) return "no bounds";
+  const float top = std::min(static_cast<float>(bounds.mMax.GetY()), 5000.0f) + 1;
+  const float depth = top - std::max(static_cast<float>(bounds.mMin.GetY()), -2000.0f) + 1;
+  JPH::RRayCast ray(JPH::RVec3(x, top, z), JPH::Vec3(0, -depth, 0));
+  JPH::RayCastSettings settings;
+  settings.mBackFaceModeTriangles = JPH::EBackFaceMode::CollideWithBackFaces;
+  JPH::AllHitCollisionCollector<JPH::CastRayCollector> hits;
+  query.CastRay(ray, settings, hits, broad, layers);
+  hits.Sort();
+  std::string out = "bounds y " + std::to_string(bounds.mMin.GetY()) + " to " + std::to_string(bounds.mMax.GetY()) + "; hits:";
+  for (const auto &h : hits.mHits) {
+    const JPH::RVec3 at = ray.GetPointOnRay(h.mFraction);
+    JPH::BodyLockRead lock(w_->system.GetBodyLockInterface(), h.mBodyID);
+    if (!lock.Succeeded()) continue;
+    out += " [y " + std::to_string(static_cast<float>(at.GetY())) + " layer " + std::to_string(lock.GetBody().GetObjectLayer()) + " ny " +
+           std::to_string(lock.GetBody().GetWorldSpaceSurfaceNormal(h.mSubShapeID2, at).GetY()) + "]";
+  }
+  if (!hits.mHits.empty()) {
+    const JPH::RVec3 stand = ray.GetPointOnRay(hits.mHits.front().mFraction) + JPH::Vec3(0, 0.1f, 0);
+    const JPH::RefConst<JPH::Shape> shape = capsule();
+    JPH::AllHitCollisionCollector<JPH::CollideShapeCollector> touch;
+    query.CollideShape(shape, JPH::Vec3::sReplicate(1), JPH::RMat44::sTranslation(stand + shape->GetCenterOfMass()), JPH::CollideShapeSettings(),
+                       JPH::RVec3::sZero(), touch, broad, layers);
+    out += "; the capsule there touches " + std::to_string(touch.mHits.size());
+    for (const auto &t : touch.mHits) out += " (depth " + std::to_string(t.mPenetrationDepth) + ")";
+  }
+  return out;
 }
 
 void Walker::feet(float out[3]) const {

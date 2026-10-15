@@ -37,7 +37,7 @@ std::shared_ptr<const Collision> analyze(const std::vector<runtime::CollisionBod
 // sensor yellow), turned by yaw about +Y and moved to `at` (a placement in a region).
 void wireframe(const Collision &c, std::vector<viewport::Line> &out, foundry::vec3 at = {0, 0, 0}, float yaw = 0);
 
-// Collision bodies from a model's `collision` field, decoded as JSON (the physics_v1_body convention).
+// Collision bodies from a model's `collision` field, decoded as JSON (the physics_body convention).
 std::vector<runtime::CollisionBody> bodies_from_json(const nlohmann::json &collision);
 
 }  // namespace physics

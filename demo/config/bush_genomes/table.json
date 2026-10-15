@@ -1,0 +1,90 @@
+{
+  "channel": "bush_genome",
+  "doc": "Shrub species for bush: each entry is one genome, everything that makes a hazel a hazel. The pipeline's species parameter picks one by name; the native runtime compiles every entry in (tools/gen_pipelines.py), so the game sees only the names.",
+  "label": "species",
+  "editor": {
+    "groups": [
+      {
+        "label": "Identity",
+        "fields": [
+          "name",
+          "latin",
+          "deciduous"
+        ]
+      },
+      {
+        "label": "Shape",
+        "fields": [
+          "height",
+          "width",
+          "age_height",
+          "shape",
+          "stems",
+          "stem_spread",
+          "stem_curve",
+          "wobble"
+        ]
+      },
+      {
+        "label": "Branches",
+        "fields": [
+          "branches",
+          "branch_angle",
+          "branch_length",
+          "twigs"
+        ]
+      },
+      {
+        "label": "Foliage and seasons",
+        "fields": [
+          "foliage",
+          "clump",
+          "leafiness",
+          "fall_drop",
+          "winter_keep",
+          "snow",
+          "leaf_spring",
+          "leaf_summer",
+          "leaf_fall",
+          "leaf_fall_alt",
+          "leaf_winter"
+        ]
+      },
+      {
+        "label": "Flowers and berries",
+        "fields": [
+          "bloom",
+          "blossom_color",
+          "blossom_size",
+          "pickable",
+          "fruit",
+          "fruit_size",
+          "fruit_cluster",
+          "fruit_seasons",
+          "fruit_unripe",
+          "fruit_ripe"
+        ]
+      },
+      {
+        "label": "Bark and motion",
+        "fields": [
+          "bark_light",
+          "bark_dark",
+          "flex"
+        ]
+      }
+    ],
+    "colors": [
+      "leaf_spring",
+      "leaf_summer",
+      "leaf_fall",
+      "leaf_fall_alt",
+      "leaf_winter",
+      "blossom_color",
+      "fruit_unripe",
+      "fruit_ripe",
+      "bark_light",
+      "bark_dark"
+    ]
+  }
+}

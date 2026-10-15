@@ -180,17 +180,17 @@ foundry_instance foundry_region_spawn_boundary(foundry_runtime *rt, foundry_regi
  * capacity handles; returns how many it spawned. */
 uint32_t foundry_region_spawn_figures(foundry_runtime *rt, foundry_region region, foundry_instance boundary, foundry_instance *out,
                                       uint32_t capacity);
-/* A plotter's boundary, as "pipeline param..." (e.g. "boundary_v1 around_valley temperate"), or "" if none. */
+/* A plotter's boundary, as "pipeline param..." (e.g. "boundary around_valley temperate"), or "" if none. */
 const char *foundry_plotter_boundary_name(foundry_plotter plotter);
 
-/* A plotter's fields, as "pipeline param..." (e.g. "grass_v1 meadow"), and how many it has. */
+/* A plotter's fields, as "pipeline param..." (e.g. "grass meadow"), and how many it has. */
 const char *foundry_plotter_field_name(foundry_plotter plotter, uint32_t field);
 uint32_t foundry_plotter_field_count(foundry_plotter plotter);
-/* An approved plotter by its name (e.g. "happy_glen_v1"), or FOUNDRY_NO_PLOTTER; and a plotter's name. */
+/* An approved plotter by its name (e.g. "happy_glen"), or FOUNDRY_NO_PLOTTER; and a plotter's name. */
 #define FOUNDRY_NO_PLOTTER ((foundry_plotter)0xffffffffu)
 foundry_plotter foundry_plotter_find(const char *name);
 const char *foundry_plotter_name(foundry_plotter plotter);
-/* A plotter's kind, as "pipeline param..." (e.g. "tree_v1 oak"), and how many kinds it has. */
+/* A plotter's kind, as "pipeline param..." (e.g. "tree oak"), and how many kinds it has. */
 const char *foundry_plotter_kind_name(foundry_plotter plotter, uint32_t kind);
 uint32_t foundry_plotter_kind_count(foundry_plotter plotter);
 

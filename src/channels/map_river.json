@@ -1,0 +1,35 @@
+{
+  "family": "map",
+  "version": 1,
+  "feature": "river",
+  "doc": "A river on a map (design/map.md): from a source to a mouth, carved into the land.",
+  "fields": [
+    {
+      "name": "name",
+      "type": "string",
+      "doc": "Its name."
+    },
+    {
+      "name": "q",
+      "type": "i32",
+      "doc": "Its source: axial q (or an inlet's cell)."
+    },
+    {
+      "name": "r",
+      "type": "i32",
+      "doc": "Axial r."
+    },
+    {
+      "name": "to",
+      "type": "string",
+      "doc": "Its mouth: exit:<n> (an outlet), a lake parcel's name, or empty for wherever the land leads."
+    },
+    {
+      "name": "width",
+      "type": "u32",
+      "doc": "Its width, cells.",
+      "min": 1,
+      "max": 40
+    }
+  ]
+}

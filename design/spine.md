@@ -10,11 +10,11 @@ These documents describe the foundry at maximum expression: everything a pipelin
 
 ## Vocabulary
 
-- **System.** A black box the agent builds, with one fixed role: it takes one channel in and produces another channel out. It is a pure function: a clean sandbox of compute between channels. Systems are versioned and immutable once final, and they are private to the runtime: a game never sees one (`api.md`). Each frame, a system takes part in the update phase (CPU state, such as an animator or a timeline), the render phase (producing drawables), or both (`submit.md`).
+- **System.** A black box the agent builds, with one fixed role: it takes one channel in and produces another channel out. It is a pure function: a clean sandbox of compute between channels. Systems change in place (git keeps their history), and they are private to the runtime: a game never sees one (`api.md`). Each frame, a system takes part in the update phase (CPU state, such as an animator or a timeline), the render phase (producing drawables), or both (`submit.md`).
 - **Channel.** The structure that crosses the boundary between two systems. Channels are shared: any number of systems can read or write the same channel. A channel is written as a JSON schema, not C++: a schema is easier to diff, approve, and generate from, and the host generates everything else from it (the C++ structure, the packer, the disk format, and JSON conversion; `flow.md`).
 - **Pipeline.** A directed acyclic graph (DAG) of systems, plus the parameters that drive it from the top and a state machine. The DAG ultimately produces an object with a specific shape and texture. A pipeline is what the game asks for ("a young spruce in autumn"). It can branch and reuse systems at channel boundaries, so different interaction paths (a tree swaying versus a tree breaking) can share most of their systems.
 - **Pipeline instance.** One live asset in the game, with its own parameter values and state. The instance is the core unit of the engine: it has its own timeline, and it sleeps when nothing is happening to it (`submit.md`).
-- **Plot system.** A second kind of system, with the same rules (pure, versioned, private, checked against native) but a different role: it doesn't make a thing, it decides where things go. It takes a region of hex cells (with their attributes and what already occupies them) and returns placements: which kinds of thing go where. Instead of being fed by a pipeline's stages, it is bound to a config, such as a biome's kinds and spacings.
+- **Plot system.** A second kind of system, with the same rules (pure, private, checked against native) but a different role: it doesn't make a thing, it decides where things go. It takes a region of hex cells (with their attributes and what already occupies them) and returns placements: which kinds of thing go where. Instead of being fed by a pipeline's stages, it is bound to a config, such as a biome's kinds and spacings.
 - **Plotter.** A plot system bound to one config (`plotters/$name.json`), approved like a pipeline: "a cypress swamp". The game registers regions of cells with a plotter and asks it for growth; the game spawns and owns what it places (`plotter.md`).
 
 The concrete package layout (directories, generated packers, disk formats) is described in `flow.md`.
@@ -63,27 +63,21 @@ A pipeline defines a thing and provides the hooks to use it: interactions, anima
 
 This gives us a clear pipeline that we keep rigid. A conformance shape must be reasoned about and approved. The interaction idiom must be reasoned about and approved. Isolating how we build with agents this way saves tokens, but more importantly it minimizes the churn of letting an agent run wild.
 
-### Versioned waterfall
+### Changing in place
 
-We embrace a waterfall design methodology, made workable by versioning. Every system is versioned, and once a version is approved it is marked **final**: it is immutable from then on. The agent never edits a final version. To change anything, it must fork, creating a new version that branches from the old one. This is a philosophical shift: a decision is final, but it is never a dead end, because the response to a bad or outdated decision is a new branch rather than an edit in place.
+The foundry began as a versioned waterfall: approved systems were final and immutable, and every change forked a new version (`tree_rig_v2`). On 2026-10-14 the human set that aside to move faster: **nothing carries a version in its name, and everything changes in place.** Git keeps the history, and the human steers by play testing and pushing back rather than approving each step.
 
-Forking buys us three things:
+- **Systems** change in place. Their outputs are cached by the system's build and its input, so a change re-runs what depends on it and nothing else.
+- **Channels** are still the contract between systems, so a channel changes deliberately: the same change rebuilds and re-checks every pipeline that reads it (native match), and the summary says why it changed.
+- **The agent reports instead of asking.** New and changed channels, systems, and pipelines are listed, with their reasons, in the agent's summary and under the milestone in `PLAN.md`. Meshy spending and commits still ask first.
 
-- **Protection.** Existing pipelines, and anything in the game built on them, stay pinned to the system versions they were approved against. New work cannot silently break them.
-- **Migration as an experiment.** Because the old and new versions both exist, we can test a specific migration directly: run a pipeline against both, compare the outputs, and move dependents over deliberately, one at a time.
-- **Trivial caching.** A final version never changes, so anything derived from it, for a given set of inputs, can be cached forever.
+We still set aside DRY in favour of WET ("write everything twice"): systems carry their own copies of shared code (`math.h`, `shape.h`, `theme.h`), so one system's change never reaches another by accident.
 
-This also means we deliberately set aside the classic DRY ("don't repeat yourself") principle and embrace WET ("write everything twice"). Forking duplicates rather than shares, and that is fine: an agent is not bound by the human limits on reasoning that make duplication expensive, and this mirrors how software is already versioned and evolves organically. Duplication is the price of moving fast without breaking what is already approved.
-
-The word **fork** is reserved for versioning. When a pipeline takes a different route at runtime (a tree switching to its break path), that is an **interaction path**, chosen by the state machine.
-
-### Channels change rarely
-
-Systems fork freely, but channels are the contract between them. Channels are versioned, immutable artifacts like systems. The agent can create a channel or propose an upgrade, but an upgrade goes through its own approval workflow: the user sees the change, along with a written reason, and approves it. Approving it invalidates every system and pipeline that depends on the old channel, and they must be forked onto the new one. That is the deliberate cost of changing a contract. A channel change also requires a host restart.
+The word **fork** is not used for pipelines' runtime routes: when a pipeline takes a different route at runtime (a tree switching to its break path), that is an **interaction path**, chosen by the state machine.
 
 ### The UI
 
-The UI stays very simple: the foundry exposes an MCP server and hands the work of construction over to the agent, while the human approves each phase gate and decides when a version becomes final. Approval happens through play testing (`playtest.md`), which is the primary way both the human and the agent interact with a pipeline. Because final systems are immutable, each system's output can be cached, and the foundry's branches can track the game's branches. Pipelines we build can then go directly into the game across a boundary that is crisp, clean, and cacheable.
+The UI stays very simple: the foundry exposes an MCP server and hands the work of construction over to the agent, while the human steers by play testing. Approval happens through play testing (`playtest.md`), which is the primary way both the human and the agent interact with a pipeline. Each system's output is cached by its build and input, and the foundry's branches can track the game's branches. Pipelines we build can then go directly into the game across a boundary that is crisp, clean, and cacheable.
 
 ## Moving fast
 
@@ -93,7 +87,7 @@ We want to run Claude in this directory and use the foundry while it builds itse
 
 ### The native build
 
-The final game build is native. The generated code for each system is merged, the packers go away, and channels are passed as direct structures. Because pipelines may be pinned to different versions of the same system, a single game build can ship several versions side by side, each in its own isolated C++ namespace (`src/systems/$name_$version`, see `ORG.md`). This is the main reason the foundry uses C++ rather than C internally. The game-facing front door is still a plain C API (`api.md`).
+The final game build is native. The generated code for each system is merged, the packers go away, and channels are passed as direct structures. Each system keeps its own C++ namespace (`src/systems/$name`, see `ORG.md`), so systems' private helpers never collide in the merged build. The game-facing front door is still a plain C API (`api.md`).
 
 WebAssembly is the development box, not the shipping one: it gives us a container that is easy to instrument at runtime, with the generated boundary code sitting right next to each system. Avoiding undefined behavior is best effort: the goal is that each system is a clean sandbox of pure compute between channels, so that what we approved in WebAssembly behaves the same natively.
 
@@ -101,13 +95,13 @@ Shared artifacts have their lifetimes managed by a common reference-counting sys
 
 ### Shared libraries
 
-Not every stage is specific to one pipeline. The host also exposes shared library systems at various levels of the pipeline: general-purpose stages that many pipelines need and that can run automatically, without per-pipeline design. For example, after meshing, a mesh needs a level-of-detail adjuster and then a mesh optimizer that orders triangles for the GPU (`submit.md` explains why this replaces a triangle stripifier). These stages exist in the runtime as well, not just in the foundry, so they run whenever an asset is instanced. Shared libraries are versioned like everything else, so a pipeline stays pinned to the library versions it was approved against. A new library version never flows into an existing pipeline automatically: adopting it requires forking and re-approval, just like any other change.
+Not every stage is specific to one pipeline. The host also exposes shared library systems at various levels of the pipeline: general-purpose stages that many pipelines need and that can run automatically, without per-pipeline design. For example, after meshing, a mesh needs a level-of-detail adjuster and then a mesh optimizer that orders triangles for the GPU (`submit.md` explains why this replaces a triangle stripifier). These stages exist in the runtime as well, not just in the foundry, so they run whenever an asset is instanced. Shared libraries change in place like everything else; a change re-runs and re-checks the pipelines that use them.
 
 **Level of detail** is a shared responsibility, driven by a common pool of quality sliders in the game's configuration. Each pipeline decides whether it needs the automatic LOD stage or whether one of its generators handles LOD directly (as the humanoid body mesh and hands do in `systems.md`).
 
 ### Caching and GPU resources
 
-Caching is what makes runtime generation affordable. Because final versions are immutable, the output of each system can be computed once per version and set of inputs, then reused. To get more out of the cache, the runtime collapses inputs where it can: it ties level of detail to the quality sliders, shares meshes between instances with the same parameters, and caps how many distinct variants it generates (see the tree example in `systems.md`).
+Caching is what makes runtime generation affordable. The output of each system is computed once per build of the system and set of inputs, then reused. To get more out of the cache, the runtime collapses inputs where it can: it ties level of detail to the quality sliders, shares meshes between instances with the same parameters, and caps how many distinct variants it generates (see the tree example in `systems.md`).
 
 Generation is on demand, and the cache is shared and layered. For example, every humanoid with the same skin parameters shares one skin texture; armor painted onto that skin becomes a new cached resource layered on top of it, and if more characters wear that armor, they share it too. Cached resources are reference counted and, once unused, released after a timer rather than immediately. Both creation and destruction of GPU resources are amortized to minimize churn and keep generation within a budget. While a new resource is being generated, the old one stays on screen as a fallback.
 

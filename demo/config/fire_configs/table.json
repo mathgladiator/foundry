@@ -1,0 +1,53 @@
+{
+  "channel": "fire_config",
+  "doc": "Fires the runtime's fire system draws (design/submit.md, Fire): a building's fire points name one by id. Ids are stable: never reuse one.",
+  "label": "fire",
+  "editor": {
+    "groups": [
+      {
+        "label": "Identity",
+        "fields": [
+          "name",
+          "id",
+          "kind"
+        ]
+      },
+      {
+        "label": "Flames",
+        "fields": [
+          "core_color",
+          "tip_color",
+          "size",
+          "height",
+          "rate",
+          "flicker",
+          "sparks"
+        ]
+      },
+      {
+        "label": "Smoke",
+        "fields": [
+          "smoke_color",
+          "smoke_rate",
+          "smoke_size",
+          "smoke_life",
+          "smoke_rise"
+        ]
+      },
+      {
+        "label": "Light",
+        "fields": [
+          "light_color",
+          "light_radius",
+          "light_strength"
+        ]
+      }
+    ],
+    "colors": [
+      "core_color",
+      "tip_color",
+      "smoke_color",
+      "light_color"
+    ]
+  }
+}

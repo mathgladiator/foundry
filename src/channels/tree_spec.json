@@ -1,0 +1,60 @@
+{
+  "family": "tree",
+  "version": 1,
+  "feature": "spec",
+  "doc": "One tree to grow: what the game asks for (\"a young pine in fall\"), whether its fruit is still on it, plus the seed that makes this tree differ from its neighbours and the level of detail the runtime picked.",
+  "fields": [
+    {
+      "name": "genome",
+      "type": "tree_genome",
+      "doc": "The species."
+    },
+    {
+      "name": "age",
+      "type": "u32",
+      "doc": "How old the tree is.",
+      "enum": [
+        "sapling",
+        "young",
+        "mature",
+        "ancient"
+      ]
+    },
+    {
+      "name": "season",
+      "type": "u32",
+      "doc": "The time of year.",
+      "enum": [
+        "winter",
+        "spring",
+        "summer",
+        "fall"
+      ]
+    },
+    {
+      "name": "seed",
+      "type": "u32",
+      "doc": "Stable randomness: the runtime maps each tree's ID onto a capped set of seeds per quality level."
+    },
+    {
+      "name": "detail",
+      "type": "u32",
+      "doc": "Level of detail, chosen by the runtime from distance and quality.",
+      "enum": [
+        "high",
+        "medium",
+        "low"
+      ]
+    },
+    {
+      "name": "fruit",
+      "type": "bool",
+      "doc": "The tree carries its fruit, in the seasons its species fruits. The game clears it when the fruit is picked, which rebuilds the tree bare (sharing the build with every other picked tree like it)."
+    },
+    {
+      "name": "stump",
+      "type": "bool",
+      "doc": "Only the stump is left: the game felled the tree (after its break is over) and declared it a stump. The mesh draws the stump alone, and the collision is the stump's."
+    }
+  ]
+}

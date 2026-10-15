@@ -1,0 +1,8 @@
+{
+  "kind": "channel",
+  "name": "waterfront_spec",
+  "state": "draft",
+  "reason": "waterfront_build's input (approved 2026-10-13): a waterfront building's type, size, the water's drop, and season. Patched 2026-10-14: a theme and a ruin (approved).",
+  "notes": [],
+  "created_at": "2026-10-13T19:30:00Z"
+}

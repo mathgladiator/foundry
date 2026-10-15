@@ -1,0 +1,10 @@
+{
+  "name": "map_plan",
+  "kind": "system",
+  "doc": "A map's macro plan (design/map.md, Executing it): an 8 m grid over the map with each node's parcel (nearest seed, warped, less its reach) and the parcels' relief blended across borders, lakes and marshes at their levels, the edge eased to its sides' heights; sites' flats levelled in; rivers routed downhill and carved; links routed over the grid, smoothed, graded to their kind, and pressed into the land; places, chunks, the boundary's hull, and the report.",
+  "input": "map_spec",
+  "output": "map_plan",
+  "state": "draft",
+  "notes": [],
+  "created_at": "2026-10-14T23:30:00Z"
+}

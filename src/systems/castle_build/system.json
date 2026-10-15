@@ -1,0 +1,11 @@
+{
+  "name": "castle_build",
+  "version": 1,
+  "kind": "system",
+  "doc": "Builds one part of a castle (design/planner.md, Castles) from its part (a config entry: a keep, a great hall, a chapel, a range for barracks, stables, a kitchen, or storehouses, or a tower; its stone, roof, storeys, battlements, turrets, banners, chimneys, windows, and doors) and its lot (small rect6x5, medium rect8x6, large rect10x7, keep rect8x8): a keep's great tower with corner turrets, a forebuilding stair to its door, and a parapet; a hall with buttresses, tall windows, a louvre, and a porch; a chapel with its bellcote (the bell swings) and apse; a range against the lot's back with its doors (a stable's row of half doors); a round tower; banners sway, smoke rises; snow in winter; its lot's cells and box, every lot as guides, the doorway, the marker, and collision.",
+  "input": "castle_spec",
+  "output": "castle_model",
+  "state": "draft",
+  "notes": [],
+  "created_at": "2026-10-13T23:30:00Z"
+}

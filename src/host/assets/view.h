@@ -40,7 +40,7 @@ struct ViewContent {
 
 ViewContent load_view(const workspace::Workspace &ws, const std::string &id);
 
-// The fire configs views burn with: the workspace's config/fire_v1_configs/, reread when it changes.
+// The fire configs views burn with: the workspace's config/fire_configs/, reread when it changes.
 void set_fire_root(const std::string &workspace_root);
 std::vector<runtime::fire::Config> fire_configs();
 // The fire system's sprites and lights for fire points (model space) at a moment: a still, stepped

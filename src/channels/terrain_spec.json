@@ -1,0 +1,74 @@
+{
+  "family": "terrain",
+  "version": 1,
+  "feature": "spec",
+  "doc": "terrain_relief's input (design/terrain.md, Building it): the shape, the flats, and how the inside is built.",
+  "fields": [
+    {
+      "name": "shape",
+      "type": "terrain_shape",
+      "doc": "The shape, its sides, and its openings."
+    },
+    {
+      "name": "flats",
+      "type": "terrain_flat[]",
+      "doc": "The flats."
+    },
+    {
+      "name": "relief",
+      "type": "f32",
+      "doc": "How high hills stand above the sides' blend, metres.",
+      "min": 0,
+      "max": 60
+    },
+    {
+      "name": "hill_size",
+      "type": "f32",
+      "doc": "How wide a hill is, metres.",
+      "min": 8,
+      "max": 200
+    },
+    {
+      "name": "roughness",
+      "type": "f32",
+      "doc": "Small bumps and hollows, 0 to 1.",
+      "min": 0,
+      "max": 1
+    },
+    {
+      "name": "ridges",
+      "type": "f32",
+      "doc": "How much of the relief is ridged rather than rolling, 0 to 1.",
+      "min": 0,
+      "max": 1
+    },
+    {
+      "name": "cliffs",
+      "type": "f32",
+      "doc": "How much steep land is rock in terraces (cliffs), 0 to 1.",
+      "min": 0,
+      "max": 1
+    },
+    {
+      "name": "caves",
+      "type": "f32",
+      "doc": "How often cliffs open into overhangs and cave mouths, 0 to 1.",
+      "min": 0,
+      "max": 1
+    },
+    {
+      "name": "river_depth",
+      "type": "f32",
+      "doc": "How deep rivers run below their banks, metres.",
+      "min": 0.5,
+      "max": 6
+    },
+    {
+      "name": "seed",
+      "type": "u32",
+      "doc": "The terrain's seed.",
+      "min": 1,
+      "max": 1000000
+    }
+  ]
+}

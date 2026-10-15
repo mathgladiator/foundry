@@ -25,13 +25,13 @@ std::string native_path(const Paths &p, const std::string &system);
 void dump_mismatch(const std::string &system, const std::vector<uint8_t> &input, const std::vector<uint8_t> &wasm,
                    const std::vector<uint8_t> &native);
 
-// Creates src/systems/<name>_v<version>/ with a manifest and a source file
+// Creates src/systems/<name>/ with a manifest and a source file (version is ignored: names carry none)
 // (a stub that reports "not implemented" when `source` is empty).
 bool create_system(const Paths &p, const std::string &name, int version, const std::string &input,
                    const std::string &output, const std::string &doc, const std::string &source,
                    std::string &error);
 
-// Replaces a system's system.cpp. Refuses final systems: fork them instead.
+// Replaces a system's system.cpp (systems change in place; git keeps the history).
 bool write_source(const Paths &p, const std::string &system, const std::string &source, std::string &error);
 
 struct BuildResult {

@@ -1,0 +1,8 @@
+{
+  "kind": "channel",
+  "name": "fence_model",
+  "state": "draft",
+  "reason": "fence_build's output (approved 2026-10-13): no model channel carries a fence piece.",
+  "notes": [],
+  "created_at": "2026-10-13T23:30:00Z"
+}

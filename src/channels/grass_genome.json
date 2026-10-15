@@ -1,0 +1,143 @@
+{
+  "family": "grass",
+  "version": 1,
+  "feature": "genome",
+  "doc": "A grass: everything that makes a meadow a meadow, grown one hex cell at a time so a field of it is a few shared tiles (design/plotter.md, \"Fields\"). Genomes are data (the workspace's config/grass_genomes/).",
+  "fields": [
+    {
+      "name": "name",
+      "type": "string",
+      "doc": "The common name."
+    },
+    {
+      "name": "latin",
+      "type": "string",
+      "doc": "The botanical name."
+    },
+    {
+      "name": "height",
+      "type": "f32",
+      "doc": "A blade's length at full growth, metres.",
+      "min": 0.03,
+      "max": 2.0
+    },
+    {
+      "name": "height_jitter",
+      "type": "f32",
+      "doc": "How much blades vary in length, as a share.",
+      "min": 0,
+      "max": 0.8
+    },
+    {
+      "name": "blade_width",
+      "type": "f32",
+      "doc": "A blade's width at its base, metres.",
+      "min": 0.002,
+      "max": 0.08
+    },
+    {
+      "name": "blades",
+      "type": "u32",
+      "doc": "Blades per cell (2.6 square metres) at high detail.",
+      "min": 4,
+      "max": 400
+    },
+    {
+      "name": "clump",
+      "type": "f32",
+      "doc": "How much blades gather into tufts: 0 even, 1 tight tufts.",
+      "min": 0,
+      "max": 1
+    },
+    {
+      "name": "lean",
+      "type": "f32",
+      "doc": "How far blades lean out from upright, radians.",
+      "min": 0,
+      "max": 1.2
+    },
+    {
+      "name": "bend",
+      "type": "f32",
+      "doc": "How much a blade curves along its length, radians.",
+      "min": 0,
+      "max": 2.0
+    },
+    {
+      "name": "base_color",
+      "type": "vec3",
+      "doc": "A blade's colour at the ground."
+    },
+    {
+      "name": "tip_color",
+      "type": "vec3",
+      "doc": "A green blade's colour at its tip."
+    },
+    {
+      "name": "dry_color",
+      "type": "vec3",
+      "doc": "A dry blade's colour (fall, winter)."
+    },
+    {
+      "name": "dry",
+      "type": "f32[]",
+      "doc": "Per season (winter, spring, summer, fall): how dry the blades are, 0 green to 1 dry.",
+      "min": 0,
+      "max": 1
+    },
+    {
+      "name": "season_height",
+      "type": "f32[]",
+      "doc": "Per season: blade length as a share of full height.",
+      "min": 0.1,
+      "max": 1.2
+    },
+    {
+      "name": "seed_heads",
+      "type": "f32",
+      "doc": "The share of blades with a seed head (in summer and fall).",
+      "min": 0,
+      "max": 1
+    },
+    {
+      "name": "seed_color",
+      "type": "vec3",
+      "doc": "A seed head's colour."
+    },
+    {
+      "name": "variants",
+      "type": "u32",
+      "doc": "How many different tiles the grass grows; cells pick among them.",
+      "min": 1,
+      "max": 8
+    },
+    {
+      "name": "bald",
+      "type": "f32",
+      "doc": "The share of soil cells left bare, in patches.",
+      "min": 0,
+      "max": 0.9
+    },
+    {
+      "name": "patch_cells",
+      "type": "f32",
+      "doc": "The size of the patches (bald, lush), in cells.",
+      "min": 1,
+      "max": 40
+    },
+    {
+      "name": "lush",
+      "type": "f32",
+      "doc": "How much a wet cell's grass is taller and greener than a dry one's.",
+      "min": 0,
+      "max": 1
+    },
+    {
+      "name": "sway",
+      "type": "f32",
+      "doc": "How far a blade tip moves in a 10 m/s wind, metres.",
+      "min": 0,
+      "max": 1.0
+    }
+  ]
+}

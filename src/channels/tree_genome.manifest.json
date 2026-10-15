@@ -1,0 +1,8 @@
+{
+  "kind": "channel",
+  "name": "tree_genome",
+  "state": "draft",
+  "reason": "Trees need a species description shared by all four tree systems (design/systems.md, Trees). One structure, nested in the other tree channels, keeps the rig, mesh, and colouring reading the same numbers; ranges in the schema drive the UI's genome sliders. Draft revision (2026-10-11): channels renamed to tree_<feature>; foliage gains fronds (palms) and bark gains ringed (palms) and papery (birch), for the tropical and northern species.",
+  "notes": [],
+  "created_at": "2026-10-11T00:00:00Z"
+}

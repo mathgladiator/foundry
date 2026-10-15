@@ -1,5 +1,5 @@
 // fire.h: the fire system's C API over the runtime (design/submit.md, "Fire"). The configs are
-// compiled in (fires.cpp, generated from config/fire_v1_configs/).
+// compiled in (fires.cpp, generated from config/fire_configs/).
 #include <algorithm>
 
 #include "fires.h"

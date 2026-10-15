@@ -1,0 +1,95 @@
+{
+  "family": "road",
+  "version": 1,
+  "feature": "spec",
+  "doc": "One road cell to build (design/planner.md, Roads): its kind, what each neighbour is, which half an edge piece takes, which edges carry a fence (left clear), its role, and the season.",
+  "fields": [
+    {
+      "name": "kind",
+      "type": "road_kind",
+      "doc": "The kind."
+    },
+    {
+      "name": "condition",
+      "type": "u32",
+      "doc": "Intact, or a ruin: broken down, roofless, overgrown, without its moving parts or lit fires.",
+      "enum": [
+        "intact",
+        "ruin"
+      ]
+    },
+    {
+      "name": "mask",
+      "type": "u32",
+      "doc": "Each neighbour, 3 bits per edge in the hex directions' order (0, 300, 240, 180, 120, 60 degrees from +x toward +z: axial (1,0), (1,-1), (0,-1), (-1,0), (-1,1), (0,1)): 0 road, 1 a building's front, 2 open land, 3 water, 4 wall, 5 gate, 6 a waterfront, 7 a building's side or back."
+    },
+    {
+      "name": "half",
+      "type": "u32",
+      "doc": "Which half of the hex an edge piece takes (a stall, a bench, crates): 0 to 5, the half holding edges h and h + 1 whole (cut through the middles of edges h + 2 and h + 5), or 6 for none. It never takes an edge the cell's flow uses, so the other half keeps every way through open.",
+      "enum": [
+        "e0_1",
+        "e1_2",
+        "e2_3",
+        "e3_4",
+        "e4_5",
+        "e5_0",
+        "none"
+      ]
+    },
+    {
+      "name": "fences",
+      "type": "u32",
+      "doc": "Which edges carry a fence (fence, laid along the line between this cell and open land): bit d for edge d. The road leaves a strip there clear."
+    },
+    {
+      "name": "doors",
+      "type": "u32",
+      "doc": "Which edges face a building's door (bit d for edge d): nothing stands against them, and the cell takes no half."
+    },
+    {
+      "name": "role",
+      "type": "u32",
+      "doc": "Its role: a path, or a bridge over water.",
+      "enum": [
+        "path",
+        "bridge"
+      ]
+    },
+    {
+      "name": "season",
+      "type": "u32",
+      "doc": "The season.",
+      "enum": [
+        "winter",
+        "spring",
+        "summer",
+        "fall"
+      ]
+    },
+    {
+      "name": "seed",
+      "type": "u32",
+      "doc": "Which of the distinct cells."
+    },
+    {
+      "name": "detail",
+      "type": "u32",
+      "doc": "Level of detail.",
+      "enum": [
+        "high",
+        "medium",
+        "low"
+      ]
+    },
+    {
+      "name": "paving",
+      "type": "u32",
+      "enum": [
+        "own",
+        "none"
+      ],
+      "doc": "Who draws the way's surface: own (the cell's paving and its skirt) or none (a terrain under it draws the surface, as a map's ground does; boards, a boardwalk, and a bridge's deck are always drawn)."
+    }
+  ]
+}

@@ -19,9 +19,9 @@
 namespace workspace {
 
 struct Item {
-  std::string id;        // "<kind>:<name>", e.g. "system:mesh_progressive_v1"
+  std::string id;        // "<kind>:<name>", e.g. "system:mesh_progressive"
   std::string kind;      // pipeline, system, channel, config, conformance, meshy, fixed, fracture
-  std::string name;      // e.g. mesh_progressive_v1
+  std::string name;      // e.g. mesh_progressive
   std::string path;      // the item's file or directory
   std::string manifest;  // the JSON file holding state and notes
   nlohmann::json data;   // the manifest's contents

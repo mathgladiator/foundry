@@ -35,7 +35,7 @@ typedef struct foundry_diag_frame {
 } foundry_diag_frame;
 
 typedef struct foundry_diag_stage {
-  char label[64]; /* pipeline.stage, e.g. tree_v1.rig */
+  char label[64]; /* pipeline.stage, e.g. tree.rig */
   bool update;
   uint64_t calls;
   double total_ms, max_ms;
@@ -83,6 +83,12 @@ foundry_status foundry_diag_force_level(foundry_runtime *rt, foundry_instance in
  * false, clamped to the parameter's range. FOUNDRY_STATUS_BAD_PARAMETER if the instance's pipeline
  * has no such parameter. The foundry uses it to share values (season, wind) across a region. */
 foundry_status foundry_diag_set_param(foundry_runtime *rt, foundry_instance instance, const char *name, const char *value);
+/* Spawns a pipeline by its name (e.g. "house") with parameters given by name, from text as
+ * foundry_diag_set_param takes them, over its defaults; FOUNDRY_NO_INSTANCE if there is no such
+ * pipeline or a parameter is unknown. The foundry uses it to place what a map's sites and towns ask
+ * for (design/map.md). */
+foundry_instance foundry_diag_spawn(foundry_runtime *rt, const char *pipeline, const char *const *names, const char *const *values,
+                                    uint32_t count, const float transform[16]);
 /* Releases every unused build now, without waiting for the release timer. */
 void foundry_diag_flush(foundry_runtime *rt);
 

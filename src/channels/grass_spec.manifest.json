@@ -1,0 +1,8 @@
+{
+  "kind": "channel",
+  "name": "grass_spec",
+  "state": "draft",
+  "reason": "The input to grass_tile: a tile is shared by every cell that picks it, so it carries no cell coordinates; the variant and level are all that tell tiles apart within a species and season.",
+  "notes": [],
+  "created_at": "2026-10-13T03:00:00Z"
+}

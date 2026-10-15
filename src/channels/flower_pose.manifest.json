@@ -1,0 +1,8 @@
+{
+  "kind": "channel",
+  "name": "flower_pose",
+  "state": "draft",
+  "reason": "The flower's pose, following the draw convention (matrices and settled).",
+  "notes": [],
+  "created_at": "2026-10-12T09:00:00Z"
+}

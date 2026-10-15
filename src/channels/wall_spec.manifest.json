@@ -1,0 +1,8 @@
+{
+  "kind": "channel",
+  "name": "wall_spec",
+  "state": "draft",
+  "reason": "wall_build's input (approved 2026-10-13; patched 2026-10-14: a whole network instead of a piece). Patched 2026-10-14: a ruin condition (approved).",
+  "notes": [],
+  "created_at": "2026-10-13T23:30:00Z"
+}

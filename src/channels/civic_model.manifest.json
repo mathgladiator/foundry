@@ -1,0 +1,8 @@
+{
+  "kind": "channel",
+  "name": "civic_model",
+  "state": "draft",
+  "reason": "civic_build's output (approved 2026-10-13): no model channel carries a civic building. Patched 2026-10-14: its doors' cells (approved). Patched 2026-10-14: fire points (approved).",
+  "notes": [],
+  "created_at": "2026-10-13T23:30:00Z"
+}

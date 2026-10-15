@@ -1,0 +1,11 @@
+{
+  "name": "flower_grow",
+  "version": 1,
+  "kind": "system",
+  "doc": "Grows a clump of flowers from its genome and season: leaning, bending stems on two wind bones each, heads by form (ray, cup, trumpet, bell, spike, iris, cattail, crest), buds before the peak and seed heads after it, dry stalks in a dormant winter, and basal and stem leaves by shape.",
+  "input": "flower_spec",
+  "output": "flower_model",
+  "state": "draft",
+  "notes": [],
+  "created_at": "2026-10-12T09:00:00Z"
+}

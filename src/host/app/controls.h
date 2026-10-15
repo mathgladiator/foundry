@@ -42,7 +42,7 @@ class Play {
   // The world it was built for (a selection and its version), to rebuild it when that changes.
   std::string world_key;
 
-  // One step: WASD or the left stick walks, Shift or the right trigger runs, Space or A jumps, dragging
+  // One step: WASD or the left stick walks, Shift or the right trigger runs, + and - change the speed, Space or A jumps, dragging
   // or the right stick looks, the wheel or Y moves the camera between behind and the eyes, and Escape or
   // Back stops. Keys count while the view is hovered or the play test has the keyboard.
   void update(float dt, bool hovered, const Pad &pad);
@@ -53,6 +53,10 @@ class Play {
   // The capsule as overlay lines (none at the eyes).
   void lines(std::vector<viewport::Line> &out) const;
   bool first_person() const { return distance_ <= 0; }
+  float heading() const { return heading_; }
+  float pitch() const { return pitch_; }
+  // Times the walker's walking and running speeds (the view's speed setting; + and - change it).
+  float speed = 1;
   const char *help() const;
 
  private:

@@ -1,0 +1,169 @@
+{
+  "config": {
+    "grove_octaves": 2,
+    "grove_scale_cells": 9,
+    "layers": [
+      {
+        "density": 0.5,
+        "ground": [
+          "soil"
+        ],
+        "grove": [
+          0.2,
+          1.8
+        ],
+        "kinds": [
+          {
+            "footprint_cells": 1,
+            "footprint_m": 0.5759999752044678,
+            "on_regrow": {
+              "age": "sapling"
+            },
+            "params": {
+              "species": "pine"
+            },
+            "pipeline": "tree",
+            "vary": {
+              "age": {
+                "mature": 0.7,
+                "young": 0.3
+              }
+            },
+            "weight": 1.0
+          }
+        ],
+        "max_height_delta_m": 1.0,
+        "name": "trees",
+        "regrows": true,
+        "spacing_m": 16.0
+      },
+      {
+        "density": 1.2,
+        "ground": [
+          "soil"
+        ],
+        "keep_clear": {
+          "trees": 2.0
+        },
+        "kinds": [
+          {
+            "footprint_cells": 1,
+            "footprint_m": 0.5699999928474426,
+            "params": {
+              "species": "sagebrush"
+            },
+            "pipeline": "bush",
+            "vary": {
+              "age": {
+                "mature": 0.6,
+                "old": 0.2,
+                "young": 0.2
+              }
+            },
+            "weight": 0.5
+          },
+          {
+            "footprint_cells": 7,
+            "footprint_m": 1.2309999465942383,
+            "params": {
+              "species": "oleander"
+            },
+            "pipeline": "bush",
+            "vary": {
+              "age": {
+                "mature": 0.6,
+                "old": 0.2,
+                "young": 0.2
+              }
+            },
+            "weight": 0.5
+          }
+        ],
+        "max_height_delta_m": 1.0,
+        "name": "scrub",
+        "regrows": true,
+        "spacing_m": 4.0
+      },
+      {
+        "density": 5,
+        "ground": [
+          "soil"
+        ],
+        "keep_clear": {
+          "scrub": 0.8
+        },
+        "kinds": [
+          {
+            "footprint_cells": 0,
+            "footprint_m": 0.0,
+            "params": {
+              "species": "marigold"
+            },
+            "pipeline": "flower",
+            "weight": 0.5
+          },
+          {
+            "footprint_cells": 0,
+            "footprint_m": 0.0,
+            "params": {
+              "species": "daisy"
+            },
+            "pipeline": "flower",
+            "weight": 0.5
+          }
+        ],
+        "max_height_delta_m": 1.0,
+        "name": "flowers",
+        "regrows": true,
+        "spacing_m": 1.6
+      },
+      {
+        "density": 0.9,
+        "ground": [
+          "soil",
+          "sand",
+          "path"
+        ],
+        "kinds": [
+          {
+            "footprint_cells": 1,
+            "footprint_m": 0.7049999833106995,
+            "params": {
+              "material": "sandstone",
+              "moss": "none"
+            },
+            "pipeline": "rock",
+            "weight": 1.0
+          }
+        ],
+        "max_height_delta_m": 2.0,
+        "name": "stones",
+        "regrows": false,
+        "spacing_m": 5.0
+      }
+    ]
+  },
+  "distinct_seeds": 4,
+  "doc": "A shore: dune grass, sandstone and driftwood-grey stones, sea-pinks and marigolds, and a few wind-bent pines.",
+  "fields": [
+    {
+      "params": {
+        "species": "dune"
+      },
+      "pipeline": "grass"
+    }
+  ],
+  "kind": "plotter",
+  "name": "shore",
+  "state": "draft",
+  "system": "plot_scatter",
+  "view": {
+    "preset": "glen",
+    "radius": 14,
+    "seed": 7,
+    "shared": {
+      "season": "summer",
+      "wind_speed": 3
+    }
+  }
+}

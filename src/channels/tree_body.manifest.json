@@ -1,0 +1,8 @@
+{
+  "kind": "channel",
+  "name": "tree_body",
+  "state": "draft",
+  "reason": "tree_mesh's output and tree_colorize's input (design/systems.md: Body, then Coloring). Paint regions keep colour out of the geometry (style.md: palettes are data).",
+  "notes": [],
+  "created_at": "2026-10-11T00:00:00Z"
+}

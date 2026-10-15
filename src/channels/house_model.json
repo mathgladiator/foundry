@@ -1,0 +1,155 @@
+{
+  "family": "house",
+  "version": 1,
+  "feature": "model",
+  "doc": "A village building, built: its mesh with its moving parts, its conformance and footprint, what collides, and where the player meets it, at the doorway or from the command view.",
+  "fields": [
+    {
+      "name": "height",
+      "type": "f32",
+      "doc": "Height, metres (conformance)."
+    },
+    {
+      "name": "radius",
+      "type": "f32",
+      "doc": "Conformance radius, metres: the farthest the building or its yard reaches from the origin."
+    },
+    {
+      "name": "fire_points",
+      "type": "vec3[]",
+      "doc": "Where fires burn, metres: hearths, forges, torches, braziers (lit), and points over its roof and walls that burn when it does."
+    },
+    {
+      "name": "fire_configs",
+      "type": "u32[]",
+      "doc": "Each fire point's fire config (fire_config's id)."
+    },
+    {
+      "name": "fire_lit",
+      "type": "u32[]",
+      "doc": "Each fire point: 1 always lit (a hearth, a torch), 0 only while the building burns, 2 its smoke only (a chimney or a smoke hole: the hearth's smoke without its flames)."
+    },
+    {
+      "name": "footprint",
+      "type": "u32",
+      "doc": "Which footprint it stands on: by household (solo, family, extended), its wide, deep, round, long, or broad lot.",
+      "enum": [
+        "rect5x4",
+        "rect4x5",
+        "flower19",
+        "rect3x8",
+        "rect7x4",
+        "rect6x5",
+        "rect5x6",
+        "flower37",
+        "rect4x9",
+        "rect9x5",
+        "rect8x6",
+        "rect6x8",
+        "flower61",
+        "rect5x11",
+        "rect10x6"
+      ]
+    },
+    {
+      "name": "footprint_cells",
+      "type": "u32",
+      "doc": "The round footprint that holds it, for plotters that know only those: 19, 37, 61, 91, or 127 cells."
+    },
+    {
+      "name": "footprint_radius",
+      "type": "f32",
+      "doc": "The radius its round footprint must hold, metres."
+    },
+    {
+      "name": "cells",
+      "type": "i32[]",
+      "doc": "The cells it stands on, as q, r pairs (axial, pointy-top, 1 m cells), relative to the cell under the origin."
+    },
+    {
+      "name": "doors",
+      "type": "i32[]",
+      "doc": "The cells just outside its doors, as q, r pairs relative to the cell under the origin (+z its front): the footprint's, so every type on a lot has the same. A planner keeps them a clear way."
+    },
+    {
+      "name": "lot_min",
+      "type": "vec3",
+      "doc": "The lot's box, its low corner, metres: the cells' bounds on the ground (the box conformance a planner's plot matches)."
+    },
+    {
+      "name": "lot_max",
+      "type": "vec3",
+      "doc": "The lot's box, its high corner, metres: the cells' bounds on the ground, up to the building's top."
+    },
+    {
+      "name": "guide_cells",
+      "type": "i32[]",
+      "doc": "Every lot this pipeline has, for the viewer to outline on the ground and compare: group, q, r triples (a group is one lot), relative to the cell under the origin."
+    },
+    {
+      "name": "guide_tones",
+      "type": "u32[]",
+      "doc": "Each guide group's tone: 0 the lot it stands on, 1 the same shape for the other households, 2 the rest."
+    },
+    {
+      "name": "doorway",
+      "type": "vec3",
+      "doc": "Where the player stands to use the door, metres, on the ground just outside it."
+    },
+    {
+      "name": "doorway_heading",
+      "type": "f32",
+      "doc": "Which way the door faces, degrees from +Z toward +X."
+    },
+    {
+      "name": "marker",
+      "type": "vec3",
+      "doc": "Where the command view puts the building's marker or label: above the roof's middle."
+    },
+    {
+      "name": "bones",
+      "type": "house_bone[]",
+      "doc": "Moving parts, for skinning."
+    },
+    {
+      "name": "positions",
+      "type": "vec3[]",
+      "doc": "Vertex positions, rest pose, metres."
+    },
+    {
+      "name": "normals",
+      "type": "vec3[]",
+      "doc": "Vertex normals."
+    },
+    {
+      "name": "indices",
+      "type": "u32[]",
+      "doc": "Triangle list."
+    },
+    {
+      "name": "bone_a",
+      "type": "u32[]",
+      "doc": "First bone per vertex."
+    },
+    {
+      "name": "bone_b",
+      "type": "u32[]",
+      "doc": "Second bone per vertex."
+    },
+    {
+      "name": "bone_w",
+      "type": "f32[]",
+      "doc": "Weight of bone_b per vertex (0 = all bone_a)."
+    },
+    {
+      "name": "colors",
+      "type": "u32[]",
+      "doc": "Vertex colour, packed RGBA (red in the lowest byte)."
+    },
+    {
+      "name": "collision",
+      "type": "physics_body[]",
+      "doc": "What collides (design/spine.md, Layer 1): walls, roof, and big yard things solid; the doorway a sensor named doorway. Static for the build, inside the conformance."
+    }
+  ]
+}

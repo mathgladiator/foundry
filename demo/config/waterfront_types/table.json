@@ -1,0 +1,41 @@
+{
+  "channel": "waterfront_type",
+  "doc": "Waterfront building types for waterfront: each entry is one kind of building that comes off land into water, with its colours and what it keeps. A planner's fill picks them for its waterfront plots; the native runtime compiles every entry in.",
+  "label": "type",
+  "editor": {
+    "groups": [
+      {
+        "label": "Identity",
+        "fields": [
+          "name",
+          "kind"
+        ]
+      },
+      {
+        "label": "Colours",
+        "fields": [
+          "wood_color",
+          "wall_color",
+          "roof_color",
+          "accent"
+        ]
+      },
+      {
+        "label": "What it keeps",
+        "fields": [
+          "boats",
+          "crane",
+          "nets",
+          "barrels",
+          "lamp"
+        ]
+      }
+    ],
+    "colors": [
+      "wood_color",
+      "wall_color",
+      "roof_color",
+      "accent"
+    ]
+  }
+}

@@ -20,7 +20,7 @@
 
 namespace pipeline {
 
-// Grows a plotter over hex regions (plot_v1_region JSON) into mesh, returning how many stood. The plot
+// Grows a plotter over hex regions (plot_region JSON) into mesh, returning how many stood. The plot
 // slice provides it (plot::grow), so this slice needn't know plotters.
 using NatureGrower = std::function<uint32_t(const std::string &plotter, const nlohmann::json &regions, uint32_t seed,
                                             const nlohmann::json &shared, runtime::Mesh &mesh, std::string &error)>;
@@ -34,6 +34,13 @@ struct ComposeOptions {
   nlohmann::json surround_values = nlohmann::json::object();  // the surround's parameters, over draw.surround.params
   bool operator==(const ComposeOptions &o) const {
     return nature == o.nature && plotter == o.plotter && surround == o.surround && figures == o.figures && surround_values == o.surround_values;
+  }
+  // What a pipeline's draw block starts with: everything on, but the surround only if draw.surround
+  // doesn't say "on": false.
+  static ComposeOptions defaults(const Definition &def) {
+    ComposeOptions o;
+    o.surround = def.surround.value("on", true);
+    return o;
   }
 };
 

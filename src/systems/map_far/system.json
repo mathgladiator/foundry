@@ -1,0 +1,10 @@
+{
+  "name": "map_far",
+  "kind": "system",
+  "doc": "A map's far land (design/map.md): the whole map as a terrain quadtree from its macro plan, refined to the grid's spacing inside the map, sunk a little below the ground (the chunks near the player cover it), with skirts, morph targets, and images painted by parcel (grass, woods by cover, rock and snow on heights), water, roads, and flats.",
+  "input": "map_far_spec",
+  "output": "boundary_model",
+  "state": "draft",
+  "notes": [],
+  "created_at": "2026-10-15T01:00:00Z"
+}

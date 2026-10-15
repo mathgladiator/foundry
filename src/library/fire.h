@@ -5,7 +5,7 @@
  * The runtime keeps one fire system: each frame it turns the fire points of the instances near
  * the camera into flames, sparks, glows, and smoke (a particle system), draws them after
  * everything solid, and lights what stands near a fire with it (the mega shader takes the
- * nearest fires' light). Each point names a fire config (compiled in from config/fire_v1_configs/):
+ * nearest fires' light). Each point names a fire config (compiled in from config/fire_configs/):
  * its colours, size, flicker, smoke, and light. Smoke drifts with the world's wind; a building
  * burns when the game says how much. Fire is for looks: it never changes what a pipeline builds.
  *

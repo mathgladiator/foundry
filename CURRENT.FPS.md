@@ -6,15 +6,15 @@
 
 **The 1,000-tree view.** The scene from the first report (16 x 16 glens, 1,377 trees in view from the overview) went from **39.8 fps to 295.4 fps**. Its game camera went from 73.6 to 349.7 fps.
 
-Every number here comes from `demo/perf/report-plotter_happy_glen_v1-scale-20261013T005027Z.json`, except where another report is named. To reproduce it, run `build/linux-release/stress/stress_plotter_happy_glen_v1 --plan scale --find 60`, call `plotter_perf` with `find: 60`, or press **Run the scale plan** in the plotter's inspector.
+Every number here comes from `demo/perf/report-plotter_happy_glen-scale-20261013T005027Z.json`, except where another report is named. To reproduce it, run `build/linux-release/stress/stress_plotter_happy_glen --plan scale --find 60`, call `plotter_perf` with `find: 60`, or press **Run the scale plan** in the plotter's inspector.
 
 ## Grass: a field, and the most of it at 60 fps
 
-The glen now has grass on every cell: one **field** instance per region, not an instance per blade (`design/plotter.md`, "Fields"; `book/grass_v1.md`).
+The glen now has grass on every cell: one **field** instance per region, not an instance per blade (`design/plotter.md`, "Fields"; `book/grass.md`).
 - **The functor:** a pure function of each cell's integers, ground and the world's seed picks one of a few shared tiles.
 - **Drawing:** chunks of 8 x 8 cells pick their level by size on screen, and the wind sways the blades in the vertex shader.
 
-From `demo/perf/report-plotter_happy_glen_v1-scale-20261013T023041Z.json` (the glen with grass) and `demo/perf/report-plotter_happy_glen_v1-scale-20261013T023137Z.json` (grass alone, `--only-fields`):
+From `demo/perf/report-plotter_happy_glen-scale-20261013T023041Z.json` (the glen with grass) and `demo/perf/report-plotter_happy_glen-scale-20261013T023137Z.json` (grass alone, `--only-fields`):
 
 | | Grid | Grass cells in view | Trees in view | fps |
 |---|---|---|---|---|
@@ -126,7 +126,7 @@ These were ranked before grass. Grass adds two of its own: drawing far grass chu
 
 1. **Cull and classify by region.** Each plotter region gets bounds; a region out of view, or far beyond the posing sizes, is skipped whole. This removes the per-frame scan that grows with the world. No cost in looks.
 2. **A cheaper far tier for trees and shrubs.** Impostors, or a stricter cluster, so a 20 px tree costs hundreds of triangles, not thousands. This is the vista's limit. At high quality the far level doesn't pass the 10% rule yet; a better far level would.
-3. **Rocks that switch levels.** The pieces' physics would come from the finest level at every level (a change to `rock_body_v1`).
+3. **Rocks that switch levels.** The pieces' physics would come from the finest level at every level (a change to `rock_body`).
 4. **A standing gate.** "1,000 trees at 60 fps" is now passed six times over; the scale plan could fail any run below it.
 5. **Built ideas not needed yet:** wind on the GPU for flowers, and overlapping update with prepare. Posing is now about 1 ms.
 

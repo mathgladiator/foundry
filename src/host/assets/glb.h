@@ -1,4 +1,4 @@
-// Imports glTF/GLB files (such as Meshy output) as a mesh_v1 channel.
+// Imports glTF/GLB files (such as Meshy output) as a mesh channel.
 #pragma once
 
 #include <string>

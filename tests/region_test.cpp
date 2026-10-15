@@ -123,7 +123,7 @@ int main() {
 
   const auto ground = glen_ground();
   foundry_region_desc rd = {};
-  rd.plotter = FOUNDRY_PLOTTER_HAPPY_GLEN_V1;
+  rd.plotter = FOUNDRY_PLOTTER_HAPPY_GLEN;
   rd.world_seed = 7;
   rd.regions = ground.data();
   rd.region_count = static_cast<uint32_t>(ground.size());
@@ -148,7 +148,7 @@ int main() {
     for (uint32_t i = 0; i < n; ++i) {
       placed.push_back(batch[i]);
       handles.push_back(foundry_placement_spawn(rt, glen, &batch[i]));
-      ++by_kind[foundry_plotter_kind_name(FOUNDRY_PLOTTER_HAPPY_GLEN_V1, batch[i].kind)];
+      ++by_kind[foundry_plotter_kind_name(FOUNDRY_PLOTTER_HAPPY_GLEN, batch[i].kind)];
     }
   }
   std::printf("grew %zu placements in %u calls (%.2f ms total, %.2f ms worst)\n", placed.size(), calls, grow_ms, worst_ms);

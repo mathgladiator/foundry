@@ -1,0 +1,33 @@
+{
+  "family": "map",
+  "version": 1,
+  "feature": "flat",
+  "doc": "A site's flat (design/map.md): a level disc.",
+  "fields": [
+    {
+      "name": "position",
+      "type": "vec3",
+      "doc": "Its middle, metres (y: its level)."
+    },
+    {
+      "name": "radius",
+      "type": "f32",
+      "doc": "Its radius, metres (it blends into the land over as far again)."
+    },
+    {
+      "name": "built",
+      "type": "i32[]",
+      "doc": "A settlement's cells that something stands on (buildings, streets, water, walls), as q, r pairs in the map's cells: nothing grows there."
+    },
+    {
+      "name": "streets",
+      "type": "i32[]",
+      "doc": "A settlement's street cells, as q, r pairs in the map's cells: the ground draws their surface."
+    },
+    {
+      "name": "street_materials",
+      "type": "u32[]",
+      "doc": "Each street cell's ground material (the terrain's: 1 dirt, 2 sand, 4 cobble)."
+    }
+  ]
+}

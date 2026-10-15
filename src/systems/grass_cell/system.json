@@ -1,0 +1,11 @@
+{
+  "name": "grass_cell",
+  "version": 1,
+  "kind": "system",
+  "doc": "The per-cell functor of a grass field: from a cell's axial coordinates, its ground, its moisture, and the world's seed, whether it shows a tile, which one (a grass variant, bare soil in patches, or the plate of its ground), turned by sixths, scaled taller where it's wet, and tinted. Pure integer hashing and value noise over the cells; no state.",
+  "input": "grass_cell",
+  "output": "grass_choice",
+  "state": "draft",
+  "notes": [],
+  "created_at": "2026-10-13T03:00:00Z"
+}

@@ -23,7 +23,7 @@
 namespace plot {
 
 struct Occupant {
-  nlohmann::json placement;  // a plot_v1_placement, as JSON
+  nlohmann::json placement;  // a plot_placement, as JSON
   uint32_t kind = 0;
   nlohmann::json extra = nlohmann::json::object();  // values the view set on it (a felled tree's stump)
 };
@@ -63,7 +63,7 @@ class View {
   std::string name() const;
   Plotter plotter() const;
 
-  // The ground: prioritized hex regions (plot_v1_region values), replaced whole. Occupants on lost cells are removed.
+  // The ground: prioritized hex regions (plot_region values), replaced whole. Occupants on lost cells are removed.
   bool set_regions(const nlohmann::json &regions, nlohmann::json &out, std::string &error);
   nlohmann::json regions() const;
   using Terrain = plot::Terrain;

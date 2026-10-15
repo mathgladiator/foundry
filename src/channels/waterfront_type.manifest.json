@@ -1,0 +1,8 @@
+{
+  "kind": "channel",
+  "name": "waterfront_type",
+  "state": "draft",
+  "reason": "Waterfront building types as config entries for waterfront (approved 2026-10-13): the human wants waterfronts in the planner and a system for buildings that come off land into water.",
+  "notes": [],
+  "created_at": "2026-10-13T19:30:00Z"
+}

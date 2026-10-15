@@ -13,8 +13,8 @@
 extern "C" {
 #endif
 
-/* A figure: a tree or bush the instance leaves for the game, with the species it asks for (a tree_v1
- * or bush_v1 genome's name; foundry_tree_v1_species_find turns one into the pipeline's value). */
+/* A figure: a tree or bush the instance leaves for the game, with the species it asks for (a tree
+ * or bush genome's name; foundry_tree_species_find turns one into the pipeline's value). */
 typedef struct foundry_figure {
   float position[3];  /* where it stands, on the ground, metres */
   float yaw;          /* its turn, degrees */
@@ -80,6 +80,11 @@ typedef struct foundry_nav_sizes {
 } foundry_nav_sizes;
 uint32_t foundry_ground_nav(foundry_runtime *rt, foundry_instance instance, foundry_nav_sizes *sizes, float *vertices,
                             uint32_t *polygons, uint32_t *cells, uint32_t *links);
+/* The nature ground for plotters: hex regions (their cells point into the build, valid while the
+ * instance draws it) and each region's parcel (a map chunk's; design/map.md), for
+ * foundry_region_create with the parcel's plotter. Writes up to capacity; returns how many. */
+uint32_t foundry_ground_nature(foundry_runtime *rt, foundry_instance instance, foundry_hex_region *regions, uint32_t *parcels,
+                               uint32_t capacity);
 /* The hull a boundary takes round this ground (foundry_<boundary>_spawn_hull): the ring just outside
  * it, each cell with its side's edge, height, and rise, and the openings leaving through it. Writes up
  * to capacity cells; returns how many there are. */

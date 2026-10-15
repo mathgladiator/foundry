@@ -438,7 +438,7 @@ void register_stress_tools(mcp::Registry &registry, const forge::Paths &paths, p
                 "(committed: the performance timeline). plan is a preset (quick, standard, soak) or an inline plan "
                 "object; phase and seconds narrow it. wait (default true, false for soak) blocks until done; "
                 "otherwise poll perf_stress_status with the job.",
-                mcp::schema({{"pipeline", {{"type", "string"}, {"description", "e.g. tree_v1"}}},
+                mcp::schema({{"pipeline", {{"type", "string"}, {"description", "e.g. tree"}}},
                              {"plan", {{"description", "quick, standard, soak, or an inline plan object"}}},
                              {"phase", {{"type", "string"}, {"enum", {"diversity", "forest", "events", "soak"}}}},
                              {"seconds", {{"type", "number"}}},

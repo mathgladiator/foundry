@@ -27,7 +27,7 @@ uint32_t index_of(const nlohmann::json &v, std::initializer_list<const char *> n
   return 0;
 }
 
-// The plot view's ground (plot_v1_region values, as JSON) as the runtime's hex regions.
+// The plot view's ground (plot_region values, as JSON) as the runtime's hex regions.
 struct Ground {
   std::vector<foundry_hex_region> regions;
   std::vector<std::vector<int32_t>> cells;
@@ -229,6 +229,12 @@ void Live::share(const nlohmann::json &shared) {
 void Live::set_sky(const std::shared_ptr<const runtime::sky::Observatory> &o, const runtime::sky::State &state,
                    const float centre[3], float radius) {
   if (!rt_) return;
+  hand_sky(rt_, sky_, o, state, centre, radius);
+}
+
+void hand_sky(foundry_runtime *rt_, std::shared_ptr<const runtime::sky::Observatory> &sky_,
+              const std::shared_ptr<const runtime::sky::Observatory> &o, const runtime::sky::State &state, const float centre[3],
+              float radius) {
   if (o != sky_) {
     if (!o) {
       foundry_sky_set_observatory(rt_, nullptr);

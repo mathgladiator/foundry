@@ -1,8 +1,0 @@
-{
-  "kind": "channel",
-  "name": "grass_v1_cell",
-  "state": "draft",
-  "reason": "The input to grass_cell_v1, the per-cell functor: integers, an enum, and one number, so a field of any size is a pure function of its cells.",
-  "notes": [],
-  "created_at": "2026-10-13T03:00:00Z"
-}

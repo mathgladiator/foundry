@@ -96,7 +96,7 @@ The game, the inspector, and `observatory_set` all set the same state:
   - The moon is full on days 12 and 42 of the year (January 13 is the reference).
   - The key light is redder at 3° than at noon, the sky's light is blue, the eye opens at night, and the cloud map tiles.
 - **The sundial** on June 21 at 15:00, 52° north (the sun 45.5° up): seen from above, the gnomon's shadow falls northeast across the dial, onto the afternoon hour lines, checked by eye (`observatory_view`).
-- **Cost.** The happy glen live at its default view, in one run of each (`plotter:happy_glen_v1`):
+- **Cost.** The happy glen live at its default view, in one run of each (`plotter:happy_glen`):
 
   | | Frame rate | Prepare |
   |---|---|---|

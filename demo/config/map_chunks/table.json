@@ -1,0 +1,6 @@
+{
+  "channel": "map_chunk",
+  "doc": "Map chunks (design/map.md): one chunk of a map, cut from its plan, as samples to see the map_chunk pipeline by. The map's executor gives each chunk inline (and a game as packed bytes).",
+  "label": "chunk",
+  "editor": {"groups": [], "colors": []}
+}

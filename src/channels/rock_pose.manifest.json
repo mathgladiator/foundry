@@ -1,0 +1,8 @@
+{
+  "kind": "channel",
+  "name": "rock_pose",
+  "state": "draft",
+  "reason": "The rock's pose, following the draw convention (matrices and settled): bone 0 shows the whole rock until the break, then the pieces take over.",
+  "notes": [],
+  "created_at": "2026-10-12T08:00:00Z"
+}

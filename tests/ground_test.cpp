@@ -43,11 +43,11 @@ int main() {
   const float identity[16] = {1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1};
 
   // The terrain: the river valley, and its ground.
-  foundry_terrain_v1_params tp;
-  foundry_terrain_v1_default_params(&tp);
-  tp.shape = FOUNDRY_TERRAIN_V1_SHAPE_RIVER_VALLEY;
+  foundry_terrain_params tp;
+  foundry_terrain_default_params(&tp);
+  tp.shape = FOUNDRY_TERRAIN_SHAPE_RIVER_VALLEY;
   const auto t0 = std::chrono::steady_clock::now();
-  const foundry_instance terrain = foundry_terrain_v1_spawn(rt, &tp, identity);
+  const foundry_instance terrain = foundry_terrain_spawn(rt, &tp, identity);
   CHECK(terrain != FOUNDRY_NO_INSTANCE, "the terrain spawns");
   CHECK(built(rt, terrain), "the terrain builds");
   std::printf("terrain built in %.0f ms\n", std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - t0).count());
@@ -83,12 +83,12 @@ int main() {
   for (const auto &c : hull) openings += c.opening ? 1 : 0;
   CHECK(n > 100, "the hull rings the terrain");
   CHECK(openings == 4, "its four openings leave through the hull (two roads, a river in and out)");
-  foundry_boundary_v1_params bp;
-  foundry_boundary_v1_default_params(&bp);
-  bp.detail = FOUNDRY_BOUNDARY_V1_DETAIL_MEDIUM;
+  foundry_boundary_params bp;
+  foundry_boundary_default_params(&bp);
+  bp.detail = FOUNDRY_BOUNDARY_DETAIL_MEDIUM;
   bp.view_distance = 2000;
   const auto t1 = std::chrono::steady_clock::now();
-  const foundry_instance boundary = foundry_boundary_v1_spawn_hull(rt, &bp, identity, hull.data(), n);
+  const foundry_instance boundary = foundry_boundary_spawn_hull(rt, &bp, identity, hull.data(), n);
   CHECK(boundary != FOUNDRY_NO_INSTANCE, "the boundary spawns round the terrain");
   CHECK(built(rt, boundary), "the boundary builds");
   std::printf("boundary built in %.0f ms\n", std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - t1).count());
@@ -102,28 +102,28 @@ int main() {
   for (const auto &f : figs) {
     const float t[16] = {1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, f.position[0], f.position[1], f.position[2], 1};
     if (f.kind == 0) {
-      const int s = foundry_tree_v1_species_find(f.species);
+      const int s = foundry_tree_species_find(f.species);
       if (s < 0) {
         ++unknown;
         continue;
       }
-      foundry_tree_v1_params p;
-      foundry_tree_v1_default_params(&p);
-      p.species = static_cast<foundry_tree_v1_species>(s);
-      p.age = static_cast<foundry_tree_v1_age>(f.age < 4 ? f.age : 3);
+      foundry_tree_params p;
+      foundry_tree_default_params(&p);
+      p.species = static_cast<foundry_tree_species>(s);
+      p.age = static_cast<foundry_tree_age>(f.age < 4 ? f.age : 3);
       p.seed = 1 + f.seed % 4;
-      trees += foundry_tree_v1_spawn(rt, &p, t) != FOUNDRY_NO_INSTANCE;
+      trees += foundry_tree_spawn(rt, &p, t) != FOUNDRY_NO_INSTANCE;
     } else {
-      const int s = foundry_bush_v1_species_find(f.species);
+      const int s = foundry_bush_species_find(f.species);
       if (s < 0) {
         ++unknown;
         continue;
       }
-      foundry_bush_v1_params p;
-      foundry_bush_v1_default_params(&p);
-      p.species = static_cast<foundry_bush_v1_species>(s);
-      p.age = static_cast<foundry_bush_v1_age>(f.age < 3 ? f.age : 2);
-      bushes += foundry_bush_v1_spawn(rt, &p, t) != FOUNDRY_NO_INSTANCE;
+      foundry_bush_params p;
+      foundry_bush_default_params(&p);
+      p.species = static_cast<foundry_bush_species>(s);
+      p.age = static_cast<foundry_bush_age>(f.age < 3 ? f.age : 2);
+      bushes += foundry_bush_spawn(rt, &p, t) != FOUNDRY_NO_INSTANCE;
     }
   }
   std::printf("figures: %u (%u trees, %u bushes spawned, %u of unknown species)\n", nf, trees, bushes, unknown);

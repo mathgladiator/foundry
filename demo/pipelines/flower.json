@@ -1,0 +1,23 @@
+{
+  "kind": "pipeline",
+  "name": "flower",
+  "state": "draft",
+  "doc": "A clump of flowers (design/systems.md, Mushrooms and flowers): the game asks for a species and a season at a position with the local wind; grow makes the clump, in flower, in bud, or gone to seed, and the animator sways it in the same wind as the trees. Ground cover: no conformance, purely visual.",
+  "notes": [],
+  "created_at": "2026-10-12T09:00:00Z",
+  "params": [
+    {"name": "species", "type": "config", "table": "flower_genomes", "default": "daisy", "doc": "A species: one genome from config/flower_genomes/."},
+    {"name": "season", "type": "enum", "values": ["winter", "spring", "summer", "fall"], "default": "summer"},
+    {"name": "seed", "type": "u32", "min": 1, "max": 1000, "default": 1, "doc": "Which of the distinct clumps per species and season (the runtime caps how many by quality)."},
+    {"name": "detail", "type": "enum", "values": ["high", "medium", "low"], "default": "high", "doc": "Level of detail; the runtime picks it from distance and quality."},
+    {"name": "wind_speed", "type": "f32", "min": 0, "max": 25, "default": 6, "unit": "m/s"},
+    {"name": "wind_heading", "type": "f32", "min": 0, "max": 360, "default": 90, "unit": "deg", "doc": "Toward which the wind blows, from +Z toward +X."},
+    {"name": "gust_damping", "type": "f32", "min": 0, "max": 1, "default": 0.3},
+    {"name": "time", "type": "time", "default": 0, "unit": "s"}
+  ],
+  "stages": [
+    {"id": "grow", "system": "flower_grow", "input": {"genome": "$species", "season": "$season", "seed": "$seed", "detail": "$detail"}},
+    {"id": "animate", "system": "flower_animate", "phase": "update", "input": {"bones": "@grow.bones", "wind_speed": "$wind_speed", "wind_heading": "$wind_heading", "gust_damping": "$gust_damping", "time": "$time", "seed": "$seed"}}
+  ],
+  "draw": {"model": "grow", "pose": "animate", "detail_pixels": {"report": "perf/report-flower-detail-20261013T002122Z.json", "high": [64, 24, 0], "medium": [256, 48, 8], "low": [256, 96, 16]}}
+}

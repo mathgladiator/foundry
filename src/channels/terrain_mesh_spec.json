@@ -1,0 +1,29 @@
+{
+  "family": "terrain",
+  "version": 1,
+  "feature": "mesh_spec",
+  "doc": "terrain_mesh's input: the ground and how it looks.",
+  "fields": [
+    {
+      "name": "ground",
+      "type": "terrain_ground",
+      "doc": "The ground."
+    },
+    {
+      "name": "biome",
+      "type": "boundary_biome",
+      "doc": "The biome (a boundary's, so a terrain and its boundary share colours)."
+    },
+    {
+      "name": "season",
+      "type": "u32",
+      "doc": "The season.",
+      "enum": [
+        "winter",
+        "spring",
+        "summer",
+        "fall"
+      ]
+    }
+  ]
+}

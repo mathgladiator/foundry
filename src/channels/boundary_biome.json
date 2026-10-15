@@ -1,0 +1,205 @@
+{
+  "family": "boundary",
+  "version": 1,
+  "feature": "biome",
+  "doc": "A boundary's biome (design/boundary.md), as a config entry: the colours and forms of the world it invents beyond a playable region (its rock, soil, grass, foliage, water, snow, trunks, reeds), how its trees grow, and its scale (how high cliffs and peaks rise, how deep a ledge drops, where snow and trees end).",
+  "fields": [
+    {
+      "name": "name",
+      "type": "string",
+      "doc": "The biome's name."
+    },
+    {
+      "name": "grass",
+      "type": "vec3",
+      "doc": "Open ground's grass (linear RGB, 0 to 1)."
+    },
+    {
+      "name": "grass_dry",
+      "type": "vec3",
+      "doc": "Dry grass, fields, and the valley's patchwork (linear RGB, 0 to 1)."
+    },
+    {
+      "name": "soil",
+      "type": "vec3",
+      "doc": "Bare soil and paths (linear RGB, 0 to 1)."
+    },
+    {
+      "name": "rock",
+      "type": "vec3",
+      "doc": "Rock (linear RGB, 0 to 1)."
+    },
+    {
+      "name": "rock_dark",
+      "type": "vec3",
+      "doc": "Rock's dark strata and cracks (linear RGB, 0 to 1)."
+    },
+    {
+      "name": "sand",
+      "type": "vec3",
+      "doc": "Sand and beaches (linear RGB, 0 to 1)."
+    },
+    {
+      "name": "snow",
+      "type": "vec3",
+      "doc": "Snow (linear RGB, 0 to 1)."
+    },
+    {
+      "name": "foliage",
+      "type": "vec3",
+      "doc": "Forest crowns in summer (linear RGB, 0 to 1)."
+    },
+    {
+      "name": "foliage_dark",
+      "type": "vec3",
+      "doc": "Forest crowns' shade, and conifers (linear RGB, 0 to 1)."
+    },
+    {
+      "name": "jungle",
+      "type": "vec3",
+      "doc": "Jungle leaves (linear RGB, 0 to 1)."
+    },
+    {
+      "name": "trunk",
+      "type": "vec3",
+      "doc": "Trunks and branches (linear RGB, 0 to 1)."
+    },
+    {
+      "name": "reed",
+      "type": "vec3",
+      "doc": "Reeds and marsh grass (linear RGB, 0 to 1)."
+    },
+    {
+      "name": "water_shallow",
+      "type": "vec3",
+      "doc": "Shallow water (linear RGB, 0 to 1)."
+    },
+    {
+      "name": "water_deep",
+      "type": "vec3",
+      "doc": "Deep water (linear RGB, 0 to 1)."
+    },
+    {
+      "name": "autumn",
+      "type": "vec3",
+      "doc": "Broadleaf crowns in fall (linear RGB, 0 to 1)."
+    },
+    {
+      "name": "forest_form",
+      "type": "u32",
+      "doc": "How its forest grows.",
+      "enum": [
+        "broadleaf",
+        "conifer",
+        "mixed",
+        "birch",
+        "dead"
+      ]
+    },
+    {
+      "name": "jungle_form",
+      "type": "u32",
+      "doc": "How its jungle grows.",
+      "enum": [
+        "palm",
+        "broadleaf",
+        "mangrove"
+      ]
+    },
+    {
+      "name": "tree_height",
+      "type": "f32",
+      "doc": "Forest trees' height, metres.",
+      "min": 6,
+      "max": 40
+    },
+    {
+      "name": "cliff_height",
+      "type": "f32",
+      "doc": "A ridge's cliff, metres above the rim.",
+      "min": 8,
+      "max": 120
+    },
+    {
+      "name": "ledge_drop",
+      "type": "f32",
+      "doc": "How far a ledge drops to the valley floor, metres.",
+      "min": 10,
+      "max": 400
+    },
+    {
+      "name": "peak_height",
+      "type": "f32",
+      "doc": "The highest peaks at rise 1, metres above the rim.",
+      "min": 50,
+      "max": 3000
+    },
+    {
+      "name": "snow_line",
+      "type": "f32",
+      "doc": "Where snow lies, metres above the rim (0: nowhere outside winter).",
+      "min": 0,
+      "max": 3000
+    },
+    {
+      "name": "tree_line",
+      "type": "f32",
+      "doc": "Above this, metres over the rim, no forest grows.",
+      "min": 20,
+      "max": 3000
+    },
+    {
+      "name": "sea_depth",
+      "type": "f32",
+      "doc": "How far the sea lies below the rim, metres.",
+      "min": 0.5,
+      "max": 20
+    },
+    {
+      "name": "roughness",
+      "type": "f32",
+      "doc": "How rough its land is, 0 to 1.",
+      "min": 0,
+      "max": 1
+    },
+    {
+      "name": "fields",
+      "type": "f32",
+      "doc": "How much of a valley floor is farmed (a patchwork of fields and hedges), 0 to 1.",
+      "min": 0,
+      "max": 1
+    },
+    {
+      "name": "rivers",
+      "type": "f32",
+      "doc": "How likely a valley floor carries a river, 0 to 1.",
+      "min": 0,
+      "max": 1
+    },
+    {
+      "name": "figure_forest",
+      "type": "string",
+      "doc": "Tree species for a forest's figures, comma-separated tree genomes (a name repeated is likelier)."
+    },
+    {
+      "name": "figure_jungle",
+      "type": "string",
+      "doc": "Tree species for a jungle's figures."
+    },
+    {
+      "name": "figure_mountain",
+      "type": "string",
+      "doc": "Tree species on a mountain's slopes."
+    },
+    {
+      "name": "figure_marsh",
+      "type": "string",
+      "doc": "Tree species in a marsh."
+    },
+    {
+      "name": "figure_bushes",
+      "type": "string",
+      "doc": "Bush species for undergrowth, comma-separated bush genomes."
+    }
+  ]
+}

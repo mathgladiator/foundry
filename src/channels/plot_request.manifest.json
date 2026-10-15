@@ -1,0 +1,8 @@
+{
+  "kind": "channel",
+  "name": "plot_request",
+  "state": "draft",
+  "reason": "The input every plot system takes: the plot's config, the ground channel, the region's occupants, exclusions, and the grow's mode and size (design/plotter.md).",
+  "notes": [],
+  "created_at": "2026-10-12T19:00:00Z"
+}

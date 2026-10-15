@@ -1,0 +1,61 @@
+{
+  "channel": "grass_genome",
+  "doc": "Grass species for grass: each entry is one genome, everything that makes a meadow a meadow. A plotter's field grows one tile of it per hex cell; the pipeline's species parameter picks one by name, and the native runtime compiles every entry in (tools/gen_pipelines.py).",
+  "label": "species",
+  "editor": {
+    "groups": [
+      {
+        "label": "Identity",
+        "fields": [
+          "name",
+          "latin"
+        ]
+      },
+      {
+        "label": "Blades",
+        "fields": [
+          "height",
+          "height_jitter",
+          "blade_width",
+          "blades",
+          "clump",
+          "lean",
+          "bend",
+          "seed_heads",
+          "sway"
+        ]
+      },
+      {
+        "label": "Field",
+        "fields": [
+          "variants",
+          "bald",
+          "patch_cells",
+          "lush"
+        ]
+      },
+      {
+        "label": "Seasons",
+        "fields": [
+          "dry",
+          "season_height"
+        ]
+      },
+      {
+        "label": "Colour",
+        "fields": [
+          "base_color",
+          "tip_color",
+          "dry_color",
+          "seed_color"
+        ]
+      }
+    ],
+    "colors": [
+      "base_color",
+      "tip_color",
+      "dry_color",
+      "seed_color"
+    ]
+  }
+}

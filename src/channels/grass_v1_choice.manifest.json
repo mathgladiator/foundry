@@ -1,8 +1,0 @@
-{
-  "kind": "channel",
-  "name": "grass_v1_choice",
-  "state": "draft",
-  "reason": "grass_cell_v1's output: per cell, five small values; the runtime keeps them as a field's instance data rather than as instances.",
-  "notes": [],
-  "created_at": "2026-10-13T03:00:00Z"
-}

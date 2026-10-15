@@ -1,0 +1,45 @@
+{
+  "channel": "road_kind",
+  "doc": "Road kinds for road: each entry is one kind of road cell, its surface and what stands at its edges by rule (a half's edge piece, planters, clutter, lamps, sign posts, a quay). A planner's fill maps its road classes to these; the native runtime compiles every entry in.",
+  "label": "kind",
+  "editor": {
+    "groups": [
+      {
+        "label": "Surface",
+        "fields": [
+          "name",
+          "surface",
+          "surface_color",
+          "detail_color",
+          "paved",
+          "verge",
+          "ruts",
+          "quay"
+        ]
+      },
+      {
+        "label": "Edges",
+        "fields": [
+          "half",
+          "half_color",
+          "planters",
+          "clutter"
+        ]
+      },
+      {
+        "label": "Posts",
+        "fields": [
+          "lamps",
+          "lamp_color",
+          "signs"
+        ]
+      }
+    ],
+    "colors": [
+      "surface_color",
+      "detail_color",
+      "half_color",
+      "lamp_color"
+    ]
+  }
+}

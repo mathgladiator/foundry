@@ -1,8 +1,0 @@
-{
-  "kind": "channel",
-  "name": "gate_v1_type",
-  "state": "draft",
-  "reason": "Gate types as config entries for gate_v1 (approved 2026-10-13): the human wants a gate system that clearly works with every wall.",
-  "notes": [],
-  "created_at": "2026-10-13T23:30:00Z"
-}

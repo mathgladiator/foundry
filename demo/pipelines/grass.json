@@ -1,0 +1,179 @@
+{
+  "kind": "pipeline",
+  "name": "grass",
+  "state": "draft",
+  "doc": "Grass as a field (design/plotter.md, \"Fields\"): a plotter covers a region with it, one tile per hex cell. cell is the per-cell functor (grass_cell): from the cell's coordinates, ground, moisture, and the world's seed, which tile it shows, turned, scaled, and tinted; tile (grass_tile) grows that tile, shared by every cell that picks it. The runtime runs the functor over a field's cells and draws the few distinct tiles instanced, swaying in the wind on the GPU; one cell as an instance (here, and in the stress tool) is the same pipeline.",
+  "notes": [],
+  "created_at": "2026-10-13T03:00:00Z",
+  "params": [
+    {
+      "name": "species",
+      "type": "config",
+      "table": "grass_genomes",
+      "default": "meadow",
+      "doc": "A grass: one genome from config/grass_genomes/."
+    },
+    {
+      "name": "season",
+      "type": "enum",
+      "values": [
+        "winter",
+        "spring",
+        "summer",
+        "fall"
+      ],
+      "default": "summer"
+    },
+    {
+      "name": "variant",
+      "type": "u32",
+      "min": 0,
+      "max": 12,
+      "default": 0,
+      "doc": "Which tile: the grass variants, then the plates (water, rock, sand, path, bare soil). In a field, the cell's choice sets it."
+    },
+    {
+      "name": "detail",
+      "type": "enum",
+      "values": [
+        "high",
+        "medium",
+        "low",
+        "mat"
+      ],
+      "default": "high",
+      "doc": "The finest level of detail the game allows: blades, fewer wider blades, tufts, a mat. The runtime picks coarser levels by size on screen."
+    },
+    {
+      "name": "bed",
+      "type": "enum",
+      "values": [
+        "own",
+        "none"
+      ],
+      "default": "own",
+      "doc": "Who draws the ground: own (the tile's earth and plates) or none (a terrain under it draws the ground; the tile is blades only)."
+    },
+    {
+      "name": "cell_q",
+      "type": "u32",
+      "min": 0,
+      "max": 1000,
+      "default": 0,
+      "doc": "The cell's axial coordinate q (a field passes a negative q as its two's-complement bits)."
+    },
+    {
+      "name": "cell_r",
+      "type": "u32",
+      "min": 0,
+      "max": 1000,
+      "default": 0,
+      "doc": "The cell's axial coordinate r (as cell_q)."
+    },
+    {
+      "name": "ground",
+      "type": "enum",
+      "values": [
+        "soil",
+        "water",
+        "rock",
+        "sand",
+        "path"
+      ],
+      "default": "soil",
+      "doc": "The cell's ground."
+    },
+    {
+      "name": "moisture",
+      "type": "f32",
+      "min": 0,
+      "max": 1,
+      "default": 0.55,
+      "doc": "The cell's moisture: wetter grass grows taller and greener."
+    },
+    {
+      "name": "world_seed",
+      "type": "u32",
+      "min": 1,
+      "max": 1000000,
+      "default": 1,
+      "doc": "The world's seed: the same cell in another world chooses differently."
+    },
+    {
+      "name": "wind_speed",
+      "type": "f32",
+      "min": 0,
+      "max": 25,
+      "default": 3,
+      "unit": "m/s",
+      "doc": "The local wind; a field's blades sway on the GPU."
+    },
+    {
+      "name": "wind_heading",
+      "type": "f32",
+      "min": 0,
+      "max": 360,
+      "default": 90,
+      "unit": "deg",
+      "doc": "Toward which the wind blows, from +Z toward +X."
+    }
+  ],
+  "stages": [
+    {
+      "id": "cell",
+      "system": "grass_cell",
+      "input": {
+        "genome": "$species",
+        "season": "$season",
+        "q": "$cell_q",
+        "r": "$cell_r",
+        "ground": "$ground",
+        "moisture": "$moisture",
+        "seed": "$world_seed"
+      }
+    },
+    {
+      "id": "tile",
+      "system": "grass_tile",
+      "input": {
+        "genome": "$species",
+        "season": "$season",
+        "variant": "$variant",
+        "detail": "$detail",
+        "bed": "$bed"
+      }
+    }
+  ],
+  "draw": {
+    "model": "tile",
+    "field": {
+      "cell": "cell",
+      "variant": "variant",
+      "q": "cell_q",
+      "r": "cell_r",
+      "ground": "ground",
+      "moisture": "moisture",
+      "seed": "world_seed",
+      "wind_speed": "wind_speed",
+      "wind_heading": "wind_heading"
+    },
+    "detail_pixels": {
+      "report": "perf/report-grass-detail-20261013T031129Z.json",
+      "high": [
+        96,
+        64,
+        0
+      ],
+      "medium": [
+        256,
+        96,
+        0
+      ],
+      "low": [
+        256,
+        256,
+        64
+      ]
+    }
+  }
+}

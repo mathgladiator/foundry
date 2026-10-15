@@ -61,8 +61,8 @@ void register_tools(mcp::Registry &registry) {
                 "shadows, constellations: {name: dark|lit|connected} or one of those for all}. star_seed and cloud_seed "
                 "set the seeds its sky is generated from (written into its file; a seed always gives the same stars, "
                 "Milky Way, and clouds). play_hours_per_second plays its day forward (0 "
-                "stops). view puts an item's viewer under this sky (e.g. pipeline:tree_v1, plotter:happy_glen_v1, "
-                "config:tree_v1_genomes_oak); with off, takes it away. save writes the state into its file as its "
+                "stops). view puts an item's viewer under this sky (e.g. pipeline:tree, plotter:happy_glen, "
+                "config:tree_genomes_oak); with off, takes it away. save writes the state into its file as its "
                 "start.",
                 mcp::schema({{"observatory", {{"type", "string"}}},
                              {"state", {{"type", "object"}}},

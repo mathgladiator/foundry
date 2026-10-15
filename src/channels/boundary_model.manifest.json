@@ -1,0 +1,10 @@
+{
+  "kind": "channel",
+  "name": "boundary_model",
+  "state": "draft",
+  "reason": "The boundary system's model (2026-10-14): a quadtree of terrain nodes with generated images out to the view distance, the rim's dressing, and the collision that keeps the player in; a new draw convention (draw.terrain). Approved 2026-10-14.",
+  "notes": [
+    "2026-10-14: shapes, openings, and figures added (the terrain builder's request); approved 2026-10-14."
+  ],
+  "created_at": "2026-10-14T12:00:00Z"
+}

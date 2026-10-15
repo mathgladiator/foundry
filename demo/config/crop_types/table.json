@@ -1,0 +1,43 @@
+{
+  "channel": "crop_type",
+  "doc": "Crops for crop (design/planner.md, Crops): how each grows, how far apart, how tall, its colours, and how much the wind moves it. A planner's fill names them for its fields.",
+  "label": "crop",
+  "editor": {
+    "groups": [
+      {
+        "label": "Identity",
+        "fields": [
+          "name",
+          "kind"
+        ]
+      },
+      {
+        "label": "Shape",
+        "fields": [
+          "height",
+          "spacing",
+          "row_spacing",
+          "fruit_size",
+          "sway"
+        ]
+      },
+      {
+        "label": "Colour",
+        "fields": [
+          "stem_color",
+          "leaf_color",
+          "fruit_color",
+          "flower_color",
+          "ripe_color"
+        ]
+      }
+    ],
+    "colors": [
+      "stem_color",
+      "leaf_color",
+      "fruit_color",
+      "flower_color",
+      "ripe_color"
+    ]
+  }
+}

@@ -129,8 +129,8 @@ The game registers its **active entities** with the runtime: every player and cr
 foundry_entity hero = foundry_entity_create(rt, &(foundry_entity_desc){.external_id = player_id, .body = hero_body_id, .mask = PLAYER_MASK});
 /* the game moves the hero's body in Jolt itself; the runtime reads it when it updates */
 /* after an update, for a bush in the changed list: */
-foundry_bush_v1_result r;
-foundry_bush_v1_get_result(rt, bush, &r);
+foundry_bush_result r;
+foundry_bush_get_result(rt, bush, &r);
 for (uint32_t i = 0; i < r.contact_count; ++i)
     offer_pick(r.contacts[i].external_id, bush, r.contacts[i].distance);
 foundry_entity_destroy(rt, hero);
@@ -141,7 +141,7 @@ foundry_entity_destroy(rt, hero);
 A game that fills its world from biomes registers **regions**: prioritized hex regions with their attributes (ground, height, moisture, and so on), bound to an approved plotter (`plotter.md`). Every plotter takes the same region list, so the game describes its ground once. A region is bookkeeping, not an owner: it indexes what occupies its cells, and it holds no handles.
 
 ```c
-foundry_region_desc desc = {.plotter = FOUNDRY_PLOTTER_HAPPY_GLEN_V1, .world_seed = 7,
+foundry_region_desc desc = {.plotter = FOUNDRY_PLOTTER_HAPPY_GLEN, .world_seed = 7,
                             .regions = ground, .region_count = n};      /* foundry_hex_region: shape, priority, attributes */
 foundry_region glen = foundry_region_create(rt, &desc);
 foundry_region_restore(rt, glen, saved, saved_count);                     /* on load; FAILED: drop them and grow anew */
@@ -155,7 +155,7 @@ uint32_t lost = foundry_region_set_regions(rt, glen, ground, count, lost_slots, 
 foundry_region_destroy(rt, glen);                                         /* forgets the index; destroys no instances */
 ```
 
-These are built (`src/library/region.h`, `region.cpp`), with each plotter's config and kinds compiled in (`src/library/plotters.cpp`, by `tools/gen_pipelines.py`). `foundry_plotter_kind_name` names a placement's kind (`"tree_v1 oak"`).
+These are built (`src/library/region.h`, `region.cpp`), with each plotter's config and kinds compiled in (`src/library/plotters.cpp`, by `tools/gen_pipelines.py`). `foundry_plotter_kind_name` names a placement's kind (`"tree oak"`).
 
 - **The game paces growth.** `grow` returns up to the number asked for, and the volume the region could still take; a volume of 0 means it is full and stable. Regrowth is simply a later `grow` in regrow mode, when the game decides, and always converges to the original density. The plotter has no clock.
 - **The game owns everything placed.** It spawns placements as ordinary instances, holds their handles, sets their parameters (season, wind, a break, a stump), saves them, and restores them into the region on load.
@@ -171,12 +171,12 @@ Grass covers rather than being placed (`plotter.md`, "Fields"). A plotter's fiel
 ```c
 foundry_instance fields[4];
 uint32_t n = foundry_region_spawn_fields(rt, glen, fields, 4);  /* the plotter's grass, over every cell */
-foundry_grass_v1_params p;
-foundry_grass_v1_default_params(&p);
-p.species = FOUNDRY_GRASS_V1_SPECIES_PRAIRIE;
+foundry_grass_params p;
+foundry_grass_default_params(&p);
+p.species = FOUNDRY_GRASS_SPECIES_PRAIRIE;
 foundry_field_cell cells[] = {{0, 0, FOUNDRY_GROUND_SOIL, 0.6f, 0.0f}, {1, 0, FOUNDRY_GROUND_SOIL, 0.6f, 0.0f}};
-foundry_instance lawn = foundry_grass_v1_spawn_field(rt, &p, transform, cells, 2);
-foundry_grass_v1_set_wind_speed(rt, lawn, 8.0f);  /* the whole field sways harder */
+foundry_instance lawn = foundry_grass_spawn_field(rt, &p, transform, cells, 2);
+foundry_grass_set_wind_speed(rt, lawn, 8.0f);  /* the whole field sways harder */
 ```
 
 Built (`region.h`; each field pipeline's `foundry_<pipeline>_spawn_field`). A field's parameters other than the cell's own (species, season, wind) apply to the whole field. Setting a build parameter rebuilds its few tiles, not its cells. A field doesn't move with `foundry_set_transform`: its tiles are placed when it is spawned.

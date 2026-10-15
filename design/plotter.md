@@ -6,7 +6,7 @@ The mental model is a survival game. A forest is a resource that the player harv
 
 This document is a design. Nine rounds of the human's review are folded into the text, and no questions are open. Its first steps (Jolt, the tree's stump, and the first plotter, a "happy glen") are in the current milestone in `PLAN.md`; the rest waits.
 
-**Built so far** (see "Status" at the end for the detail): the `plot_v1_*` channels and the `plot_scatter_v1` plot system (native matches WebAssembly); plotters as a workspace primitive, with the happy glen; the foundry's plotter view and its MCP tools; regions in the runtime's C API; and a region run in the stress tool. Footprints are single, flower7, flower19, and flower37 so far: lines (`line2`, `line3`), `tri3`, and boxes are designed, not built. Active entities, sensors, and contacts in results are designed, not built.
+**Built so far** (see "Status" at the end for the detail): the `plot_*` channels and the `plot_scatter` plot system (native matches WebAssembly); plotters as a workspace primitive, with the happy glen; the foundry's plotter view and its MCP tools; regions in the runtime's C API; and a region run in the stress tool. Footprints are single, flower7, flower19, and flower37 so far: lines (`line2`, `line3`), `tri3`, and boxes are designed, not built. Active entities, sensors, and contacts in results are designed, not built.
 
 ## Vocabulary
 
@@ -18,7 +18,7 @@ This document is a design. Nine rounds of the human's review are folded into the
 | **Plotter** | A workspace item (`plotters/<name>.json`) that binds a **plot system** to a **biome config**. It is approved like a pipeline. |
 | **Plot system** | A new kind of system: a pure black box with a stable input channel (cells, occupancy, exclusions, how many) and a stable output channel (placements). It does nothing but plot. New placement ideas (rows for an orchard, a ring of mushrooms) are new plot systems. |
 | **Biome config** | The data a plot system is bound to: which kinds of thing go in this biome, how dense, how far apart, where. It is checked against the plot system's config channel, as a genome is checked against its channel. |
-| **Kind** | One thing a plotter can place: a pipeline with some of its parameters fixed (`tree_v1` with `species: baldcypress`), or a fixed asset (`fixed/boulder_moss`). |
+| **Kind** | One thing a plotter can place: a pipeline with some of its parameters fixed (`tree` with `species: baldcypress`), or a fixed asset (`fixed/boulder_moss`). |
 | **Layer** | A group of kinds placed together under one spacing rule: canopy, understory, ground cover, rocks. Layers resolve in order, and later layers see earlier ones. |
 | **Candidate** | A place the plotter could put something: made by a cell from a hash, so it never depends on the rest of the region. |
 | **Placement** | A candidate the plotter has handed to the game: "this kind, with these parameters, at (x, y, z), turned this way", plus a stable slot ID and its footprint. Its `y` comes from the heights the game passed in. |
@@ -45,7 +45,7 @@ Borders are hard. A cell belongs to at most one region, and regions never look a
 
 ### Describing cells and their attributes
 
-Every plot system takes the same kind of input: a **list of hex regions, each with a priority and attribute values**. A cell's value comes from the highest-priority region that covers it, so regions nest: a broad blob of soil, a pond inside it, a path across both. That list is one channel, `plot_v1_regions`, fixed for every plot system, so the game describes its ground once, in one struct, and hands it to any plotter. Plotting is game specific, and the plotter machinery is a batch manager over plot systems, each a black box that can live in several versions side by side. While the project is young, the channel evolves in place. Later, changing it is a channel upgrade, which needs migration and regenerated code that keep QA cheap (`spine.md`, "Channels change rarely"). The attributes a region can set:
+Every plot system takes the same kind of input: a **list of hex regions, each with a priority and attribute values**. A cell's value comes from the highest-priority region that covers it, so regions nest: a broad blob of soil, a pond inside it, a path across both. That list is one channel, `plot_regions`, fixed for every plot system, so the game describes its ground once, in one struct, and hands it to any plotter. Plotting is game specific, and the plotter machinery is a batch manager over plot systems, each a black box that can live in several versions side by side. While the project is young, the channel evolves in place. Later, changing it is a channel upgrade, which needs migration and regenerated code that keep QA cheap (`spine.md`, "Channels change rarely"). The attributes a region can set:
 
 | Attribute | Meaning |
 |---|---|
@@ -91,7 +91,7 @@ Things that collide occupy cells: a thing's **footprint** is the arrangement of 
 | `flower7` | a cell and its 6 neighbours | An old buttressed cypress, a great baobab |
 | `flower19` | radius 2 | A giant; a colossal tree; a solo household's round lot |
 | `box w×h` | a parallelogram of cells | Small buildings, ruins, a campsite |
-| `rect w×h` | h rows of w cells, laid like bricks (each row shifted half a cell from the last), so nearly rectangular | Village buildings (`house_v1`): rect5x4 and rect4x5 to rect8x6 and rect6x8, and the long and broad lots rect3x8 to rect5x11 and rect7x4 to rect10x6; plots in a planner (`planner.md`) |
+| `rect w×h` | h rows of w cells, laid like bricks (each row shifted half a cell from the last), so nearly rectangular | Village buildings (`house`): rect5x4 and rect4x5 to rect8x6 and rect6x8, and the long and broad lots rect3x8 to rect5x11 and rect7x4 to rect10x6; plots in a planner (`planner.md`) |
 
 **The conformance is the maximum, and collision is an output.** A kind's conformance is its largest extent over its life, so its footprint is the footprint of its largest age: a placement reserves the cells an ancient cypress will need, even while it is a sapling, and aging in place never collides with a neighbour. What actually collides is a shape the pipeline outputs with each build, inside the conformance: a sapling's thin stem, a mature trunk, a stump. It is static for the build: a tree's collision is its trunk, which stands still however the wind moves the crown. Anything that animates inside a system (a falling log, flying rock pieces) has no collision; breaks stay closed form and self-contained in their systems. Because collision is a pipeline output, it can be any geometry the pipeline can make (several capsules for a mangrove's prop roots), not just one capsule. It is written as a **collision description**: a JSON-described channel of the shapes Jolt Physics knows (spheres, boxes, capsules, tapered capsules, cylinders, convex hulls, and compounds of them). Jolt is linked into the runtime, and into the foundry's host for viewing and checks; the description is the boundary between a pipeline's black box and it.
 
@@ -107,18 +107,18 @@ Each kind collides only as much as a player will feel:
 
 Flowers and ground cover have no conformance and no footprint. They are placed freely, many to a cell, and never block anything.
 
-A tree's footprint comes from its trunk. Trees are drawn at their real heights, so their trunks should be real too: a mature bald cypress's buttressed base is two to three metres across, wider than one cell. `tree_v1` gains a stump size from nature (the trunk's diameter at the ground, by species and age, including any swell or buttress), and the rig picks the footprint from it: the smallest arrangement whose inner circle, shrunk by 0.1 m (`style.md` §2), holds the stump at its largest age. A canopy is visual and overhangs freely. See `systems.md`, "Trees".
+A tree's footprint comes from its trunk. Trees are drawn at their real heights, so their trunks should be real too: a mature bald cypress's buttressed base is two to three metres across, wider than one cell. `tree` gains a stump size from nature (the trunk's diameter at the ground, by species and age, including any swell or buttress), and the rig picks the footprint from it: the smallest arrangement whose inner circle, shrunk by 0.1 m (`style.md` §2), holds the stump at its largest age. A canopy is visual and overhangs freely. See `systems.md`, "Trees".
 
 ## Plotters
 
-A plotter is a new workspace primitive: `plotters/<name>.json`, beside `pipelines/`. It binds a plot system to a biome config. This is the first one, `plotters/happy_glen_v1.json` (abridged; `book/plotter_happy_glen_v1.md` describes it whole):
+A plotter is a new workspace primitive: `plotters/<name>.json`, beside `pipelines/`. It binds a plot system to a biome config. This is the first one, `plotters/happy_glen.json` (abridged; `book/plotter_happy_glen.md` describes it whole):
 
 ```json
 {
   "kind": "plotter",
-  "name": "happy_glen_v1",
+  "name": "happy_glen",
   "state": "draft",
-  "system": "plot_scatter_v1",
+  "system": "plot_scatter",
   "distinct_seeds": 4,
   "view": {"preset": "glen", "radius": 12, "seed": 7, "shared": {"season": "summer", "wind_speed": 3}},
   "config": {
@@ -127,17 +127,17 @@ A plotter is a new workspace primitive: `plotters/<name>.json`, beside `pipeline
       {"name": "canopy", "spacing_m": 7.0, "density": 1.5, "grove": [0.25, 1.7], "edge": {"low": 1.4, "cells": 4},
        "ground": ["soil"], "max_height_delta_m": 0.6, "regrows": true,
        "kinds": [
-         {"weight": 0.55, "pipeline": "tree_v1", "params": {"species": "oak"},
+         {"weight": 0.55, "pipeline": "tree", "params": {"species": "oak"},
           "vary": {"age": {"young": 0.2, "mature": 0.55, "ancient": 0.25}}, "on_regrow": {"age": "sapling"},
           "footprint_m": 1.71, "footprint_cells": 7},
-         {"weight": 0.12, "pipeline": "tree_v1", "params": {"species": "willow"}, "max_share": 0.2, "...": "..."}],
+         {"weight": 0.12, "pipeline": "tree", "params": {"species": "willow"}, "max_share": 0.2, "...": "..."}],
        "regrow_kinds": [
-         {"weight": 0.6, "pipeline": "tree_v1", "params": {"species": "oak"}, "on_regrow": {"age": "sapling"}},
-         {"weight": 0.4, "pipeline": "tree_v1", "params": {"species": "birch"}, "on_regrow": {"age": "sapling"}}]},
+         {"weight": 0.6, "pipeline": "tree", "params": {"species": "oak"}, "on_regrow": {"age": "sapling"}},
+         {"weight": 0.4, "pipeline": "tree", "params": {"species": "birch"}, "on_regrow": {"age": "sapling"}}]},
       {"name": "hedges", "spacing_m": 2.2, "density": 7.0, "keep_clear": {"canopy": 2.6},
        "prefer_near": {"canopy": {"within_m": 6.0, "boost": 2.5}}, "edge": {"low": 3.0, "cells": 2}, "...": "..."},
       {"name": "stones", "spacing_m": 4.0, "density": 0.9, "regrows": false,
-       "kinds": [{"weight": 1.0, "pipeline": "rock_v1", "params": {"material": "riverstone", "moss": "light"},
+       "kinds": [{"weight": 1.0, "pipeline": "rock", "params": {"material": "riverstone", "moss": "light"},
                   "vary": {"size": {"small": 0.75, "medium": 0.25}}}]}
     ]
   }
@@ -146,7 +146,7 @@ A plotter is a new workspace primitive: `plotters/<name>.json`, beside `pipeline
 
 `footprint_m` and `footprint_cells` are measured, not written: when the foundry loads a plotter, it builds each kind whose footprint is missing at its pipeline's largest age, reads the footprint (a tree's from its rig, others from what their solid and soft collision covers at the ground), and writes it back, so the native runtime can compile it in. `distinct_seeds` caps how many seeds of a kind and its parameters exist (the quality cap, `systems.md`, "Stable randomness"), so a region shares builds. `view` is only the foundry's starting view.
 
-What a biome config can say (for `plot_scatter_v1`, the first plot system):
+What a biome config can say (for `plot_scatter`, the first plot system):
 
 - **Kinds.** A pipeline with some parameters fixed and others varied by weights (age, size), or a fixed asset. The kinds are listed explicitly, so the QA process judges the plot as it was approved. A species added later never joins a biome without review. The foundry checks every pipeline, parameter, and config entry by name when it loads the plotter, as it checks config values against a channel.
 - **Diversity caps.** A maximum count or share per kind within a region (`"max_share": 0.4`), so no species takes over a region however the weights and fields fall, and regrowth can't drift into a monoculture. Caps are per region, since regions plot on their own.
@@ -154,7 +154,7 @@ What a biome config can say (for `plot_scatter_v1`, the first plot system):
 - **Density.** `density` is in things per 100 cells (about 260 m²), scaled by two fields: the **grove** field (value noise of `grove_scale_cells`, from `grove[0]` in clearings to `grove[1]` in groves) and the **edge** field (`edge.low` on the border cells, easing to 1 at `edge.cells` in).
 - **Where.** `ground` lists the grounds a layer (or a kind) takes. Because a path is a ground, keeping a path clear is a filter (`"ground": ["soil"]` never places on `path`); its cells' `available` and `keep_clear_m` keep footprints off and away. `max_height_delta_m` is the most the heights under a footprint may differ.
 - **Regrowth.** The region has no memory of what was cleared: once a thing is vacated, its cells are simply free, subject to a new placement like any other. So what comes back depends on how the game asks. A `grow` in **regrow** mode (as opposed to **seed** mode, for a new region) uses each kind's `on_regrow` parameters (a sapling, not an ancient tree), and the config can give regrow mode its own kinds and weights (an oak wood that comes back as birch first). Whether a layer fills again at all is `regrows` (stones don't). The game rules stay in the config, behind one simple boundary. *When* regrowth happens is the game's decision, since the plotter has no clock.
-- **Order.** Which placements come first when `grow` is asked for fewer than fit is the plot system's behaviour. `plot_scatter_v1` gives layer by layer, highest priority first, or nearest the focus when the game passes one; other orders (the edges of clearings first) are a later plot system's.
+- **Order.** Which placements come first when `grow` is asked for fewer than fit is the plot system's behaviour. `plot_scatter` gives layer by layer, highest priority first, or nearest the focus when the game passes one; other orders (the edges of clearings first) are a later plot system's.
 
 Each plotter is specific to a biome. Its kinds' pipelines share some parameters (season, wind), which the game sets on each instance it holds. There is no region-wide setter, on purpose: a spell must be able to override a parameter where it acts (a blizzard turns a forest to winter only while it lasts, only where it falls). The foundry's plotter view unions those parameters into one set of shared controls for viewing (see "In the foundry").
 
@@ -202,7 +202,7 @@ grow(region, mode = seed | regrow, max = 50, exclusions) -> up to 50 placements
 The game owns every instance and every consequence. An axe, a bomb, and a fire all come down to the same thing: the game tells the region which occupants are gone, and their cells become free for a later `grow`.
 
 What "gone" means depends on the thing. That is the system's concern, not the plotter's:
-- A felled tree becomes a **stump**. `tree_v1` gains a `stump` boolean that shows the stump and hides the rest (`systems.md`, "Trees"), and a flag in its update result that is true once its fall is over (`break_over`), so the game knows when to switch it over. Flags are current values, not one-shot events: the game diffs them against the last result to find rising and falling edges, and does what it likes with them (chop, the tree falls, `break_over` rises, the game waits a second on its own timer, then declares it a stump). Every pipeline with an animation gives such a flag for each finite event (a break), in the instance's update result (`api.md`, "Instance results"). Until the game sets `stump`, the tree's collision is still its standing trunk, since collision is per build. The stump's collision shrinks to the stump, but the occupant stays, holding its footprint, until the game removes the stump and frees the cells.
+- A felled tree becomes a **stump**. `tree` gains a `stump` boolean that shows the stump and hides the rest (`systems.md`, "Trees"), and a flag in its update result that is true once its fall is over (`break_over`), so the game knows when to switch it over. Flags are current values, not one-shot events: the game diffs them against the last result to find rising and falling edges, and does what it likes with them (chop, the tree falls, `break_over` rises, the game waits a second on its own timer, then declares it a stump). Every pipeline with an animation gives such a flag for each finite event (a break), in the instance's update result (`api.md`, "Instance results"). Until the game sets `stump`, the tree's collision is still its standing trunk, since collision is per build. The stump's collision shrinks to the stump, but the occupant stays, holding its footprint, until the game removes the stump and frees the cells.
 - A tree hit by a bomb breaks through its break path. The game decides when the debris is gone, and then frees the slot.
 - A picked bush keeps its slot: picking only clears its `fruit`.
 
@@ -222,10 +222,10 @@ Plotters are generated into `runtime.h` like pipelines: an enum names each appro
 
 ```c
 foundry_region_desc desc = {
-    .plotter    = FOUNDRY_PLOTTER_CYPRESS_SWAMP_V1,
+    .plotter    = FOUNDRY_PLOTTER_CYPRESS_SWAMP,
     .world_seed = 0x5eed,
     .transform  = grid_to_world,              /* float[16]: the hex grid in the world */
-    .regions    = regions, .region_count = n, /* plot_v1_regions: prioritized hex regions with attributes, shared by every plotter */
+    .regions    = regions, .region_count = n, /* plot_regions: prioritized hex regions with attributes, shared by every plotter */
 };
 foundry_region swamp = foundry_region_create(rt, &desc);
 
@@ -246,13 +246,13 @@ for (uint32_t i = 0; i < got; ++i) {
 bool stable = volume == 0;
 
 /* Removal: the axe felled the tree; when its result says the fall is over, it becomes a stump (the occupant stays). */
-foundry_tree_v1_start_break(rt, tree);
+foundry_tree_start_break(rt, tree);
 /* ... after a later update, when the tree is in the update's changed list: */
-foundry_tree_v1_result res;
-foundry_tree_v1_get_result(rt, tree, &res);
+foundry_tree_result res;
+foundry_tree_get_result(rt, tree, &res);
 if (res.break_over && !last.break_over) stump_at = now + 1.0;     /* a rising edge: the game's own timer */
 /* ... a second later: */
-foundry_tree_v1_set_stump(rt, tree, true);  /* the runtime swaps the trunk's body for the stump's */
+foundry_tree_set_stump(rt, tree, true);  /* the runtime swaps the trunk's body for the stump's */
 /* ... and when the player digs the stump out, its cells are free: */
 foundry_region_vacate(rt, swamp, &slot, 1);
 
@@ -278,13 +278,13 @@ Some things are not placed: they cover. Grass is the first. Placing a blade, or 
 - **The runtime draws it.** `foundry_<pipeline>_spawn_field` (or `foundry_region_spawn_fields` for a plotter's fields) runs the cell stage natively over the cells and keeps each present cell's choice as 32 bytes of instance data. These are grouped into chunks of 8 x 8 cells, each chunk's tiles in runs of one variant. Each frame, a chunk in view picks its level by the size of a tile at its nearest point, at the sizes the pipeline measured (`quality.perf.md`, "Detail sizes", measured on a patch of 37 cells). Its runs are drawn with that level's build of their variant. A tile's mesh carries each vertex's **sway**, and the vertex shader moves it in the field's wind, in gusts that travel across the field: no bones, no pose, no CPU.
 - **Steps between cells.** Each tile's ground has a skirt 4 m down its sides, so neighbouring cells at different heights meet without a gap.
 - **The ground is the ground's.** A field grows on the ground; it doesn't colour it. A grass tile's soil is earth, and only its blades take the cell's tint (a vertex's alpha says which).
-- **In a plotter.** A plotter's `fields` lists field pipelines with their parameters (`"fields": [{"pipeline": "grass_v1", "params": {"species": "meadow"}}]`). The region hands every resolved cell, with its ground, moisture, and height, to each one. The game owns the field instances like any other, and spawns them again after `foundry_region_set_regions`.
+- **In a plotter.** A plotter's `fields` lists field pipelines with their parameters (`"fields": [{"pipeline": "grass", "params": {"species": "meadow"}}]`). The region hands every resolved cell, with its ground, moisture, and height, to each one. The game owns the field instances like any other, and spawns them again after `foundry_region_set_regions`.
 
 The plotter's picture in the foundry composes its occupants in WebAssembly and leaves fields out. Its live view (below) runs the native runtime and shows them.
 
 ## Where the plotter lives
 
-- **The plot system is a system.** It is pure: its input channel carries the bound biome config, the prioritized hex regions (`plot_v1_regions`, the same for every plot system), occupants near the work, exclusions, the seed, the mode, `max`, and the focus, and its output channel carries placements and the volume left. So it is versioned, sandboxed in WebAssembly in the foundry, and checked byte for byte against native, like every system. It is a new kind, though: it doesn't sit in a pipeline's DAG, and it's bound to a config rather than fed by stages (`spine.md`, "Vocabulary").
+- **The plot system is a system.** It is pure: its input channel carries the bound biome config, the prioritized hex regions (`plot_regions`, the same for every plot system), occupants near the work, exclusions, the seed, the mode, `max`, and the focus, and its output channel carries placements and the volume left. So it is versioned, sandboxed in WebAssembly in the foundry, and checked byte for byte against native, like every system. It is a new kind, though: it doesn't sit in a pipeline's DAG, and it's bound to a config rather than fed by stages (`spine.md`, "Vocabulary").
 - **The region is runtime bookkeeping.** The cell set, the occupant index, and the diffs hold state across calls, so they are a small runtime object, beside instances. They call the plot system for each `grow` and `set_regions`.
 
 ### In the foundry
@@ -345,9 +345,9 @@ What exists, and where (2026-10-12):
 
 | Piece | Where | Checked by |
 |---|---|---|
-| The ground and plot channels | `src/channels/plot_v1_*.json` (region, regions, config, layer, kind, clearance, preference, occupant, exclusion, request, placement, cell, result) | `tools/gen_channels.py` |
-| The plot system | `src/systems/plot_scatter_v1/` (a system of kind `plot`) | native matches WebAssembly on every grow the foundry verifies (`plotter_grow` with `verify_native`) |
-| Plotters | `demo/plotters/happy_glen_v1.json`; loaded, checked, and measured by `src/host/plot/plotter.cpp` | `book/plotter_happy_glen_v1.md` |
+| The ground and plot channels | `src/channels/plot_*.json` (region, regions, config, layer, kind, clearance, preference, occupant, exclusion, request, placement, cell, result) | `tools/gen_channels.py` |
+| The plot system | `src/systems/plot_scatter/` (a system of kind `plot`) | native matches WebAssembly on every grow the foundry verifies (`plotter_grow` with `verify_native`) |
+| Plotters | `demo/plotters/happy_glen.json`; loaded, checked, and measured by `src/host/plot/plotter.cpp` | `book/plotter_happy_glen.md` |
 | The foundry's plotter view | `src/host/plot/view.cpp`, the Plotters items in the workspace, MCP `plotter_get`, `plotter_set`, `plotter_grow`, `plotter_clear`, `plotter_view` | play testing |
 | Regions in the runtime | `src/library/region.h`, `region.cpp`; each plotter compiled into `src/library/plotters.cpp` | `tests/region_test.cpp`: the same 134 placements as the foundry for the glen's ground and seed |
 | The region run | `stress_plotter_<name>` (`src/tools/stress/region.cpp`) | `demo/perf/report-plotter_*.json` |

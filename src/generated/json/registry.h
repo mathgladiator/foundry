@@ -11,7 +11,7 @@
 namespace foundry::json {
 
 struct ChannelInfo {
-  std::string name;    // e.g. "mesh_v1"
+  std::string name;    // e.g. "mesh"
   std::string schema;  // the schema JSON from src/channels/
   // Converts JSON to packed bytes; throws nlohmann::json::exception on bad input.
   std::function<void(const nlohmann::json &, std::vector<uint8_t> &)> from_json;

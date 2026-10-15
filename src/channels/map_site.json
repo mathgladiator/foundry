@@ -1,0 +1,90 @@
+{
+  "family": "map",
+  "version": 1,
+  "feature": "site",
+  "doc": "A site on a map (design/map.md, The plan): what stands somewhere, on a flat of its own: a settlement a planner lays out, or one thing a pipeline builds.",
+  "fields": [
+    {
+      "name": "name",
+      "type": "string",
+      "doc": "Its name (links name it)."
+    },
+    {
+      "name": "kind",
+      "type": "u32",
+      "doc": "What it is.",
+      "enum": [
+        "town",
+        "village",
+        "hamlet",
+        "keep",
+        "castle",
+        "house",
+        "farm",
+        "ruin",
+        "camp",
+        "shrine",
+        "tower",
+        "landmark"
+      ]
+    },
+    {
+      "name": "q",
+      "type": "i32",
+      "doc": "Its middle: axial q."
+    },
+    {
+      "name": "r",
+      "type": "i32",
+      "doc": "Axial r."
+    },
+    {
+      "name": "radius",
+      "type": "u32",
+      "doc": "Its flat's radius, cells (0: none).",
+      "min": 0,
+      "max": 200
+    },
+    {
+      "name": "level",
+      "type": "bool",
+      "doc": "Whether its flat is at `height` (else the land's own there)."
+    },
+    {
+      "name": "height",
+      "type": "f32",
+      "doc": "Its flat's height when `level`, metres.",
+      "min": -40,
+      "max": 400
+    },
+    {
+      "name": "planner",
+      "type": "string",
+      "doc": "The planner that lays it out (a planners/ name), if a settlement."
+    },
+    {
+      "name": "pipeline",
+      "type": "string",
+      "doc": "The pipeline that builds it, if one thing (house, castle...)."
+    },
+    {
+      "name": "params",
+      "type": "string",
+      "doc": "That pipeline's parameters, as a JSON object."
+    },
+    {
+      "name": "seed",
+      "type": "u32",
+      "doc": "Its seed.",
+      "min": 0,
+      "max": 1000000
+    },
+    {
+      "name": "yaw",
+      "type": "f32",
+      "doc": "Its turn, degrees (negative: face its first road).",
+      "min": -1,
+      "max": 360
+    }
+  ]
+}

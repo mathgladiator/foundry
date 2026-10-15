@@ -127,7 +127,7 @@ void register_tools(mcp::Registry &registry, Runner &runner, Live &live, workspa
   registry.add({"pipeline_get",
                 "Describe a pipeline (default: the one the workspace shows): its parameters with their choices and "
                 "ranges, its stages and systems, the live instance's values, and the last build's stage stats.",
-                mcp::schema({{"pipeline", {{"type", "string"}, {"description", "e.g. tree_v1"}}}}),
+                mcp::schema({{"pipeline", {{"type", "string"}, {"description", "e.g. tree"}}}}),
                 [&live](const json &args) {
                   std::string name = args.value("pipeline", live.name()), error;
                   if (name.empty()) return mcp::Result::error("no pipeline shown; pass pipeline");
@@ -184,10 +184,10 @@ void register_tools(mcp::Registry &registry, Runner &runner, Live &live, workspa
                 }});
 
   registry.add({"config_get",
-                "Read a config table (config/<table>/, e.g. tree_v1_genomes: named records of one channel that a "
+                "Read a config table (config/<table>/, e.g. tree_genomes: named records of one channel that a "
                 "pipeline picks from by name): without entry, its doc, channel, and entries; with entry, that entry's "
                 "value, state, and notes. With schema, also every field's type, range, choices, and doc.",
-                mcp::schema({{"table", {{"type", "string"}, {"description", "e.g. tree_v1_genomes"}}},
+                mcp::schema({{"table", {{"type", "string"}, {"description", "e.g. tree_genomes"}}},
                              {"entry", {{"type", "string"}, {"description", "e.g. oak"}}},
                              {"schema", {{"type", "boolean"}}}},
                             {"table"}),
@@ -217,7 +217,7 @@ void register_tools(mcp::Registry &registry, Runner &runner, Live &live, workspa
                 "in. Final entries can't change. reference links the entry to photos under reference/ (workspace-relative "
                 "paths), which the viewport can show in a corner beside the live instance. Pair it with pipeline_view "
                 "or pipeline_sheet to see the result.",
-                mcp::schema({{"table", {{"type", "string"}, {"description", "e.g. tree_v1_genomes"}}},
+                mcp::schema({{"table", {{"type", "string"}, {"description", "e.g. tree_genomes"}}},
                              {"entry", {{"type", "string"}, {"description", "e.g. teak"}}},
                              {"values", {{"type", "object"}}},
                              {"from", {{"type", "string"}, {"description", "an existing entry to copy, to create a new one"}}},
@@ -325,7 +325,7 @@ void register_tools(mcp::Registry &registry, Runner &runner, Live &live, workspa
                              {"compose", {{"type", "object"},
                                           {"description", "what is composed round the model, where its draw asks (a terrain's boundary and plotter, "
                                                           "a boundary's figures): nature (bool), plotter (name), surround (bool), figures "
-                                                          "(bool), surround_values (object). Default: all on; false turns all off"}}},
+                                                          "(bool), surround_values (object). Default: all on (the surround as its draw block says); false turns all off"}}},
                              {"size", {{"type", "integer"}}}},
                             {"pipeline"}),
                 [&runner, &live](const json &args) {
@@ -355,7 +355,7 @@ void register_tools(mcp::Registry &registry, Runner &runner, Live &live, workspa
                     ComposeOptions o;
                     o.nature = c.value("nature", true);
                     o.plotter = c.value("plotter", "");
-                    o.surround = c.value("surround", true);
+                    o.surround = c.value("surround", ComposeOptions::defaults(def).surround);
                     o.figures = c.value("figures", true);
                     o.surround_values = c.value("surround_values", json::object());
                     Composite comp = compose(runner, def, r.frame, values, o);

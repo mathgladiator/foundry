@@ -43,7 +43,7 @@ namespace {
 bool ensure(View &view, const json &args, std::string &error) {
   const std::string name = args.value("plotter", view.name());
   if (name.empty()) {
-    error = "no plotter shown; pass plotter (e.g. happy_glen_v1)";
+    error = "no plotter shown; pass plotter (e.g. happy_glen)";
     return false;
   }
   return view.show(name, error);
@@ -57,7 +57,7 @@ void register_tools(mcp::Registry &registry, View &view) {
                 "plot system, its kinds with their measured footprints, the region's ground (prioritized hex regions), "
                 "seed, shared values (season, wind), the last grow, and metrics (things per layer and kind, per hectare, "
                 "nearest neighbours against the spacing, footprint overlaps, distinct builds).",
-                mcp::schema({{"plotter", {{"type", "string"}, {"description", "e.g. happy_glen_v1"}}}}),
+                mcp::schema({{"plotter", {{"type", "string"}, {"description", "e.g. happy_glen"}}}}),
                 [&view](const json &args) {
                   std::string error;
                   if (!ensure(view, args, error)) return mcp::Result::error(error);
@@ -67,7 +67,7 @@ void register_tools(mcp::Registry &registry, View &view) {
                 }});
   registry.add({"plotter_set",
                 "Change the shown plotter's region: a ground preset (glen, hex, ring, strip, union, pond, path, slope, "
-                "ragged, single) with a radius in cells, or regions directly (plot_v1_region values: shape cells/hex/"
+                "ragged, single) with a radius in cells, or regions directly (plot_region values: shape cells/hex/"
                 "ring/line, q, r, q2, r2, radius, priority, cut, ground soil/water/rock/sand/path, available, "
                 "keep_clear_m, height, moisture); the world seed (a new seed clears the region); and shared values for "
                 "every occupant (season, wind_speed...). Occupants on lost cells are removed; the rest never move.",

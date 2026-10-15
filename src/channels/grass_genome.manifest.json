@@ -1,0 +1,8 @@
+{
+  "kind": "channel",
+  "name": "grass_genome",
+  "state": "draft",
+  "reason": "The grass species data, as config entries (like the trees', bushes', and flowers' genomes), read by both grass systems.",
+  "notes": [],
+  "created_at": "2026-10-13T03:00:00Z"
+}

@@ -1,0 +1,8 @@
+{
+  "kind": "channel",
+  "name": "gate_spec",
+  "state": "draft",
+  "reason": "gate_build's input (approved 2026-10-13). Patched 2026-10-14: a ruin condition (approved).",
+  "notes": [],
+  "created_at": "2026-10-13T23:30:00Z"
+}

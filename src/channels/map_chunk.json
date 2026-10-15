@@ -1,0 +1,90 @@
+{
+  "family": "map",
+  "version": 1,
+  "feature": "chunk",
+  "doc": "One chunk of a map (design/map.md, Executing it): its cells (a 64 x 64 parallelogram of axial cells within the map's outline) and everything its ground needs, cut from the map's plan, so it builds alone.",
+  "fields": [
+    {
+      "name": "q0",
+      "type": "i32",
+      "doc": "Its first cell: axial q."
+    },
+    {
+      "name": "r0",
+      "type": "i32",
+      "doc": "Axial r."
+    },
+    {
+      "name": "size",
+      "type": "u32",
+      "doc": "Its side, cells.",
+      "min": 1,
+      "max": 256
+    },
+    {
+      "name": "seed",
+      "type": "u32",
+      "doc": "The map's seed."
+    },
+    {
+      "name": "outline",
+      "type": "vec3[]",
+      "doc": "The map's outline (its shape's control points), for which cells are inside."
+    },
+    {
+      "name": "gx",
+      "type": "f32",
+      "doc": "The grid window's first node: x, metres."
+    },
+    {
+      "name": "gz",
+      "type": "f32",
+      "doc": "Its first node: z, metres."
+    },
+    {
+      "name": "spacing",
+      "type": "f32",
+      "doc": "The grid's spacing, metres."
+    },
+    {
+      "name": "nx",
+      "type": "u32",
+      "doc": "Nodes along x."
+    },
+    {
+      "name": "nz",
+      "type": "u32",
+      "doc": "Nodes along z."
+    },
+    {
+      "name": "heights",
+      "type": "f32[]",
+      "doc": "Each node's macro height, metres (rows along x, +z down the rows)."
+    },
+    {
+      "name": "parcel_ids",
+      "type": "u32[]",
+      "doc": "Each node's parcel (an index into parcels; 65535 outside)."
+    },
+    {
+      "name": "water",
+      "type": "f32[]",
+      "doc": "Each node's water level, metres (-1000: dry)."
+    },
+    {
+      "name": "parcels",
+      "type": "map_parcel[]",
+      "doc": "The map's parcels."
+    },
+    {
+      "name": "roads",
+      "type": "map_segment[]",
+      "doc": "The roads and rivers crossing it."
+    },
+    {
+      "name": "flats",
+      "type": "map_flat[]",
+      "doc": "The flats it touches."
+    }
+  ]
+}

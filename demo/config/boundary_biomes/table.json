@@ -1,0 +1,94 @@
+{
+  "channel": "boundary_biome",
+  "doc": "Boundary biomes (design/boundary.md): the colours, forms, and scale of the world a boundary invents beyond a region.",
+  "label": "biome",
+  "editor": {
+    "groups": [
+      {
+        "label": "Identity",
+        "fields": [
+          "name"
+        ]
+      },
+      {
+        "label": "Ground",
+        "fields": [
+          "grass",
+          "grass_dry",
+          "soil",
+          "sand",
+          "snow",
+          "reed"
+        ]
+      },
+      {
+        "label": "Rock",
+        "fields": [
+          "rock",
+          "rock_dark"
+        ]
+      },
+      {
+        "label": "Trees",
+        "fields": [
+          "forest_form",
+          "jungle_form",
+          "tree_height",
+          "foliage",
+          "foliage_dark",
+          "jungle",
+          "trunk",
+          "autumn"
+        ]
+      },
+      {
+        "label": "Water",
+        "fields": [
+          "water_shallow",
+          "water_deep",
+          "sea_depth",
+          "rivers"
+        ]
+      },
+      {
+        "label": "Scale",
+        "fields": [
+          "cliff_height",
+          "ledge_drop",
+          "peak_height",
+          "snow_line",
+          "tree_line",
+          "roughness",
+          "fields"
+        ]
+      },
+      {
+        "label": "Figures",
+        "fields": [
+          "figure_forest",
+          "figure_jungle",
+          "figure_mountain",
+          "figure_marsh",
+          "figure_bushes"
+        ]
+      }
+    ],
+    "colors": [
+      "grass",
+      "grass_dry",
+      "soil",
+      "sand",
+      "snow",
+      "reed",
+      "rock",
+      "rock_dark",
+      "foliage",
+      "foliage_dark",
+      "jungle",
+      "trunk",
+      "autumn",
+      "water_shallow",
+      "water_deep"
+    ]
+  }
+}

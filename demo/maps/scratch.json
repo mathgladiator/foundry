@@ -1,0 +1,39 @@
+{
+  "biome": "temperate",
+  "chunk_size": 64,
+  "doc": "",
+  "links": [],
+  "name": "scratch",
+  "parcels": [
+    {
+      "kind": "plains",
+      "name": "heartland",
+      "plotter": "happy_glen",
+      "q": 0,
+      "r": 0
+    }
+  ],
+  "rivers": [],
+  "seed": 1,
+  "shape": {
+    "corners": [],
+    "depth": 100,
+    "kind": "hexagon",
+    "name": "scratch",
+    "notch": 40,
+    "openings": [],
+    "radius": 1000,
+    "rotation": 0,
+    "seed": 7,
+    "sides": [
+      {
+        "edge": "forest",
+        "height": 4,
+        "rise": 0.5
+      }
+    ],
+    "width": 100,
+    "wobble": 18
+  },
+  "sites": []
+}

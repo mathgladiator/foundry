@@ -1,0 +1,52 @@
+{
+  "family": "map",
+  "version": 1,
+  "feature": "spec",
+  "doc": "map_plan's input (design/map.md): a map's plan: its shape, biome, seed, parcels, sites, links, and rivers.",
+  "fields": [
+    {
+      "name": "name",
+      "type": "string",
+      "doc": "The map's name."
+    },
+    {
+      "name": "seed",
+      "type": "u32",
+      "doc": "Its seed.",
+      "min": 1,
+      "max": 1000000
+    },
+    {
+      "name": "shape",
+      "type": "terrain_shape",
+      "doc": "Its outline, its sides (the boundary's edges), and its exits (openings)."
+    },
+    {
+      "name": "parcels",
+      "type": "map_parcel[]",
+      "doc": "The partition."
+    },
+    {
+      "name": "sites",
+      "type": "map_site[]",
+      "doc": "What stands where."
+    },
+    {
+      "name": "links",
+      "type": "map_link[]",
+      "doc": "The network."
+    },
+    {
+      "name": "rivers",
+      "type": "map_river[]",
+      "doc": "The rivers."
+    },
+    {
+      "name": "chunk_size",
+      "type": "u32",
+      "doc": "A chunk's side, cells.",
+      "min": 16,
+      "max": 128
+    }
+  ]
+}

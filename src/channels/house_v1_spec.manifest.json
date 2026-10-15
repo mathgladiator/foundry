@@ -1,8 +1,0 @@
-{
-  "kind": "channel",
-  "name": "house_v1_spec",
-  "state": "draft",
-  "reason": "The input to house_build_v1 (approved 2026-10-13): the game's request (type, stage, season, footprint) plus the runtime's seed and level of detail. Patched 2026-10-14: a theme and a ruin stage (approved).",
-  "notes": [],
-  "created_at": "2026-10-13T12:00:00Z"
-}

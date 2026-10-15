@@ -56,7 +56,7 @@ class Observatories {
   // The seeds its sky is generated from, into its file (stars.seed: the star chart and the Milky Way;
   // clouds.seed: the cloud map). A seed always gives the same sky; a negative one is left as it is.
   bool set_seeds(const std::string &name, long long star_seed, long long cloud_seed, std::string &error);
-  // Which observatory an item's view is under ("" none), e.g. "pipeline:tree_v1".
+  // Which observatory an item's view is under ("" none), e.g. "pipeline:tree".
   std::string view_of(const std::string &item) const;
   void set_view(const std::string &item, const std::string &name);
   // The sky an item's view is under now, or false.

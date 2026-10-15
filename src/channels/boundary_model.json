@@ -1,0 +1,148 @@
+{
+  "family": "boundary",
+  "version": 1,
+  "feature": "model",
+  "doc": "A boundary (design/boundary.md): the world it invents beyond a playable region. A quadtree of terrain nodes, each a grid of heights with its own image, refined only where a player inside the region could ever see the difference, that the runtime draws as a cut by distance with each vertex morphing toward its parent's surface (draw.terrain); the rim's dressing (cliff faces, trunks and crowns, reeds, stones, beaches) as an ordinary mesh; and the walls that keep the player in.",
+  "fields": [
+    {
+      "name": "height",
+      "type": "f32",
+      "doc": "The highest point, metres."
+    },
+    {
+      "name": "radius",
+      "type": "f32",
+      "doc": "The reach from the origin, metres."
+    },
+    {
+      "name": "rim_cells",
+      "type": "u32",
+      "doc": "Cells in the resolved hull."
+    },
+    {
+      "name": "rim_length",
+      "type": "f32",
+      "doc": "The rim's length, metres."
+    },
+    {
+      "name": "guide_lines",
+      "type": "vec3[]",
+      "doc": "The hull's cells outlined, for the viewer: segment pairs."
+    },
+    {
+      "name": "guide_colors",
+      "type": "u32[]",
+      "doc": "Each guide segment's colour by its cell's edge, packed RGBA."
+    },
+    {
+      "name": "fire_points",
+      "type": "vec3[]",
+      "doc": "Where its forests and jungles burn, metres (blaze points)."
+    },
+    {
+      "name": "fire_configs",
+      "type": "u32[]",
+      "doc": "Each fire point's fire config (fire_config's id)."
+    },
+    {
+      "name": "fire_lit",
+      "type": "u32[]",
+      "doc": "Each fire point: 0, only while the boundary burns."
+    },
+    {
+      "name": "node_min",
+      "type": "vec3[]",
+      "doc": "Each terrain node's box, its low corner, metres (node 0 is the root)."
+    },
+    {
+      "name": "node_max",
+      "type": "vec3[]",
+      "doc": "Each terrain node's box, its high corner, metres."
+    },
+    {
+      "name": "node_children",
+      "type": "u32[]",
+      "doc": "Each node's four children (4 per node: -x-z, +x-z, -x+z, +x+z), 4294967295 where it has none (inside the region, or never needed)."
+    },
+    {
+      "name": "node_spacing",
+      "type": "f32[]",
+      "doc": "Each node's grid spacing, metres: the runtime refines a node nearer than a multiple of it."
+    },
+    {
+      "name": "node_first",
+      "type": "u32[]",
+      "doc": "Each node's first index in terrain_indices."
+    },
+    {
+      "name": "node_count",
+      "type": "u32[]",
+      "doc": "Each node's index count (0: nothing of its own, inside the region)."
+    },
+    {
+      "name": "terrain_positions",
+      "type": "vec3[]",
+      "doc": "Terrain vertices, metres: every node's grid and the skirts down its sides."
+    },
+    {
+      "name": "terrain_normals",
+      "type": "vec3[]",
+      "doc": "Terrain vertex normals."
+    },
+    {
+      "name": "terrain_uvs",
+      "type": "f32[]",
+      "doc": "Each terrain vertex's place in its node's image, u, v pairs (0 to 1, at texel centres)."
+    },
+    {
+      "name": "terrain_morph",
+      "type": "f32[]",
+      "doc": "Each terrain vertex's rise to its parent's surface, metres: the runtime morphs it there as the node nears its parent's distance."
+    },
+    {
+      "name": "terrain_indices",
+      "type": "u32[]",
+      "doc": "Terrain triangles, by node."
+    },
+    {
+      "name": "image_size",
+      "type": "u32",
+      "doc": "Each node's image is image_size x image_size texels."
+    },
+    {
+      "name": "images",
+      "type": "u32[]",
+      "doc": "Every node's image, node after node, row after row (+z down the rows, +x along them), packed RGBA: alpha 255 on most ground, toward 0 on steep rock (a top-down image smears down a cliff, so the runtime lays strata there by height)."
+    },
+    {
+      "name": "positions",
+      "type": "vec3[]",
+      "doc": "The dressing's vertex positions, metres."
+    },
+    {
+      "name": "normals",
+      "type": "vec3[]",
+      "doc": "The dressing's vertex normals."
+    },
+    {
+      "name": "indices",
+      "type": "u32[]",
+      "doc": "The dressing's triangles."
+    },
+    {
+      "name": "colors",
+      "type": "u32[]",
+      "doc": "The dressing's vertex colour, packed RGBA."
+    },
+    {
+      "name": "figures",
+      "type": "boundary_figure[]",
+      "doc": "Trees and bushes within the figure range, for the game to fill (design/boundary.md, Figures)."
+    },
+    {
+      "name": "collision",
+      "type": "physics_body[]",
+      "doc": "What keeps the player in: the walls along the rim and the floor of the hull's cells (solid), and its trunks (solid)."
+    }
+  ]
+}

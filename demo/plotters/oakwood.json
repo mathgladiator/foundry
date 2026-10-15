@@ -1,0 +1,258 @@
+{
+  "config": {
+    "grove_octaves": 2,
+    "grove_scale_cells": 9,
+    "layers": [
+      {
+        "density": 2.2,
+        "ground": [
+          "soil"
+        ],
+        "grove": [
+          0.6,
+          1.4
+        ],
+        "kinds": [
+          {
+            "footprint_cells": 7,
+            "footprint_m": 1.7070000171661377,
+            "on_regrow": {
+              "age": "sapling"
+            },
+            "params": {
+              "species": "oak"
+            },
+            "pipeline": "tree",
+            "vary": {
+              "age": {
+                "ancient": 0.15,
+                "mature": 0.6,
+                "young": 0.25
+              }
+            },
+            "weight": 0.5
+          },
+          {
+            "footprint_cells": 7,
+            "footprint_m": 0.8989999890327454,
+            "on_regrow": {
+              "age": "sapling"
+            },
+            "params": {
+              "species": "maple"
+            },
+            "pipeline": "tree",
+            "vary": {
+              "age": {
+                "ancient": 0.15,
+                "mature": 0.6,
+                "young": 0.25
+              }
+            },
+            "weight": 0.25
+          },
+          {
+            "footprint_cells": 7,
+            "footprint_m": 1.7070000171661377,
+            "on_regrow": {
+              "age": "sapling"
+            },
+            "params": {
+              "species": "elm"
+            },
+            "pipeline": "tree",
+            "vary": {
+              "age": {
+                "ancient": 0.15,
+                "mature": 0.6,
+                "young": 0.25
+              }
+            },
+            "weight": 0.15
+          },
+          {
+            "footprint_cells": 1,
+            "footprint_m": 0.6190000176429749,
+            "on_regrow": {
+              "age": "sapling"
+            },
+            "params": {
+              "species": "hickory"
+            },
+            "pipeline": "tree",
+            "vary": {
+              "age": {
+                "ancient": 0.15,
+                "mature": 0.6,
+                "young": 0.25
+              }
+            },
+            "weight": 0.1
+          }
+        ],
+        "max_height_delta_m": 0.6,
+        "name": "canopy",
+        "regrows": true,
+        "spacing_m": 6.0
+      },
+      {
+        "density": 4.0,
+        "ground": [
+          "soil"
+        ],
+        "keep_clear": {
+          "canopy": 2.2
+        },
+        "kinds": [
+          {
+            "footprint_cells": 7,
+            "footprint_m": 1.496000051498413,
+            "params": {
+              "species": "hazel"
+            },
+            "pipeline": "bush",
+            "vary": {
+              "age": {
+                "mature": 0.6,
+                "old": 0.2,
+                "young": 0.2
+              }
+            },
+            "weight": 0.5
+          },
+          {
+            "footprint_cells": 7,
+            "footprint_m": 1.0759999752044678,
+            "params": {
+              "species": "holly"
+            },
+            "pipeline": "bush",
+            "vary": {
+              "age": {
+                "mature": 0.6,
+                "old": 0.2,
+                "young": 0.2
+              }
+            },
+            "weight": 0.3
+          },
+          {
+            "footprint_cells": 7,
+            "footprint_m": 1.8849999904632568,
+            "params": {
+              "species": "elderberry"
+            },
+            "pipeline": "bush",
+            "vary": {
+              "age": {
+                "mature": 0.6,
+                "old": 0.2,
+                "young": 0.2
+              }
+            },
+            "weight": 0.2
+          }
+        ],
+        "max_height_delta_m": 0.6,
+        "name": "understory",
+        "prefer_near": {
+          "canopy": {
+            "boost": 2.0,
+            "within_m": 6.0
+          }
+        },
+        "regrows": true,
+        "spacing_m": 2.6
+      },
+      {
+        "density": 6,
+        "ground": [
+          "soil"
+        ],
+        "keep_clear": {
+          "canopy": 1.2,
+          "understory": 0.9
+        },
+        "kinds": [
+          {
+            "footprint_cells": 0,
+            "footprint_m": 0.0,
+            "params": {
+              "species": "bluebell"
+            },
+            "pipeline": "flower",
+            "weight": 0.7
+          },
+          {
+            "footprint_cells": 0,
+            "footprint_m": 0.0,
+            "params": {
+              "species": "foxglove"
+            },
+            "pipeline": "flower",
+            "weight": 0.3
+          }
+        ],
+        "max_height_delta_m": 0.6,
+        "name": "shade_flowers",
+        "prefer_near": {
+          "canopy": {
+            "boost": 3.0,
+            "within_m": 5.0
+          }
+        },
+        "regrows": true,
+        "spacing_m": 1.5
+      },
+      {
+        "density": 0.6,
+        "ground": [
+          "soil",
+          "path"
+        ],
+        "keep_clear": {
+          "canopy": 2.0
+        },
+        "kinds": [
+          {
+            "footprint_cells": 1,
+            "footprint_m": 0.6940000057220459,
+            "params": {
+              "material": "limestone",
+              "moss": "heavy"
+            },
+            "pipeline": "rock",
+            "weight": 1.0
+          }
+        ],
+        "max_height_delta_m": 0.6,
+        "name": "stones",
+        "regrows": false,
+        "spacing_m": 5.0
+      }
+    ]
+  },
+  "distinct_seeds": 4,
+  "doc": "Oak woods: a close canopy of oak, maple, and elm with hazel and holly beneath, bluebells and foxgloves in the shade, and mossy stones.",
+  "fields": [
+    {
+      "params": {
+        "species": "meadow"
+      },
+      "pipeline": "grass"
+    }
+  ],
+  "kind": "plotter",
+  "name": "oakwood",
+  "state": "draft",
+  "system": "plot_scatter",
+  "view": {
+    "preset": "glen",
+    "radius": 14,
+    "seed": 7,
+    "shared": {
+      "season": "summer",
+      "wind_speed": 3
+    }
+  }
+}

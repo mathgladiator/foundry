@@ -1,0 +1,11 @@
+{
+  "name": "crop_build",
+  "version": 1,
+  "kind": "system",
+  "doc": "Builds a crop field (design/planner.md, Crops) on a lot like a building's (small rect6x4, medium rect8x6, large rect12x8): ridged furrows, and the crop's plants along its rows by how they grow (grain tufts with heads, tall stalks with cobs or a sunflower's face, leafy heads, root tops, gourds on vines, beans and tomatoes on teepees of canes, grapes on trellises, flowering bushes), by growth (sown, sprouting, growing, ripe, harvested with stubble and stooks) and season; every plant rides one of a few wind groups (drift bones for house_animate), blended by its height, so the field poses with a handful of wind computations; fire points it burns from, its lot's cells and box, every lot as guides, and a query body.",
+  "input": "crop_spec",
+  "output": "crop_model",
+  "state": "draft",
+  "notes": [],
+  "created_at": "2026-10-14T06:00:00Z"
+}

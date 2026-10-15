@@ -1,8 +1,0 @@
-{
-  "kind": "channel",
-  "name": "terrain_v1_flat",
-  "state": "draft",
-  "reason": "Cells a city planner can use, constraining the terrain's chaos there (2026-10-14). Approved 2026-10-14.",
-  "notes": [],
-  "created_at": "2026-10-14T16:00:00Z"
-}

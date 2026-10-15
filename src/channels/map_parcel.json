@@ -1,0 +1,113 @@
+{
+  "family": "map",
+  "version": 1,
+  "feature": "parcel",
+  "doc": "A parcel of a map (design/map.md, The plan): a seed point with a reach and a character; every cell belongs to the parcel nearest it (by distance less its reach, warped by noise).",
+  "fields": [
+    {
+      "name": "name",
+      "type": "string",
+      "doc": "Its name."
+    },
+    {
+      "name": "q",
+      "type": "i32",
+      "doc": "Its seed: axial q."
+    },
+    {
+      "name": "r",
+      "type": "i32",
+      "doc": "Axial r."
+    },
+    {
+      "name": "reach",
+      "type": "f32",
+      "doc": "How far it reaches beyond its neighbours, metres: added to its share of the partition.",
+      "min": -500,
+      "max": 2000
+    },
+    {
+      "name": "kind",
+      "type": "u32",
+      "doc": "Its character.",
+      "enum": [
+        "plains",
+        "hills",
+        "highlands",
+        "mountains",
+        "valley",
+        "lake",
+        "marsh",
+        "coast"
+      ]
+    },
+    {
+      "name": "plotter",
+      "type": "string",
+      "doc": "The plotter that grows its nature (a plotters/ name; empty: none)."
+    },
+    {
+      "name": "height",
+      "type": "f32",
+      "doc": "Its ground's base height, metres.",
+      "min": -40,
+      "max": 400
+    },
+    {
+      "name": "relief",
+      "type": "f32",
+      "doc": "How high its hills stand, metres.",
+      "min": 0,
+      "max": 400
+    },
+    {
+      "name": "hill_size",
+      "type": "f32",
+      "doc": "How wide a hill is, metres.",
+      "min": 20,
+      "max": 2000
+    },
+    {
+      "name": "roughness",
+      "type": "f32",
+      "doc": "Small bumps and hollows, 0 to 1.",
+      "min": 0,
+      "max": 1
+    },
+    {
+      "name": "ridges",
+      "type": "f32",
+      "doc": "Ridged rather than rolling, 0 to 1.",
+      "min": 0,
+      "max": 1
+    },
+    {
+      "name": "cliffs",
+      "type": "f32",
+      "doc": "How much steep land breaks into rock faces, 0 to 1.",
+      "min": 0,
+      "max": 1
+    },
+    {
+      "name": "caves",
+      "type": "f32",
+      "doc": "How often tall faces open into caves, 0 to 1.",
+      "min": 0,
+      "max": 1
+    },
+    {
+      "name": "moisture",
+      "type": "f32",
+      "doc": "How wet, 0 to 1 (a plotter's moisture).",
+      "min": 0,
+      "max": 1
+    },
+    {
+      "name": "woods",
+      "type": "f32",
+      "doc": "How much of it is wooded, 0 to 1: the far land's canopy colour (its plotter grows the real trees near).",
+      "min": 0,
+      "max": 1
+    }
+  ]
+}

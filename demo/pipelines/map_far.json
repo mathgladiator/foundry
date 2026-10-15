@@ -1,0 +1,24 @@
+{
+  "kind": "pipeline",
+  "name": "map_far",
+  "state": "draft",
+  "doc": "A map's far land (design/map.md): the whole map as a terrain quadtree from its macro plan, sunk a little below the ground, painted by parcel, water, and roads; the runtime draws a cut by distance, morphing between levels. The map's executor spawns it with the map's plan packed (foundry_map_far_spawn_packed); a small sample shows one alone.",
+  "notes": [],
+  "created_at": "2026-10-15T01:00:00Z",
+  "params": [
+    {"name": "far", "type": "config", "table": "map_fars", "default": "pocket", "doc": "The map's plan, biome, season, and sink (a game passes its own packed)."}
+  ],
+  "stages": [
+    {"id": "far", "system": "map_far", "input": "$far"}
+  ],
+  "draw": {
+    "model": "far",
+    "terrain": {
+      "node_min": "node_min", "node_max": "node_max", "children": "node_children", "spacing": "node_spacing",
+      "first": "node_first", "count": "node_count",
+      "positions": "terrain_positions", "normals": "terrain_normals", "uvs": "terrain_uvs", "morph": "terrain_morph",
+      "indices": "terrain_indices", "image_size": "image_size", "images": "images"
+    },
+    "payload": {"param": "far"}
+  }
+}

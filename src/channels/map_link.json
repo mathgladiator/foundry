@@ -1,0 +1,33 @@
+{
+  "family": "map",
+  "version": 1,
+  "feature": "link",
+  "doc": "A link in a map's network (design/map.md): a road, lane, or path joining two sites, or a site and an exit (one of the shape's openings, \"exit:<n>\").",
+  "fields": [
+    {
+      "name": "from",
+      "type": "string",
+      "doc": "A site's name, or exit:<n>."
+    },
+    {
+      "name": "to",
+      "type": "string",
+      "doc": "A site's name, or exit:<n>."
+    },
+    {
+      "name": "kind",
+      "type": "u32",
+      "doc": "Its kind.",
+      "enum": [
+        "road",
+        "lane",
+        "path"
+      ]
+    },
+    {
+      "name": "via",
+      "type": "i32[]",
+      "doc": "Waypoints it passes, as q, r pairs."
+    }
+  ]
+}

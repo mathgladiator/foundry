@@ -1,8 +1,0 @@
-{
-  "kind": "channel",
-  "name": "bush_v1_model",
-  "state": "draft",
-  "reason": "The shrub's drawable output, following the draw convention, so the host and runtime draw it without knowing shrubs.",
-  "notes": [],
-  "created_at": "2026-10-12T10:00:00Z"
-}

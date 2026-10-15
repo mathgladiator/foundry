@@ -1,0 +1,8 @@
+{
+  "kind": "channel",
+  "name": "terrain_side",
+  "state": "draft",
+  "reason": "A shape's sides as aspects to swap (the terrain builder and the boundary's parametric hull, asked for on 2026-10-14). Approved 2026-10-14.",
+  "notes": [],
+  "created_at": "2026-10-14T16:00:00Z"
+}

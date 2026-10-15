@@ -2,7 +2,7 @@
 // binds a plot system to a biome config. Loading one checks its kinds against
 // their pipelines, measures any kind's missing footprint from its pipeline at its
 // largest age (and writes it back, so the native runtime can compile it in), and
-// compiles the config into the plot system's channel (plot_v1_config).
+// compiles the config into the plot system's channel (plot_config).
 #pragma once
 
 #include <cstdint>
@@ -16,7 +16,7 @@
 
 namespace plot {
 
-// The grounds a cell can have (plot_v1_region's ground enum).
+// The grounds a cell can have (plot_region's ground enum).
 const std::vector<std::string> &grounds();
 
 struct Kind {
@@ -29,7 +29,7 @@ struct Kind {
   float weight = 1, max_share = 1;
   float footprint_m = 0;
   uint32_t footprint_cells = 0;
-  std::string label() const;    // e.g. "tree_v1 oak"
+  std::string label() const;    // e.g. "tree oak"
 };
 
 struct Plotter {
@@ -37,7 +37,7 @@ struct Plotter {
   nlohmann::json file;          // the plotter as written
   std::vector<Kind> kinds;      // every kind, by id
   std::vector<std::string> layers;
-  nlohmann::json config;        // the plot_v1_config value
+  nlohmann::json config;        // the plot_config value
   uint32_t distinct_seeds = 6;  // seeds per kind and parameters (the quality cap)
   // The parameters shared by its kinds' pipelines (season, wind...), with the values to show them at.
   nlohmann::json shared = nlohmann::json::object();

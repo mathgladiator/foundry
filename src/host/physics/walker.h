@@ -53,12 +53,21 @@ class Walker {
     float heading = 0;             // radians from north (-Z) toward east (+X)
     bool jump = false;             // pressed this step
     bool run = false;
+    float speed = 1;               // times the walking and running speeds (a play test's speed setting)
   };
   void step(float dt, const Input &in);
 
   void feet(float out[3]) const;
   bool grounded() const;
   bool spawned() const;
+  uint32_t body_count() const;
+  // Rebuilds the broadphase's trees when bodies came or went since the last time. Adding and removing
+  // bodies one by one leaves old trees behind, which run the broadphase out of nodes unless something
+  // optimizes it: a runtime streaming a map calls this every frame, walking or not.
+  void tidy();  // every body in the world (its own and a runtime's)
+  // What a ray straight down at (x, z) meets (each hit's height, layer, and upward normal), and
+  // whether the capsule standing on the first would touch anything: for finding why a spawn fails.
+  std::string probe(float x, float z);
 
  private:
   std::unique_ptr<WalkerWorld> w_;

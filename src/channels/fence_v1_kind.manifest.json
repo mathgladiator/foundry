@@ -1,8 +1,0 @@
-{
-  "kind": "channel",
-  "name": "fence_v1_kind",
-  "state": "draft",
-  "reason": "Fence kinds as config entries for fence_v1 (approved 2026-10-13): the human wants fencing as its own system on a line of points, like walls, which road cells leave room for. Patched 2026-10-14: theme materials (approved).",
-  "notes": [],
-  "created_at": "2026-10-13T23:30:00Z"
-}

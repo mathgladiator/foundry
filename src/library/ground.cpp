@@ -135,6 +135,31 @@ uint32_t foundry_ground_nav(foundry_runtime *rt, foundry_instance instance, foun
   return static_cast<uint32_t>(g->nav_cells.size());
 }
 
+uint32_t foundry_ground_nature(foundry_runtime *rt, foundry_instance instance, foundry_hex_region *regions, uint32_t *parcels,
+                               uint32_t capacity) {
+  float rows[12];
+  auto g = ground_of(rt, instance, rows);
+  if (!g) return 0;
+  for (uint32_t i = 0; i < capacity && i < g->nature.size(); ++i) {
+    const runtime::Ground::Region &r = g->nature[i];
+    if (regions) {
+      foundry_hex_region h = {};
+      h.shape = FOUNDRY_HEX_CELLS;
+      h.cells = r.cells.data();
+      h.cell_count = static_cast<uint32_t>(r.cells.size() / 2);
+      h.priority = 10;
+      h.set = FOUNDRY_SET_GROUND | FOUNDRY_SET_AVAILABLE | FOUNDRY_SET_HEIGHT | FOUNDRY_SET_MOISTURE;
+      h.ground = static_cast<foundry_ground>(r.ground);
+      h.available = r.available;
+      h.height = r.height;
+      h.moisture = r.moisture;
+      regions[i] = h;
+    }
+    if (parcels) parcels[i] = r.parcel;
+  }
+  return static_cast<uint32_t>(g->nature.size());
+}
+
 uint32_t foundry_ground_hull(foundry_runtime *rt, foundry_instance instance, foundry_hull_cell *out, uint32_t capacity) {
   float rows[12];
   auto g = ground_of(rt, instance, rows);

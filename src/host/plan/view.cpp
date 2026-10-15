@@ -336,8 +336,8 @@ bool View::save(std::string &error) {
 
 bool View::run_plan(const Settings &st, const nlohmann::json &config, bool verify_native, nlohmann::json &plan,
                     nlohmann::json &report, std::string &error) {
-  const auto *in = foundry::json::find_channel("plan_v1_request");
-  const auto *out = foundry::json::find_channel("plan_v1_plan");
+  const auto *in = foundry::json::find_channel("plan_request");
+  const auto *out = foundry::json::find_channel("plan_plan");
   if (!in || !out) {
     error = "the plan channels aren't in the registry";
     return false;
@@ -347,7 +347,7 @@ bool View::run_plan(const Settings &st, const nlohmann::json &config, bool verif
   try {
     in->from_json(req, bytes);
   } catch (const std::exception &e) {
-    error = std::string("the request doesn't match plan_v1_request: ") + e.what();
+    error = std::string("the request doesn't match plan_request: ") + e.what();
     return false;
   }
   std::string system;
@@ -369,7 +369,7 @@ bool View::run_plan(const Settings &st, const nlohmann::json &config, bool verif
     if (!match) core::log().add("native", system + ": native output differs from WebAssembly");
   }
   if (!out->to_json(w.output.data(), w.output.size(), plan)) {
-    error = "the output doesn't unpack as plan_v1_plan";
+    error = "the output doesn't unpack as plan_plan";
     return false;
   }
   report = summarize(plan, config);
@@ -650,7 +650,7 @@ void View::compose(int version) {
     }
     if (!st.fill) continue;
     if (kind == "road" && roads_filled) {
-      // A road_v1 piece per cell: its kind by the road's class, its mask, half, and fences turned by
+      // A road piece per cell: its kind by the road's class, its mask, half, and fences turned by
       // sixths to the smallest of their six turns (so pieces share builds), and the piece turned back.
       const std::string road_kind = fr.value("kinds", nlohmann::json::object()).value(p.value("road", std::string("lane")), std::string("street"));
       const auto &hs = p["heights"];

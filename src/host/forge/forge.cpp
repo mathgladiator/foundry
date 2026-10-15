@@ -61,22 +61,23 @@ std::string stub_source(const std::string &id, const std::string &input, const s
 bool create_system(const Paths &p, const std::string &name, int version, const std::string &input,
                    const std::string &output, const std::string &doc, const std::string &source,
                    std::string &error) {
-  if (!core::valid_name(name) || version < 1) {
-    error = "name must be lowercase letters, digits, and underscores; version must be >= 1";
+  if (!core::valid_name(name)) {
+    error = "name must be lowercase letters, digits, and underscores";
     return false;
   }
   if (!foundry::json::find_channel(input) || !foundry::json::find_channel(output)) {
     error = "unknown channel: input '" + input + "' or output '" + output + "' (see channel_list)";
     return false;
   }
-  const std::string id = name + "_v" + std::to_string(version);
+  const std::string id = name;  // names carry no version: systems change in place
+  (void)version;
   const std::string dir = system_dir(p, id);
   if (fs::exists(dir)) {
-    error = id + " already exists; pick a new version to fork";
+    error = id + " already exists; edit it in place (system_write_source)";
     return false;
   }
   fs::create_directories(dir);
-  nlohmann::json m = {{"name", name},       {"version", version}, {"kind", "system"}, {"doc", doc},
+  nlohmann::json m = {{"name", name}, {"kind", "system"}, {"doc", doc},
                       {"input", input},     {"output", output},   {"state", "draft"},
                       {"notes", nlohmann::json::array()},         {"created_at", core::now_iso()}};
   if (!core::write_json(dir + "/system.json", m) ||
@@ -92,10 +93,6 @@ bool write_source(const Paths &p, const std::string &system, const std::string &
   nlohmann::json m = manifest(p, system);
   if (!m.is_object()) {
     error = "no system " + system;
-    return false;
-  }
-  if (m.value("state", "draft") == "final") {
-    error = system + " is final and can't be edited; create a new version (fork) instead";
     return false;
   }
   if (!core::write_text(system_dir(p, system) + "/system.cpp", source)) {

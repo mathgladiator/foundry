@@ -1,0 +1,212 @@
+{
+  "config": {
+    "grove_octaves": 2,
+    "grove_scale_cells": 9,
+    "layers": [
+      {
+        "density": 2.0,
+        "ground": [
+          "soil"
+        ],
+        "grove": [
+          0.4,
+          1.6
+        ],
+        "kinds": [
+          {
+            "footprint_cells": 1,
+            "footprint_m": 0.5759999752044678,
+            "on_regrow": {
+              "age": "sapling"
+            },
+            "params": {
+              "species": "pine"
+            },
+            "pipeline": "tree",
+            "vary": {
+              "age": {
+                "ancient": 0.15,
+                "mature": 0.6,
+                "young": 0.25
+              }
+            },
+            "weight": 0.5
+          },
+          {
+            "footprint_cells": 1,
+            "footprint_m": 0.6700000166893005,
+            "on_regrow": {
+              "age": "sapling"
+            },
+            "params": {
+              "species": "spruce"
+            },
+            "pipeline": "tree",
+            "vary": {
+              "age": {
+                "ancient": 0.15,
+                "mature": 0.6,
+                "young": 0.25
+              }
+            },
+            "weight": 0.35
+          },
+          {
+            "footprint_cells": 1,
+            "footprint_m": 0.6700000166893005,
+            "on_regrow": {
+              "age": "sapling"
+            },
+            "params": {
+              "species": "larch"
+            },
+            "pipeline": "tree",
+            "vary": {
+              "age": {
+                "ancient": 0.15,
+                "mature": 0.6,
+                "young": 0.25
+              }
+            },
+            "weight": 0.15
+          }
+        ],
+        "max_height_delta_m": 1.2,
+        "name": "canopy",
+        "regrows": true,
+        "spacing_m": 5.5
+      },
+      {
+        "density": 2.0,
+        "ground": [
+          "soil"
+        ],
+        "keep_clear": {
+          "canopy": 2.0
+        },
+        "kinds": [
+          {
+            "footprint_cells": 1,
+            "footprint_m": 0.5910000205039978,
+            "params": {
+              "species": "juniper"
+            },
+            "pipeline": "bush",
+            "vary": {
+              "age": {
+                "mature": 0.6,
+                "old": 0.2,
+                "young": 0.2
+              }
+            },
+            "weight": 0.7
+          },
+          {
+            "footprint_cells": 1,
+            "footprint_m": 0.7070000171661377,
+            "params": {
+              "species": "blueberry"
+            },
+            "pipeline": "bush",
+            "vary": {
+              "age": {
+                "mature": 0.6,
+                "old": 0.2,
+                "young": 0.2
+              }
+            },
+            "weight": 0.3
+          }
+        ],
+        "max_height_delta_m": 1.2,
+        "name": "understory",
+        "regrows": true,
+        "spacing_m": 3.2
+      },
+      {
+        "density": 3,
+        "ground": [
+          "soil"
+        ],
+        "keep_clear": {
+          "canopy": 1.5,
+          "understory": 0.9
+        },
+        "kinds": [
+          {
+            "footprint_cells": 0,
+            "footprint_m": 0.0,
+            "params": {
+              "species": "edelweiss"
+            },
+            "pipeline": "flower",
+            "weight": 0.5
+          },
+          {
+            "footprint_cells": 0,
+            "footprint_m": 0.0,
+            "params": {
+              "species": "lupine"
+            },
+            "pipeline": "flower",
+            "weight": 0.5
+          }
+        ],
+        "max_height_delta_m": 1.2,
+        "name": "flowers",
+        "regrows": true,
+        "spacing_m": 2.0
+      },
+      {
+        "density": 1.4,
+        "ground": [
+          "soil",
+          "rock",
+          "path"
+        ],
+        "keep_clear": {
+          "canopy": 2.0
+        },
+        "kinds": [
+          {
+            "footprint_cells": 7,
+            "footprint_m": 0.8130000233650208,
+            "params": {
+              "material": "granite",
+              "moss": "light"
+            },
+            "pipeline": "rock",
+            "weight": 1.0
+          }
+        ],
+        "max_height_delta_m": 2.0,
+        "name": "boulders",
+        "regrows": false,
+        "spacing_m": 4.0
+      }
+    ]
+  },
+  "distinct_seeds": 4,
+  "doc": "Pine woods on the mountains' lower slopes: pine, spruce, and larch over juniper, granite boulders, and sparse alpine flowers.",
+  "fields": [
+    {
+      "params": {
+        "species": "prairie"
+      },
+      "pipeline": "grass"
+    }
+  ],
+  "kind": "plotter",
+  "name": "pine_woods",
+  "state": "draft",
+  "system": "plot_scatter",
+  "view": {
+    "preset": "glen",
+    "radius": 14,
+    "seed": 7,
+    "shared": {
+      "season": "summer",
+      "wind_speed": 3
+    }
+  }
+}

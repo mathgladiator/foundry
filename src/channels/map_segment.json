@@ -1,0 +1,33 @@
+{
+  "family": "map",
+  "version": 1,
+  "feature": "segment",
+  "doc": "A piece of a road or river (design/map.md): a straight run between two points, at their heights (a road's surface; a river's water).",
+  "fields": [
+    {
+      "name": "a",
+      "type": "vec3",
+      "doc": "Its start, metres (y: the surface)."
+    },
+    {
+      "name": "b",
+      "type": "vec3",
+      "doc": "Its end, metres."
+    },
+    {
+      "name": "width",
+      "type": "f32",
+      "doc": "Its width, metres."
+    },
+    {
+      "name": "kind",
+      "type": "u32",
+      "doc": "A road's kind (0 road, 1 lane, 2 path), or 3 a river."
+    },
+    {
+      "name": "bridge",
+      "type": "bool",
+      "doc": "A road's run over water."
+    }
+  ]
+}

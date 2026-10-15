@@ -1,0 +1,210 @@
+{
+  "family": "plan",
+  "version": 1,
+  "feature": "plot",
+  "doc": "One plot of a plan for the game to fill (design/planner.md, Plots): a building's lot, a road segment, a waterfront's lot, or a body of water.",
+  "fields": [
+    {
+      "name": "id",
+      "type": "u32",
+      "doc": "Stable within the plan."
+    },
+    {
+      "name": "kind",
+      "type": "u32",
+      "doc": "What fills it: a building (a house, a civic building, a castle part, a centre), a road segment (road, a cell at a time), a waterfront building, or water.",
+      "enum": [
+        "building",
+        "road",
+        "waterfront",
+        "water"
+      ]
+    },
+    {
+      "name": "tier",
+      "type": "u32",
+      "doc": "When it opens.",
+      "enum": [
+        "hamlet",
+        "village",
+        "town"
+      ]
+    },
+    {
+      "name": "size_class",
+      "type": "u32",
+      "doc": "A building's or waterfront's size class (a castle part's, a centre's).",
+      "enum": [
+        "solo",
+        "family",
+        "extended",
+        "civic",
+        "castle",
+        "waterfront",
+        "centre",
+        "field"
+      ]
+    },
+    {
+      "name": "shape",
+      "type": "u32",
+      "doc": "A building's lot shape.",
+      "enum": [
+        "wide",
+        "deep",
+        "round",
+        "long",
+        "broad"
+      ]
+    },
+    {
+      "name": "lot",
+      "type": "u32",
+      "doc": "Which of the config's lots it is (buildings and waterfronts)."
+    },
+    {
+      "name": "anchor_q",
+      "type": "i32",
+      "doc": "The cell a building's origin stands on (a road or water plot: its first cell): axial q."
+    },
+    {
+      "name": "anchor_r",
+      "type": "i32",
+      "doc": "Axial r."
+    },
+    {
+      "name": "turn",
+      "type": "u32",
+      "doc": "Sixths of a turn about +y: a building's +z faces its road; a waterfront's faces the water.",
+      "min": 0,
+      "max": 5
+    },
+    {
+      "name": "pad",
+      "type": "f32",
+      "doc": "Its level ground height, metres (a road or water plot: its first cell's).",
+      "min": -1000,
+      "max": 10000
+    },
+    {
+      "name": "position",
+      "type": "vec3",
+      "doc": "Where a building's origin goes, metres."
+    },
+    {
+      "name": "yaw_deg",
+      "type": "f32",
+      "doc": "The building's turn, degrees from +z toward +x."
+    },
+    {
+      "name": "use",
+      "type": "u32",
+      "doc": "The zoning's first choice (a road's way, a water body's water; a castle part's castle; a square's centre; a crop field's field).",
+      "enum": [
+        "home",
+        "store",
+        "workshop",
+        "inn",
+        "farm",
+        "civic",
+        "keep",
+        "harbour",
+        "way",
+        "water",
+        "castle",
+        "centre",
+        "field"
+      ]
+    },
+    {
+      "name": "road",
+      "type": "u32",
+      "doc": "A road segment's class.",
+      "enum": [
+        "none",
+        "high",
+        "lane",
+        "alley",
+        "square",
+        "market",
+        "bridge",
+        "quay",
+        "gate"
+      ]
+    },
+    {
+      "name": "wealth",
+      "type": "f32",
+      "doc": "0 to 1, by the scenario's gradient.",
+      "min": 0,
+      "max": 1
+    },
+    {
+      "name": "frontage",
+      "type": "u32",
+      "doc": "How many road cells its front (a waterfront: its back) touches."
+    },
+    {
+      "name": "walk_m",
+      "type": "f32",
+      "doc": "The walk from the nearest entrance to its frontage, metres."
+    },
+    {
+      "name": "reached",
+      "type": "bool",
+      "doc": "Reached from every entrance open at its tier."
+    },
+    {
+      "name": "cart",
+      "type": "bool",
+      "doc": "Reached by a cart from at least one entrance."
+    },
+    {
+      "name": "drop",
+      "type": "f32",
+      "doc": "A waterfront's: how far below its pad the water lies, metres.",
+      "min": 0,
+      "max": 10
+    },
+    {
+      "name": "cells",
+      "type": "i32[]",
+      "doc": "Its cells, as q, r pairs."
+    },
+    {
+      "name": "heights",
+      "type": "f32[]",
+      "doc": "Each cell's height, metres (a road segment's cells differ; a building's are its pad)."
+    },
+    {
+      "name": "edges",
+      "type": "u32[]",
+      "doc": "Per cell (in cells' order), what each of its six neighbours is, 3 bits per edge in the hex directions' order (axial (1,0), (1,-1), (0,-1), (-1,0), (-1,1), (0,1)): 0 road, 1 a building's front, 2 open, 3 water, 4 wall, 5 gate, 6 a waterfront, 7 a building's side or back. road's mask."
+    },
+    {
+      "name": "roles",
+      "type": "u32[]",
+      "doc": "Per cell, a road's role: 0 a path, 1 a bridge (road's role)."
+    },
+    {
+      "name": "halves",
+      "type": "u32[]",
+      "doc": "Per cell, a road's half (road's half): 0 to 5, or 6 for none. 0 to 5, the half holding edges h and h + 1 whole (cut through the middles of edges h + 2 and h + 5), or 6 for none. It never takes an edge the cell's flow uses, so the other half keeps every way through open."
+    },
+    {
+      "name": "flows",
+      "type": "u32[]",
+      "doc": "Per cell, which edges a walker or cart passes through: bit d for edge d."
+    },
+    {
+      "name": "fences",
+      "type": "u32[]",
+      "doc": "Per cell, which edges carry a fence (bit d for edge d): a fence line runs along them."
+    },
+    {
+      "name": "doors",
+      "type": "u32[]",
+      "doc": "Per road cell, which edges face a plot's door (bit d for edge d): a strict way, kept clear."
+    }
+  ]
+}

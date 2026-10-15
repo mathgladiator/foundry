@@ -1,0 +1,173 @@
+{
+  "family": "terrain",
+  "version": 1,
+  "feature": "ground",
+  "doc": "terrain_relief's output (design/terrain.md): the ground as hexbound columns of spans (design/import.hexbound.world.md), its water, roads, rivers, and bridges, the navigation mesh with its report, the boundary's hull, and the plotter's nature ground.",
+  "fields": [
+    {
+      "name": "corners",
+      "type": "vec3[]",
+      "doc": "The shape's corners, metres (x, the side's height, z), counterclockwise as seen from above."
+    },
+    {
+      "name": "side_lines",
+      "type": "vec3[]",
+      "doc": "The sides as drawn (wobbled), segment pairs, metres."
+    },
+    {
+      "name": "side_of_line",
+      "type": "u32[]",
+      "doc": "Each side segment's side."
+    },
+    {
+      "name": "side_edges",
+      "type": "u32[]",
+      "doc": "Each side's edge (1 ledge to 7 marsh)."
+    },
+    {
+      "name": "cells",
+      "type": "i32[]",
+      "doc": "The terrain's cells, as q, r pairs."
+    },
+    {
+      "name": "span_first",
+      "type": "u32[]",
+      "doc": "Each cell's first span; a cell's spans run to the next cell's first (one more entry than cells)."
+    },
+    {
+      "name": "span_lo",
+      "type": "i32[]",
+      "doc": "Each span's bottom, 1/8 m units."
+    },
+    {
+      "name": "span_hi",
+      "type": "i32[]",
+      "doc": "Each span's top, 1/8 m units."
+    },
+    {
+      "name": "span_material",
+      "type": "u32[]",
+      "doc": "Each span's material: 0 grass, 1 dirt, 2 sand, 3 snow, 4 cobble, 5 rock."
+    },
+    {
+      "name": "water",
+      "type": "i32[]",
+      "doc": "Each cell's water level, 1/8 m units (-32768: dry)."
+    },
+    {
+      "name": "flags",
+      "type": "u32[]",
+      "doc": "Each cell's flags: 1 on the edge, 2 road, 4 lane, 8 river, 16 lake, 32 bridge, 64 flat, 128 an opening's cell, 256 cave, 512 apron (a map chunk's cell beside its own, read for seams and not drawn), 1024 built (a settlement's: nothing grows there)."
+    },
+    {
+      "name": "road_cells",
+      "type": "i32[]",
+      "doc": "The roads, cells as q, r pairs, road after road."
+    },
+    {
+      "name": "road_counts",
+      "type": "u32[]",
+      "doc": "How many cells each road has."
+    },
+    {
+      "name": "river_cells",
+      "type": "i32[]",
+      "doc": "The rivers, cells as q, r pairs from inlet to outlet, river after river."
+    },
+    {
+      "name": "river_counts",
+      "type": "u32[]",
+      "doc": "How many cells each river has."
+    },
+    {
+      "name": "bridges",
+      "type": "terrain_bridge[]",
+      "doc": "The bridges and their mounts."
+    },
+    {
+      "name": "opening_cells",
+      "type": "i32[]",
+      "doc": "Each opening's cell on the edge, as q, r pairs, in the shape's order."
+    },
+    {
+      "name": "nav_vertices",
+      "type": "vec3[]",
+      "doc": "The navigation mesh's vertices, metres (each walkable top's hexagon)."
+    },
+    {
+      "name": "nav_polys",
+      "type": "u32[]",
+      "doc": "Its polygons' vertex indices, six each."
+    },
+    {
+      "name": "nav_cells",
+      "type": "u32[]",
+      "doc": "Each polygon's cell (an index into cells)."
+    },
+    {
+      "name": "nav_links",
+      "type": "u32[]",
+      "doc": "Polygons a walker crosses between, as pairs: where an edge fuses or steps no more than 0.5 m, and over bridges."
+    },
+    {
+      "name": "hull",
+      "type": "boundary_hull",
+      "doc": "The ring outside the shape for a boundary: each cell with its side's edge, height, and rise, and the openings that leave through it."
+    },
+    {
+      "name": "nature",
+      "type": "plot_regions",
+      "doc": "The open land for a plotter: heights, moisture, and ground; not on roads, water, or bridges."
+    },
+    {
+      "name": "nature_parcels",
+      "type": "u32[]",
+      "doc": "Each nature region's parcel (a map chunk's: which plotter grows it); empty: one plotter for all."
+    },
+    {
+      "name": "openings_unreached",
+      "type": "u32",
+      "doc": "Road openings some other road opening doesn't reach on foot (must be 0)."
+    },
+    {
+      "name": "flats_unreached",
+      "type": "u32",
+      "doc": "Flats a road opening doesn't reach (must be 0)."
+    },
+    {
+      "name": "longest_route_m",
+      "type": "f32",
+      "doc": "The longest walk between two road openings, metres."
+    },
+    {
+      "name": "steepest_grade",
+      "type": "f32",
+      "doc": "The steepest step along a road, rise over run."
+    },
+    {
+      "name": "flat_error_m",
+      "type": "f32",
+      "doc": "The farthest a flat's ground strays from its level, metres."
+    },
+    {
+      "name": "cliff_m",
+      "type": "f32",
+      "doc": "Metres of cliff (edges that don't fuse)."
+    },
+    {
+      "name": "caves",
+      "type": "u32",
+      "doc": "Cells with an overhang or cave."
+    },
+    {
+      "name": "bridge_count",
+      "type": "u32",
+      "doc": "Bridges."
+    },
+    {
+      "name": "note",
+      "type": "string",
+      "doc": "Why the plan fell short, if it did."
+    }
+  ]
+}

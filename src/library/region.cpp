@@ -21,8 +21,8 @@ struct Region {
   foundry_plotter plotter = 0;
   uint32_t seed = 1;
   float transform[16] = {1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1};
-  std::vector<channels::plot_v1_region> ground;
-  std::vector<channels::plot_v1_occupant> occupants;
+  std::vector<channels::plot_region> ground;
+  std::vector<channels::plot_occupant> occupants;
   std::set<std::pair<int32_t, int32_t>> cells;  // the resolved cells
 };
 
@@ -51,8 +51,8 @@ Region *find(foundry_runtime *rt, foundry_region h) {
 int rings(uint32_t cells) { return cells >= 37 ? 3 : cells >= 19 ? 2 : cells >= 7 ? 1 : 0; }
 int hex_distance(int dq, int dr) { return (std::abs(dq) + std::abs(dr) + std::abs(dq + dr)) / 2; }
 
-channels::plot_v1_region convert(const foundry_hex_region &h) {
-  channels::plot_v1_region g;
+channels::plot_region convert(const foundry_hex_region &h) {
+  channels::plot_region g;
   g.shape = static_cast<uint32_t>(h.shape);
   for (uint32_t i = 0; h.cells && i < h.cell_count; ++i) {
     g.cells.push_back(h.cells[i * 2]);
@@ -74,8 +74,8 @@ channels::plot_v1_region convert(const foundry_hex_region &h) {
   return g;
 }
 
-channels::plot_v1_request request(const Region &r, uint32_t mode, uint32_t max, bool want_cells) {
-  channels::plot_v1_request q;
+channels::plot_request request(const Region &r, uint32_t mode, uint32_t max, bool want_cells) {
+  channels::plot_request q;
   q.config = plotters::info(r.plotter)->config();
   q.ground.regions = r.ground;
   q.occupants = r.occupants;
@@ -87,16 +87,16 @@ channels::plot_v1_request request(const Region &r, uint32_t mode, uint32_t max, 
 }
 
 bool resolve(Region &r) {
-  channels::plot_v1_result out;
+  channels::plot_result out;
   std::string error;
-  if (!plotters::info(r.plotter)->run(request(r, channels::plot_v1_request::kModeSeed, 0, true), out, error)) return false;
+  if (!plotters::info(r.plotter)->run(request(r, channels::plot_request::kModeSeed, 0, true), out, error)) return false;
   r.cells.clear();
   for (const auto &c : out.cells) r.cells.insert({c.q, c.r});
   return true;
 }
 
 // Whether an occupant's footprint (or its own cell) is all inside the region.
-bool inside(const Region &r, const channels::plot_v1_occupant &o) {
+bool inside(const Region &r, const channels::plot_occupant &o) {
   const int k = rings(o.footprint_cells);
   for (int dq = -k; dq <= k; ++dq)
     for (int dr = -k; dr <= k; ++dr)
@@ -104,8 +104,8 @@ bool inside(const Region &r, const channels::plot_v1_occupant &o) {
   return true;
 }
 
-channels::plot_v1_occupant occupant_of(const foundry_placement &p) {
-  channels::plot_v1_occupant o;
+channels::plot_occupant occupant_of(const foundry_placement &p) {
+  channels::plot_occupant o;
   o.q = p.slot.q;
   o.r = p.slot.r;
   o.layer = p.slot.layer;
@@ -117,7 +117,7 @@ channels::plot_v1_occupant occupant_of(const foundry_placement &p) {
   return o;
 }
 
-bool same_slot(const channels::plot_v1_occupant &o, const foundry_slot &s) {
+bool same_slot(const channels::plot_occupant &o, const foundry_slot &s) {
   return o.q == s.q && o.r == s.r && o.layer == s.layer && o.index == s.index;
 }
 
@@ -173,11 +173,11 @@ foundry_status foundry_region_restore(foundry_runtime *rt, foundry_region region
   Region *r = find(rt, region);
   if (!r) return FOUNDRY_STATUS_STALE_HANDLE;
   const plotters::Info *info = plotters::info(r->plotter);
-  std::vector<channels::plot_v1_occupant> restored;
+  std::vector<channels::plot_occupant> restored;
   for (uint32_t i = 0; i < count; ++i) {
     const foundry_placement &p = placements[i];
     if (p.kind >= info->kind_count) return FOUNDRY_STATUS_FAILED;
-    const channels::plot_v1_occupant o = occupant_of(p);
+    const channels::plot_occupant o = occupant_of(p);
     if (!inside(*r, o)) return FOUNDRY_STATUS_FAILED;
     for (const auto &e : restored) {
       if (e.q == o.q && e.r == o.r && e.layer == o.layer && e.index == o.index) return FOUNDRY_STATUS_FAILED;
@@ -197,11 +197,11 @@ uint32_t foundry_region_grow(foundry_runtime *rt, foundry_region region, foundry
   Region *r = find(rt, region);
   if (volume) *volume = 0;
   if (!r || (!out && max > 0)) return 0;
-  channels::plot_v1_request q = request(*r, mode == FOUNDRY_GROW_REGROW ? channels::plot_v1_request::kModeRegrow
-                                                                        : channels::plot_v1_request::kModeSeed,
+  channels::plot_request q = request(*r, mode == FOUNDRY_GROW_REGROW ? channels::plot_request::kModeRegrow
+                                                                        : channels::plot_request::kModeSeed,
                                         max, false);
   for (uint32_t i = 0; exclusions && i < exclusion_count; ++i) {
-    channels::plot_v1_exclusion e;
+    channels::plot_exclusion e;
     e.position = {exclusions[i].position[0], exclusions[i].position[1], exclusions[i].position[2]};
     e.radius = exclusions[i].radius;
     q.exclusions.push_back(e);
@@ -210,7 +210,7 @@ uint32_t foundry_region_grow(foundry_runtime *rt, foundry_region region, foundry
     q.use_focus = true;
     q.focus = {focus[0], focus[1], focus[2]};
   }
-  channels::plot_v1_result res;
+  channels::plot_result res;
   std::string error;
   if (!plotters::info(r->plotter)->run(q, res, error)) return 0;
   uint32_t n = 0;
@@ -256,7 +256,7 @@ foundry_status foundry_region_vacate(foundry_runtime *rt, foundry_region region,
   if (!r) return FOUNDRY_STATUS_STALE_HANDLE;
   for (uint32_t i = 0; slots && i < count; ++i)
     r->occupants.erase(std::remove_if(r->occupants.begin(), r->occupants.end(),
-                                      [&](const channels::plot_v1_occupant &o) { return same_slot(o, slots[i]); }),
+                                      [&](const channels::plot_occupant &o) { return same_slot(o, slots[i]); }),
                        r->occupants.end());
   return FOUNDRY_OK;
 }
@@ -269,7 +269,7 @@ uint32_t foundry_region_set_regions(foundry_runtime *rt, foundry_region region, 
   for (uint32_t i = 0; ground && i < count; ++i) r->ground.push_back(convert(ground[i]));
   if (!resolve(*r)) return 0;
   uint32_t n = 0;
-  std::vector<channels::plot_v1_occupant> kept;
+  std::vector<channels::plot_occupant> kept;
   for (const auto &o : r->occupants) {
     if (inside(*r, o)) {
       kept.push_back(o);
@@ -317,9 +317,9 @@ uint32_t foundry_region_spawn_fields(foundry_runtime *rt, foundry_region region,
   const plotters::Info *info = plotters::info(r->plotter);
   if (!info || info->field_count == 0) return 0;
   // The region's resolved cells, with their ground, moisture, and height.
-  channels::plot_v1_result res;
+  channels::plot_result res;
   std::string error;
-  if (!info->run(regions::request(*r, channels::plot_v1_request::kModeSeed, 0, true), res, error)) return 0;
+  if (!info->run(regions::request(*r, channels::plot_request::kModeSeed, 0, true), res, error)) return 0;
   std::vector<foundry_field_cell> cells;
   cells.reserve(res.cells.size());
   for (const auto &c : res.cells)
@@ -377,9 +377,9 @@ uint32_t foundry_region_hull(foundry_runtime *rt, foundry_region region, foundry
   regions::Region *r = regions::find(rt, region);
   if (!r) return 0;
   const plotters::Info *info = plotters::info(r->plotter);
-  channels::plot_v1_result res;
+  channels::plot_result res;
   std::string error;
-  if (!info || !info->run(regions::request(*r, channels::plot_v1_request::kModeSeed, 0, true), res, error)) return 0;
+  if (!info || !info->run(regions::request(*r, channels::plot_request::kModeSeed, 0, true), res, error)) return 0;
   std::map<std::pair<int32_t, int32_t>, float> height;
   for (const auto &c : res.cells) height[{c.q, c.r}] = c.height;
   // Every edge between a region cell and one outside, running counterclockwise around the region

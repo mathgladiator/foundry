@@ -1,3 +1,4 @@
+#include <chrono>
 // The workspace UI (Dear ImGui on SDL3's GPU API).
 //
 // Layout: the workspace tree on the left (mirroring the project layout), the
@@ -13,6 +14,8 @@
 #include <algorithm>
 #include <cmath>
 #include <cstring>
+#include <functional>
+#include <ctime>
 #include <map>
 #include <set>
 #include <string>
@@ -37,6 +40,9 @@
 #include "perf/stress.h"
 #include "pipeline/config.h"
 #include "pipeline/flow.h"
+#include "map/live.h"
+#include "map/view.h"
+#include "viewport/record.h"
 #include "pipeline/compose.h"
 #include "pipeline/live.h"
 #include "sky/observatory.h"
@@ -52,7 +58,7 @@ ImVec4 state_color(const std::string &state) {
   return {0.95f, 0.8f, 0.4f, 1};
 }
 
-const char *kKinds[][2] = {{"pipeline", "Pipelines"}, {"plotter", "Plotters"}, {"planner", "Planners"}, {"observatory", "Observatories"}, {"system", "Systems"}, {"channel", "Channels"},
+const char *kKinds[][2] = {{"map", "Maps"}, {"pipeline", "Pipelines"}, {"plotter", "Plotters"}, {"planner", "Planners"}, {"observatory", "Observatories"}, {"system", "Systems"}, {"channel", "Channels"},
                            {"config", "Config"}, {"conformance", "Conformance"}, {"meshy", "Meshy"}, {"fixed", "Fixed assets"},
                            {"fracture", "Fractures"}, {"reference", "Reference"}};
 
@@ -171,6 +177,17 @@ viewport::Image capture_frame(SDL_GPUDevice *device, SDL_GPUTextureFormat format
   return img;
 }
 
+// A video of the live map being recorded: a tour (map_video) frame by frame, or the view as it is.
+struct MapRecording {
+  viewport::Recorder recorder;
+  map::Tour tour;
+  map::View::Video request;
+  bool touring = false, fresh = true, manual_start = false;
+  int frame = 0, total = 0, waited = 0;
+  double carry = 0;  // real time not yet written (the view's recording)
+  std::chrono::steady_clock::time_point started, frame_started;
+};
+
 struct UiState {
   std::string selected;
   int ws_version = -1;
@@ -275,6 +292,12 @@ struct UiState {
   bool view_hovered = false;  // the static view's image, last frame
   std::vector<runtime::CollisionBody> walk_bodies;  // a pipeline's collision, for the play test
   std::vector<pipeline::PlacedBodies> walk_placed;   // and what the viewer composed round it
+  bool map_live = false;         // a map's viewport: live (the native runtime), or its atlas
+  bool map_play_pending = false;  // Play asked for on a live map: waiting for the ground to be built there
+  double map_gpu_ms = 0;          // the live map's last sampled GPU frame
+  double map_play_ms = 0;         // its walker's step, smoothed
+  float map_fly_speed = 40.0f;    // the live map's flying camera, m/s
+  MapRecording map_rec;
   // What the viewer composes round a pipeline's model (draw.nature, surround, figures), per pipeline.
   std::map<std::string, pipeline::ComposeOptions> compose;
   std::unique_ptr<pipeline::Composer> composer;
@@ -684,6 +707,7 @@ bool is_live(const std::string &id) { return id.rfind("pipeline:", 0) == 0 || id
 bool is_plot(const std::string &id) { return id.rfind("plotter:", 0) == 0; }
 bool is_obs(const std::string &id) { return id.rfind("observatory:", 0) == 0; }
 bool is_plan(const std::string &id) { return id.rfind("planner:", 0) == 0; }
+bool is_map(const std::string &id) { return id.rfind("map:", 0) == 0; }
 // Items whose picture composes in the background: a plotter's region, a planner's plan.
 bool is_composed(const std::string &id) { return is_plot(id) || is_plan(id); }
 
@@ -779,14 +803,69 @@ bool update_fracture_view(Services &sv, UiState &st) {
 // The live pipeline instance's parameters, clock, break, and last build.
 bool draw_config_field(const nlohmann::json &f, nlohmann::json &value, bool color);
 
+// The inspector's two kinds of settings, framed apart: what goes into the pipeline's systems (each
+// change rebuilds the stages it feeds), and what only the viewer uses (built round the model, never
+// part of its output).
+const ImVec4 kSystemsTint = {0.20f, 0.15f, 0.06f, 0.55f}, kSystemsText = {0.98f, 0.78f, 0.42f, 1};
+const ImVec4 kViewTint = {0.06f, 0.13f, 0.22f, 0.55f}, kViewText = {0.55f, 0.78f, 1.0f, 1};
+
+void begin_panel(const char *id, const char *title, const char *note, ImVec4 tint, ImVec4 text) {
+  ImGui::PushStyleColor(ImGuiCol_ChildBg, tint);
+  ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(text.x, text.y, text.z, 0.45f));
+  ImGui::BeginChild(id, ImVec2(0, 0), ImGuiChildFlags_Borders | ImGuiChildFlags_AutoResizeY | ImGuiChildFlags_AlwaysUseWindowPadding);
+  ImGui::TextColored(text, "%s", title);
+  ImGui::SameLine();
+  ImGui::TextDisabled("%s", note);
+  ImGui::Separator();
+}
+
+void end_panel() {
+  ImGui::EndChild();
+  ImGui::PopStyleColor(2);
+  ImGui::Spacing();
+}
+
+// The stages each parameter is bound into ("$name" anywhere in a stage's input).
+std::map<std::string, std::vector<std::string>> param_stages(const pipeline::Definition &def) {
+  std::map<std::string, std::vector<std::string>> out;
+  for (const auto &st : def.stages) {
+    std::vector<std::string> found;
+    std::function<void(const nlohmann::json &)> walk = [&](const nlohmann::json &j) {
+      if (j.is_string()) {
+        const std::string s = j.get<std::string>();
+        if (s.size() > 1 && s[0] == '$') found.push_back(s.substr(1));
+      } else if (j.is_structured()) {
+        for (const auto &x : j) walk(x);
+      }
+    };
+    walk(st.input);
+    for (const auto &n : found) {
+      auto &v = out[n];
+      if (std::find(v.begin(), v.end(), st.id) == v.end()) v.push_back(st.id);
+    }
+  }
+  return out;
+}
+
 void draw_live(Services &sv) {
   pipeline::Live &live = *sv.live;
   const pipeline::Definition def = live.definition();
   const nlohmann::json values = live.values();
   nlohmann::json patch = nlohmann::json::object();
+  const auto feeds = param_stages(def);
   ImGui::Text("Pipeline %s", def.name.c_str());
+  begin_panel("systems", "Into the systems", "each change rebuilds the stages it feeds", kSystemsTint, kSystemsText);
   for (const auto &p : def.params) {
     ImGui::PushID(p.name.c_str());
+    const auto fed = feeds.find(p.name);
+    std::string into;
+    if (fed != feeds.end())
+      for (const auto &id : fed->second) into += (into.empty() ? "" : ", ") + id;
+    if (into.empty()) into = "no stage";
+    auto feeds_note = [&into] {
+      ImGui::SameLine();
+      ImGui::TextDisabled("-> %s", into.c_str());
+    };
     const nlohmann::json &v = values[p.name];
     ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x * 0.55f);
     if (p.type == "enum" || p.type == "config") {
@@ -804,6 +883,7 @@ void draw_live(Services &sv) {
         ImGui::SameLine();
         if (ImGui::SmallButton(open ? "done" : "edit")) open = !open;
         ImGui::SetItemTooltip("Edit this %s here (the view's own copy; the preset is unchanged).", p.name.c_str());
+        feeds_note();
         if (open) {
           nlohmann::json entry = v.is_object() ? v : pipeline::config::entry(sv.paths, p.table, cur)["value"];
           const nlohmann::json fields = pipeline::config::fields(pipeline::config::table(sv.paths, p.table));
@@ -880,7 +960,9 @@ void draw_live(Services &sv) {
         ImGui::Text("%s %.1f s", p.name.c_str(), x);
       }
     }
-    if (!p.doc.empty() && p.type != "time" && p.type != "event" && ImGui::IsItemHovered()) ImGui::SetTooltip("%s", p.doc.c_str());
+    if (p.type != "time" && p.type != "event" && ImGui::IsItemHovered())
+      ImGui::SetTooltip("%s%sfeeds: %s", p.doc.c_str(), p.doc.empty() ? "" : "\n", into.c_str());
+    if (p.type != "config" && p.edge_bits == 0) feeds_note();
     ImGui::PopID();
   }
   if (!patch.empty()) live.set(patch);
@@ -915,6 +997,61 @@ void draw_live(Services &sv) {
   if (ImGui::Button("Rebuild and verify native")) {
     std::thread([&live] { live.build_now(true); }).detach();
   }
+  end_panel();
+}
+
+// A map (design/map.md): its plan's report, its parcels, sites, and links, and its atlas's options.
+void draw_map(Services &sv, UiState &st, const workspace::Item &item) {
+  (void)st;
+  std::string err;
+  if (sv.map->name() != item.name && !sv.map->show(item.name, err)) {
+    ImGui::TextColored({0.95f, 0.45f, 0.4f, 1}, "%s", err.c_str());
+    return;
+  }
+  const nlohmann::json f = sv.map->file();
+  ImGui::Text("Map %s", item.name.c_str());
+  if (!f.value("doc", "").empty()) ImGui::TextWrapped("%s", f.value("doc", "").c_str());
+  map::Picture pic = sv.map->picture();
+  if (pic.building) ImGui::TextDisabled("planning...");
+  if (!pic.error.empty()) ImGui::TextColored({0.95f, 0.45f, 0.4f, 1}, "%s", pic.error.c_str());
+  bool chunks = sv.map->atlas_options.chunks, labels = sv.map->atlas_options.labels;
+  if (ImGui::Checkbox("chunk lines", &chunks) | ImGui::Checkbox("labels", &labels)) {
+    sv.map->atlas_options.chunks = chunks;
+    sv.map->atlas_options.labels = labels;
+    std::string e;
+    sv.map->edit(nlohmann::json::array(), e);  // redraw
+  }
+  const nlohmann::json &r = pic.report;
+  if (r.is_object() && !r.empty()) {
+    ImGui::SeparatorText("Plan");
+    ImGui::Text("%d chunks, %.1f km of road, %d bridges, steepest %.0f%%, %d links unrouted", r.value("chunks", 0),
+                r.value("road_m", 0.0) / 1000.0, r.value("bridges", 0), r.value("steepest_grade", 0.0) * 100.0, r.value("links_unrouted", 0));
+    ImGui::TextDisabled("planned in %.0f ms", r.value("milliseconds", 0.0));
+    if (ImGui::TreeNode("Parcels")) {
+      for (const auto &p : r.value("parcels", nlohmann::json::array()))
+        ImGui::Text("%-18s %-10s %5.2f km2", p.value("name", "").c_str(), p.value("kind", "").c_str(), p.value("km2", 0.0));
+      ImGui::TreePop();
+    }
+    if (ImGui::TreeNode("Sites")) {
+      const nlohmann::json sites = f.value("sites", nlohmann::json::array());
+      for (const auto &st2 : sites)
+        ImGui::Text("%-18s %-8s %s", st2.value("name", "").c_str(), st2.value("kind", "").c_str(),
+                    st2.value("planner", st2.value("pipeline", "")).c_str());
+      ImGui::TreePop();
+    }
+    if (ImGui::TreeNode("Links")) {
+      for (const auto &l : f.value("links", nlohmann::json::array()))
+        ImGui::Text("%s - %s (%s)", l.value("from", "").c_str(), l.value("to", "").c_str(), l.value("kind", "road").c_str());
+      ImGui::TreePop();
+    }
+  }
+}
+
+// A pipeline's compose options, starting from its draw block's defaults.
+pipeline::ComposeOptions &compose_options(UiState &st, const pipeline::Definition &def) {
+  auto it = st.compose.find(def.name);
+  if (it == st.compose.end()) it = st.compose.emplace(def.name, pipeline::ComposeOptions::defaults(def)).first;
+  return it->second;
 }
 
 // What the viewer composes round a pipeline's model (draw.nature, draw.surround, draw.figures): each
@@ -922,8 +1059,8 @@ void draw_live(Services &sv) {
 void draw_composed(Services &sv, UiState &st) {
   const pipeline::Definition def = sv.live->definition();
   if (!pipeline::composes(def)) return;
-  pipeline::ComposeOptions &o = st.compose[def.name];
-  ImGui::SeparatorText("Around it");
+  pipeline::ComposeOptions &o = compose_options(st, def);
+  begin_panel("view", "Only the view", "built round the model to look at it; never in its output", kViewTint, kViewText);
   if (!def.nature.empty()) {
     ImGui::Checkbox("plotter fill", &o.nature);
     ImGui::SetItemTooltip("A plotter grows the model's open land (draw.nature).");
@@ -947,6 +1084,9 @@ void draw_composed(Services &sv, UiState &st) {
       const nlohmann::json base = def.surround.value("params", nlohmann::json::object());
       const std::string hull = d.terrain.value("hull", "");
       ImGui::Indent();
+      std::string from;
+      for (const auto &n : shared) from += (from.empty() ? "" : ", ") + n.get<std::string>();
+      if (!from.empty()) ImGui::TextDisabled("takes %s from the systems' settings", from.c_str());
       for (const auto &p : d.params) {
         if (p.name == "seed" || p.name == hull || p.type == "time" || p.type == "event") continue;
         if (std::find(shared.begin(), shared.end(), p.name) != shared.end()) continue;
@@ -994,6 +1134,7 @@ void draw_composed(Services &sv, UiState &st) {
     for (const char *k : {"surround_error", "nature_error", "figures_error"})
       if (r.contains(k)) ImGui::TextColored({0.95f, 0.45f, 0.4f, 1}, "%s", r[k].get<std::string>().c_str());
   }
+  end_panel();
 }
 
 // One field of a config entry, edited with a widget chosen from its schema type.
@@ -1713,7 +1854,7 @@ void draw_plotter_performance(Services &sv, UiState::PlotUi &u, const std::strin
 }
 
 // A planner: its plan for a seed, a plot count, and a tier; what the view shows; its rules (the
-// config's fields, from the plan_v1_config schema, tried in the view and saved on request); and the
+// config's fields, from the plan_config schema, tried in the view and saved on request); and the
 // plan's report (design/planner.md, "In the foundry").
 void draw_planner(Services &sv, UiState &st, const workspace::Item &item) {
   auto &u = st.plan_ui;
@@ -1765,7 +1906,7 @@ void draw_planner(Services &sv, UiState &st, const workspace::Item &item) {
   if (ImGui::Checkbox("walls, fences, gates", &show_lines)) apply({{"lines", show_lines}});
   ImGui::SetItemTooltip("The plan's lines laid by the fill's line system and filled with walls, fences, and gates; off, walls and gates are only their tiles.");
   ImGui::SameLine();
-  static std::string nature_pick = "happy_glen_v1";
+  static std::string nature_pick = "happy_glen";
   if (!s.nature.empty()) nature_pick = s.nature;
   if (ImGui::Checkbox("nature", &nature)) apply({{"nature", nature ? nature_pick : std::string()}});
   ImGui::SetItemTooltip("A plotter grows the plan's open land and an apron round it: what the plan leaves unreserved.");
@@ -1866,7 +2007,7 @@ void draw_planner(Services &sv, UiState &st, const workspace::Item &item) {
 
   // The rules: every field of the config, from the channel's schema.
   if (ImGui::CollapsingHeader("Rules (the scenario's config)", ImGuiTreeNodeFlags_DefaultOpen)) {
-    static nlohmann::json schema = core::read_json(sv.paths.root + "/src/channels/plan_v1_config.json");
+    static nlohmann::json schema = core::read_json(sv.paths.root + "/src/channels/plan_config.json");
     for (const auto &f : schema.value("fields", nlohmann::json::array())) {
       const std::string name = f["name"], type = f["type"];
       if (name.rfind("lot_", 0) == 0 || name == "scenario") continue;
@@ -2260,6 +2401,8 @@ void draw_details(Services &sv, UiState &st, const workspace::Item &item) {
                 d.value("height", 0.0f));
   } else if (item.kind == "plotter") {
     draw_plotter(sv, st, item);
+  } else if (item.kind == "map") {
+    draw_map(sv, st, item);
   } else if (item.kind == "planner") {
     draw_planner(sv, st, item);
   } else if (item.kind == "observatory") {
@@ -3077,6 +3220,16 @@ void set_unlimited(SDL_GPUDevice *device, SDL_Window *window, bool on) {
   SDL_SetGPUSwapchainParameters(device, window, SDL_GPU_SWAPCHAINCOMPOSITION_SDR, mode);
 }
 
+map::Live &live_map() {
+  static map::Live live;
+  return live;
+}
+
+void stop_live_map(SDL_GPUDevice *device, SDL_Window *window) {
+  live_map().stop();
+  set_unlimited(device, window, false);
+}
+
 void stop_live_plot(SDL_GPUDevice *device, SDL_Window *window) {
   live_plot().stop();
   set_unlimited(device, window, false);
@@ -3121,6 +3274,346 @@ void draw_lines_over(const std::vector<viewport::Line> &lines, const float eye[3
     dl->AddLine(pa, pb, ImGui::GetColorU32(ImVec4(l.r, l.g, l.bl, l.alpha)), 1.5f);
   }
   dl->PopClipRect();
+}
+
+// A map in the native runtime (design/map.md): the far land and boundary for the whole map, and the
+// chunks, nature, towns, and points of interest streamed round the camera (or the walker).
+std::string video_stamp() {
+  const std::time_t t = std::time(nullptr);
+  char buf[32];
+  std::strftime(buf, sizeof buf, "%Y%m%dT%H%M%SZ", std::gmtime(&t));
+  return buf;
+}
+
+// Ends a map recording (a tour or the view's): the file finished, the agent's status set.
+void finish_map_recording(Services &sv, MapRecording &rec, const std::string &error) {
+  const int frames = rec.recorder.close();
+  const double wall = std::chrono::duration<double>(std::chrono::steady_clock::now() - rec.started).count();
+  if (rec.touring) {
+    map::View::VideoStatus status = sv.map->video_status();
+    status.running = false;
+    status.done = true;
+    status.frames = frames;
+    status.waited = rec.waited;
+    status.wall_s = wall;
+    status.error = error;
+    sv.map->set_video_status(status);
+  }
+  core::log().add("map", "video: " + std::to_string(frames) + " frames in " + std::to_string(static_cast<int>(wall)) + " s into " +
+                             rec.recorder.path() + (error.empty() ? "" : " (" + error + ")"));
+  rec.touring = false;
+}
+
+// From walking to flying: the camera where the walker's eyes are, looking the same way.
+void map_fly_from_play(UiState &st) {
+  float eye[3], target[3];
+  st.play.eye_target(eye, target);
+  std::memcpy(st.fly_eye, eye, sizeof eye);
+  st.fly_yaw = st.play.heading();
+  st.fly_pitch = st.play.pitch();
+  st.fly = true;
+  st.play.stop();
+}
+
+void draw_live_map(Services &sv, UiState &st, SDL_GPUDevice *device, SDL_Window *window) {
+  map::Live &live = live_map();
+  const std::string name = st.selected.substr(4);
+  std::string err;
+  if (sv.map->name() != name && !sv.map->show(name, err)) {
+    ImGui::TextColored({0.95f, 0.45f, 0.4f, 1}, "%s", err.c_str());
+    return;
+  }
+  const nlohmann::json file = sv.map->file();
+  const std::string key = name + "|" + file.dump();
+  ImGui::SameLine();
+  const bool restart = live.running() && ImGui::SmallButton("Rebuild");
+  if (!live.running() || live.key() != key || restart) {
+    map::PlanRun r = sv.map->plan(false);
+    if (!r.ok) {
+      ImGui::TextColored({0.95f, 0.45f, 0.4f, 1}, "%s", r.error.c_str());
+      return;
+    }
+    const auto towns = sv.map->settlements();
+    if (!live.start(device, file, r.plan, map::far_spec(sv.paths, file, r.plan, "summer", 1.5f), towns, err)) {
+      ImGui::TextColored({0.95f, 0.45f, 0.4f, 1}, "%s", err.c_str());
+      return;
+    }
+    live.set_key(key);
+    set_unlimited(device, window, true);
+    if (!st.fly) {  // start over the first site, or the middle
+      const auto &places = r.plan.value("places", nlohmann::json::array());
+      const float x = places.empty() ? 0.0f : places[0]["position"][0].get<float>(), z = places.empty() ? 0.0f : places[0]["position"][2].get<float>();
+      st.fly = true;
+      st.fly_eye[0] = x + 120;
+      st.fly_eye[2] = z + 160;
+      st.fly_eye[1] = live.ground_at(st.fly_eye[0], st.fly_eye[2]) + 70;
+      st.fly_yaw = std::atan2(x - st.fly_eye[0], -(z - st.fly_eye[2]));
+      st.fly_pitch = -0.32f;
+    }
+    core::log().add("map", name + ": live in the native runtime (" + std::to_string(live.stats().chunks_total) + " chunks)");
+  }
+  map::View::Look look;
+  if (sv.map->take_look(look)) {
+    st.play.stop();
+    st.fly = true;
+    std::memcpy(st.fly_eye, look.eye, sizeof st.fly_eye);
+    st.fly_eye[1] = live.ground_at(look.eye[0], look.eye[2]) + look.eye[1];
+    st.fly_yaw = look.heading;
+    st.fly_pitch = look.pitch;
+    if (look.play) st.map_play_pending = true;
+    if (look.probe) sv.map->probe = live.walker().probe(look.eye[0], look.eye[2]);
+    if (live.grass != look.grass) {
+      live.grass = look.grass;
+      live.set_key("");  // rebuild with or without grass
+    }
+  }
+  live.set_look(viewport::look());
+  st.pad_owned = true;
+  ImGuiIO &io = ImGui::GetIO();
+  const float dt = std::clamp(io.DeltaTime, 0.0f, 0.1f);
+  MapRecording &rec = st.map_rec;
+  // A video asked for (map_video): its tour, from the live view's ground.
+  {
+    map::View::Video v;
+    if (sv.map->take_video(v)) {
+      if (rec.recorder.recording()) finish_map_recording(sv, rec, "replaced by another video");
+      map::View::VideoStatus status;
+      std::string terr;
+      const map::PlanRun pr = sv.map->plan(false);
+      auto ground = [&live](float x, float z) { return live.ground_at(x, z); };
+      bool ok = pr.ok;
+      if (!ok) terr = pr.error;
+      else if (v.mode == "road") ok = rec.tour.road(pr.plan, v.link, v.tour, ground, terr);
+      else if (v.mode == "keys") ok = rec.tour.keys(v.keys, ground, terr);
+      else ok = rec.tour.sites(pr.plan, v.sites, v.tour, ground, terr);
+      const std::string path = sv.map->paths().workspace + "/qa/videos/map-" + name + "-" + v.mode + "-" + video_stamp() + ".mp4";
+      if (ok) ok = rec.recorder.open(device, path, v.width, v.height, v.fps, terr);
+      if (!ok) {
+        status.done = true;
+        status.error = terr;
+        sv.map->set_video_status(status);
+      } else {
+        st.play.stop();
+        st.map_play_pending = false;
+        st.fly = true;
+        rec.touring = true;
+        rec.request = v;
+        rec.frame = 0;
+        rec.total = static_cast<int>(std::ceil(rec.tour.seconds() * v.fps)) + 1;
+        rec.waited = 0;
+        rec.fresh = true;
+        rec.started = std::chrono::steady_clock::now();
+        rec.frame_started = rec.started;
+        if (live.grass != v.grass) live.grass = v.grass;
+        live.reach = v.reach;
+        status.running = true;
+        status.path = path;
+        status.total = rec.total;
+        status.seconds = rec.tour.seconds();
+        sv.map->set_video_status(status);
+        core::log().add("map", name + ": recording a " + v.mode + " tour, " + std::to_string(rec.total) + " frames, into " + path);
+      }
+    }
+    if (sv.map->take_cancel() && rec.recorder.recording()) finish_map_recording(sv, rec, "");
+    if (!rec.touring) live.reach = 1;
+  }
+  // F: fly from where the walker stands, or walk from where the camera looks down.
+  if (!rec.touring && !io.WantTextInput && (st.view_hovered || st.play.on()) && ImGui::IsKeyPressed(ImGuiKey_F, false)) {
+    if (st.play.on()) map_fly_from_play(st);
+    else st.play_request = true;
+  }
+  if (st.play_request) st.map_play_pending = true;
+  st.play_request = false;
+  if (st.map_play_pending) {  // stand where the camera looks down, once the ground there is built
+    physics::Walker &w = live.walker();
+    float feet[3] = {0, 0, 0};
+    if (w.find_spawn(st.fly_eye[0], st.fly_eye[2], 8, false, feet, true)) {
+      st.play.start(&w, feet, st.fly_yaw);
+      st.fly = false;
+      st.map_play_pending = false;
+    }
+  }
+  st.play.update(dt, st.view_hovered, st.pad);
+  float feet[3] = {0, 0, 0};
+  if (st.play.on()) {
+    float t[3];
+    st.play.eye_target(feet, t);
+    feet[1] -= physics::Walker::kEye;
+  }
+  {
+    viewport::SkyScene sky_scene;
+    const float centre[3] = {st.play.on() ? feet[0] : st.fly_eye[0], 0, st.play.on() ? feet[2] : st.fly_eye[2]};
+    if (sky::observatories().scene_for(st.selected, sky_scene)) live.set_sky(sky_scene.observatory, sky_scene.state, centre, st.play.on() ? 40.0f : 120.0f);
+    else live.set_sky(nullptr, sky::State(), centre, 0);
+  }
+  const map::LiveStats ls = live.stats();
+  ImGui::Text("%.0f fps   update %.2f ms   prepare %.2f ms   gpu %.1f ms   %llu of %llu drawn   %.1f M triangles   %llu grass tiles   "
+              "%u of %u chunks (%u filled)   %u sites (%u pieces)   %u plants%s%s",
+              ls.fps, ls.update_ms, ls.prepare_ms, st.map_gpu_ms, (unsigned long long)ls.drawn, (unsigned long long)ls.instances, ls.triangles / 1e6,
+              (unsigned long long)ls.field_tiles, ls.chunks,
+              ls.chunks_total, ls.chunks_filled, ls.sites, ls.pieces, ls.nature, ls.builds_pending ? "   building..." : "",
+              st.map_play_pending ? "   waiting for the ground to stand on..." : "");
+  // The camera's row: walk or fly, their speeds, grass, and recording.
+  if (rec.touring) {
+    ImGui::TextColored({1.0f, 0.45f, 0.4f, 1}, "Recording a %s tour: frame %d of %d (%.0f%%)%s", rec.request.mode.c_str(), rec.frame, rec.total,
+                       100.0 * rec.frame / std::max(1, rec.total), live.settled() ? "" : "   waiting for the ground...");
+    ImGui::SameLine();
+    if (ImGui::SmallButton("Stop")) finish_map_recording(sv, rec, "");
+  } else {
+    if (st.play.on()) {
+      if (ImGui::Button("Fly (F)")) map_fly_from_play(st);
+      ImGui::SameLine();
+      if (ImGui::Button("Stop playing")) st.play.stop();
+      ImGui::SameLine();
+      ImGui::SetNextItemWidth(110);
+      ImGui::SliderFloat("walk speed", &st.play.speed, 0.25f, 16.0f, "x%.2f", ImGuiSliderFlags_Logarithmic);
+      ImGui::SetItemTooltip("Times the walking and running speeds (4 and 8 m/s); + and - change it.");
+    } else {
+      if (ImGui::Button("Walk here (F)")) st.play_request = true;
+      ImGui::SetItemTooltip("Walk the map as the hero's capsule, from the ground under the camera: %s", st.play.help());
+      ImGui::SameLine();
+      ImGui::SetNextItemWidth(110);
+      ImGui::SliderFloat("fly speed", &st.map_fly_speed, 2.0f, 1000.0f, "%.0f m/s", ImGuiSliderFlags_Logarithmic);
+      ImGui::SetItemTooltip("How fast the camera flies; the wheel with the right button held changes it, Shift is six times faster.");
+    }
+    ImGui::SameLine();
+    ImGui::Checkbox("grass", &live.grass);
+    ImGui::SameLine();
+    if (!rec.recorder.recording()) {
+      if (ImGui::SmallButton("Record")) rec.manual_start = true;
+      ImGui::SetItemTooltip("Record what the view shows into qa/videos/ (H.264 MP4) until you stop.");
+    } else {
+      if (ImGui::SmallButton("Stop recording")) finish_map_recording(sv, rec, "");
+      ImGui::SameLine();
+      ImGui::TextColored({1.0f, 0.45f, 0.4f, 1}, "recording %.1f s", rec.frame / static_cast<double>(rec.recorder.fps()));
+    }
+  }
+  if (!st.play.on() && !rec.touring)
+    ImGui::TextDisabled("Fly: WASD, Space and C (or E and Q) up and down, Shift faster; hold the right button to look, wheel with it held for speed. "
+                        "F walks from where the camera looks down.");
+  else if (st.play.on())
+    ImGui::TextDisabled("%s F flies from here.", st.play.help());
+  const ImVec2 avail = ImGui::GetContentRegionAvail();
+  int w = std::max(64, static_cast<int>(avail.x)), h = std::max(64, static_cast<int>(avail.y));
+  if (rec.manual_start) {  // the video takes the view's size now
+    rec.manual_start = false;
+    std::string rerr;
+    const std::string path = sv.map->paths().workspace + "/qa/videos/map-" + name + "-flight-" + video_stamp() + ".mp4";
+    if (rec.recorder.open(device, path, w, h, 30, rerr)) {
+      rec.frame = 0;
+      rec.carry = 0;
+      rec.started = std::chrono::steady_clock::now();
+      core::log().add("map", name + ": recording the view into " + path);
+    } else {
+      core::log().add("map", name + ": couldn't record: " + rerr);
+    }
+  }
+  if (rec.recorder.recording()) {  // the video's size, whatever the view's
+    w = rec.recorder.width();
+    h = rec.recorder.height();
+  }
+  float eye[3], target[3];
+  double sim_dt = std::clamp(static_cast<double>(io.DeltaTime), 0.0, 0.1);
+  if (rec.touring) {
+    const map::Pose p = rec.tour.at(rec.frame / static_cast<double>(rec.request.fps));
+    std::memcpy(eye, p.eye, sizeof eye);
+    target[0] = eye[0] + std::sin(p.heading) * std::cos(p.pitch);
+    target[1] = eye[1] + std::sin(p.pitch);
+    target[2] = eye[2] - std::cos(p.heading) * std::cos(p.pitch);
+    std::memcpy(st.fly_eye, eye, sizeof eye);
+    st.fly_yaw = p.heading;
+    st.fly_pitch = p.pitch;
+    // The runtime steps one video frame per kept frame; while it waits for the ground, it holds still.
+    sim_dt = rec.fresh ? 1.0 / rec.request.fps : 0.0;
+  } else if (st.play.on()) {
+    st.play.eye_target(eye, target);
+  } else {
+    std::memcpy(eye, st.fly_eye, sizeof eye);
+    target[0] = eye[0] + std::sin(st.fly_yaw) * std::cos(st.fly_pitch);
+    target[1] = eye[1] + std::sin(st.fly_pitch);
+    target[2] = eye[2] - std::cos(st.fly_yaw) * std::cos(st.fly_pitch);
+  }
+  const float focus[3] = {st.play.on() ? feet[0] : eye[0], 0, st.play.on() ? feet[2] : eye[2]};
+  SDL_GPUCommandBuffer *cmd = SDL_AcquireGPUCommandBuffer(device);
+  SDL_GPUTexture *tex = live.frame(cmd, w, h, eye, target, focus, sim_dt);
+  static int sampled = 0;
+  if (!rec.recorder.recording() && ++sampled % 30 == 0) {  // now and then, the GPU's time for the frame: submitted with a fence, waited on
+    const auto g0 = std::chrono::steady_clock::now();
+    SDL_GPUFence *fence = SDL_SubmitGPUCommandBufferAndAcquireFence(cmd);
+    if (fence) {
+      SDL_WaitForGPUFences(device, true, &fence, 1);
+      SDL_ReleaseGPUFence(device, fence);
+      st.map_gpu_ms = std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - g0).count();
+    }
+  } else {
+    SDL_SubmitGPUCommandBuffer(cmd);
+  }
+  if (!tex) return;
+  if (rec.touring) {
+    rec.fresh = false;
+    const auto now = std::chrono::steady_clock::now();
+    const bool settled = live.settled();
+    const bool overdue = std::chrono::duration<double>(now - rec.frame_started).count() > rec.request.max_wait_s;
+    if (settled || overdue) {
+      if (!settled) ++rec.waited;
+      rec.recorder.add(tex);
+      ++rec.frame;
+      rec.fresh = true;
+      rec.frame_started = now;
+      map::View::VideoStatus status = sv.map->video_status();
+      status.running = true;
+      status.frames = rec.frame;
+      status.waited = rec.waited;
+      status.wall_s = std::chrono::duration<double>(now - rec.started).count();
+      sv.map->set_video_status(status);
+      if (rec.frame >= rec.total) finish_map_recording(sv, rec, "");
+    }
+  } else if (rec.recorder.recording()) {  // what the view shows, at 30 frames a second of real time
+    rec.carry += io.DeltaTime;
+    for (int k = 0; k < 4 && rec.carry >= 1.0 / 30.0; ++k) {
+      rec.recorder.add(tex);
+      ++rec.frame;
+      rec.carry -= 1.0 / 30.0;
+    }
+    rec.carry = std::min(rec.carry, 1.0 / 30.0);
+  }
+  // Shown whole: a recording's fixed size scaled into the view.
+  float sw = static_cast<float>(w), sh = static_cast<float>(h);
+  if (rec.recorder.recording()) {
+    const float k = std::min(avail.x / sw, avail.y / sh);
+    sw *= k;
+    sh *= k;
+  }
+  ImGui::Image(reinterpret_cast<ImTextureID>(tex), ImVec2(sw, sh));
+  st.view_hovered = ImGui::IsItemHovered();
+  if (st.play.on() || rec.touring) return;
+  // Flying: the keys while the view is hovered (or the right button looks), the right button to look.
+  const bool looking = ImGui::IsMouseDown(ImGuiMouseButton_Right);
+  if (!ImGui::IsItemHovered() && !looking) return;
+  if (looking) {
+    st.fly_yaw += io.MouseDelta.x * 0.004f;
+    st.fly_pitch = std::clamp(st.fly_pitch - io.MouseDelta.y * 0.004f, -1.5f, 1.5f);
+  }
+  const float speed = st.map_fly_speed * (io.KeyShift ? 6.0f : 1.0f) * io.DeltaTime;
+  const float fwd[3] = {std::sin(st.fly_yaw) * std::cos(st.fly_pitch), std::sin(st.fly_pitch), -std::cos(st.fly_yaw) * std::cos(st.fly_pitch)};
+  const float right[3] = {std::cos(st.fly_yaw), 0, std::sin(st.fly_yaw)};
+  auto move = [&](const float *d, float k) {
+    for (int i = 0; i < 3; ++i) st.fly_eye[i] += d[i] * k;
+  };
+  if (!io.WantTextInput) {
+    if (ImGui::IsKeyDown(ImGuiKey_W)) move(fwd, speed);
+    if (ImGui::IsKeyDown(ImGuiKey_S)) move(fwd, -speed);
+    if (ImGui::IsKeyDown(ImGuiKey_D)) move(right, speed);
+    if (ImGui::IsKeyDown(ImGuiKey_A)) move(right, -speed);
+    if (ImGui::IsKeyDown(ImGuiKey_Space) || ImGui::IsKeyDown(ImGuiKey_E)) st.fly_eye[1] += speed;
+    if (ImGui::IsKeyDown(ImGuiKey_C) || ImGui::IsKeyDown(ImGuiKey_Q)) st.fly_eye[1] -= speed;
+  }
+  if (io.MouseWheel != 0) {
+    if (looking) st.map_fly_speed = std::clamp(st.map_fly_speed * std::pow(1.2f, io.MouseWheel), 2.0f, 1000.0f);
+    else move(fwd, io.MouseWheel * std::max(5.0f, st.map_fly_speed * 0.5f));
+  }
+  // Never under the ground.
+  st.fly_eye[1] = std::max(st.fly_eye[1], live.ground_at(st.fly_eye[0], st.fly_eye[2]) + 0.5f);
 }
 
 void draw_live_plot(Services &sv, UiState &st, SDL_GPUDevice *device, SDL_Window *window) {
@@ -3201,7 +3694,7 @@ void draw_live_plot(Services &sv, UiState &st, SDL_GPUDevice *device, SDL_Window
     viewport::SkyScene sky_scene;
     const float centre[3] = {st.play.on() ? feet[0] : st.camera.pan[0], 0, st.play.on() ? feet[2] : st.camera.pan[2]};
     if (sky::observatories().scene_for(st.selected, sky_scene)) {
-      const float dist = live.extent() * 1.7f / std::max(st.camera.zoom, 0.05f);
+      const float dist = live.extent() * 1.7f / std::max(st.camera.zoom, 0.01f);
       live.set_sky(sky_scene.observatory, sky_scene.state, centre,
                    st.play.on() ? 40.0f : st.fly ? 0.0f : std::clamp(std::min(live.extent() * 1.1f, dist * 1.2f), 20.0f, 220.0f));
     } else {
@@ -3224,7 +3717,7 @@ void draw_live_plot(Services &sv, UiState &st, SDL_GPUDevice *device, SDL_Window
   const int w = std::max(64, static_cast<int>(avail.x)), h = std::max(64, static_cast<int>(avail.y));
   // The camera: an orbit about the region's middle, or flying.
   const float yaw = st.camera.yaw, pitch = std::clamp(st.camera.pitch, 0.05f, 1.4f);
-  const float dist = live.extent() * 1.7f / std::max(st.camera.zoom, 0.05f);
+  const float dist = live.extent() * 1.7f / std::max(st.camera.zoom, 0.01f);
   float target[3] = {st.camera.pan[0], 2 + st.camera.pan[1], st.camera.pan[2]};
   float eye[3] = {target[0] + dist * std::sin(yaw) * std::cos(pitch), target[1] + dist * std::sin(pitch),
                   target[2] + dist * std::cos(yaw) * std::cos(pitch)};
@@ -3279,7 +3772,7 @@ void draw_live_plot(Services &sv, UiState &st, SDL_GPUDevice *device, SDL_Window
     st.camera.yaw -= io.MouseDelta.x * 0.01f;
     st.camera.pitch = std::clamp(st.camera.pitch + io.MouseDelta.y * 0.01f, 0.05f, 1.4f);
   }
-  if (io.MouseWheel != 0 && !st.fly) st.camera.zoom = std::clamp(st.camera.zoom * std::pow(1.1f, io.MouseWheel), 0.05f, 30.0f);
+  if (io.MouseWheel != 0 && !st.fly) st.camera.zoom = std::clamp(st.camera.zoom * std::pow(1.1f, io.MouseWheel), 0.01f, 60.0f);
 }
 
 }  // namespace
@@ -3395,6 +3888,20 @@ int run_ui(Services &sv) {
     // A pipeline or config entry shows the live instance: pose it for this moment.
     if (update_fracture_view(sv, st)) {
       // a fracture preview or break
+    } else if (is_map(st.selected)) {
+      // A map shows its atlas: the plan from above (design/map.md).
+      std::string err;
+      if (sv.map->name() != st.selected.substr(4)) sv.map->show(st.selected.substr(4), err);
+      map::Picture pic = sv.map->picture();
+      if (pic.atlas) {
+        const std::string key = "|map" + std::to_string(pic.version);
+        if (key != st.live_key) {
+          st.live_key = key;
+          st.content = assets::ViewContent();
+          st.content.label = st.selected;
+          st.content.image = pic.atlas;
+        }
+      }
     } else if (is_plan(st.selected)) {
       // A planner shows its plan: the latest composed picture.
       std::string err;
@@ -3447,7 +3954,7 @@ int run_ui(Services &sv) {
         const pipeline::Definition def = sv.live->definition();
         if (pipeline::composes(def)) {
           if (!st.composer) st.composer = std::make_unique<pipeline::Composer>(sv.live->runner());
-          st.composer->want(def, f, sv.live->values(), st.compose[def.name]);
+          st.composer->want(def, f, sv.live->values(), compose_options(st, def));
           comp = st.composer->latest();
           composing = comp.mesh != nullptr;
           reach = f.facts.value("radius", 0.0f);
@@ -3590,9 +4097,28 @@ int run_ui(Services &sv) {
       ImGui::SameLine();
       draw_sky_controls(st);
     }
-    if (is_plot(st.selected) && st.plot_live) {
+    if (is_map(st.selected)) {
+      ImGui::Checkbox("Live (native runtime)", &st.map_live);
+      if (ImGui::IsItemHovered())
+        ImGui::SetTooltip("The map run by the native runtime a game links: the far land and boundary, and the chunks,\n"
+                          "nature, towns, and points of interest streamed round the camera. Off: the atlas.");
+      ImGui::SameLine();
+      draw_sky_controls(st);
+    }
+    {
+      map::View::Look peek;
+      if (is_map(st.selected) && !st.map_live && sv.map->take_look(peek)) {  // map_look shows it live
+        st.map_live = true;
+        sv.map->request_look(peek);
+      }
+      if (is_map(st.selected) && !st.map_live && sv.map->video_wanted()) st.map_live = true;  // and so does map_video
+    }
+    if (is_map(st.selected) && st.map_live) {
+      draw_live_map(sv, st, device, window);
+    } else if (is_plot(st.selected) && st.plot_live) {
       draw_live_plot(sv, st, device, window);
     } else {
+    if (live_map().running()) stop_live_map(device, window);
     if (live_plot().running()) stop_live_plot(device, window);
     if (is_obs(st.selected)) {
       if (ImGui::RadioButton("Orbit the sundial", !st.sky_look)) st.sky_look = false;
@@ -3704,7 +4230,7 @@ int run_ui(Services &sv) {
           }
           if (io.MouseWheel != 0 && !(is_obs(st.selected) && st.sky_look)) {
             if (st.camera.distance > 0) st.camera.distance = std::max(0.2f, st.camera.distance / std::pow(1.1f, io.MouseWheel));
-            else st.camera.zoom = std::clamp(st.camera.zoom * std::pow(1.1f, io.MouseWheel), 0.2f, 8.0f);
+            else st.camera.zoom = std::clamp(st.camera.zoom * std::pow(1.1f, io.MouseWheel), 0.02f, 60.0f);
           }
         }
       }
@@ -3712,6 +4238,7 @@ int run_ui(Services &sv) {
     }  // static or live
     }  // the view tab
     if (!is_plot(st.selected) && live_plot().running()) stop_live_plot(device, window);
+    if (!is_map(st.selected) && live_map().running()) stop_live_map(device, window);
     ImGui::End();
 
     ImGui::SetNextWindowPos({vp->WorkPos.x, vp->WorkPos.y + H - bottom});

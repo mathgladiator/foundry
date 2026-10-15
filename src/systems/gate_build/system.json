@@ -1,0 +1,11 @@
+{
+  "name": "gate_build",
+  "version": 1,
+  "kind": "system",
+  "doc": "Builds a gate in a wall (design/planner.md, Gates) from its type (a config entry: a gate between piers, an arch through a raised section, a gatehouse with two towers and a portcullis, a tower gate, or a postern; doors, roof, banners, torches) and the wall's own kind (its height, thickness, batter, material, colours, crown, and towers, so it matches the wall it stands in), across an opening of a given width on the wall's line: its piers or towers stand over the wall's ends, its doors swing open by door_time (house_bone), its banners sway and torches flicker; collision for what stands, the passage a sensor named gateway, the passage's width and height, and guides showing the wall's line.",
+  "input": "gate_spec",
+  "output": "gate_model",
+  "state": "draft",
+  "notes": [],
+  "created_at": "2026-10-13T23:30:00Z"
+}

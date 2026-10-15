@@ -1,9 +1,0 @@
-{
-  "channel": "terrain_v1_flat",
-  "doc": "Flats (design/terrain.md): cells kept level enough for a settlement planner, with a tolerance.",
-  "label": "flat",
-  "editor": {
-    "groups": [],
-    "colors": []
-  }
-}

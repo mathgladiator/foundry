@@ -45,7 +45,7 @@ typedef struct stress_param {
 } stress_param;
 
 typedef struct stress_pipeline {
-  const char *name;  /* e.g. tree_v1 */
+  const char *name;  /* e.g. tree */
   const char *state; /* draft or final */
   const stress_param *params;
   uint32_t param_count;

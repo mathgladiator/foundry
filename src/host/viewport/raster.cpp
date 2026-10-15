@@ -333,7 +333,7 @@ Framing frame(const Scene &scene, int W, int H) {
   pr.radius = radius;
   pr.cx = W * 0.5f;
   pr.cy = H * 0.5f;
-  const float zoom = std::max(scene.camera.zoom, 0.05f);
+  const float zoom = std::max(scene.camera.zoom, 0.01f);
   vec3 dir, up{0, 1, 0};
   switch (scene.camera.view) {
     case View::Front: dir = {0, 0, 1}; break;

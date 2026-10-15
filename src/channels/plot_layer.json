@@ -1,0 +1,92 @@
+{
+  "family": "plot",
+  "version": 1,
+  "feature": "layer",
+  "doc": "One layer of a scatter plot (design/plotter.md, Plotters): kinds placed together under one spacing rule, resolved in order.",
+  "fields": [
+    {
+      "name": "name",
+      "type": "string",
+      "doc": "The layer's name, e.g. canopy."
+    },
+    {
+      "name": "spacing_m",
+      "type": "f32",
+      "doc": "Minimum distance between this layer's things, centre to centre, metres.",
+      "min": 0.05,
+      "max": 100
+    },
+    {
+      "name": "density",
+      "type": "f32",
+      "doc": "Target things per 100 cells (about 260 square metres), before fields scale it. At most about 260 / (pi spacing^2) per 100 cells fit.",
+      "min": 0,
+      "max": 10000
+    },
+    {
+      "name": "grove_low",
+      "type": "f32",
+      "doc": "Density multiplier where the grove field is lowest (clearings).",
+      "min": 0,
+      "max": 10
+    },
+    {
+      "name": "grove_high",
+      "type": "f32",
+      "doc": "Density multiplier where the grove field is highest (groves).",
+      "min": 0,
+      "max": 10
+    },
+    {
+      "name": "edge_low",
+      "type": "f32",
+      "doc": "Density multiplier on the region's border cells, easing to 1 at edge_cells in.",
+      "min": 0,
+      "max": 10
+    },
+    {
+      "name": "edge_cells",
+      "type": "u32",
+      "doc": "How many cells in from the border the edge effect reaches (0: none).",
+      "min": 0,
+      "max": 64
+    },
+    {
+      "name": "ground",
+      "type": "u32",
+      "doc": "Bits of the grounds this layer accepts (bit n: ground n: soil, water, rock, sand, path)."
+    },
+    {
+      "name": "max_height_delta_m",
+      "type": "f32",
+      "doc": "The most the ground heights under a footprint may differ, metres: placements look for smoothish ground.",
+      "min": 0,
+      "max": 100
+    },
+    {
+      "name": "keep_clear",
+      "type": "plot_clearance[]",
+      "doc": "Distances from earlier layers' things."
+    },
+    {
+      "name": "prefer_near",
+      "type": "plot_preference[]",
+      "doc": "Where this layer gathers, near earlier layers' things."
+    },
+    {
+      "name": "regrows",
+      "type": "bool",
+      "doc": "Whether a regrow-mode grow fills this layer again."
+    },
+    {
+      "name": "kinds",
+      "type": "plot_kind[]",
+      "doc": "The kinds a seed-mode grow places."
+    },
+    {
+      "name": "regrow_kinds",
+      "type": "plot_kind[]",
+      "doc": "The kinds a regrow-mode grow places (empty: the same as kinds)."
+    }
+  ]
+}

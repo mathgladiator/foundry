@@ -1,0 +1,128 @@
+{
+  "family": "map",
+  "version": 1,
+  "feature": "plan",
+  "doc": "map_plan's output (design/map.md): the macro grid (each node's height, parcel, and water), the network routed and graded, the rivers, the sites' places, the chunks, the boundary's hull, and the report.",
+  "fields": [
+    {
+      "name": "gx",
+      "type": "f32",
+      "doc": "The grid's first node: x, metres."
+    },
+    {
+      "name": "gz",
+      "type": "f32",
+      "doc": "z, metres."
+    },
+    {
+      "name": "spacing",
+      "type": "f32",
+      "doc": "Its spacing, metres."
+    },
+    {
+      "name": "nx",
+      "type": "u32",
+      "doc": "Nodes along x."
+    },
+    {
+      "name": "nz",
+      "type": "u32",
+      "doc": "Nodes along z."
+    },
+    {
+      "name": "heights",
+      "type": "f32[]",
+      "doc": "Each node's height, metres."
+    },
+    {
+      "name": "parcel_ids",
+      "type": "u32[]",
+      "doc": "Each node's parcel (65535 outside the map)."
+    },
+    {
+      "name": "water",
+      "type": "f32[]",
+      "doc": "Each node's water level, metres (-1000: dry)."
+    },
+    {
+      "name": "outline",
+      "type": "vec3[]",
+      "doc": "The map's outline, its shape's control points."
+    },
+    {
+      "name": "parcels",
+      "type": "map_parcel[]",
+      "doc": "The parcels (as given)."
+    },
+    {
+      "name": "parcel_cells",
+      "type": "u32[]",
+      "doc": "Each parcel's area, nodes."
+    },
+    {
+      "name": "roads",
+      "type": "map_segment[]",
+      "doc": "Every road's and river's segments."
+    },
+    {
+      "name": "road_of",
+      "type": "u32[]",
+      "doc": "Each segment's link (an index into the links; rivers: 65536 + river)."
+    },
+    {
+      "name": "places",
+      "type": "map_place[]",
+      "doc": "Each site, placed."
+    },
+    {
+      "name": "flats",
+      "type": "map_flat[]",
+      "doc": "The sites' flats."
+    },
+    {
+      "name": "chunk_q",
+      "type": "i32[]",
+      "doc": "Each chunk's first cell: axial q."
+    },
+    {
+      "name": "chunk_r",
+      "type": "i32[]",
+      "doc": "Axial r."
+    },
+    {
+      "name": "chunk_size",
+      "type": "u32",
+      "doc": "A chunk's side, cells."
+    },
+    {
+      "name": "hull",
+      "type": "boundary_hull",
+      "doc": "The ring outside the map for its boundary, with its exits."
+    },
+    {
+      "name": "links_unrouted",
+      "type": "u32",
+      "doc": "Links no path joins (must be 0)."
+    },
+    {
+      "name": "road_m",
+      "type": "f32",
+      "doc": "Road length, metres."
+    },
+    {
+      "name": "bridges",
+      "type": "u32",
+      "doc": "Bridges."
+    },
+    {
+      "name": "steepest_grade",
+      "type": "f32",
+      "doc": "The steepest grade along a link, rise over run."
+    },
+    {
+      "name": "note",
+      "type": "string",
+      "doc": "What fell short, if anything."
+    }
+  ]
+}

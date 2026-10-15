@@ -1,8 +1,0 @@
-{
-  "kind": "channel",
-  "name": "civic_v1_type",
-  "state": "draft",
-  "reason": "Civic buildings as config entries for civic_v1 (approved 2026-10-13): the human wants civic structures (court, bank, church, and the like) as their own system like houses, and a square's centre as a building its road rings.",
-  "notes": [],
-  "created_at": "2026-10-13T23:30:00Z"
-}

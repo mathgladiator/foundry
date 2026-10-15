@@ -48,7 +48,7 @@ class ObjectPairs final : public JPH::ObjectLayerPairFilter {
   bool ShouldCollide(JPH::ObjectLayer, JPH::ObjectLayer) const override { return true; }
 };
 
-bool wait(foundry_runtime *rt, foundry_instance h, bool (*done)(const foundry_tree_v1_result &), bool &listed) {
+bool wait(foundry_runtime *rt, foundry_instance h, bool (*done)(const foundry_tree_result &), bool &listed) {
   listed = false;
   for (int i = 0; i < 4000; ++i) {
     std::this_thread::sleep_for(std::chrono::milliseconds(1));  // builds run on their own thread
@@ -56,8 +56,8 @@ bool wait(foundry_runtime *rt, foundry_instance h, bool (*done)(const foundry_tr
     const foundry_instance *changed = nullptr;
     const uint32_t n = foundry_changed(rt, &changed);
     for (uint32_t k = 0; k < n; ++k) listed = listed || changed[k] == h;
-    foundry_tree_v1_result r;
-    if (foundry_tree_v1_get_result(rt, h, &r) == FOUNDRY_OK && done(r)) return true;
+    foundry_tree_result r;
+    if (foundry_tree_get_result(rt, h, &r) == FOUNDRY_OK && done(r)) return true;
   }
   return false;
 }
@@ -111,16 +111,16 @@ int main() {
     std::printf("FAIL: runtime: %s\n", foundry_last_error());
     return 1;
   }
-  foundry_tree_v1_params p;
-  foundry_tree_v1_default_params(&p);
-  p.species = FOUNDRY_TREE_V1_SPECIES_OAK;
+  foundry_tree_params p;
+  foundry_tree_default_params(&p);
+  p.species = FOUNDRY_TREE_SPECIES_OAK;
   p.wind_speed = 0;
   const float at[16] = {1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 5, 0, 3, 1};
-  foundry_instance tree = foundry_tree_v1_spawn(rt, &p, at);
+  foundry_instance tree = foundry_tree_spawn(rt, &p, at);
 
   CHECK(tree != FOUNDRY_NO_INSTANCE, "the tree spawns");
   bool listed = false;
-  CHECK(wait(rt, tree, [](const foundry_tree_v1_result &r) { return r.ready; }, listed), "the tree's build is ready");
+  CHECK(wait(rt, tree, [](const foundry_tree_result &r) { return r.ready; }, listed), "the tree's build is ready");
   {
     foundry_diag_instance d;
     foundry_diag_instance_get(rt, tree, &d);
@@ -131,16 +131,16 @@ int main() {
   const float trunk_top = body_top(ps);
   CHECK(trunk_top > 2.0f, "the trunk body is metres tall");
 
-  foundry_tree_v1_start_break(rt, tree);
-  foundry_tree_v1_result r;
-  foundry_tree_v1_get_result(rt, tree, &r);
+  foundry_tree_start_break(rt, tree);
+  foundry_tree_result r;
+  foundry_tree_get_result(rt, tree, &r);
   CHECK(!r.break_over, "break_over is false as the fall starts");
-  CHECK(wait(rt, tree, [](const foundry_tree_v1_result &r) { return r.break_over; }, listed), "the fall comes to rest");
+  CHECK(wait(rt, tree, [](const foundry_tree_result &r) { return r.break_over; }, listed), "the fall comes to rest");
   CHECK(listed, "break_over shows in the changed list");
 
   // The game declares it a stump; the rebuild swaps the trunk's body for the stump's.
-  foundry_tree_v1_set_stump(rt, tree, true);
-  CHECK(wait(rt, tree, [](const foundry_tree_v1_result &r) { return r.ready; }, listed), "the stump's build is ready");
+  foundry_tree_set_stump(rt, tree, true);
+  CHECK(wait(rt, tree, [](const foundry_tree_result &r) { return r.ready; }, listed), "the stump's build is ready");
   CHECK(ps.GetNumBodies() == 1, "still one body: the stump");
   const float stump_top = body_top(ps);
   CHECK(stump_top > 0 && stump_top < 1.0f, "the stump's body is under a metre");
